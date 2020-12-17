@@ -1,0 +1,37 @@
+<robot name="obstacles">
+  <!-- links -->
+  <link name="obj1">
+    <visual>
+      <origin xyz="0.7 0.0 0.1" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.4 0.8 0.2" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="0.2 0.5 0.2 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.7 0.0 0.1" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.4 0.8 0.2" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="obj2">
+    <visual>
+      <origin xyz="0.7 0.0 0.6" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.4 0.6 0.2" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="1.0 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.7 0.0 0.6" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.4 0.6 0.2" />
+      </geometry>
+    </collision>
+  </link>
+</robot>

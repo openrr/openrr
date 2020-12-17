@@ -1,0 +1,12 @@
+[workspace]
+
+members = [
+    "arci",
+    "arci-ros",
+    "arci-urdf-viz",
+    "openrr",
+    "openrr-client",
+    "openrr-planner",
+    "openrr-sleep",
+    "openrr-teleop",
+]
