@@ -1,0 +1,16 @@
+[package]
+name = "openrr-teleop"
+version = "0.0.1"
+authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+arci = {version="0.0.1", path="../arci"}
+async-trait = "0.1"
+auto_impl = "0.4.1"
+k = "0.20"
+log = "0.4"
+openrr-client = { version = "0.0.1", path = "../openrr-client"}
+tokio = { version = "0.3", features = ["full"] }

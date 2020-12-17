@@ -1,0 +1,49 @@
+name: arci-ros
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ros1:
+    runs-on: ubuntu-18.04
+    container:
+      image: docker://ros:melodic-ros-base
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          apt-get update
+          apt-get -y install curl
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - run: rustup component add rustfmt
+      - run: rustup component add clippy
+      - name: apt install required ROS messages
+        run: |
+          sudo apt-get -y install \
+            ros-melodic-actionlib-msgs \
+            ros-melodic-control-msgs \
+            ros-melodic-geometry-msgs \
+            ros-melodic-sensor-msgs \
+            ros-melodic-tf2-msgs \
+            ros-melodic-trajectory-msgs \
+            ros-melodic-move-base-msgs \
+
+      - run: |
+          pwd
+          ls
+      - name: cargo everything
+        shell: bash -ieo pipefail {0}
+        working-directory: arci-ros
+        run: |
+          source /opt/ros/melodic/setup.bash
+          cargo fmt --all -- --check -l
+          cargo clippy -- -D warnings
+          cargo test

@@ -1,0 +1,17 @@
+[package]
+name = "arci"
+version = "0.0.1"
+authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1.0"
+auto_impl = "0.4"
+nalgebra = "0.21"
+thiserror = "1.0"
+async-trait = "0.1"
+futures = "0.3"
+
+[dev-dependencies]
+assert_approx_eq = "1.1"
+tokio-test = "*"
