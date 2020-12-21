@@ -26,31 +26,26 @@ pub struct RosNavClient {
     pub clear_costmap_before_start: bool,
     pub frame_id: String,
     action_client: SimpleActionClient,
-    nomotion_update_client: rosrust::Client<std_srvs::Empty>,
-}
-
-impl Default for RosNavClient {
-    fn default() -> Self {
-        Self::new()
-    }
+    nomotion_update_client: Option<rosrust::Client<std_srvs::Empty>>,
 }
 
 impl RosNavClient {
     const AMCL_POSE_TOPIC: &'static str = "/amcl_pose";
     const NO_MOTION_UPDATE_SERVICE: &'static str = "request_nomotion_update";
-    pub fn new() -> Self {
+    pub fn new(request_nomotion_update: bool) -> Self {
         let action_client = SimpleActionClient::new("/move_base", 1, 10.0);
 
         let pose_subscriber = SubscriberHandler::new(Self::AMCL_POSE_TOPIC, 1);
-
-        rosrust::wait_for_service(
-            Self::NO_MOTION_UPDATE_SERVICE,
-            Some(std::time::Duration::from_secs(10)),
-        )
-        .unwrap();
-        let nomotion_update_client =
-            rosrust::client::<std_srvs::Empty>(Self::NO_MOTION_UPDATE_SERVICE).unwrap();
-
+        let nomotion_update_client = if request_nomotion_update {
+            rosrust::wait_for_service(
+                Self::NO_MOTION_UPDATE_SERVICE,
+                Some(std::time::Duration::from_secs(10)),
+            )
+            .unwrap();
+            Some(rosrust::client::<std_srvs::Empty>(Self::NO_MOTION_UPDATE_SERVICE).unwrap())
+        } else {
+            None
+        };
         Self {
             pose_subscriber,
             clear_costmap_before_start: false,
@@ -75,11 +70,10 @@ impl RosNavClient {
         match self.action_client.wait_for_result(goal_id, timeout) {
             Ok(_) => {
                 rosrust::ros_info!("Action succeeds");
-                self.nomotion_update_client
-                    .req(&std_srvs::EmptyReq {})
-                    .unwrap()
-                    .unwrap();
-                rosrust::ros_info!("Called {}", Self::NO_MOTION_UPDATE_SERVICE);
+                if let Some(client) = self.nomotion_update_client.as_ref() {
+                    client.req(&std_srvs::EmptyReq {}).unwrap().unwrap();
+                    rosrust::ros_info!("Called {}", Self::NO_MOTION_UPDATE_SERVICE);
+                }
             }
             Err(e) => {
                 match e {
