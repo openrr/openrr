@@ -32,11 +32,11 @@ pub struct RosNavClient {
 impl RosNavClient {
     const AMCL_POSE_TOPIC: &'static str = "/amcl_pose";
     const NO_MOTION_UPDATE_SERVICE: &'static str = "request_nomotion_update";
-    pub fn new(request_nomotion_update: bool) -> Self {
+    pub fn new(request_final_nomotion_update_hack: bool) -> Self {
         let action_client = SimpleActionClient::new("/move_base", 1, 10.0);
 
         let pose_subscriber = SubscriberHandler::new(Self::AMCL_POSE_TOPIC, 1);
-        let nomotion_update_client = if request_nomotion_update {
+        let nomotion_update_client = if request_final_nomotion_update_hack {
             rosrust::wait_for_service(
                 Self::NO_MOTION_UPDATE_SERVICE,
                 Some(std::time::Duration::from_secs(10)),
