@@ -8,12 +8,12 @@ use log::debug;
 ///
 /// It does not change TrajectoryPoint velocities.
 /// The duration for a TrajectoryPoint[i] is set to
-/// ```
+/// ```Text
 /// duration[i] = max(limited_duration_i[j=0], ...,  limited_duration_i[j=J-1], input_duration[i])
 /// where
 ///  j : joint_index (0 <= j < J),
 ///  limited_duration_i[j] =
-///   abs(TrajectoryPoint[i].positions[j]  - TrajectorPoint[i-1].positions[j]) / velocity_limits[j]
+///   abs(TrajectoryPoint[i].positions[j]  - TrajectoryPoint[i-1].positions[j]) / velocity_limits[j]
 /// ```
 pub struct JointVelocityLimiter<C>
 where
