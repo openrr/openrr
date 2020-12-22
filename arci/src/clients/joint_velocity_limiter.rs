@@ -3,6 +3,18 @@ use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
 use async_trait::async_trait;
 use log::debug;
 
+/// JointVelocityLimiter limits the duration to make all joints velocities lower than the given
+/// velocities limits at each TrajectoryPoint.
+///
+/// It does not change TrajectoryPoint velocities.
+/// The duration for a TrajectoryPoint[i] is set to
+/// ```
+/// duration[i] = max(limited_duration_i[j=0], ...,  limited_duration_i[j=J-1], input_duration[i])
+/// where
+///  j : joint_index (0 <= j < J),
+///  limited_duration_i[j] =
+///   abs(TrajectoryPoint[i].positions[j]  - TrajectorPoint[i-1].positions[j]) / velocity_limits[j]
+/// ```
 pub struct JointVelocityLimiter<C>
 where
     C: JointTrajectoryClient + Send + Sync,
@@ -107,5 +119,143 @@ where
             .client
             .send_joint_trajectory(limited_trajectory)
             .await?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::DummyJointTrajectoryClient;
+    use assert_approx_eq::assert_approx_eq;
+    use std::sync::Arc;
+
+    use super::*;
+    #[test]
+    #[should_panic]
+    fn mismatch_size() {
+        let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
+        JointVelocityLimiter::new(client, vec![1.0, 2.0]);
+    }
+    #[test]
+    fn joint_names() {
+        let client = DummyJointTrajectoryClient::new(vec!["a".to_owned(), "b".to_owned()]);
+        let limiter = JointVelocityLimiter::new(client, vec![1.0, 2.0]);
+        let joint_names = limiter.joint_names();
+        assert_eq!(joint_names.len(), 2);
+        assert_eq!(joint_names[0], "a");
+        assert_eq!(joint_names[1], "b");
+    }
+    fn test_send_joint_positions(limits: Vec<f64>, expected_duration_secs: f64) {
+        let client = Arc::new(DummyJointTrajectoryClient::new(vec![
+            "a".to_owned(),
+            "b".to_owned(),
+        ]));
+        let limiter = JointVelocityLimiter::new(client.clone(), limits);
+        assert!(tokio_test::block_on(
+            limiter.send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs_f64(4.0))
+        )
+        .is_ok());
+        let joint_positions = limiter.current_joint_positions().unwrap();
+        assert_eq!(joint_positions.len(), 2);
+        assert_approx_eq!(joint_positions[0], 1.0);
+        assert_approx_eq!(joint_positions[1], 2.0);
+        let trajectory = client.last_trajectory.lock().unwrap();
+        assert_eq!(trajectory.len(), 1);
+        assert_eq!(trajectory[0].positions.len(), 2);
+        assert_approx_eq!(trajectory[0].positions[0], 1.0);
+        assert_approx_eq!(trajectory[0].positions[1], 2.0);
+        assert!(trajectory[0].velocities.is_none());
+        assert_approx_eq!(
+            trajectory[0].time_from_start.as_secs_f64(),
+            expected_duration_secs
+        );
+    }
+
+    #[test]
+    fn send_joint_positions_none_limited() {
+        test_send_joint_positions(vec![1.0, 2.0], 4.0);
+    }
+
+    #[test]
+    fn send_joint_positions_limited() {
+        // joint0 is over limit
+        test_send_joint_positions(vec![0.1, 2.0], 10.0);
+        // joint1 is over limit
+        test_send_joint_positions(vec![1.0, 0.2], 10.0);
+        // joint0/1 are over limit, joint0 is dominant
+        test_send_joint_positions(vec![0.1, 0.6], 10.0);
+        // joint0/1 are over limit, joint1 is dominant
+        test_send_joint_positions(vec![0.3, 0.2], 10.0);
+    }
+
+    fn test_send_joint_trajectory(limits: Vec<f64>, expected_durations_secs: [f64; 2]) {
+        let client = Arc::new(DummyJointTrajectoryClient::new(vec![
+            "a".to_owned(),
+            "b".to_owned(),
+        ]));
+        let limiter = JointVelocityLimiter::new(client.clone(), limits);
+        assert!(tokio_test::block_on(limiter.send_joint_trajectory(vec![
+            TrajectoryPoint {
+                positions: vec![1.0, 2.0],
+                velocities: Some(vec![3.0, 4.0]),
+                time_from_start: std::time::Duration::from_secs_f64(4.0)
+            },
+            TrajectoryPoint {
+                positions: vec![3.0, 6.0],
+                velocities: Some(vec![3.0, 4.0]),
+                time_from_start: std::time::Duration::from_secs_f64(8.0)
+            }
+        ]))
+        .is_ok());
+        let joint_positions = limiter.current_joint_positions().unwrap();
+        assert_eq!(joint_positions.len(), 2);
+        assert_approx_eq!(joint_positions[0], 3.0);
+        assert_approx_eq!(joint_positions[1], 6.0);
+
+        let trajectory = client.last_trajectory.lock().unwrap();
+        assert_eq!(trajectory.len(), 2);
+        assert_eq!(trajectory[0].positions.len(), 2);
+        assert_approx_eq!(trajectory[0].positions[0], 1.0);
+        assert_approx_eq!(trajectory[0].positions[1], 2.0);
+        assert!(trajectory[0].velocities.is_some());
+        assert_approx_eq!(trajectory[0].velocities.as_ref().unwrap()[0], 3.0);
+        assert_approx_eq!(trajectory[0].velocities.as_ref().unwrap()[1], 4.0);
+
+        assert_eq!(trajectory[1].positions.len(), 2);
+        assert_approx_eq!(trajectory[1].positions[0], 3.0);
+        assert_approx_eq!(trajectory[1].positions[1], 6.0);
+        assert!(trajectory[1].velocities.is_some());
+        assert_approx_eq!(trajectory[1].velocities.as_ref().unwrap()[0], 3.0);
+        assert_approx_eq!(trajectory[1].velocities.as_ref().unwrap()[1], 4.0);
+
+        assert_approx_eq!(
+            trajectory[0].time_from_start.as_secs_f64(),
+            expected_durations_secs[0]
+        );
+
+        assert_approx_eq!(
+            trajectory[1].time_from_start.as_secs_f64(),
+            expected_durations_secs[1]
+        );
+    }
+
+    #[test]
+    fn send_joint_trajectory_none_limited() {
+        test_send_joint_trajectory(vec![1.0, 2.0], [4.0, 8.0]);
+    }
+
+    #[test]
+    fn send_joint_trajectory_limited() {
+        // joint0 is over limit
+        test_send_joint_trajectory(vec![0.1, 2.0], [10.0, 30.0]);
+        // joint1 is over limit
+        test_send_joint_trajectory(vec![1.0, 0.2], [10.0, 30.0]);
+        // joint0/1 are over limit, joint0 is dominant
+        test_send_joint_trajectory(vec![0.1, 0.6], [10.0, 30.0]);
+        // joint0/1 are over limit, joint1 is dominant
+        test_send_joint_trajectory(vec![0.3, 0.2], [10.0, 30.0]);
+        // joint0 / point1 is over limit
+        test_send_joint_trajectory(vec![0.3, 2.0], [4.0, 4.0 + 2.0 / 0.3]);
+        // joint1 / point1 is over limit
+        test_send_joint_trajectory(vec![1.0, 0.8], [4.0, 4.0 + 4.0 / 0.8]);
     }
 }
