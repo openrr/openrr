@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>arci-ros</name>
+  <version>0.0.1</version>
+  <description>ROS1 implementation of arci</description>
+
+  <maintainer email="ogura@smilerobotics.com">Takashi Ogura</maintainer>
+  <license>Apache2</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>actionlib-msgs</build_depend>
+  <build_depend>control-msgs</build_depend>
+  <build_depend>geometry-msgs</build_depend>
+  <build_depend>sensor-msgs</build_depend>
+  <build_depend>tf2-msgs</build_depend>
+  <build_depend>trajectory-msgs</build_depend>
+  <build_depend>move-base-msgs</build_depend>
+
+  <export>
+  </export>
+</package>
