@@ -8,7 +8,7 @@ mod msg {
 use msg::sensor_msgs::Joy;
 
 #[tokio::test]
-async fn publisher_to_inline_subscriber() {
+async fn test_joy() {
     let _roscore = util::run_roscore_for(util::Language::None, util::Feature::Publisher);
 
     rosrust::init("test_joy_gamepad");
