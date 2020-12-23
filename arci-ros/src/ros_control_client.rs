@@ -117,20 +117,12 @@ pub struct RosControlClient {
 }
 
 impl RosControlClient {
-    pub fn new(
+    pub fn new_with_joint_state_subscriber_handler(
         joint_names: Vec<String>,
         controller_name: &str,
         send_partial_joints_goal: bool,
-        joint_state_subscriber_handler: Option<
-            Arc<SubscriberHandler<JointTrajectoryControllerState>>,
-        >,
+        joint_state_subscriber_handler: Arc<SubscriberHandler<JointTrajectoryControllerState>>,
     ) -> Self {
-        let joint_state_subscriber_handler = if let Some(s) = joint_state_subscriber_handler {
-            s
-        } else {
-            let joint_state_topic_name = format!("{}/state", controller_name);
-            Arc::new(SubscriberHandler::new(&joint_state_topic_name, 1))
-        };
         joint_state_subscriber_handler.wait_message(100);
 
         let trajectory_publisher =
@@ -150,6 +142,21 @@ impl RosControlClient {
             complete_condition: Box::new(TotalJointDiffCondition::default()),
         }
     }
+    pub fn new(
+        joint_names: Vec<String>,
+        controller_name: &str,
+        send_partial_joints_goal: bool,
+    ) -> Self {
+        let joint_state_topic_name = format!("{}/state", controller_name);
+        let joint_state_subscriber_handler =
+            Arc::new(SubscriberHandler::new(&joint_state_topic_name, 1));
+        Self::new_with_joint_state_subscriber_handler(
+            joint_names,
+            controller_name,
+            send_partial_joints_goal,
+            joint_state_subscriber_handler,
+        )
+    }
     pub fn get_joint_state(&self) -> Result<JointTrajectoryControllerState, arci::Error> {
         self.joint_state_subscriber_handler
             .get()?
@@ -157,8 +164,8 @@ impl RosControlClient {
     }
     pub fn joint_state_subscriber_handler(
         &self,
-    ) -> Arc<SubscriberHandler<JointTrajectoryControllerState>> {
-        self.joint_state_subscriber_handler.clone()
+    ) -> &Arc<SubscriberHandler<JointTrajectoryControllerState>> {
+        &self.joint_state_subscriber_handler
     }
 }
 
