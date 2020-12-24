@@ -9,13 +9,13 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>actionlib-msgs</build_depend>
-  <build_depend>control-msgs</build_depend>
-  <build_depend>geometry-msgs</build_depend>
-  <build_depend>sensor-msgs</build_depend>
-  <build_depend>tf2-msgs</build_depend>
-  <build_depend>trajectory-msgs</build_depend>
-  <build_depend>move-base-msgs</build_depend>
+  <build_depend>actionlib_msgs</build_depend>
+  <build_depend>control_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>tf2_msgs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <build_depend>move_base_msgs</build_depend>
 
   <export>
   </export>
