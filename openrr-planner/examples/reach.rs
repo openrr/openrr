@@ -13,16 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-extern crate env_logger;
-extern crate k;
-extern crate kiss3d;
-extern crate nalgebra as na;
-extern crate ncollide3d;
-extern crate openrr_planner;
-extern crate structopt;
-extern crate urdf_rs;
-extern crate urdf_viz;
-
+use k::nalgebra as na;
 use kiss3d::event::{Action, Key, Modifiers, WindowEvent};
 use ncollide3d::shape::Compound;
 use openrr_planner::FromUrdf;

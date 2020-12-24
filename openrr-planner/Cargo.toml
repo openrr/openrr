@@ -17,7 +17,6 @@ default = [ "assimp" ]
 assimp = { version = "0.3", optional = true }
 k = "0.21"
 log = "0.4"
-nalgebra = "0.23"
 ncollide3d = "0.26"
 num-traits = "0.2"
 rand = "0.3.0"
