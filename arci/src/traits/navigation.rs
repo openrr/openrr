@@ -4,8 +4,8 @@ use auto_impl::auto_impl;
 use nalgebra::Isometry2;
 
 #[async_trait]
-#[auto_impl(Box, Rc, Arc)]
-pub trait Navigation {
+#[auto_impl(Box, Arc)]
+pub trait Navigation: Send + Sync {
     async fn send_pose(
         &self,
         goal: Isometry2<f64>,

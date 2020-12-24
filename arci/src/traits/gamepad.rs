@@ -45,7 +45,7 @@ pub enum GamepadEvent {
 }
 
 #[async_trait]
-#[auto_impl(Box, Rc, Arc)]
+#[auto_impl(Box, Arc)]
 pub trait Gamepad: Send + Sync {
     async fn next_event(&self) -> GamepadEvent;
 }
