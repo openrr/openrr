@@ -40,7 +40,7 @@ impl std::ops::Mul<f64> for BaseVelocity {
     }
 }
 
-#[auto_impl(Box, Rc, Arc)]
+#[auto_impl(Box, Arc)]
 pub trait MoveBase: Send + Sync {
     fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error>;
     fn current_velocity(&self) -> Result<BaseVelocity, Error>;

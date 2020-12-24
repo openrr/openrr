@@ -1,8 +1,8 @@
 use crate::error::Error;
 use auto_impl::auto_impl;
 
-#[auto_impl(Box, Rc, Arc)]
-pub trait TransformResolver {
+#[auto_impl(Box, Arc)]
+pub trait TransformResolver: Send + Sync {
     fn resolve_transformation(
         &self,
         from: &str,
