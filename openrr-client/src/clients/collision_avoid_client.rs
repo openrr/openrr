@@ -51,7 +51,7 @@ where
 #[async_trait]
 impl<'a, T> JointTrajectoryClient for CollisionAvoidClient<'a, T>
 where
-    T: JointTrajectoryClient + Send + Sync,
+    T: JointTrajectoryClient,
 {
     fn joint_names(&self) -> &[String] {
         self.client.joint_names()

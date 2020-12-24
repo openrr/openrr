@@ -57,8 +57,8 @@ where
 #[async_trait]
 impl<N, S> ControlNode for JoyJointTeleopNode<N, S>
 where
-    N: JointTrajectoryClient + Send + Sync,
-    S: Speaker + Send + Sync,
+    N: JointTrajectoryClient,
+    S: Speaker,
 {
     fn set_event(&mut self, event: GamepadEvent) {
         match event {

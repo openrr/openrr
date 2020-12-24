@@ -79,8 +79,8 @@ where
 #[async_trait]
 impl<N, S> ControlNode for IkNode<N, S>
 where
-    N: JointTrajectoryClient + Send + Sync,
-    S: Speaker + Send + Sync,
+    N: JointTrajectoryClient,
+    S: Speaker,
 {
     fn set_event(&mut self, event: GamepadEvent) {
         match event {

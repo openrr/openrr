@@ -17,7 +17,7 @@ use log::debug;
 /// ```
 pub struct JointVelocityLimiter<C>
 where
-    C: JointTrajectoryClient + Send + Sync,
+    C: JointTrajectoryClient,
 {
     client: C,
     velocity_limits: Vec<f64>,
@@ -25,7 +25,7 @@ where
 
 impl<C> JointVelocityLimiter<C>
 where
-    C: JointTrajectoryClient + Send + Sync,
+    C: JointTrajectoryClient,
 {
     pub fn new(client: C, velocity_limits: Vec<f64>) -> Self {
         assert!(client.joint_names().len() == velocity_limits.len());
@@ -39,7 +39,7 @@ where
 #[async_trait]
 impl<C> JointTrajectoryClient for JointVelocityLimiter<C>
 where
-    C: JointTrajectoryClient + Send + Sync,
+    C: JointTrajectoryClient,
 {
     fn joint_names(&self) -> &[String] {
         self.client.joint_names()
