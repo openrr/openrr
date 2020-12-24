@@ -118,6 +118,12 @@ impl Map {
     }
 }
 
+impl Default for Map {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -138,7 +144,7 @@ mod test {
     }
     #[test]
     fn test_default_map() {
-        let m = Map::new();
+        let m = Map::default();
         assert_eq!(
             m.convert_button(gilrs::Button::North),
             arci::gamepad::Button::North
