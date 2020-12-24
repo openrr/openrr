@@ -16,8 +16,8 @@ limitations under the License.
 #![allow(clippy::trivially_copy_pass_by_ref)]
 use super::joint_path_planner::JointPathPlanner;
 use crate::errors::*;
+use k::nalgebra as na;
 use na::RealField;
-use nalgebra as na;
 use ncollide3d::shape::Compound;
 
 /// Joint path planner which supports inverse kinematics

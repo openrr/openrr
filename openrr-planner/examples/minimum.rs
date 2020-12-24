@@ -14,9 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-extern crate nalgebra as na;
-extern crate ncollide3d;
-extern crate openrr_planner;
+use k::nalgebra as na;
 
 use ncollide3d::shape::Compound;
 use openrr_planner::FromUrdf;

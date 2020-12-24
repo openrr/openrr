@@ -1,7 +1,7 @@
 use crate::errors::*;
-use k::RealField;
 #[cfg(feature = "assimp")]
-use nalgebra as na;
+use k::nalgebra as na;
+use k::RealField;
 use ncollide3d::shape::TriMesh;
 use std::path::Path;
 

@@ -16,9 +16,9 @@ limitations under the License.
 use crate::collision::CollisionChecker;
 use crate::errors::*;
 use crate::funcs::*;
+use k::nalgebra as na;
 use log::*;
 use na::RealField;
-use nalgebra as na;
 use ncollide3d::shape::Compound;
 use std::path::Path;
 

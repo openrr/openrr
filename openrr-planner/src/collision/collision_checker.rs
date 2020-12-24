@@ -15,9 +15,9 @@ limitations under the License.
 */
 use super::urdf::urdf_geometry_to_shape_handle;
 use crate::errors::*;
+use k::nalgebra as na;
 use log::*;
 use na::RealField;
-use nalgebra as na;
 use ncollide3d::{
     query,
     shape::{Compound, Shape, ShapeHandle},
