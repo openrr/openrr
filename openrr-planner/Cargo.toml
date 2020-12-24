@@ -15,10 +15,10 @@ default = [ "assimp" ]
 
 [dependencies]
 assimp = { version = "0.3", optional = true }
-k = "0.20"
+k = "0.21"
 log = "0.4"
-nalgebra = "0.21"
-ncollide3d = "0.23"
+nalgebra = "0.23"
+ncollide3d = "0.26"
 num-traits = "0.2"
 rand = "0.3.0"
 rrt = "0.4.0"
@@ -28,6 +28,6 @@ urdf-rs = "0.4"
 
 [dev-dependencies]
 env_logger = "0.7"
-kiss3d = "0.24"
+kiss3d = "0.28"
 structopt = "0.3"
-urdf-viz = "0.21"
+urdf-viz = "0.22"

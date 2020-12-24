@@ -7,8 +7,8 @@ edition = "2018"
 [dependencies]
 arci = { version="0.0.1", path = "../arci"}
 async-trait = "0.1"
-nalgebra = "0.21"
-k = "0.20"
+nalgebra = "0.23"
+k = "0.21"
 thiserror = "1.0"
 openrr-planner = { version = "0.0.1", path = "../openrr-planner" }
 anyhow = "1.0"
