@@ -4,6 +4,7 @@
 
 members = [
     "arci",
+    "arci-gamepad-gilrs",
     "arci-urdf-viz",
     "openrr",
     "openrr-client",
@@ -15,6 +16,7 @@ members = [
 [patch.crates-io]
 
 "arci" = {path = "arci"}
+"arci-gamepad-gilrs" = {path = "arci-gamepad-gilrs"}
 # "arci-ros" = {path = "arci-ros"}
 "arci-urdf-viz" = {path = "arci-urdf-viz"}
 "openrr" = {path = "openrr"}
