@@ -25,25 +25,12 @@ jobs:
           override: true
       - run: rustup component add rustfmt
       - run: rustup component add clippy
-      - name: apt install required ROS messages
-        run: |
-          sudo apt-get -y install \
-            ros-melodic-actionlib-msgs \
-            ros-melodic-control-msgs \
-            ros-melodic-geometry-msgs \
-            ros-melodic-sensor-msgs \
-            ros-melodic-tf2-msgs \
-            ros-melodic-trajectory-msgs \
-            ros-melodic-move-base-msgs \
-
-      - run: |
-          pwd
-          ls
       - name: cargo everything
         shell: bash -ieo pipefail {0}
         working-directory: arci-ros
         run: |
           source /opt/ros/melodic/setup.bash
+          rosdep install -y -i --from-paths .
           cargo fmt --all -- --check -l
           cargo clippy -- -D warnings
           cargo test
