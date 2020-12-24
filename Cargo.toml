@@ -1,6 +1,6 @@
 [workspace]
 
-# arci-ros is excluded
+# arci-ros is excluded to make it independent from ROS
 
 members = [
     "arci",
@@ -15,7 +15,7 @@ members = [
 [patch.crates-io]
 
 "arci" = {path = "arci"}
-"arci-ros" = {path = "arci-ros"}
+# "arci-ros" = {path = "arci-ros"}
 "arci-urdf-viz" = {path = "arci-urdf-viz"}
 "openrr" = {path = "openrr"}
 "openrr-client" = {path = "openrr-client"}
