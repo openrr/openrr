@@ -1,7 +1,7 @@
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint};
 use async_trait::async_trait;
+use k::nalgebra as na;
 use k::Isometry3;
-use nalgebra as na;
 use std::sync::Arc;
 
 pub fn isometry(x: f64, y: f64, z: f64, roll: f64, pitch: f64, yaw: f64) -> k::Isometry3<f64> {
