@@ -1,0 +1,14 @@
+[package]
+name = "arci-gamepad-gilrs"
+version = "0.0.1"
+authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
+edition = "2018"
+
+[dependencies]
+arci = {version = "0.0.1", path = "../arci"}
+gilrs = "0.8"
+crossbeam-channel = "0.5.0"
+log = "0.4"
+
+[dev-dependencies]
+tokio = { version = "0.3", features = ["full"] }
