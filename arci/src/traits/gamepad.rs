@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Button {
     South,
     East,
@@ -23,7 +23,7 @@ pub enum Button {
     Unknown,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Axis {
     LeftStickX,
     LeftStickY,
