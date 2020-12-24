@@ -27,7 +27,7 @@ pub trait SetCompleteCondition {
 
 #[async_trait]
 #[auto_impl(Box, Rc, Arc)]
-pub trait JointTrajectoryClient {
+pub trait JointTrajectoryClient : Send + Sync {
     fn joint_names(&self) -> &[String];
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error>;
     async fn send_joint_positions(

@@ -1,27 +1,27 @@
 use crate::error::Error;
 use crate::traits::{BaseVelocity, MoveBase};
-use std::cell::RefCell;
+use std::sync::Mutex;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct DummyMoveBase {
-    pub current_velocity: RefCell<BaseVelocity>,
+    pub current_velocity: Mutex<BaseVelocity>,
 }
 
 impl DummyMoveBase {
     pub fn new() -> Self {
         Self {
-            current_velocity: RefCell::new(BaseVelocity::default()),
+            current_velocity: Mutex::new(BaseVelocity::default()),
         }
     }
 }
 
 impl MoveBase for DummyMoveBase {
     fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error> {
-        self.current_velocity.replace(velocity.to_owned());
+        *self.current_velocity.lock().unwrap() = *velocity;
         Ok(())
     }
     fn current_velocity(&self) -> Result<BaseVelocity, Error> {
-        Ok(self.current_velocity.borrow().to_owned())
+        Ok(self.current_velocity.lock().unwrap().to_owned())
     }
 }
 
