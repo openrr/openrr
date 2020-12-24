@@ -4,7 +4,7 @@ use async_trait::async_trait;
 
 pub struct PartialJointTrajectoryClient<C>
 where
-    C: JointTrajectoryClient + Send + Sync,
+    C: JointTrajectoryClient,
 {
     joint_names: Vec<String>,
     shared_client: C,
@@ -26,7 +26,7 @@ pub fn copy_joint_positions(
 
 impl<C> PartialJointTrajectoryClient<C>
 where
-    C: JointTrajectoryClient + Send + Sync,
+    C: JointTrajectoryClient,
 {
     pub fn new(joint_names: Vec<String>, shared_client: C) -> Self {
         let full_joint_names = shared_client.joint_names().to_vec();
@@ -41,7 +41,7 @@ where
 #[async_trait]
 impl<C> JointTrajectoryClient for PartialJointTrajectoryClient<C>
 where
-    C: JointTrajectoryClient + Send + Sync,
+    C: JointTrajectoryClient,
 {
     fn joint_names(&self) -> &[String] {
         &self.joint_names

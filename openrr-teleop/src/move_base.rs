@@ -35,7 +35,7 @@ where
 #[async_trait]
 impl<T> ControlNode for MoveBaseNode<T>
 where
-    T: MoveBase + Send + Sync,
+    T: MoveBase,
 {
     fn set_event(&mut self, ev: GamepadEvent) {
         match ev {

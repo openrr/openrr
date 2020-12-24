@@ -179,7 +179,7 @@ where
 #[async_trait]
 impl<T> JointTrajectoryClient for IkClient<T>
 where
-    T: JointTrajectoryClient + Send + Sync,
+    T: JointTrajectoryClient,
 {
     fn joint_names(&self) -> &[String] {
         self.client.joint_names()

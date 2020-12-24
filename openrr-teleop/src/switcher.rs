@@ -23,7 +23,7 @@ where
 impl<N, S> ControlNodeSwitcher<N, S>
 where
     N: 'static + ControlNode,
-    S: 'static + Speaker + Send + Sync,
+    S: 'static + Speaker,
 {
     pub fn new(control_nodes: Vec<N>, speaker: S) -> Self {
         assert!(!control_nodes.is_empty());
@@ -59,7 +59,7 @@ where
     }
     pub async fn main<G>(&self, gamepad: G)
     where
-        G: 'static + Gamepad + Send + Sync,
+        G: 'static + Gamepad,
     {
         let nodes = self.control_nodes.clone();
         let index = self.current_index.clone();
