@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 rosrust = "0.9"
-nalgebra = "0.21"
+nalgebra = "0.23"
 thiserror = "1.0"
 ros-nalgebra = "0.0.1"
 arci = {path = "../arci"}
@@ -18,7 +18,7 @@ tokio = { version = "0.3", features = ["full"] }
 
 [dev-dependencies]
 
-k = "0.20"
+k = "0.21"
 
 # for tests/utils (using same version of rosrust 0.9.5)
 nix = "0.15.0"
