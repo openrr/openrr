@@ -1,13 +1,44 @@
 use crate::utils::*;
 use arci::{
-    BaseVelocity, CompleteCondition, JointTrajectoryClient, MoveBase, Navigation,
-    SetCompleteCondition, TotalJointDiffCondition,
+    BaseVelocity, CompleteCondition, JointTrajectoryClient, JointVelocityLimiter, MoveBase,
+    Navigation, SetCompleteCondition, TotalJointDiffCondition,
 };
 use async_trait::async_trait;
 use nalgebra as na;
 use openrr_sleep::ScopedSleep;
 use reqwest::Url;
+use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UrdfVizWebClientConfig {
+    pub name: String,
+    pub joint_names: Vec<String>,
+    pub wrap_with_joint_velocity_limiter: bool,
+    pub joint_velocity_limits: Vec<f64>,
+}
+
+pub fn create_joint_trajectory_clients(
+    configs: Vec<UrdfVizWebClientConfig>,
+) -> Vec<(String, Arc<dyn JointTrajectoryClient + Send + Sync>)> {
+    let mut clients = vec![];
+    let all_client = Arc::new(UrdfVizWebClient::default());
+    for config in configs {
+        let client =
+            arci::PartialJointTrajectoryClient::new(config.joint_names, all_client.clone());
+        let client: Arc<dyn JointTrajectoryClient + Send + Sync> =
+            if config.wrap_with_joint_velocity_limiter {
+                Arc::new(JointVelocityLimiter::new(
+                    client,
+                    config.joint_velocity_limits,
+                ))
+            } else {
+                Arc::new(client)
+            };
+        clients.push((config.name, client));
+    }
+    clients
+}
 
 pub struct UrdfVizWebClient {
     base_url: Url,

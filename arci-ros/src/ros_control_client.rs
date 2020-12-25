@@ -1,18 +1,80 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
-use crate::error::Error;
 use crate::msg;
-use crate::rosrust_utils::*;
+use crate::{error::Error, SubscriberHandler};
 use arci::{
-    copy_joint_positions, CompleteCondition, JointTrajectoryClient, SetCompleteCondition,
-    TotalJointDiffCondition, TrajectoryPoint,
+    copy_joint_positions, CompleteCondition, EachJointDiffCondition, JointTrajectoryClient,
+    JointVelocityLimiter, SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint,
 };
 use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 use msg::control_msgs::JointTrajectoryControllerState;
 use msg::trajectory_msgs::JointTrajectory;
 use msg::trajectory_msgs::JointTrajectoryPoint;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RosControlClientConfig {
+    pub name: String,
+    pub joint_names: Vec<String>,
+    pub wrap_with_joint_velocity_limiter: bool,
+    pub joint_velocity_limits: Vec<f64>,
+
+    pub controller_name: String,
+    pub send_partial_joints_goal: bool,
+    pub complete_allowable_errors: Vec<f64>,
+    pub complete_timeout_sec: f64,
+}
+
+type StateSubscriber = SubscriberHandler<JointTrajectoryControllerState>;
+
+pub fn create_joint_trajectory_clients(
+    configs: Vec<RosControlClientConfig>,
+) -> Vec<(String, Arc<dyn JointTrajectoryClient + Send + Sync>)> {
+    let mut clients = vec![];
+    let mut controller_name_to_subscriber: HashMap<String, Arc<StateSubscriber>> = HashMap::new();
+    for config in configs {
+        #[allow(clippy::map_entry)]
+        let mut client = if controller_name_to_subscriber.contains_key(&config.controller_name) {
+            RosControlClient::new_with_joint_state_subscriber_handler(
+                config.joint_names,
+                &config.controller_name,
+                config.send_partial_joints_goal,
+                controller_name_to_subscriber
+                    .get(&config.controller_name)
+                    .unwrap()
+                    .clone(),
+            )
+        } else {
+            let client = RosControlClient::new(
+                config.joint_names,
+                &config.controller_name,
+                config.send_partial_joints_goal,
+            );
+            controller_name_to_subscriber.insert(
+                config.controller_name,
+                client.joint_state_subscriber_handler().clone(),
+            );
+            client
+        };
+        client.set_complete_condition(Box::new(EachJointDiffCondition::new(
+            config.complete_allowable_errors,
+            config.complete_timeout_sec,
+        )));
+        let client: Arc<dyn JointTrajectoryClient + Send + Sync> =
+            if config.wrap_with_joint_velocity_limiter {
+                Arc::new(JointVelocityLimiter::new(
+                    client,
+                    config.joint_velocity_limits,
+                ))
+            } else {
+                Arc::new(client)
+            };
+        clients.push((config.name, client));
+    }
+    clients
+}
 
 pub fn create_joint_trajectory_message_for_send_joint_positions(
     client: &dyn JointTrajectoryClient,
@@ -112,7 +174,7 @@ pub struct RosControlClient {
     joint_names: Vec<String>,
     trajectory_publisher: rosrust::Publisher<JointTrajectory>,
     send_partial_joints_goal: bool,
-    joint_state_subscriber_handler: Arc<SubscriberHandler<JointTrajectoryControllerState>>,
+    joint_state_subscriber_handler: Arc<StateSubscriber>,
     complete_condition: Box<dyn CompleteCondition>,
 }
 
@@ -121,7 +183,7 @@ impl RosControlClient {
         joint_names: Vec<String>,
         controller_name: &str,
         send_partial_joints_goal: bool,
-        joint_state_subscriber_handler: Arc<SubscriberHandler<JointTrajectoryControllerState>>,
+        joint_state_subscriber_handler: Arc<StateSubscriber>,
     ) -> Self {
         joint_state_subscriber_handler.wait_message(100);
 
@@ -162,9 +224,7 @@ impl RosControlClient {
             .get()?
             .ok_or_else(|| arci::Error::Other(Error::NoJointStateAvailable.into()))
     }
-    pub fn joint_state_subscriber_handler(
-        &self,
-    ) -> &Arc<SubscriberHandler<JointTrajectoryControllerState>> {
+    pub fn joint_state_subscriber_handler(&self) -> &Arc<StateSubscriber> {
         &self.joint_state_subscriber_handler
     }
 }
