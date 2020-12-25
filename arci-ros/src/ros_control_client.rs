@@ -31,7 +31,7 @@ type StateSubscriber = SubscriberHandler<JointTrajectoryControllerState>;
 
 pub fn create_joint_trajectory_clients(
     configs: Vec<RosControlClientConfig>,
-) -> Vec<(String, Arc<dyn JointTrajectoryClient + Send + Sync>)> {
+) -> Vec<(String, Arc<dyn JointTrajectoryClient>)> {
     let mut clients = vec![];
     let mut controller_name_to_subscriber: HashMap<String, Arc<StateSubscriber>> = HashMap::new();
     for config in configs {
@@ -62,15 +62,14 @@ pub fn create_joint_trajectory_clients(
             config.complete_allowable_errors,
             config.complete_timeout_sec,
         )));
-        let client: Arc<dyn JointTrajectoryClient + Send + Sync> =
-            if config.wrap_with_joint_velocity_limiter {
-                Arc::new(JointVelocityLimiter::new(
-                    client,
-                    config.joint_velocity_limits,
-                ))
-            } else {
-                Arc::new(client)
-            };
+        let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
+            Arc::new(JointVelocityLimiter::new(
+                client,
+                config.joint_velocity_limits,
+            ))
+        } else {
+            Arc::new(client)
+        };
         clients.push((config.name, client));
     }
     clients

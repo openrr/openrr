@@ -20,21 +20,20 @@ pub struct UrdfVizWebClientConfig {
 
 pub fn create_joint_trajectory_clients(
     configs: Vec<UrdfVizWebClientConfig>,
-) -> Vec<(String, Arc<dyn JointTrajectoryClient + Send + Sync>)> {
+) -> Vec<(String, Arc<dyn JointTrajectoryClient>)> {
     let mut clients = vec![];
     let all_client = Arc::new(UrdfVizWebClient::default());
     for config in configs {
         let client =
             arci::PartialJointTrajectoryClient::new(config.joint_names, all_client.clone());
-        let client: Arc<dyn JointTrajectoryClient + Send + Sync> =
-            if config.wrap_with_joint_velocity_limiter {
-                Arc::new(JointVelocityLimiter::new(
-                    client,
-                    config.joint_velocity_limits,
-                ))
-            } else {
-                Arc::new(client)
-            };
+        let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
+            Arc::new(JointVelocityLimiter::new(
+                client,
+                config.joint_velocity_limits,
+            ))
+        } else {
+            Arc::new(client)
+        };
         clients.push((config.name, client));
     }
     clients
