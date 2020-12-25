@@ -4,8 +4,9 @@ use log::debug;
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::utils::find_nodes;
+
 pub struct SelfCollisionChecker {
-    /// using_joints and collision_check_robot must share the k::Node instance.
     pub using_joints: k::Chain<f64>,
     pub collision_check_robot: Arc<k::Chain<f64>>,
     pub collision_checker: openrr_planner::CollisionChecker<f64>,
@@ -15,7 +16,7 @@ pub struct SelfCollisionChecker {
 
 impl SelfCollisionChecker {
     pub fn new(
-        using_joints: k::Chain<f64>,
+        joint_names: Vec<String>,
         collision_check_robot: Arc<k::Chain<f64>>,
         collision_checker: openrr_planner::CollisionChecker<f64>,
         collision_pairs: Vec<(String, String)>,
@@ -26,6 +27,8 @@ impl SelfCollisionChecker {
             "time_interpolate_rate must be 0.0~1.0 but {}",
             time_interpolate_rate
         );
+        let using_joints =
+            k::Chain::<f64>::from_nodes(find_nodes(&joint_names, &collision_check_robot).unwrap());
         Self {
             collision_check_robot,
             using_joints,
