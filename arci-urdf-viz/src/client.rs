@@ -8,7 +8,10 @@ use nalgebra as na;
 use openrr_sleep::ScopedSleep;
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UrdfVizWebClientConfig {
@@ -20,8 +23,8 @@ pub struct UrdfVizWebClientConfig {
 
 pub fn create_joint_trajectory_clients(
     configs: Vec<UrdfVizWebClientConfig>,
-) -> Vec<(String, Arc<dyn JointTrajectoryClient>)> {
-    let mut clients = vec![];
+) -> HashMap<String, Arc<dyn JointTrajectoryClient>> {
+    let mut clients = HashMap::new();
     let all_client = Arc::new(UrdfVizWebClient::default());
     for config in configs {
         let client =
@@ -34,7 +37,7 @@ pub fn create_joint_trajectory_clients(
         } else {
             Arc::new(client)
         };
-        clients.push((config.name, client));
+        clients.insert(config.name, client);
     }
     clients
 }

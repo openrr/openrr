@@ -31,8 +31,8 @@ type StateSubscriber = SubscriberHandler<JointTrajectoryControllerState>;
 
 pub fn create_joint_trajectory_clients(
     configs: Vec<RosControlClientConfig>,
-) -> Vec<(String, Arc<dyn JointTrajectoryClient>)> {
-    let mut clients = vec![];
+) -> HashMap<String, Arc<dyn JointTrajectoryClient>> {
+    let mut clients = HashMap::new();
     let mut controller_name_to_subscriber: HashMap<String, Arc<StateSubscriber>> = HashMap::new();
     for config in configs {
         #[allow(clippy::map_entry)]
@@ -70,7 +70,7 @@ pub fn create_joint_trajectory_clients(
         } else {
             Arc::new(client)
         };
-        clients.push((config.name, client));
+        clients.insert(config.name, client);
     }
     clients
 }
