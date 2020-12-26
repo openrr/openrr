@@ -37,11 +37,11 @@ jobs:
           override: true
       # only for arci-gamepad-gilrs
       - run: sudo apt-get install -y libudev-dev
+      # only for arci-ros test (roscore)
+      - run: sudo apt-get install -y python-roslaunch
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          # arci-ros need roscore, so disable it and run on ros1.yaml
-          args: --workspace --exclude arci-ros
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
