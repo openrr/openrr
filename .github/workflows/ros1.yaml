@@ -23,14 +23,10 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - run: rustup component add rustfmt
-      - run: rustup component add clippy
       - name: cargo everything
         shell: bash -ieo pipefail {0}
         working-directory: arci-ros
         run: |
           source /opt/ros/melodic/setup.bash
           rosdep install -y -i --from-paths .
-          cargo fmt --all -- --check -l
-          cargo clippy -- -D warnings
           cargo test
