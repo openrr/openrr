@@ -40,6 +40,8 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+          # arci-ros need roscore, so disable it and run on ros1.yaml
+          args: --workspace --exclude arci-ros
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
