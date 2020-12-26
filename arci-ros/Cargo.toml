@@ -24,5 +24,3 @@ k = "0.21"
 # for tests/utils (using same version of rosrust 0.9.5)
 nix = "0.15.0"
 
-# To be excluded from openrr root workspace
-[workspace]

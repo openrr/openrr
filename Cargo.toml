@@ -5,6 +5,7 @@
 members = [
     "arci",
     "arci-gamepad-gilrs",
+    "arci-ros",
     "arci-urdf-viz",
     "openrr",
     "openrr-client",
@@ -17,7 +18,7 @@ members = [
 
 "arci" = {path = "arci"}
 "arci-gamepad-gilrs" = {path = "arci-gamepad-gilrs"}
-# "arci-ros" = {path = "arci-ros"}
+"arci-ros" = {path = "arci-ros"}
 "arci-urdf-viz" = {path = "arci-urdf-viz"}
 "openrr" = {path = "openrr"}
 "openrr-client" = {path = "openrr-client"}
