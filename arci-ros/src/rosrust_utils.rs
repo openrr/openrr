@@ -185,6 +185,7 @@ macro_rules! define_action_client_with_namespace {
                     let goal_id = self.send_goal(goal)?;
                     self.wait_for_result(&goal_id, timeout)
                 }
+                #[allow(clippy::field_reassign_with_default)]
                 pub fn send_goal(&self, goal: $namespace::[<$action_base Goal>]) -> Result<String, $arci_ros_namespace::Error> {
                     let mut action_goal = <$namespace::[<$action_base ActionGoal>]>::default();
                     action_goal.goal = goal;
