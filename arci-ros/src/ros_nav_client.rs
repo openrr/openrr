@@ -100,8 +100,10 @@ impl Navigation for RosNavClient {
         if self.clear_costmap_before_start {
             self.clear_costmap()?;
         }
-        let mut target_pose = msg::geometry_msgs::PoseStamped::default();
-        target_pose.pose = goal.into();
+        let mut target_pose = msg::geometry_msgs::PoseStamped {
+            pose: goal.into(),
+            ..Default::default()
+        };
         target_pose.header.frame_id = self.frame_id.clone();
         target_pose.header.stamp = rosrust::now();
         let goal_id = self

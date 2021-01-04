@@ -13,8 +13,10 @@ pub struct RosRobotClient {
 
 impl From<TrajectoryPoint> for msg::trajectory_msgs::JointTrajectoryPoint {
     fn from(tp: TrajectoryPoint) -> Self {
-        let mut message = msg::trajectory_msgs::JointTrajectoryPoint::default();
-        message.positions = tp.positions;
+        let mut message = msg::trajectory_msgs::JointTrajectoryPoint {
+            positions: tp.positions,
+            ..Default::default()
+        };
         message.time_from_start.sec = tp.time_from_start.as_secs() as i32;
         message.time_from_start.nsec = tp.time_from_start.subsec_nanos() as i32;
         message
@@ -82,18 +84,22 @@ impl JointTrajectoryClient for RosRobotClient {
         duration: std::time::Duration,
     ) -> Result<(), Error> {
         if let Some(ref publisher) = self.trajectory_publisher {
-            let mut traj = msg::trajectory_msgs::JointTrajectory::default();
-            traj.joint_names = self.joint_names.clone();
             if self.joint_names.len() != positions.len() {
                 return Err(arci::Error::LengthMismatch {
                     model: self.joint_names.len(),
                     input: positions.len(),
                 });
             }
-            let mut point = msg::trajectory_msgs::JointTrajectoryPoint::default();
-            point.positions = positions.to_vec();
-            point.time_from_start = rosrust::Duration::from_nanos(duration.as_nanos() as i64);
-            traj.points.push(point);
+            let point = msg::trajectory_msgs::JointTrajectoryPoint {
+                positions: positions.to_vec(),
+                time_from_start: rosrust::Duration::from_nanos(duration.as_nanos() as i64),
+                ..Default::default()
+            };
+            let traj = msg::trajectory_msgs::JointTrajectory {
+                joint_names: self.joint_names.clone(),
+                points: vec![point],
+                ..Default::default()
+            };
             publisher.send(traj).unwrap();
             self.complete_condition.wait(self, &positions)?;
         }
@@ -101,9 +107,11 @@ impl JointTrajectoryClient for RosRobotClient {
     }
     async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<(), Error> {
         if let Some(ref publisher) = self.trajectory_publisher {
-            let mut traj = msg::trajectory_msgs::JointTrajectory::default();
-            traj.joint_names = self.joint_names.clone();
-            traj.points = trajectory.iter().map(|t| (*t).clone().into()).collect();
+            let traj = msg::trajectory_msgs::JointTrajectory {
+                joint_names: self.joint_names.clone(),
+                points: trajectory.iter().map(|t| (*t).clone().into()).collect(),
+                ..Default::default()
+            };
             publisher.send(traj).unwrap();
             self.complete_condition
                 .wait(self, &trajectory.last().unwrap().positions)?;
