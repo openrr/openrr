@@ -37,11 +37,11 @@ jobs:
           override: true
       # only for arci-gamepad-gilrs
       - run: sudo apt-get install -y libudev-dev
-      # only for arci-ros test (roscore)
-      - run: sudo apt-get install -y python-roslaunch python-rostopic
+      # testing arci-ros is done in ros1.yaml
       - uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --workspace --exclude arci-ros
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
@@ -56,7 +56,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --workspace -- --check
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
