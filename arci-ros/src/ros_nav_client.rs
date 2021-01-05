@@ -30,8 +30,7 @@ const CLEAR_COSTMAP_SERVICE: &str = "/move_base/clear_costmaps";
 ///
 /// # Examples
 ///
-/// ```
-/// rosrust::init("test_builder");
+/// ```no_run
 /// let client = arci_ros::RosNavClientBuilder::new().clear_costmap_before_start(true).finalize();
 /// ```
 #[derive(Clone, Debug)]
@@ -93,8 +92,7 @@ impl RosNavClientBuilder {
     ///
     /// # Examples
     ///
-    /// ```
-    /// rosrust::init("test_builder");
+    /// ```no_run
     /// let client = arci_ros::RosNavClientBuilder::new().finalize();
     /// ```
     pub fn finalize(self) -> RosNavClient {
