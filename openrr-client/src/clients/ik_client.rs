@@ -2,7 +2,11 @@ use arci::{Error, JointTrajectoryClient, TrajectoryPoint};
 use async_trait::async_trait;
 use k::nalgebra as na;
 use k::Isometry3;
-use std::sync::Arc;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, sync::Arc};
+use tokio::sync::Mutex;
+
+type ArcJointTrajectoryClient = Arc<dyn JointTrajectoryClient>;
 
 pub fn isometry(x: f64, y: f64, z: f64, roll: f64, pitch: f64, yaw: f64) -> k::Isometry3<f64> {
     k::Isometry3::from_parts(
@@ -234,4 +238,88 @@ pub fn check_ik_with_interpolation_and_constraints(
         traj.push(trajectory);
     }
     Ok(traj)
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct IkSolverConfig {
+    pub root_node_name: Option<String>,
+    pub ik_target: String,
+    pub use_random_ik: bool,
+    pub allowable_position_error_m: f64,
+    pub allowable_angle_error_rad: f64,
+    pub jacobian_multiplier: f64,
+    pub num_max_try: usize,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct IkClientConfig {
+    pub name: String,
+    pub client_name: String,
+    pub ik_solver_config: IkSolverConfig,
+}
+
+pub fn create_ik_solver_with_chain(
+    full_chain: &k::Chain<f64>,
+    config: &IkSolverConfig,
+) -> IkSolverWithChain {
+    let chain = if let Some(root_node_name) = &config.root_node_name {
+        k::SerialChain::from_end_to_root(
+            full_chain.find(&config.ik_target).unwrap(),
+            full_chain.find(root_node_name).unwrap(),
+        )
+    } else {
+        k::SerialChain::from_end(full_chain.find(&config.ik_target).unwrap())
+    };
+
+    let parameters = IkSolverParameters {
+        allowable_position_error: config.allowable_position_error_m,
+        allowable_angle_error: config.allowable_angle_error_rad,
+        jacobian_multiplier: config.jacobian_multiplier,
+        num_max_try: config.num_max_try,
+    };
+
+    IkSolverWithChain::new(
+        chain,
+        if config.use_random_ik {
+            Arc::new(create_random_jacobian_ik_solver(&parameters))
+        } else {
+            Arc::new(create_jacobian_ik_solver(&parameters))
+        },
+    )
+}
+
+pub fn create_ik_client(
+    client: ArcJointTrajectoryClient,
+    full_chain: &k::Chain<f64>,
+    config: &IkSolverConfig,
+) -> IkClient<ArcJointTrajectoryClient> {
+    let arm_chain = if let Some(root_node_name) = &config.root_node_name {
+        k::Chain::from_end_to_root(
+            full_chain.find(&config.ik_target).unwrap(),
+            full_chain.find(root_node_name).unwrap(),
+        )
+    } else {
+        k::Chain::from_end(full_chain.find(&config.ik_target).unwrap())
+    };
+    let arm_ik_solver_with_chain = create_ik_solver_with_chain(&full_chain, &config);
+    IkClient::new(client, arm_ik_solver_with_chain, arm_chain)
+}
+
+pub fn create_ik_clients(
+    configs: &[IkClientConfig],
+    name_to_joint_trajectory_client: &HashMap<String, ArcJointTrajectoryClient>,
+    full_chain: &k::Chain<f64>,
+) -> HashMap<String, Arc<Mutex<IkClient<ArcJointTrajectoryClient>>>> {
+    let mut clients = HashMap::new();
+    for config in configs {
+        clients.insert(
+            config.name.clone(),
+            Arc::new(Mutex::new(create_ik_client(
+                name_to_joint_trajectory_client[&config.client_name].clone(),
+                full_chain,
+                &config.ik_solver_config,
+            ))),
+        );
+    }
+    clients
 }
