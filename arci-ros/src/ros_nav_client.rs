@@ -102,6 +102,12 @@ impl RosNavClientBuilder {
     }
 }
 
+impl Default for RosNavClientBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub struct RosNavClient {
     pose_subscriber: SubscriberHandler<msg::geometry_msgs::PoseWithCovarianceStamped>,
     pub clear_costmap_before_start: bool,
