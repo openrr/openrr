@@ -10,13 +10,25 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  win-mac:
-    name: Build on Win/Mac
-    runs-on: ${{ matrix.os }}
+  windows:
+    name: Build on Windowns
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          # rosrust is not supported on Windows
+          args: --workspace --exclude arci-ros
 
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest]
+  macos:
+    name: Build on MacOS
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
