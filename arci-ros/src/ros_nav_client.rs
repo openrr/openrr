@@ -21,6 +21,89 @@ impl From<na::Isometry2<f64>> for msg::geometry_msgs::Pose {
     }
 }
 
+const AMCL_POSE_TOPIC: &str = "/amcl_pose";
+const NO_MOTION_UPDATE_SERVICE: &str = "request_nomotion_update";
+const MOVE_BASE_ACTION: &str = "/move_base";
+const CLEAR_COSTMAP_SERVICE: &str = "/move_base/clear_costmaps";
+
+/// Build RosNavClient interactively.
+///
+/// # Examples
+///
+/// ```
+/// rosrust::init("test_builder");
+/// let client = arci_ros::RosNavClientBuilder::new().clear_costmap_before_start(true).finalize();
+/// ```
+#[derive(Clone, Debug)]
+pub struct RosNavClientBuilder {
+    /* TODO
+    move_base_action_name: String,
+    amcl_pose_topic_name: String,
+    no_motion_update_service: String,
+    */
+    request_final_nomotion_update_hack: bool,
+    clear_costmap_before_start: bool,
+}
+
+impl RosNavClientBuilder {
+    /// Create builder
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let builder = arci_ros::RosNavClientBuilder::new();
+    /// ```
+    pub fn new() -> Self {
+        Self {
+            /* TODO:
+            move_base_action_name: MOVE_BASE_ACTION.to_string(),
+            amcl_pose_topic_name: AMCL_POSE_TOPIC.to_string(),
+            no_motion_update_service: NO_MOTION_UPDATE_SERVICE.to_string(),
+            */
+            request_final_nomotion_update_hack: false,
+            clear_costmap_before_start: false,
+        }
+    }
+    /// Enable/Disable request_final_nomotion_update_hack
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // true means enable (default: false)
+    /// let builder = arci_ros::RosNavClientBuilder::new().request_final_nomotion_update_hack(true);
+    /// ```
+    pub fn request_final_nomotion_update_hack(mut self, val: bool) -> Self {
+        self.request_final_nomotion_update_hack = val;
+        self
+    }
+    /// Enable/Disable clear_costmap_before_start
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // true means enable (default: false)
+    /// let builder = arci_ros::RosNavClientBuilder::new().clear_costmap_before_start(true);
+    /// ```
+
+    pub fn clear_costmap_before_start(mut self, val: bool) -> Self {
+        self.clear_costmap_before_start = val;
+        self
+    }
+    /// Convert builder into RosNavClient finally.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// rosrust::init("test_builder");
+    /// let client = arci_ros::RosNavClientBuilder::new().finalize();
+    /// ```
+    pub fn finalize(self) -> RosNavClient {
+        let mut c = RosNavClient::new(self.request_final_nomotion_update_hack);
+        c.clear_costmap_before_start = self.clear_costmap_before_start;
+        c
+    }
+}
+
 pub struct RosNavClient {
     pose_subscriber: SubscriberHandler<msg::geometry_msgs::PoseWithCovarianceStamped>,
     pub clear_costmap_before_start: bool,
@@ -30,19 +113,17 @@ pub struct RosNavClient {
 }
 
 impl RosNavClient {
-    const AMCL_POSE_TOPIC: &'static str = "/amcl_pose";
-    const NO_MOTION_UPDATE_SERVICE: &'static str = "request_nomotion_update";
     pub fn new(request_final_nomotion_update_hack: bool) -> Self {
-        let action_client = SimpleActionClient::new("/move_base", 1, 10.0);
+        let action_client = SimpleActionClient::new(MOVE_BASE_ACTION, 1, 10.0);
 
-        let pose_subscriber = SubscriberHandler::new(Self::AMCL_POSE_TOPIC, 1);
+        let pose_subscriber = SubscriberHandler::new(AMCL_POSE_TOPIC, 1);
         let nomotion_update_client = if request_final_nomotion_update_hack {
             rosrust::wait_for_service(
-                Self::NO_MOTION_UPDATE_SERVICE,
+                NO_MOTION_UPDATE_SERVICE,
                 Some(std::time::Duration::from_secs(10)),
             )
             .unwrap();
-            Some(rosrust::client::<std_srvs::Empty>(Self::NO_MOTION_UPDATE_SERVICE).unwrap())
+            Some(rosrust::client::<std_srvs::Empty>(NO_MOTION_UPDATE_SERVICE).unwrap())
         } else {
             None
         };
@@ -55,7 +136,6 @@ impl RosNavClient {
         }
     }
     pub fn clear_costmap(&self) -> Result<(), Error> {
-        const CLEAR_COSTMAP_SERVICE: &str = "/move_base/clear_costmaps";
         // Wait ten seconds for the service to appear
         rosrust::wait_for_service(CLEAR_COSTMAP_SERVICE, Some(time::Duration::from_secs(10)))
             .unwrap();
@@ -72,7 +152,7 @@ impl RosNavClient {
                 rosrust::ros_info!("Action succeeds");
                 if let Some(client) = self.nomotion_update_client.as_ref() {
                     client.req(&std_srvs::EmptyReq {}).unwrap().unwrap();
-                    rosrust::ros_info!("Called {}", Self::NO_MOTION_UPDATE_SERVICE);
+                    rosrust::ros_info!("Called {}", NO_MOTION_UPDATE_SERVICE);
                 }
             }
             Err(e) => {
@@ -126,7 +206,7 @@ impl Navigation for RosNavClient {
             self.pose_subscriber
                 .get()?
                 .ok_or_else(|| Error::Connection {
-                    message: format!("Failed to get pose from {}", Self::AMCL_POSE_TOPIC),
+                    message: format!("Failed to get pose from {}", AMCL_POSE_TOPIC),
                 })?;
         let pose: na::Isometry3<f64> = pose_with_cov_stamped.pose.pose.into();
 
