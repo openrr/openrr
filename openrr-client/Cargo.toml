@@ -12,6 +12,7 @@ thiserror = "1.0"
 openrr-planner = { version = "0.0.1", path = "../openrr-planner" }
 anyhow = "1.0"
 log = "0.4"
+urdf-rs = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "0.3", features = ["full"] }
 

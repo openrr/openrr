@@ -1,8 +1,10 @@
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint};
 use async_trait::async_trait;
 use log::debug;
-use std::sync::Arc;
-use std::time::Duration;
+use openrr_planner::{collision::parse_colon_separated_pairs, CollisionChecker};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, sync::Arc};
+use std::{path::Path, time::Duration};
 
 use crate::utils::find_nodes;
 
@@ -136,4 +138,79 @@ where
         self.collision_checker.check_joint_trajectory(&trajectory)?;
         self.client.send_joint_trajectory(trajectory).await
     }
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct SelfCollisionCheckerConfig {
+    pub prediction: f64,
+    pub time_interpolate_rate: f64,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct CollisionCheckClientConfig {
+    pub name: String,
+    pub client_name: String,
+    pub self_collision_checker_config: SelfCollisionCheckerConfig,
+}
+
+pub fn create_collision_check_clients<P: AsRef<Path>>(
+    urdf_path: P,
+    self_collision_check_pairs: &[String],
+    configs: &[CollisionCheckClientConfig],
+    name_to_joint_trajectory_client: &HashMap<String, Arc<dyn JointTrajectoryClient>>,
+    full_chain: Arc<k::Chain<f64>>,
+) -> HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>> {
+    let mut clients = HashMap::new();
+    for config in configs {
+        clients.insert(
+            config.name.clone(),
+            Arc::new(create_collision_check_client(
+                &urdf_path,
+                self_collision_check_pairs,
+                config,
+                name_to_joint_trajectory_client[&config.client_name].clone(),
+                full_chain.clone(),
+            )),
+        );
+    }
+    clients
+}
+
+pub fn create_collision_check_client<P: AsRef<Path>>(
+    urdf_path: P,
+    self_collision_check_pairs: &[String],
+    config: &CollisionCheckClientConfig,
+    client: Arc<dyn JointTrajectoryClient>,
+    full_chain: Arc<k::Chain<f64>>,
+) -> CollisionCheckClient<Arc<dyn JointTrajectoryClient>> {
+    let joint_names = client.joint_names().to_owned();
+    CollisionCheckClient::new(
+        client,
+        create_self_collision_checker(
+            urdf_path,
+            self_collision_check_pairs,
+            joint_names,
+            &config.self_collision_checker_config,
+            full_chain,
+        ),
+    )
+}
+
+pub fn create_self_collision_checker<P: AsRef<Path>>(
+    urdf_path: P,
+    self_collision_check_pairs: &[String],
+    joint_names: Vec<String>,
+    config: &SelfCollisionCheckerConfig,
+    full_chain: Arc<k::Chain<f64>>,
+) -> SelfCollisionChecker {
+    SelfCollisionChecker::new(
+        joint_names,
+        full_chain,
+        CollisionChecker::from_urdf_robot(
+            &urdf_rs::read_file(urdf_path).unwrap(),
+            config.prediction,
+        ),
+        parse_colon_separated_pairs(self_collision_check_pairs).unwrap(),
+        config.time_interpolate_rate,
+    )
 }
