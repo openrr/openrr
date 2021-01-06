@@ -22,5 +22,6 @@ serde = { version = "1", features = ["derive"] }
 k = "0.21"
 
 # for tests/utils (using same version of rosrust 0.9.5)
-nix = "0.15.0"
 
+[target.'cfg(unix)'.dev-dependencies]
+nix = "0.15.0"

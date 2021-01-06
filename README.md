@@ -17,7 +17,12 @@ sudo apt install cmake build-essential libudev-dev
 
 ## Architecture
 
-TODO:
+![architecture](img/arcitecture.png)
+
+`arci` is a hardware abstruction layer for openrr.
+Currently [ROS1](https://ros.org) and [urdf-viz](https://github.com/openrr/urdf-viz) (as a static simulator (actually it's just a viewer)) are implemented.
+
+You can write platform/hardware independent code if you use `arci` traits.
 
 ## Examples
 
