@@ -322,7 +322,7 @@ pub fn create_ik_clients(
                 name_to_joint_trajectory_client[&config.client_name].clone(),
                 full_chain,
                 &config.ik_solver_config,
-                config.constraints.clone(),
+                config.constraints,
             ))),
         );
     }
