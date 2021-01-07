@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 arci = { version="0.0.1", path = "../arci"}
 async-trait = "0.1"
-k = "0.21"
+k = { version = "0.21", features = ["serde-serialize"] }
 thiserror = "1.0"
 openrr-planner = { version = "0.0.1", path = "../openrr-planner" }
 anyhow = "1.0"
