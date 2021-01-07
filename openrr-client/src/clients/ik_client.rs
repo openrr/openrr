@@ -1,7 +1,7 @@
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint};
 use async_trait::async_trait;
-use k::nalgebra as na;
 use k::Isometry3;
+use k::{nalgebra as na, Constraints};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
@@ -256,6 +256,43 @@ pub struct IkClientConfig {
     pub name: String,
     pub client_name: String,
     pub ik_solver_config: IkSolverConfig,
+    pub constraints: IkClientConstraints,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct IkClientConstraints {
+    pub position_x: bool,
+    pub position_y: bool,
+    pub position_z: bool,
+    pub rotation_x: bool,
+    pub rotation_y: bool,
+    pub rotation_z: bool,
+}
+
+impl From<Constraints> for IkClientConstraints {
+    fn from(k: Constraints) -> Self {
+        Self {
+            position_x: k.position_x,
+            position_y: k.position_y,
+            position_z: k.position_z,
+            rotation_x: k.rotation_x,
+            rotation_y: k.rotation_y,
+            rotation_z: k.rotation_z,
+        }
+    }
+}
+
+impl From<IkClientConstraints> for Constraints {
+    fn from(constraints: IkClientConstraints) -> Self {
+        Self {
+            position_x: constraints.position_x,
+            position_y: constraints.position_y,
+            position_z: constraints.position_z,
+            rotation_x: constraints.rotation_x,
+            rotation_y: constraints.rotation_y,
+            rotation_z: constraints.rotation_z,
+        }
+    }
 }
 
 pub fn create_ik_solver_with_chain(
@@ -292,6 +329,7 @@ pub fn create_ik_client(
     client: ArcJointTrajectoryClient,
     full_chain: &k::Chain<f64>,
     config: &IkSolverConfig,
+    constraints_config: IkClientConstraints,
 ) -> IkClient<ArcJointTrajectoryClient> {
     let arm_chain = if let Some(root_node_name) = &config.root_node_name {
         k::Chain::from_end_to_root(
@@ -302,7 +340,9 @@ pub fn create_ik_client(
         k::Chain::from_end(full_chain.find(&config.ik_target).unwrap())
     };
     let arm_ik_solver_with_chain = create_ik_solver_with_chain(&full_chain, &config);
-    IkClient::new(client, arm_ik_solver_with_chain, arm_chain)
+    let mut client = IkClient::new(client, arm_ik_solver_with_chain, arm_chain);
+    client.constraints = constraints_config.into();
+    client
 }
 
 pub fn create_ik_clients(
@@ -318,6 +358,7 @@ pub fn create_ik_clients(
                 name_to_joint_trajectory_client[&config.client_name].clone(),
                 full_chain,
                 &config.ik_solver_config,
+                config.constraints.clone(),
             ))),
         );
     }
