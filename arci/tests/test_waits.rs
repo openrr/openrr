@@ -63,10 +63,27 @@ fn test_each_condition_accessor() {
     assert_approx_eq!(c1.allowable_errors[0], 1.0);
     assert_approx_eq!(c1.allowable_errors[1], 0.1);
     assert_approx_eq!(c1.timeout_sec, 0.1);
-    c1.allowable_errors[0] = 0.1;
-    c1.allowable_errors[1] = 1.0;
+    c1.allowable_errors = vec![0.1, 1.0];
     c1.timeout_sec = 1.0;
     assert_approx_eq!(c1.allowable_errors[0], 0.1);
     assert_approx_eq!(c1.allowable_errors[1], 1.0);
     assert_approx_eq!(c1.timeout_sec, 1.0);
+}
+
+#[test]
+fn test_each_condition_debug() {
+    let c1 = EachJointDiffCondition::new(vec![1.0, 0.1], 0.1);
+    assert_eq!(format!("{:?}", c1), "EachJointDiffCondition { allowable_errors: [1.0, 0.1], timeout_sec: 0.1 }");
+}
+
+#[test]
+fn test_each_condition_clone() {
+    let c1 = EachJointDiffCondition::new(vec![1.0, 0.1], 0.1);
+    let c2 = c1.clone();
+    assert_approx_eq!(c2.allowable_errors[0], 1.0);
+    assert_approx_eq!(c2.allowable_errors[1], 0.1);
+    assert_approx_eq!(c2.timeout_sec, 0.1);
+    assert_approx_eq!(c1.allowable_errors[0], 1.0);
+    assert_approx_eq!(c1.allowable_errors[1], 0.1);
+    assert_approx_eq!(c1.timeout_sec, 0.1);
 }
