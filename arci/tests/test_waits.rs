@@ -23,6 +23,36 @@ fn test_total_condition() {
 }
 
 #[test]
+fn test_total_condition_accessor() {
+    let mut c1 = TotalJointDiffCondition::new(1.0, 0.1);
+    assert_approx_eq!(c1.allowable_error, 1.0);
+    assert_approx_eq!(c1.timeout_sec, 0.1);
+    c1.allowable_error = 0.1;
+    c1.timeout_sec = 1.0;
+    assert_approx_eq!(c1.allowable_error, 0.1);
+    assert_approx_eq!(c1.timeout_sec, 1.0);
+}
+
+#[test]
+fn test_total_condition_debug() {
+    let c1 = TotalJointDiffCondition::new(1.0, 0.1);
+    assert_eq!(
+        format!("{:?}", c1),
+        "TotalJointDiffCondition { allowable_error: 1.0, timeout_sec: 0.1 }"
+    );
+}
+
+#[test]
+fn test_total_condition_clone() {
+    let c1 = TotalJointDiffCondition::new(1.0, 0.1);
+    let c2 = c1.clone();
+    assert_approx_eq!(c2.allowable_error, 1.0);
+    assert_approx_eq!(c2.timeout_sec, 0.1);
+    assert_approx_eq!(c1.allowable_error, 1.0);
+    assert_approx_eq!(c1.timeout_sec, 0.1);
+}
+
+#[test]
 fn test_each_condition() {
     let client = DummyJointTrajectoryClient::new(vec!["j1".to_owned(), "j2".to_owned()]);
     let c1 = EachJointDiffCondition::new(vec![1.0, 0.1], 0.1);
