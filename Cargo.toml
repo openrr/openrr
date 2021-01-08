@@ -8,6 +8,7 @@ members = [
     "arci-ros",
     "arci-urdf-viz",
     "openrr",
+    "openrr-apps",
     "openrr-client",
     "openrr-planner",
     "openrr-sleep",
@@ -21,6 +22,7 @@ members = [
 "arci-ros" = {path = "arci-ros"}
 "arci-urdf-viz" = {path = "arci-urdf-viz"}
 "openrr" = {path = "openrr"}
+"openrr-apps" = {path = "openrr-apps"}
 "openrr-client" = {path = "openrr-client"}
 "openrr-planner" = {path = "openrr-planner"}
 "openrr-sleep" = {path = "openrr-sleep"}

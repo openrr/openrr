@@ -1,0 +1,32 @@
+[package]
+name = "openrr-apps"
+version = "0.0.1"
+authors = ["Mitsuharu Kojima <kojima@smilerobotics.com>"]
+edition = "2018"
+
+[features]
+ros = ["arci-ros", "rand"]
+
+[dependencies]
+arci = { version = "0.0.1", path = "../arci" }
+arci-urdf-viz = { version = "0.0.1", path = "../arci-urdf-viz" }
+async-recursion = "0.3"
+env_logger = "0.7"
+k = "0.21"
+log = "0.4"
+openrr-client = { version = "0.0.1", path = "../openrr-client" }
+serde = { version = "1.0", features = ["derive"] }
+structopt = "0.3.21"
+thiserror = "1.0"
+tokio = { version = "0.3", features = ["full"] }
+toml = "0.5"
+urdf-rs = "0.4.2"
+
+arci-ros = {version="0.0.1", optional = true}
+rand = {version="0.8.0", optional = true}
+
+[dev-dependencies]
+
+[[bin]]
+name = "openrr_apps_robot_command"
+path = "src/bin/robot_command.rs"
