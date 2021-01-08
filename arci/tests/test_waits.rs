@@ -88,6 +88,25 @@ fn test_each_condition_err() {
 }
 
 #[test]
+fn test_each_condition_dof() {
+    let client = DummyJointTrajectoryClient::new(vec!["j1".to_owned(), "j2".to_owned()]);
+    let c0 = EachJointDiffCondition::new(vec![], 0.1);
+    assert!(c0.wait(&client, &[]).is_ok());
+    let c1 = EachJointDiffCondition::new(vec![0.1], 0.1);
+    assert!(c1.wait(&client, &[0.0]).is_ok());
+    let c2 = EachJointDiffCondition::new(vec![0.1, 0.1], 0.1);
+    assert!(c2.wait(&client, &[0.0, 0.0]).is_ok());
+}
+
+#[test]
+#[should_panic]
+fn test_each_condition_dof_err() {
+    let client = DummyJointTrajectoryClient::new(vec!["j1".to_owned()]);
+    let c2 = EachJointDiffCondition::new(vec![0.1, 0.1], 0.1);
+    assert!(c2.wait(&client, &[0.0, 0.0]).is_ok());
+}
+
+#[test]
 fn test_each_condition_accessor() {
     let mut c1 = EachJointDiffCondition::new(vec![1.0, 0.1], 0.1);
     assert_approx_eq!(c1.allowable_errors[0], 1.0);
