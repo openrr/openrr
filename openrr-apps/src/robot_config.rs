@@ -31,7 +31,7 @@ impl RobotConfig {
         config.urdf_full_path = Some(
             path.as_ref()
                 .parent()
-                .ok_or(Error::NoParentDirectory(path.as_ref().to_owned()))?
+                .ok_or_else(|| Error::NoParentDirectory(path.as_ref().to_owned()))?
                 .join(&config.urdf_path),
         );
         Ok(config)

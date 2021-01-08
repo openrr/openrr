@@ -20,10 +20,10 @@ pub enum Error {
     CommandFileOpenFailure(PathBuf, String),
     #[error("openrr-apps: No ConfigPath is specified")]
     NoConfigPath,
-    #[error("openrr-apps: No ClientsPath ({}) is specified", .0)]
-    NoClientsPath(String),
+    #[error("openrr-apps: No ClientsConfigs for {} is specified", .0)]
+    NoClientsConfigs(String),
     #[error("openrr-apps: No UrdfPath is specified")]
-    NoUrdfPath(),
+    NoUrdfPath,
     #[error("openrr-apps: Failed to parse {:?} as toml {}", .0, .1)]
     TomlParseFailure(PathBuf, #[source] toml::de::Error),
     #[error("openrr-apps: No File {:?} is found {}", .0, .1)]

@@ -26,7 +26,7 @@ impl RobotClient {
     pub fn try_new(config: RobotConfig) -> Result<Self, Error> {
         #[cfg(not(feature = "ros"))]
         let raw_joint_trajectory_clients = if config.urdf_viz_clients_configs.is_empty() {
-            return Err(Error::NoClientsPath("urdf_viz_clients".to_owned()));
+            return Err(Error::NoClientsConfigs("urdf_viz_clients".to_owned()));
         } else {
             create_joint_trajectory_clients(config.urdf_viz_clients_configs.clone())
         };
@@ -42,7 +42,7 @@ impl RobotClient {
                     .into_iter(),
             );
             if clients.is_empty() {
-                return Err(Error::NoClientsPath(
+                return Err(Error::NoClientsConfigs(
                     "urdf_viz_clients_configs / ros_clients_configs".to_owned(),
                 ));
             }
@@ -51,7 +51,7 @@ impl RobotClient {
         let urdf_full_path = if let Some(p) = config.urdf_full_path().clone() {
             p
         } else {
-            return Err(Error::NoUrdfPath());
+            return Err(Error::NoUrdfPath);
         };
         let full_chain_for_collision_checker = Arc::new(Chain::from_urdf_file(&urdf_full_path)?);
 
@@ -129,10 +129,7 @@ impl RobotClient {
             Err(Error::NoJointTrajectoryClient(name.to_owned()))
         }
     }
-    fn ik_client(
-        &self,
-        name: &str,
-    ) -> Result<&Arc<Mutex<IkClient<Arc<dyn JointTrajectoryClient>>>>, Error> {
+    fn ik_client(&self, name: &str) -> Result<&ArcMutexIkClient, Error> {
         if self.is_ik_client(name) {
             Ok(&self.ik_clients[name])
         } else {
