@@ -186,6 +186,24 @@ impl RosControlClient {
     ) -> Self {
         joint_state_subscriber_handler.wait_message(100);
 
+        let state_joint_names = joint_state_subscriber_handler
+            .get()
+            .unwrap()
+            .unwrap()
+            .joint_names;
+        for joint_name in &joint_names {
+            if state_joint_names
+                .iter()
+                .find(|name| **name == *joint_name)
+                .is_none()
+            {
+                panic!(
+                    "Invalid configuration : Joint ({}) is not found in state ({:?})",
+                    joint_name, state_joint_names
+                );
+            }
+        }
+
         let trajectory_publisher =
             rosrust::publish(&format!("{}/command", controller_name), 1).unwrap();
 
