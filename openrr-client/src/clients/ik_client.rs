@@ -304,9 +304,25 @@ pub fn create_ik_client(
         k::Chain::from_end(full_chain.find(&config.ik_target).unwrap())
     };
     let arm_ik_solver_with_chain = create_ik_solver_with_chain(&full_chain, &config);
-    let mut client = IkClient::new(client, arm_ik_solver_with_chain, arm_chain);
-    client.constraints = constraints;
-    client
+    if arm_ik_solver_with_chain.ik_arm.dof() != client.joint_names().len() {
+        panic!(
+            "Invalid configuration : ik arm dof {} {:?} != joint_names length {} ({:?})",
+            arm_ik_solver_with_chain.ik_arm.dof(),
+            {
+                let ik_joint_names: Vec<String> = arm_ik_solver_with_chain
+                    .ik_arm
+                    .iter_joints()
+                    .map(|j| j.name.to_owned())
+                    .collect();
+                ik_joint_names
+            },
+            client.joint_names().len(),
+            client.joint_names()
+        );
+    }
+    let mut ik_client = IkClient::new(client, arm_ik_solver_with_chain, arm_chain);
+    ik_client.constraints = constraints;
+    ik_client
 }
 
 pub fn create_ik_clients(
