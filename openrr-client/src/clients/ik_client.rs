@@ -308,14 +308,11 @@ pub fn create_ik_client(
         panic!(
             "Invalid configuration : ik arm dof {} {:?} != joint_names length {} ({:?})",
             arm_ik_solver_with_chain.ik_arm.dof(),
-            {
-                let ik_joint_names: Vec<String> = arm_ik_solver_with_chain
-                    .ik_arm
-                    .iter_joints()
-                    .map(|j| j.name.to_owned())
-                    .collect();
-                ik_joint_names
-            },
+            arm_ik_solver_with_chain
+                .ik_arm
+                .iter_joints()
+                .map(|j| j.name.to_owned())
+                .collect::<Vec<_>>(),
             client.joint_names().len(),
             client.joint_names()
         );
