@@ -13,13 +13,12 @@ use crate::{Error, RobotConfig};
 type ArcMutexIkClient = Arc<Mutex<IkClient<Arc<dyn JointTrajectoryClient>>>>;
 
 pub struct RobotClient {
-    pub full_chain_for_collision_checker: Arc<Chain<f64>>,
-    pub config: RobotConfig,
-    pub raw_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
-    pub all_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
-    pub collision_check_clients:
+    full_chain_for_collision_checker: Arc<Chain<f64>>,
+    raw_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
+    all_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
+    collision_check_clients:
         HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>>,
-    pub ik_clients: HashMap<String, ArcMutexIkClient>,
+    ik_clients: HashMap<String, ArcMutexIkClient>,
 }
 
 impl RobotClient {
@@ -78,7 +77,6 @@ impl RobotClient {
         );
         Ok(Self {
             full_chain_for_collision_checker,
-            config,
             raw_joint_trajectory_clients,
             all_joint_trajectory_clients,
             collision_check_clients,
@@ -144,27 +142,46 @@ impl RobotClient {
         duration_sec: f64,
     ) -> Result<(), Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
-        Ok(self
-            .joint_trajectory_client(name)?
-            .send_joint_positions(positions.to_owned(), Duration::from_secs_f64(duration_sec))
-            .await?)
+        if self.is_ik_client(name) {
+            Ok(self
+                .ik_client(name)?
+                .lock()
+                .await
+                .client
+                .send_joint_positions(positions.to_owned(), Duration::from_secs_f64(duration_sec))
+                .await?)
+        } else {
+            Ok(self
+                .joint_trajectory_client(name)?
+                .send_joint_positions(positions.to_owned(), Duration::from_secs_f64(duration_sec))
+                .await?)
+        }
     }
-    pub fn current_joint_positions(&self, name: &str) -> Result<Vec<f64>, Error> {
-        Ok(self
-            .joint_trajectory_client(name)?
-            .current_joint_positions()?)
+    pub async fn current_joint_positions(&self, name: &str) -> Result<Vec<f64>, Error> {
+        if self.is_ik_client(name) {
+            self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
+            Ok(self
+                .ik_client(name)?
+                .lock()
+                .await
+                .current_joint_positions()?)
+        } else {
+            Ok(self
+                .joint_trajectory_client(name)?
+                .current_joint_positions()?)
+        }
     }
-    pub async fn current_end_transform(&self, name: &str) -> Result<k::Isometry3<f64>, Error> {
+    pub async fn current_end_transform(&self, name: &str) -> Result<Isometry3<f64>, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         Ok(self.ik_client(name)?.lock().await.current_end_transform()?)
     }
-    pub async fn ik_client_current_joint_positions(&self, name: &str) -> Result<Vec<f64>, Error> {
+    pub async fn transform(
+        &self,
+        name: &str,
+        pose: &Isometry3<f64>,
+    ) -> Result<Isometry3<f64>, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
-        Ok(self
-            .ik_client(name)?
-            .lock()
-            .await
-            .current_joint_positions()?)
+        Ok(self.ik_client(name)?.lock().await.transform(pose)?)
     }
     pub async fn move_ik(
         &self,
