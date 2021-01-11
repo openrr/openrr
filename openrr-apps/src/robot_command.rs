@@ -107,7 +107,8 @@ impl RobotCommand {
                 use_interpolation,
                 joint,
             } => {
-                let mut positions = client.current_joint_positions(name)?;
+                let mut positions = client.current_joint_positions(name).await?;
+
                 let mut should_send = false;
                 for (index, position) in joint {
                     if *index < positions.len() {
@@ -208,10 +209,7 @@ impl RobotCommand {
                 );
 
                 let target_pose = if *is_local {
-                    client.ik_clients[name]
-                        .lock()
-                        .await
-                        .transform(&target_pose)?
+                    client.transform(name, &target_pose).await?
                 } else {
                     target_pose
                 };
@@ -224,20 +222,15 @@ impl RobotCommand {
                 }
             }
             RobotSubCommand::Get { name } => {
+                info!(
+                    "Joint positions : {:?}",
+                    client.current_joint_positions(name).await?
+                );
                 if client.is_ik_client(name) {
-                    info!(
-                        "Joints positions = {:?}",
-                        client.ik_client_current_joint_positions(name).await?
-                    );
                     let pose = client.current_end_transform(name).await?;
                     info!("End pose");
                     info!(" translation = {:?}", pose.translation.vector.data);
                     info!(" rotation = {:?}", pose.rotation.euler_angles());
-                } else {
-                    info!(
-                        "Joint positions : {:?}",
-                        client.current_joint_positions(name)?
-                    );
                 }
             }
             RobotSubCommand::Load { command_file_path } => {
