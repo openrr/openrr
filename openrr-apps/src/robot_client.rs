@@ -201,9 +201,11 @@ impl RobotClient {
         duration_sec: f64,
     ) -> Result<(), Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
-        let ik_client = self.ik_client(name)?.lock().await;
-        ik_client.chain.set_joint_positions_clamped(positions);
-        let target_pose = ik_client.ik_solver_with_chain.end_transform();
+        let target_pose = {
+            let ik_client = self.ik_client(name)?.lock().await;
+            ik_client.chain.set_joint_positions_clamped(positions);
+            ik_client.ik_solver_with_chain.end_transform()
+        };
         Ok(self
             .move_ik_with_interpolation(name, &target_pose, duration_sec)
             .await?)
