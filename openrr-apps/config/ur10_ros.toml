@@ -1,0 +1,41 @@
+urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf"
+self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
+urdf_viz_clients_configs = []
+
+[[ros_clients_configs]]
+name = "arm"
+joint_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
+wrap_with_joint_velocity_limiter = false
+joint_velocity_limits = []
+controller_name = "arm_controller"
+send_partial_joints_goal = false
+complete_allowable_errors = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+complete_timeout_sec = 10.0
+
+[[collision_check_clients_configs]]
+name = "arm_collision"
+client_name = "arm"
+
+[collision_check_clients_configs.self_collision_checker_config]
+prediction = 0.001
+time_interpolate_rate = 0.5
+
+[[ik_clients_configs]]
+name = "arm_ik"
+client_name = "arm_collision"
+
+[ik_clients_configs.ik_solver_config]
+ik_target = "ee_fixed_joint"
+use_random_ik = false
+allowable_position_error_m = 0.005
+allowable_angle_error_rad = 0.01
+jacobian_multiplier = 0.1
+num_max_try = 3000
+
+[ik_clients_configs.constraints]
+position_x = true
+position_y = true
+position_z = true
+rotation_x = false
+rotation_y = true
+rotation_z = false

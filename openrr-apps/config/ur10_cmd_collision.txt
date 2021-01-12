@@ -1,0 +1,5 @@
+openrr_apps_robot_command joints arm -j 0=0.0 1=0.0 2=0.0 3=0.0 4=0.0 5=0.0
+openrr_apps_robot_command joints arm -j 2=-3.14
+
+openrr_apps_robot_command joints arm -j 0=0.0 1=0.0 2=0.0 3=0.0 4=0.0 5=0.0
+openrr_apps_robot_command joints arm_collision -j 2=-3.14
