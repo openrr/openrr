@@ -1,5 +1,5 @@
 #[cfg(feature = "ros")]
-use arci_ros::RosControlClientConfig;
+use arci_ros::{RosControlClientConfig, RosEspeakClientConfig};
 use arci_urdf_viz::UrdfVizWebClientConfig;
 use openrr_client::{CollisionCheckClientConfig, IkClientConfig};
 use serde::{Deserialize, Serialize};
@@ -16,6 +16,9 @@ pub struct RobotConfig {
     #[cfg(feature = "ros")]
     pub ros_clients_configs: Vec<RosControlClientConfig>,
     pub urdf_viz_clients_configs: Vec<UrdfVizWebClientConfig>,
+
+    #[cfg(feature = "ros")]
+    pub ros_espeak_client_config: Option<RosEspeakClientConfig>,
 
     pub collision_check_clients_configs: Vec<CollisionCheckClientConfig>,
     pub ik_clients_configs: Vec<IkClientConfig>,

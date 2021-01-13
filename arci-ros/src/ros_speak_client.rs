@@ -1,9 +1,16 @@
+use serde::{Deserialize, Serialize};
+
 mod msg {
     rosrust::rosmsg_include!(std_msgs / String);
 }
 
 pub struct RosEspeakClient {
     publisher: rosrust::Publisher<msg::std_msgs::String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RosEspeakClientConfig {
+    pub topic: String,
 }
 
 impl RosEspeakClient {

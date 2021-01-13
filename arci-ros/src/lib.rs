@@ -17,7 +17,7 @@ pub use ros_control_action_client::*;
 pub use ros_control_client::*;
 pub use ros_nav_client::*;
 pub use ros_robot_client::*;
-pub use ros_speak_client::RosEspeakClient;
+pub use ros_speak_client::*;
 pub use ros_transform_resolver::*;
 pub use rosrust::{init, is_ok, rate};
 pub use rosrust_utils::*;
