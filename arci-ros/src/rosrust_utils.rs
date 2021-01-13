@@ -1,3 +1,4 @@
+use rand::prelude::*;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 
@@ -254,4 +255,14 @@ macro_rules! define_action_client {
             $action_base
         );
     };
+}
+
+pub fn init(name: &str, anonymous: bool) {
+    let name = if anonymous {
+        let suffix: u64 = rand::thread_rng().gen();
+        format!("{}_{}", name, suffix)
+    } else {
+        name.to_owned()
+    };
+    rosrust::init(&name);
 }

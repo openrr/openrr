@@ -4,7 +4,7 @@ use arci_ros::RosRobotClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    arci_ros::init("example");
+    arci_ros::init("example", false);
     let chain = k::Chain::<f64>::from_urdf_file("../dobot_description/dobot_without_hand.urdf")?;
     let c = RosRobotClient::new(
         chain.iter_joints().map(|j| j.name.to_string()).collect(),

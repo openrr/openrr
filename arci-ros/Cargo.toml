@@ -8,6 +8,7 @@ edition = "2018"
 rosrust = "0.9"
 nalgebra = "0.23"
 thiserror = "1.0"
+rand = "0.8.0"
 ros-nalgebra = "0.0.3"
 arci = {path = "../arci"}
 anyhow = "1.0"

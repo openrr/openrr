@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    arci_ros::init("joy_gamepad");
+    arci_ros::init("joy_gamepad", false);
     let mut button_map = HashMap::new();
     button_map.insert(0, arci::gamepad::Button::West);
     button_map.insert(1, arci::gamepad::Button::South);
