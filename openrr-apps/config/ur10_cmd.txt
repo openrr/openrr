@@ -19,3 +19,5 @@ openrr_apps_robot_command ik arm_ik --x=0.8 --y=0.1
 openrr_apps_robot_command get arm_ik
 openrr_apps_robot_command ik arm_ik --x=1.0 --y=0.25
 openrr_apps_robot_command get arm_ik
+
+openrr_apps_robot_command speak "This is U R 10"

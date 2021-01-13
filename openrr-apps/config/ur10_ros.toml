@@ -2,6 +2,9 @@ urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf"
 self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
 urdf_viz_clients_configs = []
 
+[ros_espeak_client_config]
+topic = "/espeak_server/message"
+
 [[ros_clients_configs]]
 name = "arm"
 joint_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]

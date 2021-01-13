@@ -1,7 +1,8 @@
-use arci::JointTrajectoryClient;
+use arci::{JointTrajectoryClient, Speaker};
 use arci_urdf_viz::create_joint_trajectory_clients;
 use k::{Chain, Isometry3};
 use log::info;
+use openrr_client::PrintSpeaker;
 use openrr_client::{
     create_collision_check_clients, create_ik_clients, CollisionCheckClient, IkClient,
 };
@@ -9,6 +10,8 @@ use std::{collections::HashMap, sync::Arc, time::Duration};
 use tokio::sync::Mutex;
 
 use crate::{Error, RobotConfig};
+#[cfg(feature = "ros")]
+use arci_ros::RosEspeakClient;
 
 type ArcMutexIkClient = Arc<Mutex<IkClient<Arc<dyn JointTrajectoryClient>>>>;
 
@@ -19,6 +22,7 @@ pub struct RobotClient {
     collision_check_clients:
         HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>>,
     ik_clients: HashMap<String, ArcMutexIkClient>,
+    speaker: Arc<dyn Speaker>,
 }
 
 impl RobotClient {
@@ -47,6 +51,16 @@ impl RobotClient {
             }
             clients
         };
+
+        #[cfg(not(feature = "ros"))]
+        let speaker: Arc<dyn Speaker> = Arc::new(PrintSpeaker::new());
+        #[cfg(feature = "ros")]
+        let speaker: Arc<dyn Speaker> = if let Some(c) = &config.ros_espeak_client_config {
+            Arc::new(RosEspeakClient::new(&c.topic))
+        } else {
+            Arc::new(PrintSpeaker::new())
+        };
+
         let urdf_full_path = if let Some(p) = config.urdf_full_path().clone() {
             p
         } else {
@@ -81,6 +95,7 @@ impl RobotClient {
             all_joint_trajectory_clients,
             collision_check_clients,
             ik_clients,
+            speaker,
         })
     }
     pub fn set_raw_clients_joint_positions_to_full_chain_for_collision_checker(
@@ -245,5 +260,8 @@ impl RobotClient {
         for name in self.ik_clients.keys() {
             info!(" {}", name);
         }
+    }
+    pub fn speak(&self, message: &str) {
+        self.speaker.speak(message)
     }
 }
