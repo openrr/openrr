@@ -39,7 +39,7 @@ where
 #[structopt(rename_all = "snake_case")]
 pub enum RobotSubCommand {
     /// Send joint positions.
-    Joints {
+    SendJoints {
         name: String,
         #[structopt(short, long, default_value = "3.0")]
         duration: f64,
@@ -58,7 +58,7 @@ pub enum RobotSubCommand {
         duration: f64,
     },
     /// Move with ik
-    Ik {
+    MoveIk {
         name: String,
         #[structopt(short, long)]
         x: Option<f64>,
@@ -81,9 +81,9 @@ pub enum RobotSubCommand {
         is_local: bool,
     },
     /// Get joint positions and end pose if applicable.
-    Get { name: String },
+    GetState { name: String },
     /// Load commands from file and execute them.
-    Load {
+    LoadCommands {
         #[structopt(parse(from_os_str))]
         command_file_path: PathBuf,
     },
@@ -113,7 +113,7 @@ impl RobotCommand {
         command: &RobotCommand,
     ) -> Result<(), OpenrrAppsError> {
         match &command.sub_command {
-            RobotSubCommand::Joints {
+            RobotSubCommand::SendJoints {
                 name,
                 duration,
                 use_interpolation,
@@ -148,7 +148,7 @@ impl RobotCommand {
             } => {
                 client.send_joints_pose(name, pose_name, *duration).await?;
             }
-            RobotSubCommand::Ik {
+            RobotSubCommand::MoveIk {
                 name,
                 x,
                 y,
@@ -240,7 +240,7 @@ impl RobotCommand {
                     client.move_ik(name, &target_pose, *duration).await?
                 }
             }
-            RobotSubCommand::Get { name } => {
+            RobotSubCommand::GetState { name } => {
                 info!(
                     "Joint positions : {:?}",
                     client.current_joint_positions(name).await?
@@ -252,7 +252,7 @@ impl RobotCommand {
                     info!(" rotation = {:?}", pose.rotation.euler_angles());
                 }
             }
-            RobotSubCommand::Load { command_file_path } => {
+            RobotSubCommand::LoadCommands { command_file_path } => {
                 for command in load_command_file_and_filter(command_file_path.clone())? {
                     let command_parsed_iter = command.split_whitespace();
                     // Parse the command
@@ -263,7 +263,22 @@ impl RobotCommand {
                 }
             }
             RobotSubCommand::List {} => {
-                client.list_clients();
+                info!("Raw joint trajectory clients");
+                for name in client.raw_joint_trajectory_clients_names() {
+                    info!(" {}", name);
+                }
+                info!("Joint trajectory clients");
+                for name in client.joint_trajectory_clients_names() {
+                    info!(" {}", name);
+                }
+                info!("Collision check clients");
+                for name in client.collision_check_clients_names() {
+                    info!(" {}", name);
+                }
+                info!("Ik clients");
+                for name in client.ik_clients_names() {
+                    info!(" {}", name);
+                }
             }
             RobotSubCommand::Speak { message } => {
                 // TODO: Parse quotations and comments

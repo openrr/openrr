@@ -1,7 +1,6 @@
 use arci::{JointTrajectoryClient, Speaker};
 use arci_urdf_viz::create_joint_trajectory_clients;
 use k::{Chain, Isometry3};
-use log::info;
 use openrr_client::PrintSpeaker;
 use openrr_client::{
     create_collision_check_clients, create_ik_clients, CollisionCheckClient, IkClient,
@@ -270,24 +269,31 @@ impl RobotClient {
             .await?)
     }
 
-    pub fn list_clients(&self) {
-        info!("Raw joint trajectory clients");
-        for name in self.raw_joint_trajectory_clients.keys() {
-            info!(" {}", name);
-        }
-        info!("Joint trajectory clients");
-        for name in self.all_joint_trajectory_clients.keys() {
-            info!(" {}", name);
-        }
-        info!("Collision check clients");
-        for name in self.collision_check_clients.keys() {
-            info!(" {}", name);
-        }
-        info!("Ik clients");
-        for name in self.ik_clients.keys() {
-            info!(" {}", name);
-        }
+    pub fn raw_joint_trajectory_clients_names(&self) -> Vec<String> {
+        self.raw_joint_trajectory_clients
+            .keys()
+            .map(|k| k.to_owned())
+            .collect::<Vec<String>>()
     }
+    pub fn joint_trajectory_clients_names(&self) -> Vec<String> {
+        self.all_joint_trajectory_clients
+            .keys()
+            .map(|k| k.to_owned())
+            .collect::<Vec<String>>()
+    }
+    pub fn collision_check_clients_names(&self) -> Vec<String> {
+        self.collision_check_clients
+            .keys()
+            .map(|k| k.to_owned())
+            .collect::<Vec<String>>()
+    }
+    pub fn ik_clients_names(&self) -> Vec<String> {
+        self.ik_clients
+            .keys()
+            .map(|k| k.to_owned())
+            .collect::<Vec<String>>()
+    }
+
     pub fn speak(&self, message: &str) {
         self.speaker.speak(message)
     }
