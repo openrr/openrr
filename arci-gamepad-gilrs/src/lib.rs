@@ -85,6 +85,7 @@ impl Map {
 
     fn convert_button(&self, b: gilrs::Button) -> Button {
         if let Some(e) = self.button_map.get(&b) {
+            debug!("convert_button {:?} -> {:?}", b, e);
             *e
         } else {
             debug!("unkown map {:?}", b);
@@ -94,6 +95,7 @@ impl Map {
 
     fn convert_axis(&self, a: gilrs::Axis, v: f32) -> (Axis, f64) {
         if let Some(e) = self.axis_map.get(&a) {
+            debug!("convert_axis {:?} -> {:?}", a, e);
             (*e, v as f64 * self.axis_value_map.get(e).unwrap_or(&1.0))
         } else {
             debug!("unkown map {:?}", a);
