@@ -22,6 +22,15 @@ pub struct RobotConfig {
 
     pub collision_check_clients_configs: Vec<CollisionCheckClientConfig>,
     pub ik_clients_configs: Vec<IkClientConfig>,
+
+    pub joints_poses: Vec<JointsPose>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct JointsPose {
+    pub pose_name: String,
+    pub client_name: String,
+    pub positions: Vec<f64>,
 }
 
 impl RobotConfig {

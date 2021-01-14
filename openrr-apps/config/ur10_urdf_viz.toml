@@ -8,7 +8,6 @@ joint_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wris
 wrap_with_joint_velocity_limiter = false
 joint_velocity_limits = []
 
-
 [[collision_check_clients_configs]]
 name = "arm_collision"
 client_name = "arm"
@@ -36,3 +35,13 @@ position_z = true
 rotation_x = false
 rotation_y = true
 rotation_z = false
+
+[[joints_poses]]
+pose_name = "zero"
+client_name = "arm_collision"
+positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+[[joints_poses]]
+pose_name = "ready"
+client_name = "arm_collision"
+positions = [0.0, -0.7, 1.4, -2.27, 0.0, 0.0]

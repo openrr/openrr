@@ -7,6 +7,7 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
     path::PathBuf,
+    process::Command,
 };
 use structopt::StructOpt;
 
@@ -49,6 +50,13 @@ pub enum RobotSubCommand {
         #[structopt(short, parse(try_from_str=parse_joints))]
         joint: Vec<(usize, f64)>,
     },
+    /// Send predefined joint positions.
+    SendJointsPose {
+        name: String,
+        pose_name: String,
+        #[structopt(short, long, default_value = "3.0")]
+        duration: f64,
+    },
     /// Move with ik
     Ik {
         name: String,
@@ -83,6 +91,8 @@ pub enum RobotSubCommand {
     List {},
     /// Speak text message.
     Speak { message: Vec<String> },
+    /// Execute an external command.
+    ExecuteCommand { command: Vec<String> },
 }
 
 impl RobotCommand {
@@ -130,6 +140,13 @@ impl RobotCommand {
                         .send_joint_positions(name, &positions, *duration)
                         .await?;
                 }
+            }
+            RobotSubCommand::SendJointsPose {
+                name,
+                pose_name,
+                duration,
+            } => {
+                client.send_joints_pose(name, pose_name, *duration).await?;
             }
             RobotSubCommand::Ik {
                 name,
@@ -253,6 +270,17 @@ impl RobotCommand {
                 // Currently '"Foo bar" # hoge' is parsed as message in below command.
                 // 'openrr_apps_robot_command speak "Foo bar" # hoge'
                 client.speak(&message.join(" "));
+            }
+            RobotSubCommand::ExecuteCommand { command } => {
+                let mut iter = command.into_iter();
+                let cmd_str = iter
+                    .next()
+                    .ok_or_else(|| OpenrrAppsError::NoCommand(command.to_owned()))?;
+                let output = Command::new(cmd_str)
+                    .args(iter)
+                    .output()
+                    .map_err(|e| OpenrrAppsError::CommandExecutionFailure(command.to_owned(), e))?;
+                info!("{}", String::from_utf8_lossy(&output.stdout));
             }
         }
         Ok(())
