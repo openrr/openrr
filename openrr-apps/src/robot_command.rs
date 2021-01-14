@@ -272,7 +272,7 @@ impl RobotCommand {
                 client.speak(&message.join(" "));
             }
             RobotSubCommand::ExecuteCommand { command } => {
-                let mut iter = command.into_iter();
+                let mut iter = command.iter();
                 let cmd_str = iter
                     .next()
                     .ok_or_else(|| OpenrrAppsError::NoCommand(command.to_owned()))?;
