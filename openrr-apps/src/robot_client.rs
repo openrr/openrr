@@ -93,12 +93,9 @@ impl RobotClient {
 
         let mut joints_poses: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
         for joints_pose in &config.joints_poses {
-            if !joints_poses.contains_key(&joints_pose.client_name) {
-                joints_poses.insert(joints_pose.client_name.to_owned(), HashMap::new());
-            }
             joints_poses
-                .get_mut(&joints_pose.client_name)
-                .unwrap()
+                .entry(joints_pose.client_name.clone())
+                .or_insert(HashMap::new())
                 .insert(
                     joints_pose.pose_name.to_owned(),
                     joints_pose.positions.to_owned(),
