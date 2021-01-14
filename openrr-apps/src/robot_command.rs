@@ -81,7 +81,7 @@ pub enum RobotSubCommand {
     },
     /// List available clients.
     List {},
-    /// Speak.
+    /// Speak text message.
     Speak { message: Vec<String> },
 }
 
