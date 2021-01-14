@@ -23,6 +23,7 @@ pub struct RobotClient {
         HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>>,
     ik_clients: HashMap<String, ArcMutexIkClient>,
     speaker: Arc<dyn Speaker>,
+    joints_poses: HashMap<String, HashMap<String, Vec<f64>>>,
 }
 
 impl RobotClient {
@@ -89,6 +90,20 @@ impl RobotClient {
             &all_joint_trajectory_clients,
             &full_chain_for_collision_checker,
         );
+
+        let mut joints_poses: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
+        for joints_pose in &config.joints_poses {
+            if !joints_poses.contains_key(&joints_pose.client_name) {
+                joints_poses.insert(joints_pose.client_name.to_owned(), HashMap::new());
+            }
+            joints_poses
+                .get_mut(&joints_pose.client_name)
+                .unwrap()
+                .insert(
+                    joints_pose.pose_name.to_owned(),
+                    joints_pose.positions.to_owned(),
+                );
+        }
         Ok(Self {
             full_chain_for_collision_checker,
             raw_joint_trajectory_clients,
@@ -96,6 +111,7 @@ impl RobotClient {
             collision_check_clients,
             ik_clients,
             speaker,
+            joints_poses,
         })
     }
     pub fn set_raw_clients_joint_positions_to_full_chain_for_collision_checker(
@@ -184,6 +200,20 @@ impl RobotClient {
             Ok(self
                 .joint_trajectory_client(name)?
                 .current_joint_positions()?)
+        }
+    }
+    pub async fn send_joints_pose(
+        &self,
+        name: &str,
+        pose_name: &str,
+        duration_sec: f64,
+    ) -> Result<(), Error> {
+        if self.joints_poses.contains_key(name) && self.joints_poses[name].contains_key(pose_name) {
+            Ok(self
+                .send_joint_positions(name, &self.joints_poses[name][pose_name], duration_sec)
+                .await?)
+        } else {
+            Err(Error::NoJointsPose(name.to_owned(), pose_name.to_owned()))
         }
     }
     pub async fn current_end_transform(&self, name: &str) -> Result<Isometry3<f64>, Error> {

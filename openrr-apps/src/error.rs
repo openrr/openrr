@@ -28,6 +28,12 @@ pub enum Error {
     TomlParseFailure(PathBuf, #[source] toml::de::Error),
     #[error("openrr-apps: No File {:?} is found {}", .0, .1)]
     NoFile(PathBuf, #[source] std::io::Error),
+    #[error("openrr-apps: No JointsPose {} {} is found.", .0, .1)]
+    NoJointsPose(String, String),
+    #[error("openrr-apps: No Command is specified {:?}.", .0)]
+    NoCommand(Vec<String>),
+    #[error("openrr-apps: Failed to execute Command {:?} ({}).", .0, .1)]
+    CommandExecutionFailure(Vec<String>, #[source] std::io::Error),
     #[error("openrr-apps: No ParentDirectory {:?} is found", .0)]
     NoParentDirectory(PathBuf),
     #[error("openrr-apps: arci: {:?}", .0)]
