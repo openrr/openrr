@@ -1,8 +1,14 @@
 mod web_server;
 
 use assert_approx_eq::assert_approx_eq;
+use reqwest::Url;
+use std::sync::{Arc, Mutex};
 
-use arci_urdf_viz::UrdfVizWebClientConfig;
+use arci_urdf_viz::{
+    UrdfVizWebClientConfig,
+    UrdfVizWebClient,
+};
+use arci::JointTrajectoryClient;
 use web_server::*;
 
 #[test]
@@ -82,4 +88,31 @@ fn test_create_joint_trajectory_clients() {
         },
     ];
     let _clients = arci_urdf_viz::create_joint_trajectory_clients(configs);
+}
+
+#[test]
+fn test_current_joint_positions() {
+    const PORT: u16 = 7778;
+    let web_server = WebServer {
+        port: PORT,
+        target_joint_positions: Arc::new(Mutex::new(JointNamesAndPositionsRequest {
+            joint_positions: JointNamesAndPositions::default(),
+            requested: false,
+        })),
+        current_joint_positions: Arc::new(Mutex::new(JointNamesAndPositions {
+            names: vec!["j1".to_owned(), "j2".to_owned()],
+            positions: vec![1.0, -1.0],
+        })),
+        target_robot_origin: Arc::new(Mutex::new(RobotOriginRequest {
+            origin: RobotOrigin::default(),
+            requested: false,
+        })),
+        current_robot_origin: Arc::new(Mutex::new(RobotOrigin::default())),
+    };
+    std::thread::spawn(move || web_server.start());
+    let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
+        .unwrap();
+    let v = c.current_joint_positions().unwrap();
+    assert_approx_eq!(v[0], 1.0);
+    assert_approx_eq!(v[1], -1.0);
 }
