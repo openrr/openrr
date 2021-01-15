@@ -1,5 +1,5 @@
-use openrr_client::PrintSpeaker;
 use arci::Speaker;
+use openrr_client::PrintSpeaker;
 
 #[test]
 fn test_print_speaker_new() {
