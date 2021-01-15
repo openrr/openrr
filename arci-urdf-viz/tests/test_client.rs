@@ -8,7 +8,10 @@ use arci_urdf_viz::{
     UrdfVizWebClientConfig,
     UrdfVizWebClient,
 };
-use arci::JointTrajectoryClient;
+use arci::{
+    JointTrajectoryClient,
+    SetCompleteCondition, TotalJointDiffCondition,
+};
 use web_server::*;
 
 #[test]
@@ -115,4 +118,15 @@ fn test_current_joint_positions() {
     let v = c.current_joint_positions().unwrap();
     assert_approx_eq!(v[0], 1.0);
     assert_approx_eq!(v[1], -1.0);
+}
+
+#[test]
+fn test_set_complete_condition() {
+    const PORT: u16 = 7779;
+    let web_server = WebServer::new(PORT);
+    std::thread::spawn(move || web_server.start());
+    let mut client = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
+        .unwrap();
+    let cond = TotalJointDiffCondition::new(0.0, 0.1);
+    client.set_complete_condition(Box::new(cond));
 }
