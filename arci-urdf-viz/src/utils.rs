@@ -1,6 +1,6 @@
 use nalgebra as na;
-use reqwest::Url;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct JointState {
@@ -33,38 +33,38 @@ pub(crate) struct RpcResult {
     pub reason: String,
 }
 
-pub(crate) fn get_joint_positions(base_url: &Url) -> Result<JointState, reqwest::Error> {
-    let re = reqwest::blocking::get(base_url.join("get_joint_positions").unwrap())?
-        .json::<JointState>()?;
+pub(crate) fn get_joint_positions(base_url: &Url) -> Result<JointState, ureq::Error> {
+    let re = ureq::get(base_url.join("get_joint_positions").unwrap().as_str())
+        .call()?
+        .into_json::<JointState>()?;
     Ok(re)
 }
 
 pub(crate) fn send_joint_positions(
     base_url: &Url,
     joint_state: JointState,
-) -> Result<RpcResult, reqwest::Error> {
-    reqwest::blocking::Client::new()
-        .post(base_url.join("set_joint_positions").unwrap())
-        .json(&joint_state)
-        .send()?
-        .json()
+) -> Result<RpcResult, ureq::Error> {
+    let re = ureq::post(base_url.join("set_joint_positions").unwrap().as_str())
+        .send_json(serde_json::to_value(joint_state).unwrap())?
+        .into_json()?;
+    Ok(re)
 }
 
-pub(crate) fn get_robot_origin(base_url: &Url) -> Result<BasePose, reqwest::Error> {
-    let re =
-        reqwest::blocking::get(base_url.join("get_robot_origin").unwrap())?.json::<BasePose>()?;
+pub(crate) fn get_robot_origin(base_url: &Url) -> Result<BasePose, ureq::Error> {
+    let re = ureq::get(base_url.join("get_robot_origin").unwrap().as_str())
+        .call()?
+        .into_json::<BasePose>()?;
     Ok(re)
 }
 
 pub(crate) fn send_robot_origin(
     base_url: &Url,
     base_pose: BasePose,
-) -> Result<RpcResult, reqwest::Error> {
-    reqwest::blocking::Client::new()
-        .post(base_url.join("set_robot_origin").unwrap())
-        .json(&base_pose)
-        .send()?
-        .json()
+) -> Result<RpcResult, ureq::Error> {
+    let re = ureq::post(base_url.join("set_robot_origin").unwrap().as_str())
+        .send_json(serde_json::to_value(base_pose).unwrap())?
+        .into_json()?;
+    Ok(re)
 }
 
 pub(crate) fn euler_angles_from_quaternion(q: &[f64; 4]) -> (f64, f64, f64) {

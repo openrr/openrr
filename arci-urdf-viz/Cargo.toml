@@ -6,13 +6,15 @@ edition = "2018"
 
 [dependencies]
 arci = { version = "0.0.1", path = "../arci" }
-reqwest = { version = "0.11", features = ["blocking", "json"] }
+ureq = { version = "2", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
 anyhow = "1.0"
 openrr-planner = {version = "0.0.1", default-features=false}
 nalgebra = "0.23"
 async-trait = "0.1"
 openrr-sleep = { version = "0.0.1", path = "../openrr-sleep"}
+url = "2.0"
+serde_json = "1.0"
 
 [dev-dependencies]
 assert_approx_eq = "1.1"
