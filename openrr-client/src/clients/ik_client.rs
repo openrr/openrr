@@ -4,7 +4,6 @@ use k::Isometry3;
 use k::{nalgebra as na, Constraints};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
-use tokio::sync::Mutex;
 
 type ArcJointTrajectoryClient = Arc<dyn JointTrajectoryClient>;
 
@@ -142,7 +141,7 @@ where
     T: JointTrajectoryClient,
 {
     pub client: T,
-    pub ik_solver_with_chain: IkSolverWithChain,
+    pub ik_solver_with_chain: Arc<IkSolverWithChain>,
     pub chain: k::Chain<f64>,
 }
 
@@ -150,7 +149,11 @@ impl<T> IkClient<T>
 where
     T: JointTrajectoryClient + Send,
 {
-    pub fn new(client: T, ik_solver_with_chain: IkSolverWithChain, chain: k::Chain<f64>) -> Self {
+    pub fn new(
+        client: T,
+        ik_solver_with_chain: Arc<IkSolverWithChain>,
+        chain: k::Chain<f64>,
+    ) -> Self {
         Self {
             client,
             ik_solver_with_chain,
@@ -341,7 +344,7 @@ pub fn create_ik_client(
     } else {
         k::Chain::from_end(full_chain.find(&config.ik_target).unwrap())
     };
-    let arm_ik_solver_with_chain = create_ik_solver_with_chain(&full_chain, &config);
+    let arm_ik_solver_with_chain = Arc::new(create_ik_solver_with_chain(&full_chain, &config));
     if arm_ik_solver_with_chain.ik_arm.dof() != client.joint_names().len() {
         panic!(
             "Invalid configuration : ik arm dof {} {:?} != joint_names length {} ({:?})",
@@ -362,16 +365,16 @@ pub fn create_ik_clients(
     configs: &[IkClientConfig],
     name_to_joint_trajectory_client: &HashMap<String, ArcJointTrajectoryClient>,
     full_chain: &k::Chain<f64>,
-) -> HashMap<String, Arc<Mutex<IkClient<ArcJointTrajectoryClient>>>> {
+) -> HashMap<String, Arc<IkClient<ArcJointTrajectoryClient>>> {
     let mut clients = HashMap::new();
     for config in configs {
         clients.insert(
             config.name.clone(),
-            Arc::new(Mutex::new(create_ik_client(
+            Arc::new(create_ik_client(
                 name_to_joint_trajectory_client[&config.client_name].clone(),
                 full_chain,
                 &config.ik_solver_config,
-            ))),
+            )),
         );
     }
     clients
