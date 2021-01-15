@@ -26,7 +26,6 @@ where
     ik_solver_with_chain: IkSolverWithChain,
     is_turbo: bool,
     is_sending: bool,
-    pub constraints: k::Constraints,
 }
 
 impl<J, S> IkNode<J, S>
@@ -56,7 +55,6 @@ where
             ik_solver_with_chain,
             is_turbo: false,
             is_sending: false,
-            constraints: k::Constraints::default(),
         }
     }
 }
@@ -148,11 +146,7 @@ where
                             1.0
                         },
                 );
-            if self
-                .ik_solver_with_chain
-                .solve_with_constraints(&target_pose, &self.constraints)
-                .is_ok()
-            {
+            if self.ik_solver_with_chain.solve(&target_pose).is_ok() {
                 let pos = self.ik_solver_with_chain.joint_positions();
                 self.joint_trajectory_client
                     .send_joint_positions(pos, self.step_duration)

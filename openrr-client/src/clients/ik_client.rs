@@ -1,7 +1,7 @@
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint};
 use async_trait::async_trait;
-use k::nalgebra as na;
 use k::Isometry3;
+use k::{nalgebra as na, Constraints};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
@@ -43,6 +43,7 @@ pub fn create_random_jacobian_ik_solver(
 pub struct IkSolverWithChain {
     ik_arm: k::SerialChain<f64>,
     ik_solver: Arc<dyn k::InverseKinematicsSolver<f64> + Send + Sync>,
+    constraints: Constraints,
 }
 
 impl IkSolverWithChain {
@@ -55,11 +56,14 @@ impl IkSolverWithChain {
     pub fn solve_with_constraints(
         &self,
         target_pose: &k::Isometry3<f64>,
-        constraints: &k::Constraints,
+        constraints: &Constraints,
     ) -> Result<(), Error> {
         self.ik_solver
             .solve_with_constraints(&self.ik_arm, &target_pose, constraints)
             .map_err(|e| Error::Other(e.into()))
+    }
+    pub fn solve(&self, target_pose: &k::Isometry3<f64>) -> Result<(), Error> {
+        self.solve_with_constraints(target_pose, &self.constraints)
     }
     pub fn set_joint_positions_clamped(&self, positions: &[f64]) {
         self.ik_arm.set_joint_positions_clamped(positions)
@@ -67,11 +71,69 @@ impl IkSolverWithChain {
     pub fn new(
         arm: k::SerialChain<f64>,
         ik_solver: Arc<dyn k::InverseKinematicsSolver<f64> + Send + Sync>,
+        constraints: Constraints,
     ) -> Self {
         Self {
             ik_arm: arm,
             ik_solver,
+            constraints,
         }
+    }
+    pub fn constraints(&self) -> &Constraints {
+        &self.constraints
+    }
+    pub fn generate_trajectory_with_interpolation(
+        &self,
+        current_pose: &Isometry3<f64>,
+        target_pose: &Isometry3<f64>,
+        duration_sec: f64,
+        max_resolution: f64,
+        min_number_of_points: i32,
+    ) -> Result<Vec<TrajectoryPoint>, Error> {
+        self.generate_trajectory_with_interpolation_and_constraints(
+            current_pose,
+            target_pose,
+            &self.constraints,
+            duration_sec,
+            max_resolution,
+            min_number_of_points,
+        )
+    }
+    pub fn generate_trajectory_with_interpolation_and_constraints(
+        &self,
+        current_pose: &Isometry3<f64>,
+        target_pose: &Isometry3<f64>,
+        constraints: &Constraints,
+        duration_sec: f64,
+        max_resolution: f64,
+        min_number_of_points: i32,
+    ) -> Result<Vec<TrajectoryPoint>, Error> {
+        let target_position = target_pose.translation.vector;
+        let target_rotation = target_pose.rotation;
+        let current_position = current_pose.translation.vector;
+        let current_rotation = current_pose.rotation;
+
+        let position_diff = target_position - current_position;
+        let n = std::cmp::max(
+            min_number_of_points,
+            (position_diff.norm() / max_resolution) as i32,
+        );
+        let mut traj = vec![];
+        for i in 1..n + 1 {
+            let t = i as f64 / n as f64;
+            let tar_pos = current_position.lerp(&target_position, t);
+            let tar_rot = current_rotation.slerp(&target_rotation, t);
+            self.solve_with_constraints(
+                &k::Isometry3::from_parts(na::Translation3::from(tar_pos), tar_rot),
+                constraints,
+            )?;
+            let trajectory = TrajectoryPoint::new(
+                self.joint_positions(),
+                std::time::Duration::from_secs_f64(t * duration_sec),
+            );
+            traj.push(trajectory);
+        }
+        Ok(traj)
     }
 }
 
@@ -82,7 +144,6 @@ where
     pub client: T,
     pub ik_solver_with_chain: IkSolverWithChain,
     pub chain: k::Chain<f64>,
-    pub constraints: k::Constraints,
 }
 
 impl<T> IkClient<T>
@@ -94,7 +155,6 @@ where
             client,
             ik_solver_with_chain,
             chain,
-            constraints: k::Constraints::default(),
         }
     }
 
@@ -108,7 +168,7 @@ where
     pub async fn move_ik_with_constraints(
         &self,
         target_pose: &k::Isometry3<f64>,
-        constraints: &k::Constraints,
+        constraints: &Constraints,
         duration_sec: f64,
     ) -> Result<(), Error> {
         self.ik_solver_with_chain
@@ -122,18 +182,19 @@ where
     pub async fn move_ik_with_interpolation_and_constraints(
         &self,
         target_pose: &k::Isometry3<f64>,
-        constraints: &k::Constraints,
+        constraints: &Constraints,
         duration_sec: f64,
     ) -> Result<(), Error> {
-        let mut traj = check_ik_with_interpolation_and_constraints(
-            &self.current_end_transform()?,
-            target_pose,
-            &self.ik_solver_with_chain,
-            constraints,
-            duration_sec,
-            0.05,
-            10,
-        )?;
+        let mut traj = self
+            .ik_solver_with_chain
+            .generate_trajectory_with_interpolation_and_constraints(
+                &self.current_end_transform()?,
+                target_pose,
+                constraints,
+                duration_sec,
+                0.05,
+                10,
+            )?;
         let dof = self.client.joint_names().len();
         traj.first_mut().unwrap().velocities = Some(vec![0.0; dof]);
         traj.last_mut().unwrap().velocities = Some(vec![0.0; dof]);
@@ -145,8 +206,11 @@ where
         target_pose: &k::Isometry3<f64>,
         duration_sec: f64,
     ) -> Result<(), Error> {
-        self.move_ik_with_constraints(target_pose, &self.constraints, duration_sec)
-            .await
+        self.ik_solver_with_chain.solve(&target_pose)?;
+
+        let positions = self.ik_solver_with_chain.joint_positions();
+        let duration = std::time::Duration::from_secs_f64(duration_sec);
+        self.client.send_joint_positions(positions, duration).await
     }
 
     pub async fn move_ik_with_interpolation(
@@ -154,12 +218,19 @@ where
         target_pose: &k::Isometry3<f64>,
         duration_sec: f64,
     ) -> Result<(), Error> {
-        self.move_ik_with_interpolation_and_constraints(
-            target_pose,
-            &self.constraints,
-            duration_sec,
-        )
-        .await
+        let mut traj = self
+            .ik_solver_with_chain
+            .generate_trajectory_with_interpolation(
+                &self.current_end_transform()?,
+                target_pose,
+                duration_sec,
+                0.05,
+                10,
+            )?;
+        let dof = self.client.joint_names().len();
+        traj.first_mut().unwrap().velocities = Some(vec![0.0; dof]);
+        traj.last_mut().unwrap().velocities = Some(vec![0.0; dof]);
+        self.client.send_joint_trajectory(traj).await
     }
 
     /// Get relative pose from current pose of the IK target
@@ -177,6 +248,10 @@ where
             .set_joint_positions(&zero_angles)
             .map_err(|e| Error::Other(e.into()))?;
         Ok(())
+    }
+
+    pub fn constraints(&self) -> &Constraints {
+        &self.ik_solver_with_chain.constraints()
     }
 }
 
@@ -203,43 +278,6 @@ where
     }
 }
 
-pub fn check_ik_with_interpolation_and_constraints(
-    current_pose: &Isometry3<f64>,
-    target_pose: &Isometry3<f64>,
-    ik_solver_with_chain: &IkSolverWithChain,
-    constraints: &k::Constraints,
-    duration_sec: f64,
-    max_resolution: f64,
-    min_number_of_points: i32,
-) -> Result<Vec<TrajectoryPoint>, Error> {
-    let target_position = target_pose.translation.vector;
-    let target_rotation = target_pose.rotation;
-    let current_position = current_pose.translation.vector;
-    let current_rotation = current_pose.rotation;
-
-    let position_diff = target_position - current_position;
-    let n = std::cmp::max(
-        min_number_of_points,
-        (position_diff.norm() / max_resolution) as i32,
-    );
-    let mut traj = vec![];
-    for i in 1..n + 1 {
-        let t = i as f64 / n as f64;
-        let tar_pos = current_position.lerp(&target_position, t);
-        let tar_rot = current_rotation.slerp(&target_rotation, t);
-        ik_solver_with_chain.solve_with_constraints(
-            &k::Isometry3::from_parts(na::Translation3::from(tar_pos), tar_rot),
-            constraints,
-        )?;
-        let trajectory = TrajectoryPoint::new(
-            ik_solver_with_chain.joint_positions(),
-            std::time::Duration::from_secs_f64(t * duration_sec),
-        );
-        traj.push(trajectory);
-    }
-    Ok(traj)
-}
-
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct IkSolverConfig {
     pub root_node_name: Option<String>,
@@ -249,6 +287,7 @@ pub struct IkSolverConfig {
     pub allowable_angle_error_rad: f64,
     pub jacobian_multiplier: f64,
     pub num_max_try: usize,
+    pub constraints: Constraints,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -256,7 +295,6 @@ pub struct IkClientConfig {
     pub name: String,
     pub client_name: String,
     pub ik_solver_config: IkSolverConfig,
-    pub constraints: k::Constraints,
 }
 
 pub fn create_ik_solver_with_chain(
@@ -286,6 +324,7 @@ pub fn create_ik_solver_with_chain(
         } else {
             Arc::new(create_jacobian_ik_solver(&parameters))
         },
+        config.constraints,
     )
 }
 
@@ -293,7 +332,6 @@ pub fn create_ik_client(
     client: ArcJointTrajectoryClient,
     full_chain: &k::Chain<f64>,
     config: &IkSolverConfig,
-    constraints: k::Constraints,
 ) -> IkClient<ArcJointTrajectoryClient> {
     let arm_chain = if let Some(root_node_name) = &config.root_node_name {
         k::Chain::from_end_to_root(
@@ -317,9 +355,7 @@ pub fn create_ik_client(
             client.joint_names()
         );
     }
-    let mut ik_client = IkClient::new(client, arm_ik_solver_with_chain, arm_chain);
-    ik_client.constraints = constraints;
-    ik_client
+    IkClient::new(client, arm_ik_solver_with_chain, arm_chain)
 }
 
 pub fn create_ik_clients(
@@ -335,7 +371,6 @@ pub fn create_ik_clients(
                 name_to_joint_trajectory_client[&config.client_name].clone(),
                 full_chain,
                 &config.ik_solver_config,
-                config.constraints,
             ))),
         );
     }

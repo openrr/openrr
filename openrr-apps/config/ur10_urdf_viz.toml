@@ -27,14 +27,12 @@ allowable_position_error_m = 0.005
 allowable_angle_error_rad = 0.01
 jacobian_multiplier = 0.1
 num_max_try = 3000
-
-[ik_clients_configs.constraints]
-position_x = true
-position_y = true
-position_z = true
-rotation_x = false
-rotation_y = true
-rotation_z = false
+constraints.position_x = true
+constraints.position_y = true
+constraints.position_z = true
+constraints.rotation_x = false
+constraints.rotation_y = true
+constraints.rotation_z = false
 
 [[joints_poses]]
 pose_name = "zero"
