@@ -6,13 +6,12 @@ use openrr_client::{
     create_collision_check_clients, create_ik_clients, CollisionCheckClient, IkClient,
 };
 use std::{collections::HashMap, sync::Arc, time::Duration};
-use tokio::sync::Mutex;
 
 use crate::{Error, RobotConfig};
 #[cfg(feature = "ros")]
 use arci_ros::RosEspeakClient;
 
-type ArcMutexIkClient = Arc<Mutex<IkClient<Arc<dyn JointTrajectoryClient>>>>;
+type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
 
 pub struct RobotClient {
     full_chain_for_collision_checker: Arc<Chain<f64>>,
@@ -20,7 +19,7 @@ pub struct RobotClient {
     all_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
     collision_check_clients:
         HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>>,
-    ik_clients: HashMap<String, ArcMutexIkClient>,
+    ik_clients: HashMap<String, ArcIkClient>,
     speaker: Arc<dyn Speaker>,
     joints_poses: HashMap<String, HashMap<String, Vec<f64>>>,
 }
@@ -154,7 +153,7 @@ impl RobotClient {
             Err(Error::NoJointTrajectoryClient(name.to_owned()))
         }
     }
-    fn ik_client(&self, name: &str) -> Result<&ArcMutexIkClient, Error> {
+    fn ik_client(&self, name: &str) -> Result<&ArcIkClient, Error> {
         if self.is_ik_client(name) {
             Ok(&self.ik_clients[name])
         } else {
@@ -172,8 +171,6 @@ impl RobotClient {
         if self.is_ik_client(name) {
             Ok(self
                 .ik_client(name)?
-                .lock()
-                .await
                 .client
                 .send_joint_positions(positions.to_owned(), Duration::from_secs_f64(duration_sec))
                 .await?)
@@ -187,11 +184,7 @@ impl RobotClient {
     pub async fn current_joint_positions(&self, name: &str) -> Result<Vec<f64>, Error> {
         if self.is_ik_client(name) {
             self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
-            Ok(self
-                .ik_client(name)?
-                .lock()
-                .await
-                .current_joint_positions()?)
+            Ok(self.ik_client(name)?.current_joint_positions()?)
         } else {
             Ok(self
                 .joint_trajectory_client(name)?
@@ -214,7 +207,7 @@ impl RobotClient {
     }
     pub async fn current_end_transform(&self, name: &str) -> Result<Isometry3<f64>, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
-        Ok(self.ik_client(name)?.lock().await.current_end_transform()?)
+        Ok(self.ik_client(name)?.current_end_transform()?)
     }
     pub async fn transform(
         &self,
@@ -222,7 +215,7 @@ impl RobotClient {
         pose: &Isometry3<f64>,
     ) -> Result<Isometry3<f64>, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
-        Ok(self.ik_client(name)?.lock().await.transform(pose)?)
+        Ok(self.ik_client(name)?.transform(pose)?)
     }
     pub async fn move_ik(
         &self,
@@ -233,8 +226,6 @@ impl RobotClient {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         Ok(self
             .ik_client(name)?
-            .lock()
-            .await
             .move_ik(target_pose, duration_sec)
             .await?)
     }
@@ -247,8 +238,6 @@ impl RobotClient {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         Ok(self
             .ik_client(name)?
-            .lock()
-            .await
             .move_ik_with_interpolation(target_pose, duration_sec)
             .await?)
     }
@@ -260,7 +249,7 @@ impl RobotClient {
     ) -> Result<(), Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         let target_pose = {
-            let ik_client = self.ik_client(name)?.lock().await;
+            let ik_client = self.ik_client(name)?;
             ik_client.chain.set_joint_positions_clamped(positions);
             ik_client.ik_solver_with_chain.end_transform()
         };

@@ -4,7 +4,7 @@ use arci::{JointTrajectoryClient, Speaker};
 use async_trait::async_trait;
 use k::{Translation3, Vector3};
 use openrr_client::IkSolverWithChain;
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 const AXIS_GAIN: f64 = 0.2;
 const IK_POSITION_TURBO_GAIN: f64 = 2.0;
@@ -23,7 +23,7 @@ where
     move_step_linear: f64,
     move_step_angular: f64,
     step_duration: Duration,
-    ik_solver_with_chain: IkSolverWithChain,
+    ik_solver_with_chain: Arc<IkSolverWithChain>,
     is_turbo: bool,
     is_sending: bool,
 }
@@ -40,7 +40,7 @@ where
         move_step_angular: f64,
         step_duration: Duration,
         speaker: S,
-        ik_solver_with_chain: IkSolverWithChain,
+        ik_solver_with_chain: Arc<IkSolverWithChain>,
     ) -> Self {
         Self {
             joint_trajectory_client,
