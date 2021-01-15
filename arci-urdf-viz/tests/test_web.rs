@@ -2,7 +2,7 @@ mod web_server;
 use arci::{MoveBase, Navigation};
 use arci_urdf_viz::*;
 use assert_approx_eq::assert_approx_eq;
-use reqwest::Url;
+use url::Url;
 use web_server::*;
 
 #[test]

@@ -6,12 +6,12 @@ use arci::{
 use async_trait::async_trait;
 use nalgebra as na;
 use openrr_sleep::ScopedSleep;
-use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
 };
+use url::Url;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UrdfVizWebClientConfig {
