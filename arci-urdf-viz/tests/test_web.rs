@@ -10,6 +10,7 @@ fn test_set_get_vel() {
     const PORT: u16 = 8888;
     let web_server = WebServer::new(PORT);
     std::thread::spawn(move || web_server.start());
+    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
     let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
         .unwrap();
     let v = c.current_velocity().unwrap();
@@ -29,6 +30,7 @@ fn test_set_get_pose() {
     const PORT: u16 = 8889;
     let web_server = WebServer::new(PORT);
     std::thread::spawn(move || web_server.start());
+    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
     let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
         .unwrap();
     let pose = c.current_pose().unwrap();
