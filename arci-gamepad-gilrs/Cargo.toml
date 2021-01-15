@@ -11,4 +11,4 @@ crossbeam-channel = "0.5.0"
 log = "0.4"
 
 [dev-dependencies]
-tokio = { version = "0.3", features = ["full"] }
+tokio = { version = "1.0", features = ["full"] }

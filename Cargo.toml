@@ -27,3 +27,6 @@ members = [
 "openrr-planner" = {path = "openrr-planner"}
 "openrr-sleep" = {path = "openrr-sleep"}
 "openrr-teleop" = {path = "openrr-teleop"}
+
+# https://github.com/sebcrozet/kiss3d/issues/262
+kiss3d = { git = "https://github.com/sebcrozet/kiss3d", rev = "6274d50" }

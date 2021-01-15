@@ -15,4 +15,4 @@ log = "0.4"
 
 [dev-dependencies]
 assert_approx_eq = "1.1"
-tokio-test = "*"
+tokio-test = "0.4"

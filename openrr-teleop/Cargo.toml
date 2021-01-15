@@ -13,4 +13,4 @@ auto_impl = "0.4.1"
 k = "0.21"
 log = "0.4"
 openrr-client = { version = "0.0.1", path = "../openrr-client"}
-tokio = { version = "0.3", features = ["full"] }
+tokio = { version = "1.0", features = ["full"] }
