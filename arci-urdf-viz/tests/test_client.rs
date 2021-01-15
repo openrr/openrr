@@ -4,14 +4,8 @@ use assert_approx_eq::assert_approx_eq;
 use reqwest::Url;
 use std::sync::{Arc, Mutex};
 
-use arci_urdf_viz::{
-    UrdfVizWebClientConfig,
-    UrdfVizWebClient,
-};
-use arci::{
-    JointTrajectoryClient,
-    SetCompleteCondition, TotalJointDiffCondition,
-};
+use arci::{JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition};
+use arci_urdf_viz::{UrdfVizWebClient, UrdfVizWebClientConfig};
 use web_server::*;
 
 #[test]
@@ -125,8 +119,9 @@ fn test_set_complete_condition() {
     const PORT: u16 = 7779;
     let web_server = WebServer::new(PORT);
     std::thread::spawn(move || web_server.start());
-    let mut client = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-        .unwrap();
+    let mut client =
+        UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
+            .unwrap();
     let cond = TotalJointDiffCondition::new(0.0, 0.1);
     client.set_complete_condition(Box::new(cond));
 }
