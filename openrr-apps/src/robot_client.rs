@@ -1,5 +1,6 @@
-use arci::{JointTrajectoryClient, Speaker};
-use arci_urdf_viz::create_joint_trajectory_clients;
+use arci::Error as ArciError;
+use arci::{BaseVelocity, JointTrajectoryClient, MoveBase, Speaker};
+use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient};
 use k::{Chain, Isometry3};
 use openrr_client::PrintSpeaker;
 use openrr_client::{
@@ -9,7 +10,7 @@ use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use crate::{Error, RobotConfig};
 #[cfg(feature = "ros")]
-use arci_ros::RosEspeakClient;
+use arci_ros::{RosCmdVelMoveBase, RosEspeakClient};
 
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
 
@@ -21,6 +22,7 @@ pub struct RobotClient {
         HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>>,
     ik_clients: HashMap<String, ArcIkClient>,
     speaker: Arc<dyn Speaker>,
+    move_base: Option<Arc<dyn MoveBase>>,
     joints_poses: HashMap<String, HashMap<String, Vec<f64>>>,
 }
 
@@ -58,6 +60,29 @@ impl RobotClient {
             Arc::new(RosEspeakClient::new(&c.topic))
         } else {
             Arc::new(PrintSpeaker::new())
+        };
+
+        #[cfg(not(feature = "ros"))]
+        let move_base = if config.use_move_base_urdf_viz_web_client {
+            let urdf_viz_client = Arc::new(UrdfVizWebClient::default());
+            urdf_viz_client.run_thread();
+            Some(urdf_viz_client as Arc<dyn MoveBase>)
+        } else {
+            None
+        };
+        #[cfg(feature = "ros")]
+        let move_base = if let Some(ros_cmd_vel_move_base_client_config) =
+            &config.ros_cmd_vel_move_base_client_config
+        {
+            Some(Arc::new(RosCmdVelMoveBase::new(
+                &ros_cmd_vel_move_base_client_config.topic,
+            )) as Arc<dyn MoveBase>)
+        } else if config.use_move_base_urdf_viz_web_client {
+            let urdf_viz_client = Arc::new(UrdfVizWebClient::default());
+            urdf_viz_client.run_thread();
+            Some(urdf_viz_client as Arc<dyn MoveBase>)
+        } else {
+            None
         };
 
         let urdf_full_path = if let Some(p) = config.urdf_full_path().clone() {
@@ -106,6 +131,7 @@ impl RobotClient {
             collision_check_clients,
             ik_clients,
             speaker,
+            move_base,
             joints_poses,
         })
     }
@@ -282,8 +308,19 @@ impl RobotClient {
             .map(|k| k.to_owned())
             .collect::<Vec<String>>()
     }
+}
 
-    pub fn speak(&self, message: &str) {
+impl MoveBase for RobotClient {
+    fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), ArciError> {
+        self.move_base.as_ref().unwrap().send_velocity(velocity)
+    }
+    fn current_velocity(&self) -> Result<BaseVelocity, ArciError> {
+        self.move_base.as_ref().unwrap().current_velocity()
+    }
+}
+
+impl Speaker for RobotClient {
+    fn speak(&self, message: &str) {
         self.speaker.speak(message)
     }
 }
