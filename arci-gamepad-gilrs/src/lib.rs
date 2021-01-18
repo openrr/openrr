@@ -186,9 +186,17 @@ impl GilGamepad {
     pub fn new(id: usize, map: Map) -> Self {
         let (tx, rx) = crossbeam_channel::unbounded();
         let _handle = std::thread::spawn(move || {
+            let mut is_found = false;
             let mut gil = gilrs::Gilrs::new().unwrap();
-            for (_id, gamepad) in gil.gamepads() {
+
+            for (connected_id, gamepad) in gil.gamepads() {
                 info!("{} is {:?}", gamepad.name(), gamepad.power_info());
+                if id == connected_id.into() {
+                    is_found = true;
+                }
+            }
+            if !is_found {
+                panic!("No Gamepad id={} is found", id);
             }
             loop {
                 // gil.next_event is no block. We have to polling it.
