@@ -1,6 +1,7 @@
 use crate::msg;
 use crate::rosrust_utils::wait_subscriber;
 use arci::*;
+use serde::{Deserialize, Serialize};
 
 pub struct RosCmdVelMoveBase {
     vel_publisher: rosrust::Publisher<msg::geometry_msgs::Twist>,
@@ -29,4 +30,9 @@ impl MoveBase for RosCmdVelMoveBase {
     fn current_velocity(&self) -> Result<BaseVelocity, Error> {
         panic!("not implemented yet");
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RosCmdVelMoveBaseConfig {
+    pub topic: String,
 }

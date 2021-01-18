@@ -1,4 +1,5 @@
 use crate::Error as OpenrrAppsError;
+use arci::Speaker;
 use async_recursion::async_recursion;
 use log::info;
 use openrr_client::isometry;
@@ -8,6 +9,7 @@ use std::{
     io::{BufRead, BufReader},
     path::PathBuf,
     process::Command,
+    sync::Arc,
 };
 use structopt::StructOpt;
 
@@ -99,8 +101,9 @@ impl RobotCommand {
     pub async fn execute(&self) -> Result<(), OpenrrAppsError> {
         if let Some(config_path) = &self.config_path {
             let config = RobotConfig::try_new(config_path)?;
-            let client = RobotClient::try_new(config)?;
-            self.execute_sub_command(&client, &self).await
+            let client = Arc::new(RobotClient::try_new(config)?);
+            self.execute_sub_command(client.clone(), client, &self)
+                .await
         } else {
             return Err(OpenrrAppsError::NoConfigPath);
         }
@@ -109,7 +112,8 @@ impl RobotCommand {
     #[async_recursion]
     pub async fn execute_sub_command(
         &self,
-        client: &RobotClient,
+        client: Arc<RobotClient>,
+        speaker: Arc<dyn Speaker>,
         command: &RobotCommand,
     ) -> Result<(), OpenrrAppsError> {
         match &command.sub_command {
@@ -259,7 +263,8 @@ impl RobotCommand {
                     let read_opt = RobotCommand::from_iter(command_parsed_iter);
                     // Execute the parsed command
                     info!("Executing {}", command);
-                    self.execute_sub_command(&client, &read_opt).await?;
+                    self.execute_sub_command(client.clone(), speaker.clone(), &read_opt)
+                        .await?;
                 }
             }
             RobotSubCommand::List {} => {

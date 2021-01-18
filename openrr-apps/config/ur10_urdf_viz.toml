@@ -1,6 +1,7 @@
 urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf"
 self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
 ros_clients_configs = []
+use_move_base_urdf_viz_web_client = false
 
 [[urdf_viz_clients_configs]]
 name = "arm"
