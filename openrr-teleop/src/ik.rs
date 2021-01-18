@@ -6,7 +6,6 @@ use k::{Translation3, Vector3};
 use openrr_client::IkSolverWithChain;
 use std::{sync::Arc, time::Duration};
 
-const AXIS_GAIN: f64 = 0.2;
 const IK_POSITION_TURBO_GAIN: f64 = 2.0;
 
 pub struct IkNode<J, S>
@@ -20,8 +19,8 @@ where
     submode: String,
     linear_velocity: Vector3<f64>,
     angular_velocity: Vector3<f64>,
-    move_step_linear: f64,
-    move_step_angular: f64,
+    move_step_linear: [f64; 3],
+    move_step_angular: [f64; 3],
     step_duration: Duration,
     ik_solver_with_chain: Arc<IkSolverWithChain>,
     is_turbo: bool,
@@ -36,8 +35,8 @@ where
     pub fn new(
         mode: String,
         joint_trajectory_client: J,
-        move_step_linear: f64,
-        move_step_angular: f64,
+        move_step_linear: [f64; 3],
+        move_step_angular: [f64; 3],
         step_duration: Duration,
         speaker: S,
         ik_solver_with_chain: Arc<IkSolverWithChain>,
@@ -96,28 +95,28 @@ where
                 self.clear_velocity();
             }
             GamepadEvent::ButtonPressed(Button::South) => {
-                self.linear_velocity.z = -self.move_step_linear;
+                self.linear_velocity.z = -self.move_step_linear[2];
             }
             GamepadEvent::ButtonReleased(Button::South) => {
                 self.linear_velocity.z = 0.0;
             }
             GamepadEvent::ButtonPressed(Button::West) => {
-                self.linear_velocity.z = self.move_step_linear;
+                self.linear_velocity.z = self.move_step_linear[2];
             }
             GamepadEvent::ButtonReleased(Button::West) => {
                 self.linear_velocity.z = 0.0;
             }
             GamepadEvent::AxisChanged(Axis::RightStickY, v) => {
-                self.linear_velocity.x = self.move_step_linear * v * AXIS_GAIN;
+                self.linear_velocity.x = self.move_step_linear[0] * v;
             }
             GamepadEvent::AxisChanged(Axis::RightStickX, v) => {
-                self.linear_velocity.y = self.move_step_linear * v * AXIS_GAIN;
+                self.linear_velocity.y = self.move_step_linear[1] * v;
             }
             GamepadEvent::AxisChanged(Axis::LeftStickX, v) => {
-                self.angular_velocity.z = self.move_step_angular * v * AXIS_GAIN;
+                self.angular_velocity.z = self.move_step_angular[2] * v;
             }
             GamepadEvent::AxisChanged(Axis::LeftStickY, v) => {
-                self.angular_velocity.x = self.move_step_angular * v * AXIS_GAIN;
+                self.angular_velocity.x = self.move_step_angular[0] * v;
             }
             _ => {}
         }
