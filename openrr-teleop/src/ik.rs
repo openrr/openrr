@@ -4,6 +4,7 @@ use arci::{JointTrajectoryClient, Speaker};
 use async_trait::async_trait;
 use k::{Translation3, Vector3};
 use openrr_client::IkSolverWithChain;
+use serde::{Deserialize, Serialize};
 use std::{sync::Arc, time::Duration};
 
 const IK_POSITION_TURBO_GAIN: f64 = 2.0;
@@ -55,6 +56,22 @@ where
             is_turbo: false,
             is_sending: false,
         }
+    }
+    pub fn new_from_config(
+        config: IkNodeConfig,
+        joint_trajectory_client: J,
+        speaker: S,
+        ik_solver_with_chain: Arc<IkSolverWithChain>,
+    ) -> Self {
+        Self::new(
+            config.mode,
+            joint_trajectory_client,
+            config.move_step_linear,
+            config.move_step_angular,
+            Duration::from_secs_f64(config.step_duration_secs),
+            speaker,
+            ik_solver_with_chain,
+        )
     }
 }
 
@@ -162,4 +179,12 @@ where
     fn submode(&self) -> &str {
         &self.submode
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct IkNodeConfig {
+    pub mode: String,
+    pub move_step_angular: [f64; 3],
+    pub move_step_linear: [f64; 3],
+    pub step_duration_secs: f64,
 }
