@@ -17,6 +17,9 @@ pub struct RobotConfig {
     pub ros_clients_configs: Vec<RosControlClientConfig>,
     pub urdf_viz_clients_configs: Vec<UrdfVizWebClientConfig>,
 
+    pub urdf_viz_clients_total_complete_allowable_error: f64,
+    pub urdf_viz_clients_complete_timeout_sec: f64,
+
     #[cfg(feature = "ros")]
     pub ros_espeak_client_config: Option<RosEspeakClientConfig>,
 

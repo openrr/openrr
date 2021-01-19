@@ -2,19 +2,18 @@ urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf"
 self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
 urdf_viz_clients_configs = []
 use_move_base_urdf_viz_web_client = false
-
-[ros_espeak_client_config]
-topic = "/espeak_server/message"
+urdf_viz_clients_total_complete_allowable_error = 0.02
+urdf_viz_clients_complete_timeout_sec = 10.0
 
 [[ros_clients_configs]]
 name = "arm"
 joint_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
 wrap_with_joint_velocity_limiter = false
 joint_velocity_limits = []
-controller_name = "arm_controller"
-send_partial_joints_goal = false
 complete_allowable_errors = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
 complete_timeout_sec = 10.0
+controller_name = "arm_controller"
+send_partial_joints_goal = false
 
 [[collision_check_clients_configs]]
 name = "arm_collision_checked"

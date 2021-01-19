@@ -23,9 +23,16 @@ pub struct UrdfVizWebClientConfig {
 
 pub fn create_joint_trajectory_clients(
     configs: Vec<UrdfVizWebClientConfig>,
+    total_complete_allowable_error: f64,
+    complete_timeout_sec: f64,
 ) -> HashMap<String, Arc<dyn JointTrajectoryClient>> {
     let mut clients = HashMap::new();
-    let all_client = Arc::new(UrdfVizWebClient::default());
+    let mut all_client = UrdfVizWebClient::default();
+    all_client.set_complete_condition(Box::new(TotalJointDiffCondition::new(
+        total_complete_allowable_error,
+        complete_timeout_sec,
+    )));
+    let all_client = Arc::new(all_client);
     for config in configs {
         let client =
             arci::PartialJointTrajectoryClient::new(config.joint_names, all_client.clone());
