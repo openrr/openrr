@@ -2,6 +2,7 @@ use super::control_node::ControlNode;
 use arci::gamepad::{Axis, Button, GamepadEvent};
 use arci::{JointTrajectoryClient, Speaker};
 use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 const AXIS_GAIN: f64 = 2.0;
@@ -51,6 +52,19 @@ where
             is_turbo: false,
             is_sending: false,
         }
+    }
+    pub fn new_from_config(
+        config: JoyJointTeleopNodeConfig,
+        joint_trajectory_client: J,
+        speaker: S,
+    ) -> Self {
+        Self::new(
+            config.mode,
+            joint_trajectory_client,
+            config.joint_step,
+            Duration::from_secs_f64(config.step_duration_secs),
+            speaker,
+        )
     }
 }
 
@@ -123,4 +137,11 @@ where
     fn submode(&self) -> &str {
         &self.submode
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct JoyJointTeleopNodeConfig {
+    pub mode: String,
+    pub joint_step: f64,
+    pub step_duration_secs: f64,
 }
