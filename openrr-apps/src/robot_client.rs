@@ -32,14 +32,22 @@ impl RobotClient {
         let raw_joint_trajectory_clients = if config.urdf_viz_clients_configs.is_empty() {
             return Err(Error::NoClientsConfigs("urdf_viz_clients".to_owned()));
         } else {
-            create_joint_trajectory_clients(config.urdf_viz_clients_configs.clone())
+            create_joint_trajectory_clients(
+                config.urdf_viz_clients_configs.clone(),
+                config.urdf_viz_clients_total_complete_allowable_error,
+                config.urdf_viz_clients_complete_timeout_sec,
+            )
         };
         #[cfg(feature = "ros")]
         let raw_joint_trajectory_clients = {
             let mut clients = if config.urdf_viz_clients_configs.is_empty() {
                 HashMap::new()
             } else {
-                create_joint_trajectory_clients(config.urdf_viz_clients_configs.clone())
+                create_joint_trajectory_clients(
+                    config.urdf_viz_clients_configs.clone(),
+                    config.urdf_viz_clients_total_complete_allowable_error,
+                    config.urdf_viz_clients_complete_timeout_sec,
+                )
             };
             clients.extend(
                 arci_ros::create_joint_trajectory_clients(config.ros_clients_configs.clone())
