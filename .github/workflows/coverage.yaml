@@ -18,6 +18,7 @@ jobs:
         with:
           toolchain: nightly
           override: true
+      - run: sudo apt-get update
       # only for arci-gamepad-gilrs
       - run: sudo apt-get install -y libudev-dev
       # only for arci-ros test (roscore)

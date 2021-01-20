@@ -51,6 +51,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      - run: sudo apt-get update
       # only for arci-gamepad-gilrs
       - run: sudo apt-get install -y libudev-dev
       - uses: actions-rs/cargo@v1
@@ -66,6 +67,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      - run: sudo apt-get update
       # only for arci-gamepad-gilrs
       - run: sudo apt-get install -y libudev-dev
       # testing arci-ros is done in ros1.yaml
@@ -98,6 +100,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      - run: sudo apt-get update
       # only for arci-gamepad-gilrs
       - run: sudo apt-get install -y libudev-dev
       - run: rustup component add clippy
