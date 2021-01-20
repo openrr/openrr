@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Button {
     South,
     East,
@@ -23,7 +24,7 @@ pub enum Button {
     Unknown,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Axis {
     LeftStickX,
     LeftStickY,
