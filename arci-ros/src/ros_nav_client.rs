@@ -111,7 +111,6 @@ impl Default for RosNavClientBuilder {
 pub struct RosNavClient {
     pose_subscriber: SubscriberHandler<msg::geometry_msgs::PoseWithCovarianceStamped>,
     pub clear_costmap_before_start: bool,
-    pub frame_id: String,
     action_client: SimpleActionClient,
     nomotion_update_client: Option<rosrust::Client<std_srvs::Empty>>,
 }
@@ -134,7 +133,6 @@ impl RosNavClient {
         Self {
             pose_subscriber,
             clear_costmap_before_start: false,
-            frame_id: "".to_string(),
             action_client,
             nomotion_update_client,
         }
@@ -179,6 +177,7 @@ impl Navigation for RosNavClient {
     async fn send_pose(
         &self,
         goal: na::Isometry2<f64>,
+        frame_id: &str,
         timeout: std::time::Duration,
     ) -> Result<(), Error> {
         if self.clear_costmap_before_start {
@@ -188,7 +187,7 @@ impl Navigation for RosNavClient {
             pose: goal.into(),
             ..Default::default()
         };
-        target_pose.header.frame_id = self.frame_id.clone();
+        target_pose.header.frame_id = frame_id.to_owned();
         target_pose.header.stamp = rosrust::now();
         let goal_id = self
             .action_client

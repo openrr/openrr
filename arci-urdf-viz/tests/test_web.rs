@@ -39,6 +39,7 @@ fn test_set_get_pose() {
     assert_approx_eq!(pose.rotation.angle(), 0.0);
     tokio_test::block_on(c.send_pose(
         nalgebra::Isometry2::new(nalgebra::Vector2::new(1.0, 2.0), 3.0),
+        "",
         std::time::Duration::from_secs(0),
     ))
     .unwrap();
