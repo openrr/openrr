@@ -9,6 +9,7 @@ pub trait Navigation: Send + Sync {
     async fn send_pose(
         &self,
         goal: Isometry2<f64>,
+        frame_id: &str,
         timeout: std::time::Duration,
     ) -> Result<(), Error>;
     fn current_pose(&self) -> Result<Isometry2<f64>, Error>;

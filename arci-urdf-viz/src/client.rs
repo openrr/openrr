@@ -164,6 +164,7 @@ impl Navigation for UrdfVizWebClient {
     async fn send_pose(
         &self,
         goal: na::Isometry2<f64>,
+        _frame_id: &str,
         _timeout: std::time::Duration,
     ) -> Result<(), arci::Error> {
         // JUMP!
