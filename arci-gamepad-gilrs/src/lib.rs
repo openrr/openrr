@@ -1,11 +1,18 @@
 use arci::gamepad::*;
 use arci::*;
 use log::{debug, error, info};
+use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 use std::{collections::HashMap, time::Duration};
 
+#[serde_as]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Map {
+    #[serde_as(as = "Vec<(_, _)>")]
     button_map: HashMap<gilrs::Button, Button>,
+    #[serde_as(as = "Vec<(_, _)>")]
     axis_map: HashMap<gilrs::Axis, Axis>,
+    #[serde_as(as = "Vec<(_, _)>")]
     axis_value_map: HashMap<Axis, f64>,
 }
 
@@ -219,6 +226,9 @@ impl GilGamepad {
 
         Self { rx, _handle }
     }
+    pub fn new_from_config(config: GilGamepadConfig) -> Self {
+        Self::new(config.device_id, config.map)
+    }
 }
 
 #[async_trait]
@@ -247,3 +257,9 @@ mod test {
     }
 }
 */
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GilGamepadConfig {
+    device_id: usize,
+    map: Map,
+}
