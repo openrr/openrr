@@ -9,12 +9,14 @@ ros = ["arci-ros", "rand"]
 
 [dependencies]
 arci = { version = "0.0.1", path = "../arci" }
+arci-gamepad-gilrs = { version = "0.0.1", path = "../arci-gamepad-gilrs" }
 arci-urdf-viz = { version = "0.0.1", path = "../arci-urdf-viz" }
 async-recursion = "0.3"
 env_logger = "0.7"
 k = "0.21"
 log = "0.4"
 openrr-client = { version = "0.0.1", path = "../openrr-client" }
+openrr-teleop = { version = "0.0.1", path = "../openrr-teleop" }
 serde = { version = "1.0", features = ["derive"] }
 structopt = "0.3.21"
 thiserror = "1.0"
@@ -30,3 +32,7 @@ rand = {version="0.8.0", optional = true}
 [[bin]]
 name = "openrr_apps_robot_command"
 path = "src/bin/robot_command.rs"
+
+[[bin]]
+name = "openrr_apps_robot_teleop"
+path = "src/bin/robot_teleop.rs"

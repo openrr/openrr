@@ -5,6 +5,7 @@ use k::{Chain, Isometry3};
 use openrr_client::PrintSpeaker;
 use openrr_client::{
     create_collision_check_clients, create_ik_clients, CollisionCheckClient, IkClient,
+    IkSolverWithChain,
 };
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
@@ -21,6 +22,7 @@ pub struct RobotClient {
     collision_check_clients:
         HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>>,
     ik_clients: HashMap<String, ArcIkClient>,
+    ik_solvers: HashMap<String, Arc<IkSolverWithChain>>,
     speaker: Arc<dyn Speaker>,
     move_base: Option<Arc<dyn MoveBase>>,
     joints_poses: HashMap<String, HashMap<String, Vec<f64>>>,
@@ -122,6 +124,11 @@ impl RobotClient {
             &full_chain_for_collision_checker,
         );
 
+        let mut ik_solvers = HashMap::new();
+        for (k, i) in &ik_clients {
+            ik_solvers.insert(k.to_owned(), i.ik_solver_with_chain.clone());
+        }
+
         let mut joints_poses: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
         for joints_pose in &config.joints_poses {
             joints_poses
@@ -138,6 +145,7 @@ impl RobotClient {
             all_joint_trajectory_clients,
             collision_check_clients,
             ik_clients,
+            ik_solvers,
             speaker,
             move_base,
             joints_poses,
@@ -186,6 +194,12 @@ impl RobotClient {
         } else {
             Err(Error::NoJointTrajectoryClient(name.to_owned()))
         }
+    }
+    pub fn joint_trajectory_clients(&self) -> &HashMap<String, Arc<dyn JointTrajectoryClient>> {
+        &self.all_joint_trajectory_clients
+    }
+    pub fn ik_solvers(&self) -> &HashMap<String, Arc<IkSolverWithChain>> {
+        &self.ik_solvers
     }
     fn ik_client(&self, name: &str) -> Result<&ArcIkClient, Error> {
         if self.is_ik_client(name) {
