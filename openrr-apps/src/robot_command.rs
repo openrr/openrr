@@ -16,7 +16,10 @@ use structopt::StructOpt;
 use crate::{RobotClient, RobotConfig};
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "robot_command", about = "An openrr command line tool.")]
+#[structopt(
+    name = "openrr_apps_robot_command",
+    about = "An openrr command line tool."
+)]
 pub struct RobotCommand {
     #[structopt(short, long, parse(from_os_str))]
     config_path: Option<PathBuf>,
@@ -245,15 +248,15 @@ impl RobotCommand {
                 }
             }
             RobotSubCommand::GetState { name } => {
-                info!(
+                println!(
                     "Joint positions : {:?}",
                     client.current_joint_positions(name).await?
                 );
                 if client.is_ik_client(name) {
                     let pose = client.current_end_transform(name).await?;
-                    info!("End pose");
-                    info!(" translation = {:?}", pose.translation.vector.data);
-                    info!(" rotation = {:?}", pose.rotation.euler_angles());
+                    println!("End pose");
+                    println!(" translation = {:?}", pose.translation.vector.data);
+                    println!(" rotation = {:?}", pose.rotation.euler_angles());
                 }
             }
             RobotSubCommand::LoadCommands { command_file_path } => {
@@ -268,21 +271,21 @@ impl RobotCommand {
                 }
             }
             RobotSubCommand::List {} => {
-                info!("Raw joint trajectory clients");
+                println!("Raw joint trajectory clients");
                 for name in client.raw_joint_trajectory_clients_names() {
-                    info!(" {}", name);
+                    println!(" {}", name);
                 }
-                info!("Joint trajectory clients");
+                println!("Joint trajectory clients");
                 for name in client.joint_trajectory_clients_names() {
-                    info!(" {}", name);
+                    println!(" {}", name);
                 }
-                info!("Collision check clients");
+                println!("Collision check clients");
                 for name in client.collision_check_clients_names() {
-                    info!(" {}", name);
+                    println!(" {}", name);
                 }
-                info!("Ik clients");
+                println!("Ik clients");
                 for name in client.ik_clients_names() {
-                    info!(" {}", name);
+                    println!(" {}", name);
                 }
             }
             RobotSubCommand::Speak { message } => {
