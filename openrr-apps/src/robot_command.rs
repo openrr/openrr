@@ -1,6 +1,7 @@
 use crate::Error as OpenrrAppsError;
-use arci::Speaker;
+use arci::{BaseVelocity, MoveBase, Navigation, Speaker};
 use async_recursion::async_recursion;
+use k::nalgebra::{Isometry2, Vector2};
 use log::info;
 use openrr_client::isometry;
 use std::{
@@ -10,6 +11,8 @@ use std::{
     path::PathBuf,
     process::Command,
     sync::Arc,
+    thread::sleep,
+    time::Duration,
 };
 use structopt::StructOpt;
 
@@ -98,6 +101,28 @@ pub enum RobotSubCommand {
     Speak { message: Vec<String> },
     /// Execute an external command.
     ExecuteCommand { command: Vec<String> },
+    /// Get navigation current pose.
+    GetNavigationCurrentPose {},
+    /// Send navigation goal pose.
+    SendNavigationGoal {
+        x: f64,
+        y: f64,
+        yaw: f64,
+        #[structopt(short, long, default_value = "map")]
+        frame_id: String,
+        #[structopt(short, long, default_value = "100.0")]
+        timeout_secs: f64,
+    },
+    /// Cancel navigation gaol.
+    CancelNavigationGoal {},
+    /// Send base velocity.
+    SendBaseVelocity {
+        x: f64,
+        y: f64,
+        theta: f64,
+        #[structopt(short, long, default_value = "1.0")]
+        wait_secs: f64,
+    },
 }
 
 impl RobotCommand {
@@ -304,6 +329,40 @@ impl RobotCommand {
                     .output()
                     .map_err(|e| OpenrrAppsError::CommandExecutionFailure(command.to_owned(), e))?;
                 info!("{}", String::from_utf8_lossy(&output.stdout));
+            }
+            RobotSubCommand::GetNavigationCurrentPose {} => {
+                println!(
+                    "Base Pose {}",
+                    (client as Arc<dyn Navigation>).current_pose()?
+                );
+            }
+            RobotSubCommand::SendNavigationGoal {
+                x,
+                y,
+                yaw,
+                frame_id,
+                timeout_secs,
+            } => {
+                (client as Arc<dyn Navigation>)
+                    .send_pose(
+                        Isometry2::new(Vector2::new(*x, *y), *yaw),
+                        frame_id,
+                        Duration::from_secs_f64(*timeout_secs),
+                    )
+                    .await?;
+            }
+            RobotSubCommand::CancelNavigationGoal {} => {
+                (client as Arc<dyn Navigation>).cancel()?;
+            }
+            RobotSubCommand::SendBaseVelocity {
+                x,
+                y,
+                theta,
+                wait_secs,
+            } => {
+                (client as Arc<dyn MoveBase>).send_velocity(&BaseVelocity::new(*x, *y, *theta))?;
+                // wait publish
+                sleep(Duration::from_secs_f64(*wait_secs));
             }
         }
         Ok(())

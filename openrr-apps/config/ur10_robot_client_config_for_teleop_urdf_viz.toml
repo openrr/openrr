@@ -3,6 +3,7 @@ self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
 ros_clients_configs = []
 joints_poses = []
 use_move_base_urdf_viz_web_client = true
+use_navigation_urdf_viz_web_client = false
 urdf_viz_clients_total_complete_allowable_error = 10.0
 urdf_viz_clients_complete_timeout_sec = 10.0
 
