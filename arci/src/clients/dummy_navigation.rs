@@ -17,6 +17,12 @@ impl DummyNavigation {
     }
 }
 
+impl Default for DummyNavigation {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl Navigation for DummyNavigation {
     async fn send_pose(
