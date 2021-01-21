@@ -2,6 +2,7 @@ use crate::msg;
 use crate::rosrust_utils::*;
 use arci::*;
 use nalgebra as na;
+use serde::{Deserialize, Serialize};
 use std::time;
 
 use crate::define_action_client_internal;
@@ -137,6 +138,11 @@ impl RosNavClient {
             nomotion_update_client,
         }
     }
+    pub fn new_from_config(config: RosNavClientConfig) -> Self {
+        let mut s = Self::new(config.request_final_nomotion_update_hack);
+        s.clear_costmap_before_start = config.clear_costmap_before_start;
+        s
+    }
     pub fn clear_costmap(&self) -> Result<(), Error> {
         // Wait ten seconds for the service to appear
         rosrust::wait_for_service(CLEAR_COSTMAP_SERVICE, Some(time::Duration::from_secs(10)))
@@ -218,4 +224,10 @@ impl Navigation for RosNavClient {
             pose.rotation.euler_angles().2,
         ))
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RosNavClientConfig {
+    pub request_final_nomotion_update_hack: bool,
+    pub clear_costmap_before_start: bool,
 }
