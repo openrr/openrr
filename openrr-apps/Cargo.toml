@@ -12,6 +12,7 @@ arci = { version = "0.0.1", path = "../arci" }
 arci-gamepad-gilrs = { version = "0.0.1", path = "../arci-gamepad-gilrs" }
 arci-urdf-viz = { version = "0.0.1", path = "../arci-urdf-viz" }
 async-recursion = "0.3"
+async-trait = "0.1"
 env_logger = "0.7"
 k = "0.21"
 log = "0.4"

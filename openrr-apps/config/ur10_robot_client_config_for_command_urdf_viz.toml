@@ -1,7 +1,8 @@
 urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf"
 self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
 ros_clients_configs = []
-use_move_base_urdf_viz_web_client = false
+use_move_base_urdf_viz_web_client = true
+use_navigation_urdf_viz_web_client = true
 urdf_viz_clients_total_complete_allowable_error = 0.02
 urdf_viz_clients_complete_timeout_sec = 10.0
 

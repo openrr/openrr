@@ -1,7 +1,8 @@
 use arci::Error as ArciError;
-use arci::{BaseVelocity, JointTrajectoryClient, MoveBase, Speaker};
+use arci::{BaseVelocity, JointTrajectoryClient, MoveBase, Navigation, Speaker};
 use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient};
-use k::{Chain, Isometry3};
+use async_trait::async_trait;
+use k::{nalgebra::Isometry2, Chain, Isometry3};
 use openrr_client::PrintSpeaker;
 use openrr_client::{
     create_collision_check_clients, create_ik_clients, CollisionCheckClient, IkClient,
@@ -11,7 +12,7 @@ use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use crate::{Error, RobotConfig};
 #[cfg(feature = "ros")]
-use arci_ros::{RosCmdVelMoveBase, RosEspeakClient};
+use arci_ros::{RosCmdVelMoveBase, RosEspeakClient, RosNavClient};
 
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
 
@@ -25,6 +26,7 @@ pub struct RobotClient {
     ik_solvers: HashMap<String, Arc<IkSolverWithChain>>,
     speaker: Arc<dyn Speaker>,
     move_base: Option<Arc<dyn MoveBase>>,
+    navigation: Option<Arc<dyn Navigation>>,
     joints_poses: HashMap<String, HashMap<String, Vec<f64>>>,
 }
 
@@ -95,6 +97,28 @@ impl RobotClient {
             None
         };
 
+        #[cfg(not(feature = "ros"))]
+        let navigation = if config.use_navigation_urdf_viz_web_client {
+            let urdf_viz_client = Arc::new(UrdfVizWebClient::default());
+            urdf_viz_client.run_thread();
+            Some(urdf_viz_client as Arc<dyn Navigation>)
+        } else {
+            None
+        };
+        #[cfg(feature = "ros")]
+        let navigation =
+            if let Some(ros_navigation_client_config) = &config.ros_navigation_client_config {
+                Some(Arc::new(RosNavClient::new_from_config(
+                    ros_navigation_client_config.clone(),
+                )) as Arc<dyn Navigation>)
+            } else if config.use_navigation_urdf_viz_web_client {
+                let urdf_viz_client = Arc::new(UrdfVizWebClient::default());
+                urdf_viz_client.run_thread();
+                Some(urdf_viz_client as Arc<dyn Navigation>)
+            } else {
+                None
+            };
+
         let urdf_full_path = if let Some(p) = config.urdf_full_path().clone() {
             p
         } else {
@@ -148,6 +172,7 @@ impl RobotClient {
             ik_solvers,
             speaker,
             move_base,
+            navigation,
             joints_poses,
         })
     }
@@ -329,6 +354,29 @@ impl RobotClient {
             .keys()
             .map(|k| k.to_owned())
             .collect::<Vec<String>>()
+    }
+}
+
+#[async_trait]
+impl Navigation for RobotClient {
+    async fn send_pose(
+        &self,
+        goal: Isometry2<f64>,
+        frame_id: &str,
+        timeout: std::time::Duration,
+    ) -> Result<(), ArciError> {
+        Ok(self
+            .navigation
+            .as_ref()
+            .unwrap()
+            .send_pose(goal, frame_id, timeout)
+            .await?)
+    }
+    fn current_pose(&self) -> Result<Isometry2<f64>, ArciError> {
+        Ok(self.navigation.as_ref().unwrap().current_pose()?)
+    }
+    fn cancel(&self) -> Result<(), ArciError> {
+        Ok(self.navigation.as_ref().unwrap().cancel()?)
     }
 }
 
