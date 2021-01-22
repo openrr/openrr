@@ -10,13 +10,12 @@ use std::{
     io::{BufRead, BufReader},
     path::PathBuf,
     process::Command,
-    sync::Arc,
     thread::sleep,
     time::Duration,
 };
 use structopt::StructOpt;
 
-use crate::{RobotClient, RobotConfig};
+use crate::{BoxRobotClient, RobotConfig};
 
 #[derive(StructOpt, Debug)]
 #[structopt(
@@ -128,10 +127,8 @@ pub enum RobotSubCommand {
 impl RobotCommand {
     pub async fn execute(&self) -> Result<(), OpenrrAppsError> {
         if let Some(config_path) = &self.config_path {
-            let config = RobotConfig::try_new(config_path)?;
-            let client = Arc::new(RobotClient::try_new(config)?);
-            self.execute_sub_command(client.clone(), client, &self)
-                .await
+            let client = RobotConfig::try_new(config_path)?.create_robot_client()?;
+            self.execute_sub_command(&client, &self).await
         } else {
             return Err(OpenrrAppsError::NoConfigPath);
         }
@@ -140,8 +137,7 @@ impl RobotCommand {
     #[async_recursion]
     pub async fn execute_sub_command(
         &self,
-        client: Arc<RobotClient>,
-        speaker: Arc<dyn Speaker>,
+        client: &BoxRobotClient,
         command: &RobotCommand,
     ) -> Result<(), OpenrrAppsError> {
         match &command.sub_command {
@@ -273,11 +269,14 @@ impl RobotCommand {
                 }
             }
             RobotSubCommand::GetState { name } => {
-                println!(
-                    "Joint positions : {:?}",
-                    client.current_joint_positions(name).await?
-                );
-                if client.is_ik_client(name) {
+                let is_ik_client = client.is_ik_client(name);
+                if client.is_joint_trajectory_client(name) || is_ik_client {
+                    println!(
+                        "Joint positions : {:?}",
+                        client.current_joint_positions(name).await?
+                    );
+                }
+                if is_ik_client {
                     let pose = client.current_end_transform(name).await?;
                     println!("End pose");
                     println!(" translation = {:?}", pose.translation.vector.data);
@@ -291,11 +290,10 @@ impl RobotCommand {
                     let read_opt = RobotCommand::from_iter(command_parsed_iter);
                     // Execute the parsed command
                     info!("Executing {}", command);
-                    self.execute_sub_command(client.clone(), speaker.clone(), &read_opt)
-                        .await?;
+                    self.execute_sub_command(client, &read_opt).await?;
                 }
             }
-            RobotSubCommand::List {} => {
+            RobotSubCommand::List => {
                 println!("Raw joint trajectory clients");
                 for name in client.raw_joint_trajectory_clients_names() {
                     println!(" {}", name);
@@ -330,11 +328,8 @@ impl RobotCommand {
                     .map_err(|e| OpenrrAppsError::CommandExecutionFailure(command.to_owned(), e))?;
                 info!("{}", String::from_utf8_lossy(&output.stdout));
             }
-            RobotSubCommand::GetNavigationCurrentPose {} => {
-                println!(
-                    "Base Pose {}",
-                    (client as Arc<dyn Navigation>).current_pose()?
-                );
+            RobotSubCommand::GetNavigationCurrentPose => {
+                println!("Base Pose {}", client.current_pose()?);
             }
             RobotSubCommand::SendNavigationGoal {
                 x,
@@ -343,7 +338,7 @@ impl RobotCommand {
                 frame_id,
                 timeout_secs,
             } => {
-                (client as Arc<dyn Navigation>)
+                client
                     .send_pose(
                         Isometry2::new(Vector2::new(*x, *y), *yaw),
                         frame_id,
@@ -351,8 +346,8 @@ impl RobotCommand {
                     )
                     .await?;
             }
-            RobotSubCommand::CancelNavigationGoal {} => {
-                (client as Arc<dyn Navigation>).cancel()?;
+            RobotSubCommand::CancelNavigationGoal => {
+                client.cancel()?;
             }
             RobotSubCommand::SendBaseVelocity {
                 x,
@@ -360,7 +355,7 @@ impl RobotCommand {
                 theta,
                 wait_secs,
             } => {
-                (client as Arc<dyn MoveBase>).send_velocity(&BaseVelocity::new(*x, *y, *theta))?;
+                client.send_velocity(&BaseVelocity::new(*x, *y, *theta))?;
                 // wait publish
                 sleep(Duration::from_secs_f64(*wait_secs));
             }

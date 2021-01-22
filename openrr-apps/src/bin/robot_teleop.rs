@@ -1,9 +1,8 @@
-use std::{path::PathBuf, sync::Arc};
-
 use arci_gamepad_gilrs::{GilGamepad, GilGamepadConfig};
-use openrr_apps::{Error, RobotClient, RobotConfig};
+use openrr_apps::{ArcRobotClient, Error, RobotConfig};
 use openrr_teleop::{ControlNodeSwitcher, ControlNodesConfig};
 use serde::{Deserialize, Serialize};
+use std::{path::PathBuf, sync::Arc};
 use structopt::StructOpt;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -54,8 +53,10 @@ async fn main() -> Result<(), Error> {
     let args = RobotTeleopArgs::from_args();
 
     let teleop_config = RobotTeleopConfig::try_new(args.config_path)?;
-    let config = RobotConfig::try_new(teleop_config.robot_config_full_path().as_ref().unwrap())?;
-    let client = Arc::new(RobotClient::try_new(config)?);
+    let client: Arc<ArcRobotClient> = Arc::new(
+        RobotConfig::try_new(teleop_config.robot_config_full_path().as_ref().unwrap())?
+            .create_robot_client()?,
+    );
 
     let nodes = teleop_config.control_nodes_config.create_control_nodes(
         client.clone(),
