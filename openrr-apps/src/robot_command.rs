@@ -96,13 +96,13 @@ pub enum RobotSubCommand {
         command_file_path: PathBuf,
     },
     /// List available clients.
-    List {},
+    List,
     /// Speak text message.
     Speak { message: Vec<String> },
     /// Execute an external command.
     ExecuteCommand { command: Vec<String> },
     /// Get navigation current pose.
-    GetNavigationCurrentPose {},
+    GetNavigationCurrentPose,
     /// Send navigation goal pose.
     SendNavigationGoal {
         x: f64,
@@ -114,7 +114,7 @@ pub enum RobotSubCommand {
         timeout_secs: f64,
     },
     /// Cancel navigation gaol.
-    CancelNavigationGoal {},
+    CancelNavigationGoal,
     /// Send base velocity.
     SendBaseVelocity {
         x: f64,
