@@ -1,0 +1,14 @@
+[package]
+name = "openrr-command"
+version = "0.0.1"
+authors = ["Mitsuharu Kojima <kojima@smilerobotics.com>"]
+edition = "2018"
+
+[dependencies]
+arci = { version = "0.0.1", path = "../arci" }
+async-recursion = "0.3"
+k = "0.21"
+log = "0.4"
+openrr-client = { version = "0.0.1", path = "../openrr-client" }
+structopt = "0.3.21"
+thiserror = "1.0"

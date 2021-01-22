@@ -17,6 +17,7 @@ env_logger = "0.7"
 k = "0.21"
 log = "0.4"
 openrr-client = { version = "0.0.1", path = "../openrr-client" }
+openrr-command = { version = "0.0.1", path = "../openrr-command" }
 openrr-teleop = { version = "0.0.1", path = "../openrr-teleop" }
 serde = { version = "1.0", features = ["derive"] }
 structopt = "0.3.21"

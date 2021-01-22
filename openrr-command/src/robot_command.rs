@@ -1,4 +1,4 @@
-use crate::Error as OpenrrAppsError;
+use crate::Error as OpenrrCommandError;
 use arci::{BaseVelocity, MoveBase, Navigation, Speaker};
 use async_recursion::async_recursion;
 use k::nalgebra::{Isometry2, Vector2};
@@ -118,7 +118,7 @@ impl RobotCommandExecutor {
         &self,
         client: &BoxRobotClient,
         command: &RobotCommand,
-    ) -> Result<(), OpenrrAppsError> {
+    ) -> Result<(), OpenrrCommandError> {
         match &command {
             RobotCommand::SendJoints {
                 name,
@@ -168,7 +168,7 @@ impl RobotCommandExecutor {
                 is_local,
             } => {
                 if !client.is_ik_client(name) {
-                    return Err(OpenrrAppsError::NoIkClient(name.clone()));
+                    return Err(OpenrrCommandError::NoIkClient(name.clone()));
                 }
                 let mut should_send = false;
                 let current_pose = client.current_end_transform(name).await?;
@@ -300,11 +300,10 @@ impl RobotCommandExecutor {
                 let mut iter = command.iter();
                 let cmd_str = iter
                     .next()
-                    .ok_or_else(|| OpenrrAppsError::NoCommand(command.to_owned()))?;
-                let output = Command::new(cmd_str)
-                    .args(iter)
-                    .output()
-                    .map_err(|e| OpenrrAppsError::CommandExecutionFailure(command.to_owned(), e))?;
+                    .ok_or_else(|| OpenrrCommandError::NoCommand(command.to_owned()))?;
+                let output = Command::new(cmd_str).args(iter).output().map_err(|e| {
+                    OpenrrCommandError::CommandExecutionFailure(command.to_owned(), e)
+                })?;
                 info!("{}", String::from_utf8_lossy(&output.stdout));
             }
             RobotCommand::GetNavigationCurrentPose => {
@@ -343,9 +342,9 @@ impl RobotCommandExecutor {
     }
 }
 
-pub fn load_command_file_and_filter(file_path: PathBuf) -> Result<Vec<String>, OpenrrAppsError> {
+pub fn load_command_file_and_filter(file_path: PathBuf) -> Result<Vec<String>, OpenrrCommandError> {
     let file = File::open(&file_path)
-        .map_err(|e| OpenrrAppsError::CommandFileOpenFailure(file_path, e.to_string()))?;
+        .map_err(|e| OpenrrCommandError::CommandFileOpenFailure(file_path, e.to_string()))?;
     let buf = BufReader::new(file);
     Ok(buf
         .lines()
