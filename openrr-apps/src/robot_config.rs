@@ -1,4 +1,4 @@
-use crate::{Error, RobotClient};
+use crate::Error;
 use arci::{JointTrajectoryClient, MoveBase, Navigation, Speaker};
 #[cfg(feature = "ros")]
 use arci_ros::{
@@ -7,27 +7,9 @@ use arci_ros::{
 };
 use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWebClientConfig};
 
-use openrr_client::{CollisionCheckClientConfig, IkClientConfig, PrintSpeaker};
+use openrr_client::{OpenrrClientsConfig, PrintSpeaker, RobotClient};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct OpenrrClientsConfig {
-    pub urdf_path: String,
-    urdf_full_path: Option<PathBuf>,
-    pub self_collision_check_pairs: Vec<String>,
-
-    pub collision_check_clients_configs: Vec<CollisionCheckClientConfig>,
-    pub ik_clients_configs: Vec<IkClientConfig>,
-
-    pub joints_poses: Vec<JointsPose>,
-}
-
-impl OpenrrClientsConfig {
-    pub fn urdf_full_path(&self) -> &Option<PathBuf> {
-        &self.urdf_full_path
-    }
-}
+use std::{collections::HashMap, sync::Arc};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RobotConfig {
@@ -59,13 +41,13 @@ impl RobotConfig {
         M: MoveBase + From<Box<dyn MoveBase>>,
         N: Navigation + From<Box<dyn Navigation>>,
     {
-        RobotClient::try_new(
+        Ok(RobotClient::try_new(
             self.openrr_clients_config.clone(),
             self.create_raw_joint_trajectory_clients()?,
             self.create_speaker().into(),
             self.create_move_base()?.map(|m| m.into()),
             self.create_navigation()?.map(|n| n.into()),
-        )
+        )?)
     }
     fn create_navigation_without_ros(&self) -> Result<Option<Box<dyn Navigation>>, Error> {
         Ok(if self.use_navigation_urdf_viz_web_client {
@@ -186,13 +168,6 @@ impl RobotConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct JointsPose {
-    pub pose_name: String,
-    pub client_name: String,
-    pub positions: Vec<f64>,
-}
-
 impl RobotConfig {
     pub fn try_new<P: AsRef<std::path::Path>>(path: P) -> Result<Self, Error> {
         let mut config: RobotConfig = toml::from_str(
@@ -200,12 +175,7 @@ impl RobotConfig {
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,
         )
         .map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
-        config.openrr_clients_config.urdf_full_path = Some(
-            path.as_ref()
-                .parent()
-                .ok_or_else(|| Error::NoParentDirectory(path.as_ref().to_owned()))?
-                .join(&config.openrr_clients_config.urdf_path),
-        );
+        config.openrr_clients_config.resolve_path(path)?;
         Ok(config)
     }
 }

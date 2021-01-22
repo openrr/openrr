@@ -1,15 +1,14 @@
+use crate::{
+    create_collision_check_clients, create_ik_clients, CollisionCheckClient,
+    CollisionCheckClientConfig, Error, IkClient, IkClientConfig, IkSolverWithChain,
+};
 use arci::Error as ArciError;
 use arci::{BaseVelocity, JointTrajectoryClient, MoveBase, Navigation, Speaker};
 use async_trait::async_trait;
 use k::{nalgebra::Isometry2, Chain, Isometry3};
 use log::debug;
-use openrr_client::{
-    create_collision_check_clients, create_ik_clients, CollisionCheckClient, IkClient,
-    IkSolverWithChain,
-};
-use std::{collections::HashMap, sync::Arc, time::Duration};
-
-use crate::{Error, OpenrrClientsConfig};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, path::Path, path::PathBuf, sync::Arc, time::Duration};
 
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
 pub type ArcRobotClient = RobotClient<Arc<dyn Speaker>, Arc<dyn MoveBase>, Arc<dyn Navigation>>;
@@ -337,4 +336,38 @@ where
     fn speak(&self, message: &str) {
         self.speaker.speak(message)
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct OpenrrClientsConfig {
+    pub urdf_path: String,
+    urdf_full_path: Option<PathBuf>,
+    pub self_collision_check_pairs: Vec<String>,
+
+    pub collision_check_clients_configs: Vec<CollisionCheckClientConfig>,
+    pub ik_clients_configs: Vec<IkClientConfig>,
+
+    pub joints_poses: Vec<JointsPose>,
+}
+
+impl OpenrrClientsConfig {
+    pub fn resolve_path<P: AsRef<Path>>(&mut self, path: P) -> Result<(), Error> {
+        self.urdf_full_path = Some(
+            path.as_ref()
+                .parent()
+                .ok_or_else(|| Error::NoParentDirectory(path.as_ref().to_owned()))?
+                .join(&self.urdf_path),
+        );
+        Ok(())
+    }
+    pub fn urdf_full_path(&self) -> &Option<PathBuf> {
+        &self.urdf_full_path
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct JointsPose {
+    pub pose_name: String,
+    pub client_name: String,
+    pub positions: Vec<f64>,
 }

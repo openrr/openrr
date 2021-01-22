@@ -3,7 +3,7 @@ use arci::{BaseVelocity, MoveBase, Navigation, Speaker};
 use async_recursion::async_recursion;
 use k::nalgebra::{Isometry2, Vector2};
 use log::info;
-use openrr_client::isometry;
+use openrr_client::{isometry, BoxRobotClient};
 use std::{
     error::Error,
     fs::File,
@@ -14,8 +14,6 @@ use std::{
     time::Duration,
 };
 use structopt::StructOpt;
-
-use crate::BoxRobotClient;
 
 fn parse_joints<T, U>(s: &str) -> Result<(T, U), Box<dyn Error>>
 where
