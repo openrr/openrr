@@ -24,6 +24,7 @@ members = [
 "openrr" = {path = "openrr"}
 "openrr-apps" = {path = "openrr-apps"}
 "openrr-client" = {path = "openrr-client"}
+"openrr-command" = {path = "openrr-command"}
 "openrr-planner" = {path = "openrr-planner"}
 "openrr-sleep" = {path = "openrr-sleep"}
 "openrr-teleop" = {path = "openrr-teleop"}

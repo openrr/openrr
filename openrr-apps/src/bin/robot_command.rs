@@ -1,6 +1,7 @@
 use crate::Error as OpenrrAppsError;
 use log::info;
-use openrr_apps::{Error, RobotCommand, RobotCommandExecutor, RobotConfig};
+use openrr_apps::{Error, RobotConfig};
+use openrr_command::{RobotCommand, RobotCommandExecutor};
 #[cfg(feature = "ros")]
 use rand::prelude::*;
 use std::path::PathBuf;
