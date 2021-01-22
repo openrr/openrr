@@ -4,7 +4,7 @@ use assert_approx_eq::assert_approx_eq;
 use std::sync::{Arc, Mutex};
 use url::Url;
 
-use arci::{JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition};
+use arci::{JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint};
 use arci_urdf_viz::{UrdfVizWebClient, UrdfVizWebClientConfig};
 use web_server::*;
 
@@ -134,5 +134,26 @@ async fn test_send_joint_positions() {
     let result = client
         .send_joint_positions(vec![0.0], std::time::Duration::from_secs(1))
         .await;
+    assert!(result.is_ok());
+}
+
+#[tokio::test]
+async fn test_send_joint_trajectory() {
+    const PORT: u16 = 7781;
+    let mut web_server = WebServer::new(PORT);
+    web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
+        names: vec!["j1".to_owned()],
+        positions: vec![0.0],
+    }));
+    std::thread::spawn(move || web_server.start());
+    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
+    let client =
+        UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
+            .unwrap();
+    let trajectory = vec![
+        TrajectoryPoint::new(vec![0.0], std::time::Duration::from_millis(100)),
+        TrajectoryPoint::new(vec![0.0], std::time::Duration::from_millis(200)),
+    ];
+    let result = client.send_joint_trajectory(trajectory).await;
     assert!(result.is_ok());
 }
