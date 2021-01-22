@@ -1,5 +1,3 @@
-urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf"
-self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
 ros_clients_configs = []
 use_move_base_urdf_viz_web_client = true
 use_navigation_urdf_viz_web_client = true
@@ -12,19 +10,23 @@ joint_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wris
 wrap_with_joint_velocity_limiter = false
 joint_velocity_limits = []
 
-[[collision_check_clients_configs]]
+[openrr_clients_config]
+urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf"
+self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
+
+[[openrr_clients_config.collision_check_clients_configs]]
 name = "arm_collision_checked"
 client_name = "arm"
 
-[collision_check_clients_configs.self_collision_checker_config]
+[openrr_clients_config.collision_check_clients_configs.self_collision_checker_config]
 prediction = 0.001
 time_interpolate_rate = 0.5
 
-[[ik_clients_configs]]
+[[openrr_clients_config.ik_clients_configs]]
 name = "arm_ik"
 client_name = "arm_collision_checked"
 
-[ik_clients_configs.ik_solver_config]
+[openrr_clients_config.ik_clients_configs.ik_solver_config]
 ik_target = "ee_fixed_joint"
 use_random_ik = false
 allowable_position_error_m = 0.005
@@ -38,12 +40,12 @@ constraints.rotation_x = true
 constraints.rotation_y = true
 constraints.rotation_z = false
 
-[[joints_poses]]
+[[openrr_clients_config.joints_poses]]
 pose_name = "zero"
 client_name = "arm_collision_checked"
 positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-[[joints_poses]]
+[[openrr_clients_config.joints_poses]]
 pose_name = "ready"
 client_name = "arm_collision_checked"
 positions = [0.0, -0.7, 1.4, -2.27, 0.0, 0.0]
