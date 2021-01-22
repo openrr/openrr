@@ -15,7 +15,7 @@ use std::{
 };
 use structopt::StructOpt;
 
-use crate::{BoxRobotClient};
+use crate::BoxRobotClient;
 
 fn parse_joints<T, U>(s: &str) -> Result<(T, U), Box<dyn Error>>
 where

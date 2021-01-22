@@ -33,6 +33,6 @@ async fn main() -> Result<(), Error> {
         let executor = RobotCommandExecutor {};
         Ok(executor.execute(&client, &args.command).await?)
     } else {
-        return Err(OpenrrAppsError::NoConfigPath);
+        Err(OpenrrAppsError::NoConfigPath)
     }
 }
