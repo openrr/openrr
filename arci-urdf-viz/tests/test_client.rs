@@ -1,8 +1,8 @@
 mod web_server;
 
 use assert_approx_eq::assert_approx_eq;
-use url::Url;
 use std::sync::{Arc, Mutex};
+use url::Url;
 
 use arci::{JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition};
 use arci_urdf_viz::{UrdfVizWebClient, UrdfVizWebClientConfig};
