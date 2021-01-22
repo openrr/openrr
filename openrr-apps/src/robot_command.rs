@@ -15,19 +15,7 @@ use std::{
 };
 use structopt::StructOpt;
 
-use crate::{BoxRobotClient, RobotConfig};
-
-#[derive(StructOpt, Debug)]
-#[structopt(
-    name = "openrr_apps_robot_command",
-    about = "An openrr command line tool."
-)]
-pub struct RobotCommand {
-    #[structopt(short, long, parse(from_os_str))]
-    config_path: Option<PathBuf>,
-    #[structopt(subcommand)]
-    sub_command: RobotSubCommand,
-}
+use crate::{BoxRobotClient};
 
 fn parse_joints<T, U>(s: &str) -> Result<(T, U), Box<dyn Error>>
 where
@@ -44,7 +32,7 @@ where
 
 #[derive(StructOpt, Debug)]
 #[structopt(rename_all = "snake_case")]
-pub enum RobotSubCommand {
+pub enum RobotCommand {
     /// Send joint positions.
     SendJoints {
         name: String,
@@ -124,24 +112,17 @@ pub enum RobotSubCommand {
     },
 }
 
-impl RobotCommand {
-    pub async fn execute(&self) -> Result<(), OpenrrAppsError> {
-        if let Some(config_path) = &self.config_path {
-            let client = RobotConfig::try_new(config_path)?.create_robot_client()?;
-            self.execute_sub_command(&client, &self).await
-        } else {
-            return Err(OpenrrAppsError::NoConfigPath);
-        }
-    }
+pub struct RobotCommandExecutor {}
 
+impl RobotCommandExecutor {
     #[async_recursion]
-    pub async fn execute_sub_command(
+    pub async fn execute(
         &self,
         client: &BoxRobotClient,
         command: &RobotCommand,
     ) -> Result<(), OpenrrAppsError> {
-        match &command.sub_command {
-            RobotSubCommand::SendJoints {
+        match &command {
+            RobotCommand::SendJoints {
                 name,
                 duration,
                 use_interpolation,
@@ -169,14 +150,14 @@ impl RobotCommand {
                         .await?;
                 }
             }
-            RobotSubCommand::SendJointsPose {
+            RobotCommand::SendJointsPose {
                 name,
                 pose_name,
                 duration,
             } => {
                 client.send_joints_pose(name, pose_name, *duration).await?;
             }
-            RobotSubCommand::MoveIk {
+            RobotCommand::MoveIk {
                 name,
                 x,
                 y,
@@ -268,7 +249,7 @@ impl RobotCommand {
                     client.move_ik(name, &target_pose, *duration).await?
                 }
             }
-            RobotSubCommand::GetState { name } => {
+            RobotCommand::GetState { name } => {
                 let is_ik_client = client.is_ik_client(name);
                 if client.is_joint_trajectory_client(name) || is_ik_client {
                     println!(
@@ -283,17 +264,17 @@ impl RobotCommand {
                     println!(" rotation = {:?}", pose.rotation.euler_angles());
                 }
             }
-            RobotSubCommand::LoadCommands { command_file_path } => {
+            RobotCommand::LoadCommands { command_file_path } => {
                 for command in load_command_file_and_filter(command_file_path.clone())? {
                     let command_parsed_iter = command.split_whitespace();
                     // Parse the command
                     let read_opt = RobotCommand::from_iter(command_parsed_iter);
                     // Execute the parsed command
                     info!("Executing {}", command);
-                    self.execute_sub_command(client, &read_opt).await?;
+                    self.execute(client, &read_opt).await?;
                 }
             }
-            RobotSubCommand::List => {
+            RobotCommand::List => {
                 println!("Raw joint trajectory clients");
                 for name in client.raw_joint_trajectory_clients_names() {
                     println!(" {}", name);
@@ -311,13 +292,13 @@ impl RobotCommand {
                     println!(" {}", name);
                 }
             }
-            RobotSubCommand::Speak { message } => {
+            RobotCommand::Speak { message } => {
                 // TODO: Parse quotations and comments
                 // Currently '"Foo bar" # hoge' is parsed as message in below command.
                 // 'openrr_apps_robot_command speak "Foo bar" # hoge'
                 client.speak(&message.join(" "));
             }
-            RobotSubCommand::ExecuteCommand { command } => {
+            RobotCommand::ExecuteCommand { command } => {
                 let mut iter = command.iter();
                 let cmd_str = iter
                     .next()
@@ -328,10 +309,10 @@ impl RobotCommand {
                     .map_err(|e| OpenrrAppsError::CommandExecutionFailure(command.to_owned(), e))?;
                 info!("{}", String::from_utf8_lossy(&output.stdout));
             }
-            RobotSubCommand::GetNavigationCurrentPose => {
+            RobotCommand::GetNavigationCurrentPose => {
                 println!("Base Pose {}", client.current_pose()?);
             }
-            RobotSubCommand::SendNavigationGoal {
+            RobotCommand::SendNavigationGoal {
                 x,
                 y,
                 yaw,
@@ -346,10 +327,10 @@ impl RobotCommand {
                     )
                     .await?;
             }
-            RobotSubCommand::CancelNavigationGoal => {
+            RobotCommand::CancelNavigationGoal => {
                 client.cancel()?;
             }
-            RobotSubCommand::SendBaseVelocity {
+            RobotCommand::SendBaseVelocity {
                 x,
                 y,
                 theta,
