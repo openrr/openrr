@@ -25,6 +25,7 @@ openrr_apps_robot_command get_state arm_ik
 
 openrr_apps_robot_command get_navigation_current_pose
 openrr_apps_robot_command send_base_velocity 1.0 2.0 1.57 -w 3.0
+openrr_apps_robot_command send_base_velocity 0.0 0.0 0.0 -w 3.0
 openrr_apps_robot_command send_navigation_goal 0.0 0.0 0.0
 
 openrr_apps_robot_command speak "This is U R 10"
