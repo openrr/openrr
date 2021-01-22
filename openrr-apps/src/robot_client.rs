@@ -9,7 +9,7 @@ use openrr_client::{
 };
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
-use crate::{Error, RobotConfig};
+use crate::{Error, OpenrrClientsConfig};
 
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
 pub type ArcRobotClient = RobotClient<Arc<dyn Speaker>, Arc<dyn MoveBase>, Arc<dyn Navigation>>;
@@ -41,7 +41,7 @@ where
     N: Navigation,
 {
     pub fn try_new(
-        config: RobotConfig,
+        config: OpenrrClientsConfig,
         raw_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
         speaker: S,
         move_base: Option<M>,
