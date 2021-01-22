@@ -1,7 +1,7 @@
 mod web_server;
 
 use assert_approx_eq::assert_approx_eq;
-use reqwest::Url;
+use url::Url;
 use std::sync::{Arc, Mutex};
 
 use arci::{JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition};
@@ -70,6 +70,7 @@ fn test_create_joint_trajectory_clients() {
     const DEFAULT_PORT: u16 = 7777;
     let web_server = WebServer::new(DEFAULT_PORT);
     std::thread::spawn(move || web_server.start());
+    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
     let configs = vec![
         UrdfVizWebClientConfig {
             name: "c1".to_owned(),
@@ -84,7 +85,7 @@ fn test_create_joint_trajectory_clients() {
             joint_velocity_limits: vec![],
         },
     ];
-    let _clients = arci_urdf_viz::create_joint_trajectory_clients(configs);
+    let _clients = arci_urdf_viz::create_joint_trajectory_clients(configs, 0.1, 0.1);
 }
 
 #[test]
@@ -107,6 +108,7 @@ fn test_current_joint_positions() {
         current_robot_origin: Arc::new(Mutex::new(RobotOrigin::default())),
     };
     std::thread::spawn(move || web_server.start());
+    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
     let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
         .unwrap();
     let v = c.current_joint_positions().unwrap();
@@ -119,6 +121,7 @@ fn test_set_complete_condition() {
     const PORT: u16 = 7779;
     let web_server = WebServer::new(PORT);
     std::thread::spawn(move || web_server.start());
+    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
     let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
             .unwrap();
