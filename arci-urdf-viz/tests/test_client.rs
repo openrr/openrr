@@ -117,3 +117,22 @@ fn test_set_complete_condition() {
     let cond = TotalJointDiffCondition::new(0.0, 0.1);
     client.set_complete_condition(Box::new(cond));
 }
+
+#[tokio::test]
+async fn test_send_joint_positions() {
+    const PORT: u16 = 7780;
+    let mut web_server = WebServer::new(PORT);
+    web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
+        names: vec!["j1".to_owned()],
+        positions: vec![0.0],
+    }));
+    std::thread::spawn(move || web_server.start());
+    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
+    let client =
+        UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
+            .unwrap();
+    let result = client
+        .send_joint_positions(vec![0.0], std::time::Duration::from_secs(1))
+        .await;
+    assert!(result.is_ok());
+}
