@@ -1,5 +1,6 @@
 use arci_gamepad_gilrs::{GilGamepad, GilGamepadConfig};
-use openrr_apps::{ArcRobotClient, Error, RobotConfig};
+use openrr_apps::{Error, RobotConfig};
+use openrr_client::ArcRobotClient;
 use openrr_teleop::{ControlNodeSwitcher, ControlNodesConfig};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, sync::Arc};
