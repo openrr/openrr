@@ -91,22 +91,11 @@ fn test_create_joint_trajectory_clients() {
 #[test]
 fn test_current_joint_positions() {
     const PORT: u16 = 7778;
-    let web_server = WebServer {
-        port: PORT,
-        target_joint_positions: Arc::new(Mutex::new(JointNamesAndPositionsRequest {
-            joint_positions: JointNamesAndPositions::default(),
-            requested: false,
-        })),
-        current_joint_positions: Arc::new(Mutex::new(JointNamesAndPositions {
-            names: vec!["j1".to_owned(), "j2".to_owned()],
-            positions: vec![1.0, -1.0],
-        })),
-        target_robot_origin: Arc::new(Mutex::new(RobotOriginRequest {
-            origin: RobotOrigin::default(),
-            requested: false,
-        })),
-        current_robot_origin: Arc::new(Mutex::new(RobotOrigin::default())),
-    };
+    let mut web_server = WebServer::new(PORT);
+    web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
+        names: vec!["j1".to_owned(), "j2".to_owned()],
+        positions: vec![1.0, -1.0],
+    }));
     std::thread::spawn(move || web_server.start());
     std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
     let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
