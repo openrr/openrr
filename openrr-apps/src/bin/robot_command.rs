@@ -24,13 +24,14 @@ async fn main() -> Result<(), Error> {
     env_logger::init();
     let args = RobotCommandArgs::from_args();
     info!("ParsedArgs {:?}", args);
-    #[cfg(feature = "ros")]
-    {
-        let suffix: u64 = rand::thread_rng().gen();
-        arci_ros::init(&format!("openrr_apps_robot_command_{}", suffix));
-    }
     if let Some(config_path) = &args.config_path {
-        let client = RobotConfig::try_new(config_path)?.create_robot_client()?;
+        let robot_config = RobotConfig::try_new(config_path)?;
+        #[cfg(feature = "ros")]
+        if robot_config.has_ros_clients() {
+            let suffix: u64 = rand::thread_rng().gen();
+            arci_ros::init(&format!("openrr_apps_robot_command_{}", suffix));
+        }
+        let client = robot_config.create_robot_client()?;
         let executor = RobotCommandExecutor {};
         Ok(executor.execute(&client, &args.command).await?)
     } else {

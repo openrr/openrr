@@ -35,6 +35,14 @@ pub struct RobotConfig {
 }
 
 impl RobotConfig {
+    #[cfg(feature = "ros")]
+    pub fn has_ros_clients(&self) -> bool {
+        !self.ros_clients_configs.is_empty()
+            || self.ros_espeak_client_config.is_some()
+            || self.ros_cmd_vel_move_base_client_config.is_some()
+            || self.ros_navigation_client_config.is_some()
+    }
+
     pub fn create_robot_client<S, M, N>(&self) -> Result<RobotClient<S, M, N>, Error>
     where
         S: Speaker + From<Box<dyn Speaker>>,
