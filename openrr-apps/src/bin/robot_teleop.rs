@@ -48,16 +48,16 @@ pub struct RobotTeleopArgs {
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     env_logger::init();
-    #[cfg(feature = "ros")]
-    arci_ros::init("openrr_apps_robot_teleop");
-
     let args = RobotTeleopArgs::from_args();
 
     let teleop_config = RobotTeleopConfig::try_new(args.config_path)?;
-    let client: Arc<ArcRobotClient> = Arc::new(
-        RobotConfig::try_new(teleop_config.robot_config_full_path().as_ref().unwrap())?
-            .create_robot_client()?,
-    );
+    let robot_config =
+        RobotConfig::try_new(teleop_config.robot_config_full_path().as_ref().unwrap())?;
+    #[cfg(feature = "ros")]
+    if robot_config.has_ros_clients() {
+        arci_ros::init("openrr_apps_robot_teleop");
+    }
+    let client: Arc<ArcRobotClient> = Arc::new(robot_config.create_robot_client()?);
 
     let nodes = teleop_config.control_nodes_config.create_control_nodes(
         client.clone(),
