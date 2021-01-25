@@ -1,6 +1,20 @@
-# Hot to run.
+# OpenRR applications
 
-## openrr_apps_robot_command
+## Preprare
+
+### Install urdf-viz
+
+```bash
+cargo install urdf-viz
+```
+
+### Build
+
+```bash
+cargo build --release
+```
+
+## How to run openrr_apps_robot_command
 
 ### Sample robot
 
@@ -19,7 +33,7 @@ urdf-viz ./openrr-planner/sample.urdf
   ./openrr-apps/config/sample_cmd_urdf_viz.txt
 ```
 
-## openrr_apps_robot_teleop
+## How to run openrr_apps_robot_teleop
 
 ### Sample robot
 
