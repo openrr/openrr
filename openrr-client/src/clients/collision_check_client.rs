@@ -207,7 +207,7 @@ pub fn create_self_collision_checker<P: AsRef<Path>>(
         joint_names,
         full_chain,
         CollisionChecker::from_urdf_robot(
-            &urdf_rs::read_file(urdf_path).unwrap(),
+            &urdf_rs::utils::read_urdf_or_xacro(urdf_path).unwrap(),
             config.prediction,
         ),
         parse_colon_separated_pairs(self_collision_check_pairs).unwrap(),
