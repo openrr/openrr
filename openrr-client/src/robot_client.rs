@@ -76,6 +76,10 @@ where
             &full_chain_for_collision_checker,
         );
 
+        for (name, client) in &ik_clients {
+            all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
+        }
+
         let mut ik_solvers = HashMap::new();
         for (k, i) in &ik_clients {
             ik_solvers.insert(k.to_owned(), i.ik_solver_with_chain.clone());

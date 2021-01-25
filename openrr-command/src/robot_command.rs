@@ -248,14 +248,11 @@ impl RobotCommandExecutor {
                 }
             }
             RobotCommand::GetState { name } => {
-                let is_ik_client = client.is_ik_client(name);
-                if client.is_joint_trajectory_client(name) || is_ik_client {
-                    println!(
-                        "Joint positions : {:?}",
-                        client.current_joint_positions(name).await?
-                    );
-                }
-                if is_ik_client {
+                println!(
+                    "Joint positions : {:?}",
+                    client.current_joint_positions(name).await?
+                );
+                if client.is_ik_client(name) {
                     let pose = client.current_end_transform(name).await?;
                     println!("End pose");
                     println!(" translation = {:?}", pose.translation.vector.data);
