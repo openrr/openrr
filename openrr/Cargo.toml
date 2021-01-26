@@ -11,9 +11,12 @@ homepage = "https://openrr.github.io"
 [features]
 default = ["assimp"]
 assimp = ["openrr-planner/assimp"]
+ros = ["openrr-apps/ros"]
 
 [dependencies]
+openrr-apps = { path = "../openrr-apps", version = "0.0.1" }
 openrr-client = { path = "../openrr-client", version = "0.0.1" }
-openrr-sleep = { path = "../openrr-sleep", version = "0.0.1" }
+openrr-command = { path = "../openrr-command", version = "0.0.1" }
 openrr-planner = { path = "../openrr-planner", version = "0.0.1" }
+openrr-sleep = { path = "../openrr-sleep", version = "0.0.1" }
 openrr-teleop = { path = "../openrr-teleop", version = "0.0.1" }
