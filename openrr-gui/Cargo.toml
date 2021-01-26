@@ -1,0 +1,25 @@
+[package]
+name = "openrr-gui"
+version = "0.0.1"
+authors = ["Taiki Endo <te316e89@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+arci = { version = "0.0.1", path = "../arci" }
+openrr-client = { version = "0.0.1", path = "../openrr-client" }
+
+iced = "0.2"
+log = "0.4"
+rand = "0.8"
+thiserror = "1"
+urdf-rs = "0.4"
+
+[dev-dependencies]
+toml = "0.5"
+k = "0.21"
+env_logger = "0.8"
+arci-urdf-viz = { version = "0.0.1", path = "../arci-urdf-viz" }
+structopt = "0.3.21"
+openrr-apps = { version = "0.0.1", path = "../openrr-apps" }
+anyhow = "1"
+arci-ros = { version = "0.0.1", path = "../arci-ros" }

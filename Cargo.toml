@@ -11,6 +11,7 @@ members = [
     "openrr-apps",
     "openrr-client",
     "openrr-command",
+    "openrr-gui",
     "openrr-planner",
     "openrr-sleep",
     "openrr-teleop",
@@ -26,6 +27,7 @@ members = [
 "openrr-apps" = {path = "openrr-apps"}
 "openrr-client" = {path = "openrr-client"}
 "openrr-command" = {path = "openrr-command"}
+"openrr-gui" = {path = "openrr-gui"}
 "openrr-planner" = {path = "openrr-planner"}
 "openrr-sleep" = {path = "openrr-sleep"}
 "openrr-teleop" = {path = "openrr-teleop"}

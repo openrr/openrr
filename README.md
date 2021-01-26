@@ -9,11 +9,12 @@ Open Rust Robotics platform.
 ### Linux
 
 ```bash
-sudo apt install cmake build-essential libudev-dev
+sudo apt install cmake build-essential libudev-dev xorg-dev libglu1-mesa-dev
 ```
 
 * cmake build-essential (openrr-planner (assimp-sys))
 * libudev-dev (arci-gamepad-gilrs)
+* xorg-dev libglu1-mesa-dev (openrr-gui (iced))
 
 ## Architecture
 
