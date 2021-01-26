@@ -11,6 +11,7 @@ wrap_with_joint_velocity_limiter = false
 joint_velocity_limits = []
 
 [openrr_clients_config]
+joint_trajectory_clients_container_configs = []
 urdf_path = "../../openrr-planner/sample.urdf"
 self_collision_check_pairs = ["l_shoulder_yaw:l_gripper_linear1"]
 

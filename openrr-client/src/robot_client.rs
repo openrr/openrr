@@ -2,8 +2,10 @@ use crate::{
     create_collision_check_clients, create_ik_clients, CollisionCheckClient,
     CollisionCheckClientConfig, Error, IkClient, IkClientConfig, IkSolverWithChain,
 };
-use arci::Error as ArciError;
-use arci::{BaseVelocity, JointTrajectoryClient, MoveBase, Navigation, Speaker};
+use arci::{
+    BaseVelocity, Error as ArciError, JointTrajectoryClient, JointTrajectoryClientsContainer,
+    MoveBase, Navigation, Speaker,
+};
 use async_trait::async_trait;
 use k::{nalgebra::Isometry2, Chain, Isometry3};
 use log::debug;
@@ -54,18 +56,29 @@ where
         debug!("Loading {:?}", urdf_full_path);
         let full_chain_for_collision_checker = Arc::new(Chain::from_urdf_file(&urdf_full_path)?);
 
-        let collision_check_clients = create_collision_check_clients(
-            urdf_full_path,
-            &config.self_collision_check_pairs,
-            &config.collision_check_clients_configs,
-            &raw_joint_trajectory_clients,
-            full_chain_for_collision_checker.clone(),
-        );
-
         let mut all_joint_trajectory_clients = HashMap::new();
         for (name, client) in &raw_joint_trajectory_clients {
             all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
         }
+        for container_config in &config.joint_trajectory_clients_container_configs {
+            let mut clients = vec![];
+            for name in &container_config.clients_names {
+                clients.push(raw_joint_trajectory_clients[name].clone())
+            }
+            all_joint_trajectory_clients.insert(
+                container_config.name.to_owned(),
+                Arc::new(JointTrajectoryClientsContainer::new(clients)),
+            );
+        }
+
+        let collision_check_clients = create_collision_check_clients(
+            urdf_full_path,
+            &config.self_collision_check_pairs,
+            &config.collision_check_clients_configs,
+            &all_joint_trajectory_clients,
+            full_chain_for_collision_checker.clone(),
+        );
+
         for (name, client) in &collision_check_clients {
             all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
         }
@@ -343,11 +356,18 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct JointTrajectoryClientsContainerConfig {
+    pub name: String,
+    pub clients_names: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OpenrrClientsConfig {
     pub urdf_path: String,
     urdf_full_path: Option<PathBuf>,
     pub self_collision_check_pairs: Vec<String>,
 
+    pub joint_trajectory_clients_container_configs: Vec<JointTrajectoryClientsContainerConfig>,
     pub collision_check_clients_configs: Vec<CollisionCheckClientConfig>,
     pub ik_clients_configs: Vec<IkClientConfig>,
 

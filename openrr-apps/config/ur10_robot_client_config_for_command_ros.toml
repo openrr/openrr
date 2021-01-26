@@ -15,6 +15,7 @@ controller_name = "arm_controller"
 send_partial_joints_goal = false
 
 [openrr_clients_config]
+joint_trajectory_clients_container_configs = []
 urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf"
 self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
 
