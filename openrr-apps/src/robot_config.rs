@@ -60,7 +60,6 @@ impl RobotConfig {
     fn create_navigation_without_ros(&self) -> Result<Option<Box<dyn Navigation>>, Error> {
         Ok(if self.use_navigation_urdf_viz_web_client {
             let urdf_viz_client = Box::new(UrdfVizWebClient::default());
-            urdf_viz_client.run_thread();
             Some(urdf_viz_client as Box<dyn Navigation>)
         } else {
             None
