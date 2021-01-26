@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path, sync::Arc, time::Duration, usize};
+use std::{collections::HashMap, f64, path::Path, sync::Arc, time::Duration, usize};
 
 use arci::{JointTrajectoryClient, MoveBase, Navigation, Speaker};
 #[allow(unused_imports)]
@@ -11,6 +11,7 @@ use iced::{pick_list, text_input};
 use log::{debug, error, warn};
 use openrr_client::RobotClient;
 use rand::Rng;
+use urdf_rs::JointType;
 
 use crate::{style, Error};
 
@@ -53,7 +54,15 @@ where
     N: Navigation + 'static,
 {
     // TODO: If the urdf file read by `robot_client` and this urdf file are different, we should emit an error.
-    let robot = urdf_rs::read_file(urdf_path)?;
+    let mut robot = urdf_rs::read_file(urdf_path)?;
+
+    for joint in &mut robot.joints {
+        // If limit is not specified, urdf-rs assigns f64::default.
+        if let JointType::Continuous = joint.joint_type {
+            joint.limit.lower = -f64::consts::PI;
+            joint.limit.upper = f64::consts::PI;
+        }
+    }
 
     let mut joint_trajectory_client_names = robot_client.joint_trajectory_clients_names();
     joint_trajectory_client_names.sort_unstable();
@@ -348,7 +357,6 @@ where
             let limit = &self.robot.joints[&joint_state.name].limit;
             let slider = Slider::new(
                 &mut joint_state.slider,
-                // TODO: tests continuous joints, which range from -Pi to +Pi.
                 limit.lower..=limit.upper,
                 joint_state.position,
                 move |position| Message::SliderChanged { index, position },
