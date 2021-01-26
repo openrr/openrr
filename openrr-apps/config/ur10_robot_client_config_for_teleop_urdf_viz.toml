@@ -11,6 +11,7 @@ wrap_with_joint_velocity_limiter = false
 joint_velocity_limits = []
 
 [openrr_clients_config]
+joint_trajectory_clients_container_configs = []
 urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf"
 self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
 joints_poses = []
