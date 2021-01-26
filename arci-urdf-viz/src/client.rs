@@ -9,7 +9,10 @@ use openrr_sleep::ScopedSleep;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
 };
 use url::Url;
 
@@ -54,6 +57,7 @@ pub struct UrdfVizWebClient {
     joint_names: Vec<String>,
     velocity: Arc<Mutex<BaseVelocity>>,
     complete_condition: Box<dyn CompleteCondition>,
+    is_joint_positions_sending: Arc<AtomicBool>,
 }
 
 impl UrdfVizWebClient {
@@ -65,6 +69,7 @@ impl UrdfVizWebClient {
             joint_names: joint_state.names,
             velocity,
             complete_condition: Box::new(TotalJointDiffCondition::default()),
+            is_joint_positions_sending: Arc::new(AtomicBool::new(false)),
         })
     }
     pub fn run_thread(&self) {
@@ -119,7 +124,10 @@ impl JointTrajectoryClient for UrdfVizWebClient {
 
         let url = self.base_url.clone();
         let joint_names = self.joint_names.clone();
+        assert!(!self.is_joint_positions_sending.load(Ordering::SeqCst));
+        let is_joint_positions_sending_cloned = Arc::clone(&self.is_joint_positions_sending);
         let _handle = std::thread::spawn(move || {
+            is_joint_positions_sending_cloned.store(true, Ordering::SeqCst);
             for traj in trajectories {
                 let start_time = std::time::Instant::now();
                 let target_state = JointState {
@@ -132,6 +140,7 @@ impl JointTrajectoryClient for UrdfVizWebClient {
                     }
                 })?;
                 if !re.is_ok {
+                    is_joint_positions_sending_cloned.store(false, Ordering::SeqCst);
                     return Err(arci::Error::Connection { message: re.reason });
                 }
                 let elapsed = start_time.elapsed();
@@ -140,6 +149,7 @@ impl JointTrajectoryClient for UrdfVizWebClient {
                     std::thread::sleep(sleep_duration);
                 }
             }
+            is_joint_positions_sending_cloned.store(false, Ordering::SeqCst);
             Ok(())
         });
         self.complete_condition.wait(self, &positions)
