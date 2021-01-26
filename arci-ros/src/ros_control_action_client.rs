@@ -78,7 +78,7 @@ impl JointTrajectoryClient for RosControlActionClient {
             .action_client
             .send_goal(goal)
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
-        self.complete_condition.wait(self, &positions)
+        self.complete_condition.wait(self, &positions, None)
         /*
         // TODO use action result
         Ok(SimpleActionClientWait::new_boxed(
@@ -106,7 +106,7 @@ impl JointTrajectoryClient for RosControlActionClient {
             .send_goal(goal)
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
         self.complete_condition
-            .wait(self, &trajectory.last().unwrap().positions)
+            .wait(self, &trajectory.last().unwrap().positions, None)
         /*
         // TODO use action result
         let duration = if let Some(trajectory_point) = trajectory.last() {

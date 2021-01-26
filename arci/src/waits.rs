@@ -1,3 +1,8 @@
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
+
 use crate::error::Error;
 use crate::traits::JointTrajectoryClient;
 use auto_impl::auto_impl;
@@ -8,6 +13,7 @@ pub trait CompleteCondition: Send + Sync {
         &self,
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
+        is_waiting_flag: Option<Arc<AtomicBool>>,
     ) -> Result<(), Error>;
 }
 
@@ -37,6 +43,7 @@ impl CompleteCondition for TotalJointDiffCondition {
         &self,
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
+        is_waiting_flag: Option<Arc<AtomicBool>>,
     ) -> Result<(), Error> {
         const N: f64 = 10.0;
         for _j in 0..(N * self.timeout_sec) as i32 {
@@ -47,9 +54,15 @@ impl CompleteCondition for TotalJointDiffCondition {
                 .map(|(tar, cur)| (tar - cur).abs())
                 .sum();
             if sum_err <= self.allowable_error {
+                if let Some(f) = is_waiting_flag {
+                    f.store(false, Ordering::SeqCst);
+                }
                 return Ok(());
             }
             std::thread::sleep(std::time::Duration::from_secs_f64(self.timeout_sec / N));
+        }
+        if let Some(f) = is_waiting_flag {
+            f.store(false, Ordering::SeqCst);
         }
         Err(Error::TimeoutWithDiff {
             target: target_positions.to_vec(),
@@ -78,6 +91,7 @@ impl CompleteCondition for EachJointDiffCondition {
         &self,
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
+        is_waiting_flag: Option<Arc<AtomicBool>>,
     ) -> Result<(), Error> {
         if target_positions.len() != self.allowable_errors.len() {
             eprintln!("wait_until_each_error_condition condition size mismatch");
@@ -98,9 +112,15 @@ impl CompleteCondition for EachJointDiffCondition {
                 }
             }
             if !is_reached.contains(&false) {
+                if let Some(f) = is_waiting_flag {
+                    f.store(false, Ordering::SeqCst);
+                }
                 return Ok(());
             }
             std::thread::sleep(std::time::Duration::from_secs_f64(self.timeout_sec / N));
+        }
+        if let Some(f) = is_waiting_flag {
+            f.store(false, Ordering::SeqCst);
         }
         Err(Error::TimeoutWithDiff {
             target: target_positions.to_vec(),

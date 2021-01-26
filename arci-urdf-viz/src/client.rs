@@ -126,6 +126,7 @@ impl JointTrajectoryClient for UrdfVizWebClient {
         let joint_names = self.joint_names.clone();
         assert!(!self.is_joint_positions_sending.load(Ordering::SeqCst));
         let is_joint_positions_sending_cloned = Arc::clone(&self.is_joint_positions_sending);
+        let is_joint_positions_sending_cloned2 = Arc::clone(&self.is_joint_positions_sending);
         let _handle = std::thread::spawn(move || {
             is_joint_positions_sending_cloned.store(true, Ordering::SeqCst);
             for traj in trajectories {
@@ -148,11 +149,15 @@ impl JointTrajectoryClient for UrdfVizWebClient {
                     let sleep_duration = UNIT_DURATION - elapsed;
                     std::thread::sleep(sleep_duration);
                 }
+                if !is_joint_positions_sending_cloned.load(Ordering::SeqCst) {
+                    break;
+                }
             }
             is_joint_positions_sending_cloned.store(false, Ordering::SeqCst);
             Ok(())
         });
-        self.complete_condition.wait(self, &positions)
+        self.complete_condition
+            .wait(self, &positions, Some(is_joint_positions_sending_cloned2))
     }
 
     async fn send_joint_trajectory(

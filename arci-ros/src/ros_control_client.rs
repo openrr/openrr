@@ -284,7 +284,7 @@ impl JointTrajectoryClient for RosControlClient {
             )?
         };
         self.trajectory_publisher.send(traj).unwrap();
-        self.complete_condition.wait(self, &positions)
+        self.complete_condition.wait(self, &positions, None)
     }
     async fn send_joint_trajectory(
         &self,
@@ -317,7 +317,7 @@ impl JointTrajectoryClient for RosControlClient {
         };
         self.trajectory_publisher.send(traj).unwrap();
         self.complete_condition
-            .wait(self, &trajectory.last().unwrap().positions)
+            .wait(self, &trajectory.last().unwrap().positions, None)
     }
 }
 
