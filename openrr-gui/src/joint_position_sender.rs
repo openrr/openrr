@@ -1,11 +1,9 @@
 use std::{collections::HashMap, f64, path::Path, sync::Arc, time::Duration, usize};
 
 use arci::{JointTrajectoryClient, MoveBase, Navigation, Speaker};
-#[allow(unused_imports)]
 use iced::{
-    button, scrollable, slider, window, Align, Application, Button, Checkbox, Column, Command,
-    Container, Element, HorizontalAlignment, Length, PickList, ProgressBar, Radio, Row, Rule,
-    Sandbox, Scrollable, Settings, Slider, Space, Text, TextInput,
+    button, scrollable, slider, window, Application, Button, Column, Command, Container, Element,
+    HorizontalAlignment, Length, PickList, Row, Scrollable, Settings, Slider, Text, TextInput,
 };
 use iced::{pick_list, text_input};
 use log::{debug, error, warn};
@@ -26,7 +24,6 @@ struct JointState {
 }
 
 struct Robot {
-    _robot: urdf_rs::Robot,
     joints: HashMap<String, urdf_rs::Joint>,
 }
 
@@ -35,10 +32,9 @@ impl From<urdf_rs::Robot> for Robot {
         Self {
             joints: robot
                 .joints
-                .iter()
-                .map(|joint| (joint.name.clone(), joint.clone()))
+                .into_iter()
+                .map(|joint| (joint.name.clone(), joint))
                 .collect(),
-            _robot: robot,
         }
     }
 }
