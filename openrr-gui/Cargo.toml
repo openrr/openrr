@@ -3,6 +3,7 @@ name = "openrr-gui"
 version = "0.0.1"
 authors = ["Taiki Endo <te316e89@gmail.com>"]
 edition = "2018"
+license = "Apache-2.0"
 
 [dependencies]
 arci = { version = "0.0.1", path = "../arci" }
