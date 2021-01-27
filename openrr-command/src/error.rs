@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("openrr-client: No IkClient={} is found.", .0)]
     NoIkClient(String),

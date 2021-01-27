@@ -23,8 +23,9 @@ pub enum CollisionPart {
     End,
 }
 
-#[derive(Debug, Error)]
 /// Error for `openrr_planner`
+#[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("{}", error)]
     Other { error: String },
