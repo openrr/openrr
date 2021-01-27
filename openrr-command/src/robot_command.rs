@@ -11,7 +11,7 @@ use std::{
     path::PathBuf,
     process::Command,
     thread::sleep,
-    time::{Duration, SystemTime},
+    time::{Duration, Instant},
 };
 use structopt::StructOpt;
 
@@ -330,8 +330,8 @@ impl RobotCommandExecutor {
                 theta,
                 duration_secs,
             } => {
-                let start = SystemTime::now();
-                while SystemTime::now() < (start + Duration::from_secs_f64(*duration_secs)) {
+                let start = Instant::now();
+                while start.elapsed() < Duration::from_secs_f64(*duration_secs) {
                     client.send_velocity(&BaseVelocity::new(*x, *y, *theta))?;
                     sleep(Duration::from_secs_f64(0.01));
                 }
