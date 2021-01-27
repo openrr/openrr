@@ -3,6 +3,7 @@ use thiserror::Error;
 use urdf_rs::UrdfError;
 
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("openrr-cleint: No JointTrajectoryClient={} is found.", .0)]
     NoJointTrajectoryClient(String),
