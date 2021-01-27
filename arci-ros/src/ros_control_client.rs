@@ -22,6 +22,7 @@ pub struct RosControlClientConfig {
     pub joint_velocity_limits: Vec<f64>,
 
     pub controller_name: String,
+    pub state_name: Option<String>,
     pub send_partial_joints_goal: bool,
     pub complete_allowable_errors: Vec<f64>,
     pub complete_timeout_sec: f64,
@@ -33,29 +34,30 @@ pub fn create_joint_trajectory_clients(
     configs: Vec<RosControlClientConfig>,
 ) -> HashMap<String, Arc<dyn JointTrajectoryClient>> {
     let mut clients = HashMap::new();
-    let mut controller_name_to_subscriber: HashMap<String, Arc<StateSubscriber>> = HashMap::new();
+    let mut state_name_to_subscriber: HashMap<String, Arc<StateSubscriber>> = HashMap::new();
     for config in configs {
+        let state_name = if let Some(s) = config.state_name {
+            s
+        } else {
+            RosControlClient::state_name(&config.controller_name)
+        };
         #[allow(clippy::map_entry)]
-        let mut client = if controller_name_to_subscriber.contains_key(&config.controller_name) {
+        let mut client = if state_name_to_subscriber.contains_key(&state_name) {
             RosControlClient::new_with_joint_state_subscriber_handler(
                 config.joint_names,
                 &config.controller_name,
                 config.send_partial_joints_goal,
-                controller_name_to_subscriber
-                    .get(&config.controller_name)
-                    .unwrap()
-                    .clone(),
+                state_name_to_subscriber.get(&state_name).unwrap().clone(),
             )
         } else {
-            let client = RosControlClient::new(
+            let client = RosControlClient::new_with_state_name(
                 config.joint_names,
                 &config.controller_name,
+                &state_name,
                 config.send_partial_joints_goal,
             );
-            controller_name_to_subscriber.insert(
-                config.controller_name,
-                client.joint_state_subscriber_handler().clone(),
-            );
+            state_name_to_subscriber
+                .insert(state_name, client.joint_state_subscriber_handler().clone());
             client
         };
         client.set_complete_condition(Box::new(EachJointDiffCondition::new(
@@ -226,9 +228,27 @@ impl RosControlClient {
         controller_name: &str,
         send_partial_joints_goal: bool,
     ) -> Self {
-        let joint_state_topic_name = format!("{}/state", controller_name);
+        let joint_state_topic_name = Self::state_name(controller_name);
         let joint_state_subscriber_handler =
             Arc::new(SubscriberHandler::new(&joint_state_topic_name, 1));
+        Self::new_with_joint_state_subscriber_handler(
+            joint_names,
+            controller_name,
+            send_partial_joints_goal,
+            joint_state_subscriber_handler,
+        )
+    }
+    pub fn state_name(controller_name: &str) -> String {
+        format!("{}/state", controller_name)
+    }
+    pub fn new_with_state_name(
+        joint_names: Vec<String>,
+        controller_name: &str,
+        joint_state_topic_name: &str,
+        send_partial_joints_goal: bool,
+    ) -> Self {
+        let joint_state_subscriber_handler =
+            Arc::new(SubscriberHandler::new(joint_state_topic_name, 1));
         Self::new_with_joint_state_subscriber_handler(
             joint_names,
             controller_name,
