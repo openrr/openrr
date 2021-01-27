@@ -23,8 +23,8 @@ openrr_apps_robot_command move_ik arm_ik --x=0.9 --y=0.4 --z=0.5 --roll==0.0 --p
 openrr_apps_robot_command get_state arm_ik
 
 openrr_apps_robot_command get_navigation_current_pose
-openrr_apps_robot_command send_base_velocity 1.0 2.0 1.57 -w 3.0
-openrr_apps_robot_command send_base_velocity 0.0 0.0 0.0 -w 3.0
+openrr_apps_robot_command send_base_velocity 1.0 2.0 1.57 -d 3.0
+openrr_apps_robot_command send_base_velocity 0.0 0.0 0.0 -d 3.0
 openrr_apps_robot_command send_navigation_goal 0.0 0.0 0.0
 
 openrr_apps_robot_command speak "This is sample robot"

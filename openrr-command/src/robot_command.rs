@@ -11,7 +11,7 @@ use std::{
     path::PathBuf,
     process::Command,
     thread::sleep,
-    time::Duration,
+    time::{Duration, SystemTime},
 };
 use structopt::StructOpt;
 
@@ -106,7 +106,7 @@ pub enum RobotCommand {
         y: f64,
         theta: f64,
         #[structopt(short, long, default_value = "1.0")]
-        wait_secs: f64,
+        duration_secs: f64,
     },
 }
 
@@ -328,11 +328,13 @@ impl RobotCommandExecutor {
                 x,
                 y,
                 theta,
-                wait_secs,
+                duration_secs,
             } => {
-                client.send_velocity(&BaseVelocity::new(*x, *y, *theta))?;
-                // wait publish
-                sleep(Duration::from_secs_f64(*wait_secs));
+                let start = SystemTime::now();
+                while SystemTime::now() < (start + Duration::from_secs_f64(*duration_secs)) {
+                    client.send_velocity(&BaseVelocity::new(*x, *y, *theta))?;
+                    sleep(Duration::from_secs_f64(0.01));
+                }
             }
         }
         Ok(())
