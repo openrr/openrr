@@ -1,0 +1,42 @@
+openrr_apps_robot_command list
+
+openrr_apps_robot_command send_joints_pose l_arm ready
+openrr_apps_robot_command send_joints_pose r_arm ready
+openrr_apps_robot_command send_joints_pose torso ready
+
+openrr_apps_robot_command send_joints l_arm -j 0=0.0 1=0.0 2=0.0 3=-0.7 4=0.0 5=-0.2 6=0.0
+openrr_apps_robot_command send_joints r_arm -j 0=0.0 1=0.0 2=0.0 3=-0.7 4=0.0 5=-0.2 6=0.0
+openrr_apps_robot_command send_joints torso -j 0=0.05
+openrr_apps_robot_command send_joints l_arm_with_torso -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.2 7=0.0
+openrr_apps_robot_command send_joints r_arm_with_torso -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.2 7=0.0
+openrr_apps_robot_command send_joints l_arm_with_torso_ik -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.2 7=0.0
+openrr_apps_robot_command send_joints r_arm_with_torso_ik -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.2 7=0.0
+openrr_apps_robot_command send_joints l_arm_with_torso_collision_checked -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.2 7=0.0
+openrr_apps_robot_command send_joints r_arm_with_torso_collision_checked -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.2 7=0.0
+
+openrr_apps_robot_command get_state l_arm
+openrr_apps_robot_command get_state r_arm
+openrr_apps_robot_command get_state torso
+openrr_apps_robot_command get_state l_arm_with_torso
+openrr_apps_robot_command get_state r_arm_with_torso
+openrr_apps_robot_command get_state l_arm_with_torso_ik
+openrr_apps_robot_command get_state r_arm_with_torso_ik
+openrr_apps_robot_command get_state l_arm_with_torso_collision_checked
+openrr_apps_robot_command get_state r_arm_with_torso_collision_checked
+
+openrr_apps_robot_command send_joints l_arm_with_torso_ik -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.2 7=0.0
+openrr_apps_robot_command get_state l_arm_with_torso_ik
+openrr_apps_robot_command move_ik l_arm_with_torso_ik --z=1.14
+openrr_apps_robot_command get_state l_arm_with_torso_ik
+openrr_apps_robot_command move_ik l_arm_with_torso_ik --x=0.63 --y=0.24
+openrr_apps_robot_command get_state l_arm_with_torso_ik
+
+openrr_apps_robot_command send_base_velocity 1.0 2.0 1.57 -d 3.0
+openrr_apps_robot_command send_base_velocity 0.0 0.0 0.0 -d 1.0
+openrr_apps_robot_command get_navigation_current_pose
+openrr_apps_robot_command send_navigation_goal 0.0 0.0 0.0
+
+openrr_apps_robot_command speak "This is P R 2"
+
+openrr_apps_robot_command execute_command -- date
+openrr_apps_robot_command execute_command -- ls -a
