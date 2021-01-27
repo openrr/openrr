@@ -6,13 +6,13 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-auto_impl = "0.4"
-nalgebra = "0.23"
-thiserror = "1.0"
 async-trait = "0.1"
+auto_impl = "0.4"
 futures = "0.3"
 log = "0.4"
+nalgebra = "0.23"
 serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0"
 
 [dev-dependencies]
 assert_approx_eq = "1.1"
