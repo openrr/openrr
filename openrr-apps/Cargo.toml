@@ -3,6 +3,7 @@ name = "openrr-apps"
 version = "0.0.1"
 authors = ["Mitsuharu Kojima <kojima@smilerobotics.com>"]
 edition = "2018"
+license = "Apache-2.0"
 
 [features]
 ros = ["arci-ros", "rand"]
