@@ -1,0 +1,11 @@
+<launch>
+<arg name="wait_time_secs" default="3"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch"/>
+  <include file="$(find pr2_gazebo)/launch/pr2.launch"/>
+
+  <node pkg="topic_tools" type="transform" args="/l_arm_controller/state /l_arm_controller/openrr/state control_msgs/JointTrajectoryControllerState  'm'" name="l_arm_transform" launch-prefix="bash -c 'sleep $(arg wait_time_secs)s; $0 $@'"/>
+
+  <node pkg="topic_tools" type="transform" args="/r_arm_controller/state /r_arm_controller/openrr/state control_msgs/JointTrajectoryControllerState  'm'" name="r_arm_transform" launch-prefix="bash -c 'sleep $(arg wait_time_secs)s; $0 $@'"/>
+
+    <node pkg="topic_tools" type="transform" args="/torso_controller/state /torso_controller/openrr/state control_msgs/JointTrajectoryControllerState  'm'" name="torso_transform" launch-prefix="bash -c 'sleep $(arg wait_time_secs)s; $0 $@'"/>
+</launch>
