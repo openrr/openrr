@@ -18,6 +18,7 @@ k = { version = "0.23", features = ["serde-serialize"] }
 openrr-planner = "0.0.3"
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
+toml = "0.5"
 tracing = { version = "0.1", features = ["log"] }
 urdf-rs = "0.6"
 
