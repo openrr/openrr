@@ -30,17 +30,10 @@ where
     pub fn new(
         mode: String,
         joints_poses: Vec<JointsPose>,
-        all_joint_trajectory_clients: &HashMap<String, Arc<dyn JointTrajectoryClient>>,
+        joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
         speaker: S,
         duration: Duration,
     ) -> Self {
-        let mut joint_trajectory_clients = HashMap::new();
-        for joints_pose in &joints_poses {
-            joint_trajectory_clients.insert(
-                joints_pose.client_name.to_owned(),
-                all_joint_trajectory_clients[&joints_pose.client_name].clone(),
-            );
-        }
         Self {
             mode,
             submode: format!(
@@ -59,13 +52,13 @@ where
     pub fn new_from_config(
         config: JointsPoseSenderConfig,
         joints_poses: Vec<JointsPose>,
-        all_joint_trajectory_clients: &HashMap<String, Arc<dyn JointTrajectoryClient>>,
+        joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
         speaker: S,
     ) -> Self {
         Self::new(
             config.mode,
             joints_poses,
-            all_joint_trajectory_clients,
+            joint_trajectory_clients,
             speaker,
             Duration::from_secs_f64(config.duration_secs),
         )
