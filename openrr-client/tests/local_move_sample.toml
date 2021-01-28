@@ -1,0 +1,7 @@
+reach_distance_threshold = 0.1
+reach_angle_threshold = 0.1
+control_frequency = 10.0
+linear_gain = 1.0
+angular_gain = 1.0
+max_linear_vel = 1.0
+max_angular_vel = 1.0
