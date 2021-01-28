@@ -7,6 +7,8 @@ gil_gamepad_config.map.axis_value_map = [["RightStickX", -1.0], ["LeftStickX", -
 
 [control_nodes_config]
 move_base_mode = "base"
+joints_pose_sender_config.mode = "pose"
+joints_pose_sender_config.duration_secs = 2.0
 
 [[control_nodes_config.ik_node_teleop_configs]]
 solver_name = "r_arm_with_torso_ik"

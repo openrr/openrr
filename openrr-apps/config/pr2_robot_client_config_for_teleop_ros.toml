@@ -41,7 +41,6 @@ send_partial_joints_goal = false
 [openrr_clients_config]
 urdf_path = "/opt/ros/melodic/share/robot_state_publisher/test/pr2.urdf"
 self_collision_check_pairs = ["l_shoulder_pan_joint:r_shoulder_pan_joint"]
-joints_poses = []
 
 [[openrr_clients_config.joint_trajectory_clients_container_configs]]
 name = "l_arm_with_torso"
@@ -102,3 +101,18 @@ constraints.position_z = true
 constraints.rotation_x = true
 constraints.rotation_y = true
 constraints.rotation_z = true
+
+[[openrr_clients_config.joints_poses]]
+pose_name = "ready"
+client_name = "l_arm"
+positions = [0.0, 0.0, 0.0, -0.7, 0.0, -0.2, 0.0]
+
+[[openrr_clients_config.joints_poses]]
+pose_name = "ready"
+client_name = "r_arm"
+positions = [0.0, 0.0, 0.0, -0.7, 0.0, -0.2, 0.0]
+
+[[openrr_clients_config.joints_poses]]
+pose_name = "ready"
+client_name = "torso"
+positions = [0.05]

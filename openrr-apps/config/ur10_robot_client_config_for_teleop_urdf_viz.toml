@@ -14,7 +14,6 @@ joint_velocity_limits = []
 joint_trajectory_clients_container_configs = []
 urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf"
 self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
-joints_poses = []
 
 [[openrr_clients_config.collision_check_clients_configs]]
 name = "arm_collision_checked"
@@ -42,3 +41,12 @@ constraints.rotation_x = true
 constraints.rotation_y = true
 constraints.rotation_z = true
 
+[[openrr_clients_config.joints_poses]]
+pose_name = "zero"
+client_name = "arm_collision_checked"
+positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+[[openrr_clients_config.joints_poses]]
+pose_name = "ready"
+client_name = "arm_collision_checked"
+positions = [0.0, -0.7, 1.4, -0.7, 1.57, -3.14]
