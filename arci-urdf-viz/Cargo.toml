@@ -8,6 +8,7 @@ edition = "2018"
 anyhow = "1.0"
 arci = { version = "0.0.1", path = "../arci" }
 async-trait = "0.1"
+log = "0.4"
 nalgebra = "0.23"
 openrr-planner = { version = "0.0.1", default-features = false }
 openrr-sleep = { version = "0.0.1", path = "../openrr-sleep" }

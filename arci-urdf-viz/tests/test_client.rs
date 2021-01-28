@@ -128,9 +128,10 @@ async fn test_send_joint_positions() {
     }));
     std::thread::spawn(move || web_server.start());
     std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
-    let client =
+    let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
             .unwrap();
+    client.run_send_joint_positions_thread();
     let result = client
         .send_joint_positions(vec![0.0], std::time::Duration::from_secs(1))
         .await;
@@ -147,13 +148,14 @@ async fn test_send_joint_trajectory() {
     }));
     std::thread::spawn(move || web_server.start());
     std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
-    let client =
+    let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
             .unwrap();
     let trajectory = vec![
         TrajectoryPoint::new(vec![0.0], std::time::Duration::from_millis(100)),
         TrajectoryPoint::new(vec![0.0], std::time::Duration::from_millis(200)),
     ];
+    client.run_send_joint_positions_thread();
     let result = client.send_joint_trajectory(trajectory).await;
     assert!(result.is_ok());
 }
