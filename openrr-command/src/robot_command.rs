@@ -331,9 +331,11 @@ impl RobotCommandExecutor {
                 duration_secs,
             } => {
                 let start = Instant::now();
-                while start.elapsed() < Duration::from_secs_f64(*duration_secs) {
+                let duration = Duration::from_secs_f64(*duration_secs);
+                let sleep_duration = Duration::from_secs_f64(0.01);
+                while start.elapsed() < duration {
                     client.send_velocity(&BaseVelocity::new(*x, *y, *theta))?;
-                    sleep(Duration::from_secs_f64(0.01));
+                    sleep(sleep_duration);
                 }
             }
         }
