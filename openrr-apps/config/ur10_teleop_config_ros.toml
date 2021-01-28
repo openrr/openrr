@@ -4,8 +4,9 @@ gil_gamepad_config.map.button_map = [["North", "North"], ["LeftThumb", "LeftThum
 gil_gamepad_config.map.axis_map = [["LeftStickX", "LeftStickX"], ["RightStickX", "RightStickX"], ["LeftStickY", "LeftStickY"], ["RightStickY", "RightStickY"], ["DPadY", "DPadY"], ["DPadX", "DPadX"]]
 gil_gamepad_config.map.axis_value_map = [["RightStickX", -1.0], ["LeftStickX", -1.0]]
 
-
 [control_nodes_config]
+joints_pose_sender_config.mode = "pose"
+joints_pose_sender_config.duration_secs = 2.0
 
 [[control_nodes_config.ik_node_teleop_configs]]
 solver_name = "arm_ik"

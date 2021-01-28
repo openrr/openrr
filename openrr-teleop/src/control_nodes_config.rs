@@ -1,8 +1,9 @@
 use crate::{
-    ControlNode, IkNode, IkNodeConfig, JoyJointTeleopNode, JoyJointTeleopNodeConfig, MoveBaseNode,
+    ControlNode, IkNode, IkNodeConfig, JointsPoseSender, JointsPoseSenderConfig,
+    JoyJointTeleopNode, JoyJointTeleopNodeConfig, MoveBaseNode,
 };
 use arci::{JointTrajectoryClient, MoveBase, Speaker};
-use openrr_client::IkSolverWithChain;
+use openrr_client::{IkSolverWithChain, JointsPose};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
@@ -24,6 +25,7 @@ pub struct ControlNodesConfig {
     pub joy_joint_teleop_configs: Vec<JoyJointTeleopConfig>,
     pub move_base_mode: Option<String>,
     pub ik_node_teleop_configs: Vec<IkNodeTeleopConfig>,
+    pub joints_pose_sender_config: Option<JointsPoseSenderConfig>,
 }
 
 impl ControlNodesConfig {
@@ -33,6 +35,7 @@ impl ControlNodesConfig {
         joint_trajectory_client_map: &HashMap<String, Arc<dyn JointTrajectoryClient>>,
         ik_solver_with_chain_map: &HashMap<String, Arc<IkSolverWithChain>>,
         move_base: Option<Arc<dyn MoveBase>>,
+        joints_poses: Vec<JointsPose>,
     ) -> Vec<Box<dyn ControlNode>> {
         let mut nodes: Vec<Box<dyn ControlNode>> = vec![];
 
@@ -60,6 +63,18 @@ impl ControlNodesConfig {
             );
             nodes.push(Box::new(ik_node));
         }
+
+        if !joints_poses.is_empty() {
+            if let Some(sender_config) = &self.joints_pose_sender_config {
+                nodes.push(Box::new(JointsPoseSender::new_from_config(
+                    sender_config.clone(),
+                    joints_poses,
+                    joint_trajectory_client_map,
+                    speaker.clone(),
+                )));
+            }
+        }
+
         nodes
     }
 }

@@ -64,6 +64,7 @@ async fn main() -> Result<(), Error> {
         client.joint_trajectory_clients(),
         client.ik_solvers(),
         Some(client.clone()),
+        robot_config.openrr_clients_config.joints_poses,
     );
     if nodes.is_empty() {
         panic!("No valid nodes");
