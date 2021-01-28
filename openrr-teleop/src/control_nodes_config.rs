@@ -66,10 +66,17 @@ impl ControlNodesConfig {
 
         if !joints_poses.is_empty() {
             if let Some(sender_config) = &self.joints_pose_sender_config {
+                let mut joint_trajectory_clients = HashMap::new();
+                for joints_pose in &joints_poses {
+                    joint_trajectory_clients.insert(
+                        joints_pose.client_name.to_owned(),
+                        joint_trajectory_client_map[&joints_pose.client_name].clone(),
+                    );
+                }
                 nodes.push(Box::new(JointsPoseSender::new_from_config(
                     sender_config.clone(),
                     joints_poses,
-                    joint_trajectory_client_map,
+                    joint_trajectory_clients,
                     speaker.clone(),
                 )));
             }
