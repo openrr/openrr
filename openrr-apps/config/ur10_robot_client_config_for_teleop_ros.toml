@@ -43,6 +43,6 @@ constraints.position_x = true
 constraints.position_y = true
 constraints.position_z = true
 constraints.rotation_x = true
-constraints.rotation_y = false
+constraints.rotation_y = true
 constraints.rotation_z = true
 

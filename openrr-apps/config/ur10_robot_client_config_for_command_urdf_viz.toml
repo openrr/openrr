@@ -49,4 +49,4 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 [[openrr_clients_config.joints_poses]]
 pose_name = "ready"
 client_name = "arm_collision_checked"
-positions = [0.0, -0.7, 1.4, -2.27, 0.0, 0.0]
+positions = [0.0, -0.7, 1.4, -0.7, 1.57, -3.14]
