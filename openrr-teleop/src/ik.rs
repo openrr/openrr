@@ -130,10 +130,22 @@ where
                 self.linear_velocity.y = self.move_step_linear[1] * v;
             }
             GamepadEvent::AxisChanged(Axis::LeftStickX, v) => {
-                self.angular_velocity.z = self.move_step_angular[2] * v;
+                self.angular_velocity.x = -self.move_step_angular[0] * v;
             }
             GamepadEvent::AxisChanged(Axis::LeftStickY, v) => {
-                self.angular_velocity.x = self.move_step_angular[0] * v;
+                self.angular_velocity.y = self.move_step_angular[1] * v;
+            }
+            GamepadEvent::ButtonPressed(Button::DPadRight) => {
+                self.angular_velocity.z = -self.move_step_angular[2];
+            }
+            GamepadEvent::ButtonReleased(Button::DPadRight) => {
+                self.angular_velocity.z = 0.0;
+            }
+            GamepadEvent::ButtonPressed(Button::DPadLeft) => {
+                self.angular_velocity.z = self.move_step_angular[2];
+            }
+            GamepadEvent::ButtonReleased(Button::DPadLeft) => {
+                self.angular_velocity.z = 0.0;
             }
             _ => {}
         }
