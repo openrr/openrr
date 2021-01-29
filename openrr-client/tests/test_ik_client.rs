@@ -235,3 +235,72 @@ fn test_ik_solver_with_chain_constraints() {
     assert_eq!(c.rotation_y, true);
     assert_eq!(c.rotation_z, false);
 }
+
+#[test]
+fn test_ik_solver_with_chain_generate_trajectory_with_interpolation() {
+    let chain = k::Chain::<f64>::from_urdf_file("../openrr-planner/sample.urdf").unwrap();
+    let end_link = chain.find("l_tool_fixed").unwrap();
+    let arm = k::SerialChain::from_end(end_link);
+    let positions = vec![0.1, 0.2, 0.0, -0.5, 0.0, -0.3];
+    arm.set_joint_positions(&positions).unwrap();
+    let params = IkSolverParameters {
+        allowable_position_error: 0.01,
+        allowable_angle_error: 0.02,
+        jacobian_multiplier: 0.1,
+        num_max_try: 100,
+    };
+    let ik_solver = create_random_jacobian_ik_solver(&params);
+    let constraints = k::Constraints::default();
+    let ik_solver_with_chain = IkSolverWithChain::new(arm, Arc::new(ik_solver), constraints);
+
+    let current = ik_solver_with_chain.end_transform();
+    let mut target = current;
+    target.translation.vector.y -= 0.1;
+    target.translation.vector.z += 0.1;
+    let result = ik_solver_with_chain
+        .generate_trajectory_with_interpolation(&current, &target, 1.0, 0.05, 10)
+        .unwrap();
+    assert!(result.len() > 0);
+}
+
+#[test]
+fn test_ik_solver_with_chain_generate_trajectory_with_interpolation_and_constraints() {
+    let chain = k::Chain::<f64>::from_urdf_file("../openrr-planner/sample.urdf").unwrap();
+    let end_link = chain.find("l_tool_fixed").unwrap();
+    let arm = k::SerialChain::from_end(end_link);
+    let positions = vec![0.1, 0.2, 0.0, -0.5, 0.0, -0.3];
+    arm.set_joint_positions(&positions).unwrap();
+    let params = IkSolverParameters {
+        allowable_position_error: 0.01,
+        allowable_angle_error: 0.02,
+        jacobian_multiplier: 0.1,
+        num_max_try: 100,
+    };
+    let ik_solver = create_random_jacobian_ik_solver(&params);
+    let constraints = k::Constraints::default();
+    let ik_solver_with_chain = IkSolverWithChain::new(arm, Arc::new(ik_solver), constraints);
+
+    let current = ik_solver_with_chain.end_transform();
+    let mut target = current;
+    target.translation.vector.y -= 0.5;
+    target.translation.vector.z += 0.5;
+    let constraints = k::Constraints {
+        position_x: false,
+        position_y: true,
+        position_z: true,
+        rotation_x: true,
+        rotation_y: true,
+        rotation_z: true,
+    };
+    let result = ik_solver_with_chain
+        .generate_trajectory_with_interpolation_and_constraints(
+            &current,
+            &target,
+            &constraints,
+            5.0,
+            0.05,
+            10,
+        )
+        .unwrap();
+    assert!(result.len() > 0);
+}
