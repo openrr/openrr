@@ -23,6 +23,13 @@ cd openrr-apps
 cargo build --release --features ros
 ```
 
+- With GUI
+
+```bash
+cd openrr-apps
+cargo build --release --features gui
+```
+
 ### For UR10 sample
 
 Install [Universal Robot software](https://github.com/ros-industrial/universal_robot).
@@ -228,3 +235,25 @@ Change urdf path and joystick settings (see [here](#joystick)) in [the setting f
 ./target/release/openrr_apps_robot_teleop \
   --config-path=./openrr-apps/config/pr2_teleop_config_ros.toml \
 ```
+
+## How to run openrr_apps_joint_position_sender
+
+### Sample robot
+
+- Launch urdf-viz.
+
+```bash
+urdf-viz ./openrr-planner/sample.urdf
+```
+
+- Launch openrr_apps_joint_position_sender.
+
+```bash
+./target/release/openrr_apps_joint_position_sender \
+  ./openrr-apps/config/sample_robot_client_config_for_command_urdf_viz.toml \
+  ./openrr-planner/sample.urdf
+```
+
+### Troubleshooting
+
+See [openrr-gui](../openrr-gui/README.md#troubleshooting) crate for troubleshooting.

@@ -1,32 +1,5 @@
 # OpenRR GUI
 
-## Examples
-
-### Sample robot
-
-- Launch urdf-viz.
-
-  ```bash
-  urdf-viz ./openrr-planner/sample.urdf
-  ```
-
-- Launch joint_position_sender.
-
-  ```bash
-  cargo run -p openrr-gui --example joint_position_sender -- \
-    ./openrr-apps/config/sample_robot_client_config_for_command_urdf_viz.toml \
-    ./openrr-planner/sample.urdf
-  ```
-
-  or
-
-  ```bash
-  cargo build --release -p openrr-gui --example joint_position_sender
-  ./target/release/examples/joint_position_sender \
-    ./openrr-apps/config/sample_robot_client_config_for_command_urdf_viz.toml \
-    ./openrr-planner/sample.urdf
-  ```
-
 ## Troubleshooting
 
 - Q. Fails to compile.
