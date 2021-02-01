@@ -51,7 +51,7 @@ where
     ///     .collision_check_margin(0.01)
     ///     .finalize();
     /// // Create inverse kinematics solver
-    /// let solver = openrr_planner::JacobianIKSolver::default();
+    /// let solver = openrr_planner::JacobianIkSolver::default();
     /// // Create path planner with IK solver
     /// let _planner = openrr_planner::JointPathPlannerWithIK::new(planner, solver);
     /// ```

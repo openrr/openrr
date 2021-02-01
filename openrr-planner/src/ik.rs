@@ -148,7 +148,7 @@ mod tests {
         let target = target_link.world_transform().unwrap();
         println!("{:?}", target.translation);
         // Create IK solver with default settings
-        let solver = k::JacobianIKSolver::default();
+        let solver = k::JacobianIkSolver::default();
 
         // Create a set of joints from end joint
         let arm = k::SerialChain::from_end(target_link);

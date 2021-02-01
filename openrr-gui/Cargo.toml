@@ -12,7 +12,7 @@ log = "0.4"
 openrr-client = { version = "0.0.1", path = "../openrr-client" }
 rand = "0.8"
 thiserror = "1"
-urdf-rs = "0.4"
+urdf-rs = "0.6"
 
 [dev-dependencies]
 anyhow = "1"

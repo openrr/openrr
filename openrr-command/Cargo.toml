@@ -8,7 +8,7 @@ license = "Apache-2.0"
 [dependencies]
 arci = { version = "0.0.1", path = "../arci" }
 async-recursion = "0.3"
-k = "0.21"
+k = "0.22"
 log = "0.4"
 openrr-client = { version = "0.0.1", path = "../openrr-client" }
 structopt = "0.3.21"

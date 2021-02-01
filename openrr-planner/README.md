@@ -22,7 +22,7 @@ fn main() {
         .collision_check_margin(0.01)
         .finalize();
     // Create inverse kinematics solver
-    let solver = openrr_planner::JacobianIKSolverBuilder::<f64>::new()
+    let solver = openrr_planner::JacobianIkSolverBuilder::<f64>::new()
         .num_max_try(1000)
         .allowable_target_distance(0.01)
         .move_epsilon(0.0001)
