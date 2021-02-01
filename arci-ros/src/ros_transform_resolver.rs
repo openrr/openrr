@@ -1,3 +1,5 @@
+use std::time::{Duration, SystemTime};
+
 use arci::TransformResolver;
 
 use crate::define_action_client_internal;
@@ -14,12 +16,26 @@ define_action_client_internal!(SimpleActionClient, msg::tf2_msgs, LookupTransfor
 
 pub struct Tf2BufferServerClient {
     action_client: SimpleActionClient,
+    base_time: SystemTime,
 }
 
 impl Tf2BufferServerClient {
     pub fn new(base_topic: &str, queue_size: usize, monitoring_rate: f64) -> Self {
         let action_client = SimpleActionClient::new(base_topic, queue_size, monitoring_rate);
-        Self { action_client }
+
+        let base_time = if rosrust::param("/use_sim_time")
+            .and_then(|v| v.get().ok())
+            .unwrap_or(false)
+        {
+            std::time::SystemTime::now() - Duration::from_nanos(rosrust::now().nanos() as u64)
+        } else {
+            std::time::SystemTime::UNIX_EPOCH
+        };
+
+        Self {
+            action_client,
+            base_time,
+        }
     }
 }
 
@@ -34,9 +50,7 @@ impl TransformResolver for Tf2BufferServerClient {
         const TIMEOUT_SEC: f64 = 10.0;
         let timeout = std::time::Duration::from_secs_f64(TIMEOUT_SEC);
         let rostime = rosrust::Time::from_nanos(
-            time.duration_since(std::time::SystemTime::UNIX_EPOCH)
-                .unwrap()
-                .as_nanos() as i64,
+            time.duration_since(self.base_time).unwrap().as_nanos() as i64,
         );
         let goal = msg::tf2_msgs::LookupTransformGoal {
             target_frame: from.to_owned(),
