@@ -13,9 +13,3 @@ openrr-client = { version = "0.0.1", path = "../openrr-client" }
 rand = "0.8"
 thiserror = "1"
 urdf-rs = "0.6"
-
-[dev-dependencies]
-anyhow = "1"
-env_logger = "0.8"
-openrr-apps = { version = "0.0.1", path = "../openrr-apps" }
-structopt = "0.3.21"

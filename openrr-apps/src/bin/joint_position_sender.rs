@@ -1,14 +1,16 @@
-// TODO: move to openrr-apps?
-
 use log::debug;
 use openrr_apps::RobotConfig;
 use openrr_client::BoxRobotClient;
 use openrr_gui::joint_position_sender;
 use structopt::StructOpt;
 
+/// An openrr GUI tool.
 #[derive(StructOpt, Debug)]
+#[structopt(name = env!("CARGO_BIN_NAME"))]
 struct Opt {
+    /// Path to the setting file.
     config_path: String,
+    /// Path to the URDF file.
     urdf_path: String,
 }
 
