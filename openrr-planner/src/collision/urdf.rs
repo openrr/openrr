@@ -48,6 +48,9 @@ where
                 tri_mesh.uvs,
             )))
         }
+        urdf_rs::Geometry::Capsule { .. } => {
+            todo!()
+        }
         urdf_rs::Geometry::Sphere { radius } => {
             Some(ShapeHandle::new(Ball::new(na::convert(radius))))
         }
@@ -55,6 +58,7 @@ where
             ref filename,
             scale,
         } => {
+            let scale = scale.unwrap_or(DEFAULT_MESH_SCALE);
             let replaced_filename = urdf_rs::utils::expand_package_path(filename, base_dir);
             let path = Path::new(&replaced_filename);
             if !path.exists() {
@@ -71,3 +75,6 @@ where
         }
     }
 }
+
+// https://github.com/openrr/urdf-rs/pull/3/files#diff-0fb2eeea3273a4c9b3de69ee949567f546dc8c06b1e190336870d00b54ea0979L36-L38
+const DEFAULT_MESH_SCALE: [f64; 3] = [1.0f64; 3];

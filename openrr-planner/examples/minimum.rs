@@ -26,7 +26,7 @@ fn main() {
         .collision_check_margin(0.01)
         .finalize();
     // Create inverse kinematics solver
-    let solver = openrr_planner::JacobianIKSolver::default();
+    let solver = openrr_planner::JacobianIkSolver::default();
     let solver = openrr_planner::RandomInitializeIKSolver::new(solver, 100);
     // Create path planner with IK solver
     let mut planner = openrr_planner::JointPathPlannerWithIK::new(planner, solver);

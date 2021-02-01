@@ -10,7 +10,7 @@ anyhow = "1.0"
 arci = { version = "0.0.1", path = "../arci" }
 async-trait = "0.1"
 log = "0.4"
-nalgebra = "0.23"
+nalgebra = "0.24"
 openrr-planner = { version = "0.0.1", default-features = false }
 openrr-sleep = { version = "0.0.1", path = "../openrr-sleep" }
 serde = { version = "1.0", features = ["derive"] }
@@ -20,7 +20,7 @@ url = "2.0"
 
 [dev-dependencies]
 assert_approx_eq = "1.1"
-rouille = "2.1.0"
+rouille = "3.0"
 serde_derive = "1.0"
 tokio = { version = "1.0", features = ["full"] }
 tokio-test = "0.4"

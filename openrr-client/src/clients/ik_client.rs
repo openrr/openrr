@@ -21,8 +21,8 @@ pub struct IkSolverParameters {
     pub num_max_try: usize,
 }
 
-pub fn create_jacobian_ik_solver(parameters: &IkSolverParameters) -> k::JacobianIKSolver<f64> {
-    k::JacobianIKSolver::new(
+pub fn create_jacobian_ik_solver(parameters: &IkSolverParameters) -> k::JacobianIkSolver<f64> {
+    k::JacobianIkSolver::new(
         parameters.allowable_position_error,
         parameters.allowable_angle_error,
         parameters.jacobian_multiplier,
@@ -32,7 +32,7 @@ pub fn create_jacobian_ik_solver(parameters: &IkSolverParameters) -> k::Jacobian
 
 pub fn create_random_jacobian_ik_solver(
     parameters: &IkSolverParameters,
-) -> openrr_planner::RandomInitializeIKSolver<f64, k::JacobianIKSolver<f64>> {
+) -> openrr_planner::RandomInitializeIKSolver<f64, k::JacobianIkSolver<f64>> {
     openrr_planner::RandomInitializeIKSolver::new(
         create_jacobian_ik_solver(parameters),
         parameters.num_max_try,
