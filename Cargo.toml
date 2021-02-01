@@ -1,7 +1,5 @@
 [workspace]
 
-# arci-ros is excluded to make it independent from ROS
-
 members = [
     "arci",
     "arci-gamepad-gilrs",
