@@ -166,10 +166,10 @@ impl RosNavClient {
             Err(e) => {
                 match e {
                     crate::Error::ActionResultPreempted(_) => {
-                        rosrust::ros_info!("Action is cancelled");
+                        rosrust::ros_warn!("Action is cancelled");
                     }
                     _ => {
-                        rosrust::ros_info!("Action does not succeed");
+                        rosrust::ros_err!("Action does not succeed {:?}", e);
                     }
                 };
             }
