@@ -1,6 +1,6 @@
 use arci_gamepad_gilrs::{GilGamepad, GilGamepadConfig};
 use openrr_apps::{Error, RobotConfig};
-use openrr_client::ArcRobotClient;
+use openrr_client::{resolve_relative_path, ArcRobotClient};
 use openrr_teleop::{ControlNodeSwitcher, ControlNodesConfig};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, sync::Arc};
@@ -21,12 +21,7 @@ impl RobotTeleopConfig {
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,
         )
         .map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
-        config.robot_config_full_path = Some(
-            path.as_ref()
-                .parent()
-                .ok_or_else(|| Error::NoParentDirectory(path.as_ref().to_owned()))?
-                .join(&config.robot_config_path),
-        );
+        config.robot_config_full_path = resolve_relative_path(path, &config.robot_config_path)?;
         Ok(config)
     }
 

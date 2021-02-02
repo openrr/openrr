@@ -374,14 +374,22 @@ pub struct OpenrrClientsConfig {
     pub joints_poses: Vec<JointsPose>,
 }
 
+pub fn resolve_relative_path<P: AsRef<Path>>(
+    base_path: P,
+    path: &str,
+) -> Result<Option<PathBuf>, Error> {
+    Ok(Some(
+        base_path
+            .as_ref()
+            .parent()
+            .ok_or_else(|| Error::NoParentDirectory(base_path.as_ref().to_owned()))?
+            .join(path),
+    ))
+}
+
 impl OpenrrClientsConfig {
     pub fn resolve_path<P: AsRef<Path>>(&mut self, path: P) -> Result<(), Error> {
-        self.urdf_full_path = Some(
-            path.as_ref()
-                .parent()
-                .ok_or_else(|| Error::NoParentDirectory(path.as_ref().to_owned()))?
-                .join(&self.urdf_path),
-        );
+        self.urdf_full_path = resolve_relative_path(path, &self.urdf_path)?;
         Ok(())
     }
     pub fn urdf_full_path(&self) -> &Option<PathBuf> {
