@@ -23,11 +23,11 @@ cd openrr-apps
 cargo build --release --features ros
 ```
 
-- With GUI
+- Without GUI
 
 ```bash
 cd openrr-apps
-cargo build --release --features gui
+cargo build --release --no-default-features
 ```
 
 ### For UR10 sample
