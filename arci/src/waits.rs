@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::error::Error;
 use crate::traits::JointTrajectoryClient;
 use auto_impl::auto_impl;
@@ -38,8 +40,10 @@ impl CompleteCondition for TotalJointDiffCondition {
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
     ) -> Result<(), Error> {
-        const N: f64 = 10.0;
-        for _j in 0..(N * self.timeout_sec) as i32 {
+        const CHECK_UNIT_SEC: f64 = 0.01;
+        let check_unit_duration: Duration = Duration::from_secs_f64(CHECK_UNIT_SEC);
+        let num_repeat: i32 = (self.timeout_sec / CHECK_UNIT_SEC) as i32;
+        for _j in 0..num_repeat {
             let curs = client.current_joint_positions()?;
             let sum_err: f64 = target_positions
                 .iter()
@@ -49,7 +53,7 @@ impl CompleteCondition for TotalJointDiffCondition {
             if sum_err <= self.allowable_error {
                 return Ok(());
             }
-            std::thread::sleep(std::time::Duration::from_secs_f64(self.timeout_sec / N));
+            std::thread::sleep(check_unit_duration);
         }
         Err(Error::TimeoutWithDiff {
             target: target_positions.to_vec(),
@@ -88,8 +92,11 @@ impl CompleteCondition for EachJointDiffCondition {
         }
         let dof = target_positions.len();
         let mut is_reached = vec![false; dof];
-        const N: f64 = 10.0;
-        for _j in 0..(N * self.timeout_sec) as i32 {
+        const CHECK_UNIT_SEC: f64 = 0.01;
+        let check_unit_duration: Duration = Duration::from_secs_f64(CHECK_UNIT_SEC);
+        let num_repeat: i32 = (self.timeout_sec / CHECK_UNIT_SEC) as i32;
+
+        for _j in 0..num_repeat {
             for i in 0..dof {
                 let cur = client.current_joint_positions()?[i];
                 let tar = target_positions[i];
@@ -100,7 +107,7 @@ impl CompleteCondition for EachJointDiffCondition {
             if !is_reached.contains(&false) {
                 return Ok(());
             }
-            std::thread::sleep(std::time::Duration::from_secs_f64(self.timeout_sec / N));
+            std::thread::sleep(check_unit_duration);
         }
         Err(Error::TimeoutWithDiff {
             target: target_positions.to_vec(),
