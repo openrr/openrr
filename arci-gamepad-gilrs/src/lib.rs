@@ -1,6 +1,8 @@
 use arci::gamepad::*;
 use arci::*;
-use log::{debug, error, info};
+#[cfg(not(target_os = "macos"))]
+use log::info;
+use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::{collections::HashMap, time::Duration};
