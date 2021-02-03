@@ -1,6 +1,6 @@
 use crate::{
-    create_collision_check_clients, create_ik_clients, CollisionCheckClient,
-    CollisionCheckClientConfig, Error, IkClient, IkClientConfig, IkSolverWithChain,
+    create_collision_check_client, create_ik_solver_with_chain, CollisionCheckClient, Error,
+    IkClient, IkSolverConfig, IkSolverWithChain, SelfCollisionCheckerConfig,
 };
 use arci::{
     BaseVelocity, Error as ArciError, JointTrajectoryClient, JointTrajectoryClientsContainer,
@@ -15,6 +15,8 @@ use std::{collections::HashMap, path::Path, path::PathBuf, sync::Arc, time::Dura
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
 pub type ArcRobotClient = RobotClient<Arc<dyn Speaker>, Arc<dyn MoveBase>, Arc<dyn Navigation>>;
 pub type BoxRobotClient = RobotClient<Box<dyn Speaker>, Box<dyn MoveBase>, Box<dyn Navigation>>;
+
+type ArcJointTrajectoryClient = Arc<dyn JointTrajectoryClient>;
 
 pub struct RobotClient<S, M, N>
 where
@@ -402,4 +404,61 @@ pub struct JointsPose {
     pub pose_name: String,
     pub client_name: String,
     pub positions: Vec<f64>,
+}
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct IkClientConfig {
+    pub name: String,
+    pub client_name: String,
+    pub ik_solver_config: IkSolverConfig,
+}
+
+pub fn create_ik_clients(
+    configs: &[IkClientConfig],
+    name_to_joint_trajectory_client: &HashMap<String, ArcJointTrajectoryClient>,
+    full_chain: &k::Chain<f64>,
+) -> HashMap<String, Arc<IkClient<ArcJointTrajectoryClient>>> {
+    let mut clients = HashMap::new();
+    for config in configs {
+        clients.insert(
+            config.name.clone(),
+            Arc::new(IkClient::new(
+                name_to_joint_trajectory_client[&config.client_name].clone(),
+                Arc::new(create_ik_solver_with_chain(
+                    full_chain,
+                    &config.ik_solver_config,
+                )),
+            )),
+        );
+    }
+    clients
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct CollisionCheckClientConfig {
+    pub name: String,
+    pub client_name: String,
+    pub self_collision_checker_config: SelfCollisionCheckerConfig,
+}
+
+pub fn create_collision_check_clients<P: AsRef<Path>>(
+    urdf_path: P,
+    self_collision_check_pairs: &[String],
+    configs: &[CollisionCheckClientConfig],
+    name_to_joint_trajectory_client: &HashMap<String, Arc<dyn JointTrajectoryClient>>,
+    full_chain: Arc<k::Chain<f64>>,
+) -> HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>> {
+    let mut clients = HashMap::new();
+    for config in configs {
+        clients.insert(
+            config.name.clone(),
+            Arc::new(create_collision_check_client(
+                &urdf_path,
+                self_collision_check_pairs,
+                &config.self_collision_checker_config,
+                name_to_joint_trajectory_client[&config.client_name].clone(),
+                full_chain.clone(),
+            )),
+        );
+    }
+    clients
 }

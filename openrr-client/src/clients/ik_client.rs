@@ -3,9 +3,7 @@ use async_trait::async_trait;
 use k::Isometry3;
 use k::{nalgebra as na, Constraints};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
-
-type ArcJointTrajectoryClient = Arc<dyn JointTrajectoryClient>;
+use std::sync::Arc;
 
 pub fn isometry(x: f64, y: f64, z: f64, roll: f64, pitch: f64, yaw: f64) -> k::Isometry3<f64> {
     k::Isometry3::from_parts(
@@ -300,13 +298,6 @@ pub struct IkSolverConfig {
     pub constraints: Constraints,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct IkClientConfig {
-    pub name: String,
-    pub client_name: String,
-    pub ik_solver_config: IkSolverConfig,
-}
-
 pub fn create_ik_solver_with_chain(
     full_chain: &k::Chain<f64>,
     config: &IkSolverConfig,
@@ -336,25 +327,4 @@ pub fn create_ik_solver_with_chain(
         },
         config.constraints,
     )
-}
-
-pub fn create_ik_clients(
-    configs: &[IkClientConfig],
-    name_to_joint_trajectory_client: &HashMap<String, ArcJointTrajectoryClient>,
-    full_chain: &k::Chain<f64>,
-) -> HashMap<String, Arc<IkClient<ArcJointTrajectoryClient>>> {
-    let mut clients = HashMap::new();
-    for config in configs {
-        clients.insert(
-            config.name.clone(),
-            Arc::new(IkClient::new(
-                name_to_joint_trajectory_client[&config.client_name].clone(),
-                Arc::new(create_ik_solver_with_chain(
-                    full_chain,
-                    &config.ik_solver_config,
-                )),
-            )),
-        );
-    }
-    clients
 }

@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use log::debug;
 use openrr_planner::{collision::parse_colon_separated_pairs, CollisionChecker};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 use std::{path::Path, time::Duration};
 
 use crate::utils::find_nodes;
@@ -146,40 +146,10 @@ pub struct SelfCollisionCheckerConfig {
     pub time_interpolate_rate: f64,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct CollisionCheckClientConfig {
-    pub name: String,
-    pub client_name: String,
-    pub self_collision_checker_config: SelfCollisionCheckerConfig,
-}
-
-pub fn create_collision_check_clients<P: AsRef<Path>>(
-    urdf_path: P,
-    self_collision_check_pairs: &[String],
-    configs: &[CollisionCheckClientConfig],
-    name_to_joint_trajectory_client: &HashMap<String, Arc<dyn JointTrajectoryClient>>,
-    full_chain: Arc<k::Chain<f64>>,
-) -> HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>> {
-    let mut clients = HashMap::new();
-    for config in configs {
-        clients.insert(
-            config.name.clone(),
-            Arc::new(create_collision_check_client(
-                &urdf_path,
-                self_collision_check_pairs,
-                config,
-                name_to_joint_trajectory_client[&config.client_name].clone(),
-                full_chain.clone(),
-            )),
-        );
-    }
-    clients
-}
-
 pub fn create_collision_check_client<P: AsRef<Path>>(
     urdf_path: P,
     self_collision_check_pairs: &[String],
-    config: &CollisionCheckClientConfig,
+    config: &SelfCollisionCheckerConfig,
     client: Arc<dyn JointTrajectoryClient>,
     full_chain: Arc<k::Chain<f64>>,
 ) -> CollisionCheckClient<Arc<dyn JointTrajectoryClient>> {
@@ -190,7 +160,7 @@ pub fn create_collision_check_client<P: AsRef<Path>>(
             urdf_path,
             self_collision_check_pairs,
             joint_names,
-            &config.self_collision_checker_config,
+            &config,
             full_chain,
         ),
     )
