@@ -24,11 +24,12 @@ openrr_apps_robot_command get_state r_arm_with_torso_ik
 openrr_apps_robot_command get_state l_arm_with_torso_collision_checked
 openrr_apps_robot_command get_state r_arm_with_torso_collision_checked
 
-openrr_apps_robot_command send_joints l_arm_with_torso_ik -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.2 7=0.0
+openrr_apps_robot_command send_joints l_arm_with_torso_ik -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.84 7=0.0
 openrr_apps_robot_command get_state l_arm_with_torso_ik
-openrr_apps_robot_command move_ik l_arm_with_torso_ik --z=1.14
+openrr_apps_robot_command move_ik l_arm_with_torso_ik  --x=0.65
 openrr_apps_robot_command get_state l_arm_with_torso_ik
-openrr_apps_robot_command move_ik l_arm_with_torso_ik --x=0.63 --y=0.24
+openrr_apps_robot_command move_ik l_arm_with_torso_ik --x=0.69 --y=0.2
+
 openrr_apps_robot_command get_state l_arm_with_torso_ik
 
 openrr_apps_robot_command send_base_velocity 1.0 2.0 1.57 -d 3.0

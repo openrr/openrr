@@ -1,8 +1,8 @@
-openrr_apps_robot_command send_joints arm_ik -j 0=0.0 1=-0.7 2=1.4 3=-2.27 4=0.0 5=0.0
-openrr_apps_robot_command move_ik arm_ik -z=0.5
+openrr_apps_robot_command send_joints arm_ik -j 0=0.0 1=-0.7 2=1.4 3=-0.3 4=1.57 5=-3.14
+openrr_apps_robot_command move_ik arm_ik -z=0.7
 
-openrr_apps_robot_command send_joints arm_ik -j 0=0.0 1=-0.7 2=1.4 3=-2.27 4=0.0 5=0.0
-openrr_apps_robot_command move_ik arm_ik -i -z=0.5
+openrr_apps_robot_command send_joints arm_ik -j 0=0.0 1=-0.7 2=1.4 3=-0.3 4=1.57 5=-3.14
+openrr_apps_robot_command move_ik arm_ik -i -z=0.7
 
-openrr_apps_robot_command send_joints arm_ik -j 0=0.0 1=-0.7 2=1.4 3=-2.27 4=0.0 5=0.0
-openrr_apps_robot_command move_ik arm_ik -l -y=0.5
+openrr_apps_robot_command send_joints arm_ik -j 0=0.0 1=-0.7 2=1.4 3=-0.3 4=1.57 5=-3.14
+openrr_apps_robot_command move_ik arm_ik -l -z=0.3

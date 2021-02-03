@@ -1,4 +1,4 @@
-robot_config_path = "ur10_robot_client_config_for_teleop_urdf_viz.toml"
+robot_config_path = "ur10_robot_client_config_for_urdf_viz.toml"
 gil_gamepad_config.device_id = 0
 gil_gamepad_config.map.button_map = [["North", "North"], ["LeftThumb", "LeftThumb"], ["West", "West"], ["East", "East"], ["RightTrigger2", "RightTrigger2"], ["LeftTrigger", "LeftTrigger"], ["DPadRight", "DPadRight"], ["Start", "Start"], ["LeftTrigger2", "LeftTrigger2"], ["RightThumb", "RightThumb"], ["South", "South"], ["DPadUp", "DPadUp"], ["RightTrigger", "RightTrigger"], ["DPadDown", "DPadDown"], ["Select", "Select"], ["DPadLeft", "DPadLeft"], ["Mode", "Mode"]]
 gil_gamepad_config.map.axis_map = [["LeftStickX", "LeftStickX"], ["RightStickX", "RightStickX"], ["LeftStickY", "LeftStickY"], ["RightStickY", "RightStickY"], ["DPadY", "DPadY"], ["DPadX", "DPadX"]]
@@ -15,7 +15,7 @@ joint_trajectory_client_name = "arm"
 
 [control_nodes_config.ik_node_teleop_configs.config]
 mode = "i k"
-move_step_angular = [0.17, 0.17, 0.17]
+move_step_angular = [0.05, 0.05, 0.17]
 move_step_linear = [0.01, 0.01, 0.01]
 step_duration_secs = 0.1
 
