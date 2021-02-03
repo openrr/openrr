@@ -52,7 +52,7 @@ urdf-viz ./openrr-planner/sample.urdf
 
 ```bash
 ./target/release/openrr_apps_robot_command \
-  --config-path=./openrr-apps/config/sample_robot_client_config_for_command_urdf_viz.toml \
+  --config-path=./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml \
   load_commands \
   ./openrr-apps/config/sample_cmd_urdf_viz.txt
 ```
@@ -67,11 +67,11 @@ urdf-viz $(rospack find ur_description)/urdf/ur10_robot.urdf.xacro
 
 - Run sample commands.
 
-Change urdf path in [the setting file](./config/ur10_robot_client_config_for_command_urdf_viz.toml) for your environment.
+Change urdf path in [the setting file](./config/ur10_robot_client_config_for_urdf_viz.toml) for your environment.
 
 ```bash
 ./target/release/openrr_apps_robot_command \
-  --config-path=./openrr-apps/config/ur10_robot_client_config_for_command_urdf_viz.toml \
+  --config-path=./openrr-apps/config/ur10_robot_client_config_for_urdf_viz.toml \
   load_commands \
   ./openrr-apps/config/ur10_cmd_urdf_viz.txt
 ```
@@ -86,11 +86,11 @@ roslaunch ur_gazebo ur10.launch
 
 - Run sample commands.
 
-Change urdf path in [the setting file](./config/ur10_robot_client_config_for_command_ros.toml) for your environment.
+Change urdf path in [the setting file](./config/ur10_robot_client_config_for_ros.toml) for your environment.
 
 ```bash
 ./target/release/openrr_apps_robot_command \
-  --config-path=./openrr-apps/config/ur10_robot_client_config_for_command_ros.toml \
+  --config-path=./openrr-apps/config/ur10_robot_client_config_for_ros.toml \
   load_commands \
   ./openrr-apps/config/ur10_cmd_ros.txt
 ```
@@ -105,11 +105,11 @@ urdf-viz $(rospack find pr2_description)/robots/pr2.urdf.xacro
 
 - Run sample commands.
 
-Change urdf path in [the setting file](./config/pr2_robot_client_config_for_command_urdf_viz.toml) for your environment.
+Change urdf path in [the setting file](./config/pr2_robot_client_config_for_urdf_viz.toml) for your environment.
 
 ```bash
 ./target/release/openrr_apps_robot_command \
-  --config-path=./openrr-apps/config/pr2_robot_client_config_for_command_urdf_viz.toml \
+  --config-path=./openrr-apps/config/pr2_robot_client_config_for_urdf_viz.toml \
   load_commands \
   ./openrr-apps/config/pr2_cmd_urdf_viz.txt
 ```
@@ -125,11 +125,11 @@ roslaunch ./pr2.launch wait_time_secs:=10
 
 - Run sample commands.
 
-Change urdf path in [the setting file](./config/pr2_robot_client_config_for_command_ros.toml) for your environment.
+Change urdf path in [the setting file](./config/pr2_robot_client_config_for_ros.toml) for your environment.
 
 ```bash
 ./target/release/openrr_apps_robot_command \
-  --config-path=./openrr-apps/config/pr2_robot_client_config_for_command_ros.toml \
+  --config-path=./openrr-apps/config/pr2_robot_client_config_for_ros.toml \
   load_commands \
   ./openrr-apps/config/pr2_cmd_ros.txt
 ```
@@ -173,7 +173,7 @@ urdf-viz $(rospack find ur_description)/urdf/ur10_robot.urdf.xacro
 
 - Run teleop.
 
-Change urdf path and joystick settings (see [here](#joystick)) in [the setting file](./config/ur10_robot_client_config_for_teleop_urdf_viz.toml) for your environment.
+Change urdf path and joystick settings (see [here](#joystick)) in [the setting file](./config/ur10_robot_client_config_for_urdf_viz.toml) for your environment.
 
 
 ```bash
@@ -191,7 +191,7 @@ roslaunch ur_gazebo ur10.launch
 
 - Run teleop.
 
-Change urdf path and joystick settings (see [here](#joystick)) in [the setting file](./config/ur10_robot_client_config_for_teleop_ros.toml) for your environment.
+Change urdf path and joystick settings (see [here](#joystick)) in [the setting file](./config/ur10_robot_client_config_for_ros.toml) for your environment.
 
 
 ```bash
@@ -209,7 +209,7 @@ urdf-viz $(rospack find pr2_description)/robots/pr2.urdf.xacro
 
 - Run teleop.
 
-Change urdf path and joystick settings (see [here](#joystick)) in [the setting file](./config/pr2_robot_client_config_for_teleop_urdf_viz.toml) for your environment.
+Change urdf path and joystick settings (see [here](#joystick)) in [the setting file](./config/pr2_robot_client_config_for_urdf_viz.toml) for your environment.
 
 
 ```bash
@@ -228,7 +228,7 @@ roslaunch ./pr2.launch wait_time_secs:=10
 
 - Run teleop.
 
-Change urdf path and joystick settings (see [here](#joystick)) in [the setting file](./config/pr2_robot_client_config_for_teleop_ros.toml) for your environment.
+Change urdf path and joystick settings (see [here](#joystick)) in [the setting file](./config/pr2_robot_client_config_for_ros.toml) for your environment.
 
 
 ```bash
@@ -250,7 +250,7 @@ urdf-viz ./openrr-planner/sample.urdf
 
 ```bash
 ./target/release/openrr_apps_joint_position_sender \
-  ./openrr-apps/config/sample_robot_client_config_for_command_urdf_viz.toml \
+  ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml \
   ./openrr-planner/sample.urdf
 ```
 
