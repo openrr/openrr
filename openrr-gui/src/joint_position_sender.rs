@@ -89,7 +89,7 @@ where
         pick_list: Default::default(),
         scroll: Default::default(),
         randomize_button: Default::default(),
-        center_button: Default::default(),
+        zero_button: Default::default(),
         joint_states,
     };
 
@@ -135,7 +135,7 @@ where
 
     scroll: scrollable::State,
     randomize_button: button::State,
-    center_button: button::State,
+    zero_button: button::State,
     // TODO: Currently, we have separate states for each joint_trajectory_client,
     // but we initialize/update joint_positions based on current_joint_positions
     // when joint_trajectory_client changed. Do we really need to separate state?
@@ -165,7 +165,7 @@ enum Message {
     Ignore,
     // Update all positions in current joint_trajectory_client
     UpdateAll(Vec<f64>),
-    CenterButtonPressed,
+    ZeroButtonPressed,
     RandomizeButtonPressed,
     SliderChanged { index: usize, position: f64 },
     TextInputChanged { index: usize, position: String },
@@ -229,13 +229,12 @@ where
                     joint_state.position = rand::thread_rng().gen_range(limit.lower..=limit.upper);
                 }
             }
-            Message::CenterButtonPressed => {
+            Message::ZeroButtonPressed => {
                 for joint_state in self
                     .joint_states
                     .get_mut(&self.current_joint_trajectory_client)
                     .unwrap()
                 {
-                    // TODO: is the center always 0.00?
                     joint_state.position = 0.0;
                 }
             }
@@ -331,14 +330,14 @@ where
         .style(THEME)
         .width(Length::Fill);
 
-        let center_button = Button::new(
-            &mut self.center_button,
-            Text::new("Center")
+        let zero_button = Button::new(
+            &mut self.zero_button,
+            Text::new("Zero")
                 .horizontal_alignment(HorizontalAlignment::Center)
                 .width(Length::Fill),
         )
         .padding(10)
-        .on_press(Message::CenterButtonPressed)
+        .on_press(Message::ZeroButtonPressed)
         .style(THEME)
         .width(Length::Fill);
 
@@ -385,7 +384,7 @@ where
         }
         content = content
             .push(randomize_button)
-            .push(center_button)
+            .push(zero_button)
             .push(sliders)
             .height(Length::Fill);
 
