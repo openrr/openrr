@@ -142,29 +142,35 @@ where
 {
     pub client: T,
     pub ik_solver_with_chain: Arc<IkSolverWithChain>,
-    pub chain: k::Chain<f64>,
 }
 
 impl<T> IkClient<T>
 where
     T: JointTrajectoryClient + Send,
 {
-    pub fn new(
-        client: T,
-        ik_solver_with_chain: Arc<IkSolverWithChain>,
-        chain: k::Chain<f64>,
-    ) -> Self {
+    pub fn new(client: T, ik_solver_with_chain: Arc<IkSolverWithChain>) -> Self {
+        if ik_solver_with_chain.ik_arm.dof() != client.joint_names().len() {
+            panic!(
+                "Invalid configuration : ik arm dof {} {:?} != joint_names length {} ({:?})",
+                ik_solver_with_chain.ik_arm.dof(),
+                ik_solver_with_chain
+                    .ik_arm
+                    .iter_joints()
+                    .map(|j| j.name.to_owned())
+                    .collect::<Vec<_>>(),
+                client.joint_names().len(),
+                client.joint_names()
+            );
+        }
         Self {
             client,
             ik_solver_with_chain,
-            chain,
         }
     }
 
     pub fn current_end_transform(&self) -> Result<k::Isometry3<f64>, Error> {
         let current_joint_angles = self.client.current_joint_positions()?;
-        self.chain
-            .set_joint_positions_clamped(&current_joint_angles);
+        self.set_joint_positions_clamped(&current_joint_angles);
         Ok(self.ik_solver_with_chain.end_transform())
     }
 
@@ -238,16 +244,13 @@ where
 
     /// Get relative pose from current pose of the IK target
     pub fn transform(&self, relative_pose: &k::Isometry3<f64>) -> Result<k::Isometry3<f64>, Error> {
-        let current_joint_angles = self.client.current_joint_positions()?;
-        self.chain
-            .set_joint_positions_clamped(&current_joint_angles);
-        let current_target_pose = self.ik_solver_with_chain.end_transform();
-        Ok(current_target_pose * relative_pose)
+        Ok(self.current_end_transform()? * relative_pose)
     }
     // Reset the kinematic model for IK calculation like Jacobian method
     pub fn set_zero_pose_for_kinematics(&self) -> Result<(), Error> {
-        let zero_angles = vec![0.0; self.chain.dof()];
-        self.chain
+        let zero_angles = vec![0.0; self.ik_solver_with_chain.ik_arm.dof()];
+        self.ik_solver_with_chain
+            .ik_arm
             .set_joint_positions(&zero_angles)
             .map_err(|e| Error::Other(e.into()))?;
         Ok(())
@@ -255,6 +258,10 @@ where
 
     pub fn constraints(&self) -> &Constraints {
         &self.ik_solver_with_chain.constraints()
+    }
+    pub fn set_joint_positions_clamped(&self, positions: &[f64]) {
+        self.ik_solver_with_chain
+            .set_joint_positions_clamped(positions)
     }
 }
 
@@ -331,36 +338,6 @@ pub fn create_ik_solver_with_chain(
     )
 }
 
-pub fn create_ik_client(
-    client: ArcJointTrajectoryClient,
-    full_chain: &k::Chain<f64>,
-    config: &IkSolverConfig,
-) -> IkClient<ArcJointTrajectoryClient> {
-    let arm_chain = if let Some(root_node_name) = &config.root_node_name {
-        k::Chain::from_end_to_root(
-            full_chain.find(&config.ik_target).unwrap(),
-            full_chain.find(root_node_name).unwrap(),
-        )
-    } else {
-        k::Chain::from_end(full_chain.find(&config.ik_target).unwrap())
-    };
-    let arm_ik_solver_with_chain = Arc::new(create_ik_solver_with_chain(&full_chain, &config));
-    if arm_ik_solver_with_chain.ik_arm.dof() != client.joint_names().len() {
-        panic!(
-            "Invalid configuration : ik arm dof {} {:?} != joint_names length {} ({:?})",
-            arm_ik_solver_with_chain.ik_arm.dof(),
-            arm_ik_solver_with_chain
-                .ik_arm
-                .iter_joints()
-                .map(|j| j.name.to_owned())
-                .collect::<Vec<_>>(),
-            client.joint_names().len(),
-            client.joint_names()
-        );
-    }
-    IkClient::new(client, arm_ik_solver_with_chain, arm_chain)
-}
-
 pub fn create_ik_clients(
     configs: &[IkClientConfig],
     name_to_joint_trajectory_client: &HashMap<String, ArcJointTrajectoryClient>,
@@ -370,10 +347,12 @@ pub fn create_ik_clients(
     for config in configs {
         clients.insert(
             config.name.clone(),
-            Arc::new(create_ik_client(
+            Arc::new(IkClient::new(
                 name_to_joint_trajectory_client[&config.client_name].clone(),
-                full_chain,
-                &config.ik_solver_config,
+                Arc::new(create_ik_solver_with_chain(
+                    full_chain,
+                    &config.ik_solver_config,
+                )),
             )),
         );
     }

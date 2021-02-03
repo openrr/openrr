@@ -268,7 +268,7 @@ where
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         let target_pose = {
             let ik_client = self.ik_client(name)?;
-            ik_client.chain.set_joint_positions_clamped(positions);
+            ik_client.set_joint_positions_clamped(positions);
             ik_client.ik_solver_with_chain.end_transform()
         };
         Ok(self
