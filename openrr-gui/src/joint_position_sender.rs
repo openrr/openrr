@@ -290,7 +290,7 @@ where
         Command::perform(
             async move {
                 joint_trajectory_client
-                    .send_joint_positions(joint_positions, Duration::from_nanos(1))
+                    .send_joint_positions(joint_positions, Duration::from_millis(100))
                     .await
             },
             |res| match res {
