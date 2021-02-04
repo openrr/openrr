@@ -53,8 +53,14 @@ time_interpolate_rate = 0.5
 [[openrr_clients_config.ik_clients_configs]]
 name = "l_arm_with_torso_ik"
 client_name = "l_arm_with_torso_collision_checked"
+solver_name = "l_arm_with_torso_ik_solver"
 
-[openrr_clients_config.ik_clients_configs.ik_solver_config]
+[[openrr_clients_config.ik_clients_configs]]
+name = "r_arm_with_torso_ik"
+client_name = "r_arm_with_torso_collision_checked"
+solver_name = "r_arm_with_torso_ik_solver"
+
+[openrr_clients_config.ik_solvers_configs.l_arm_with_torso_ik_solver]
 ik_target = "l_gripper_palm_joint"
 use_random_ik = false
 allowable_position_error_m = 0.01
@@ -68,11 +74,7 @@ constraints.rotation_x = true
 constraints.rotation_y = true
 constraints.rotation_z = true
 
-[[openrr_clients_config.ik_clients_configs]]
-name = "r_arm_with_torso_ik"
-client_name = "r_arm_with_torso_collision_checked"
-
-[openrr_clients_config.ik_clients_configs.ik_solver_config]
+[openrr_clients_config.ik_solvers_configs.r_arm_with_torso_ik_solver]
 ik_target = "r_gripper_palm_joint"
 use_random_ik = false
 allowable_position_error_m = 0.01

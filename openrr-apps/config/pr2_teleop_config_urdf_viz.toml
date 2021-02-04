@@ -11,7 +11,7 @@ joints_pose_sender_config.mode = "pose"
 joints_pose_sender_config.duration_secs = 2.0
 
 [[control_nodes_config.ik_node_teleop_configs]]
-solver_name = "r_arm_with_torso_ik"
+solver_name = "r_arm_with_torso_ik_solver"
 joint_trajectory_client_name = "r_arm_with_torso_collision_checked"
 
 [control_nodes_config.ik_node_teleop_configs.config]
@@ -21,7 +21,7 @@ move_step_linear = [0.01, 0.01, 0.01]
 step_duration_secs = 0.1
 
 [[control_nodes_config.ik_node_teleop_configs]]
-solver_name = "l_arm_with_torso_ik"
+solver_name = "l_arm_with_torso_ik_solver"
 joint_trajectory_client_name = "l_arm_with_torso_collision_checked"
 
 [control_nodes_config.ik_node_teleop_configs.config]
