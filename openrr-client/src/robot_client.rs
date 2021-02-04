@@ -1,6 +1,6 @@
 use crate::{
     create_collision_check_client, create_ik_solver_with_chain, CollisionCheckClient, Error,
-    IkClient, IkSolverConfig, IkSolverWithChain, SelfCollisionCheckerConfig,
+    IkClient, IkSolverConfig, IkSolverWithChain, SelfCollisionChecker, SelfCollisionCheckerConfig,
 };
 use arci::{
     BaseVelocity, Error as ArciError, JointTrajectoryClient, JointTrajectoryClientsContainer,
@@ -30,6 +30,7 @@ where
     collision_check_clients:
         HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>>,
     ik_clients: HashMap<String, ArcIkClient>,
+    self_collision_checkers: HashMap<String, Arc<SelfCollisionChecker>>,
     ik_solvers: HashMap<String, Arc<IkSolverWithChain>>,
     speaker: S,
     move_base: Option<M>,
@@ -81,6 +82,11 @@ where
             full_chain_for_collision_checker.clone(),
         );
 
+        let mut self_collision_checkers = HashMap::new();
+        for (name, client) in &collision_check_clients {
+            self_collision_checkers.insert(name.to_owned(), client.collision_checker.clone());
+        }
+
         for (name, client) in &collision_check_clients {
             all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
         }
@@ -122,6 +128,7 @@ where
             all_joint_trajectory_clients,
             collision_check_clients,
             ik_clients,
+            self_collision_checkers,
             ik_solvers,
             speaker,
             move_base,
@@ -173,18 +180,21 @@ where
             Err(Error::NoJointTrajectoryClient(name.to_owned()))
         }
     }
-    pub fn joint_trajectory_clients(&self) -> &HashMap<String, Arc<dyn JointTrajectoryClient>> {
-        &self.all_joint_trajectory_clients
-    }
-    pub fn ik_solvers(&self) -> &HashMap<String, Arc<IkSolverWithChain>> {
-        &self.ik_solvers
-    }
     fn ik_client(&self, name: &str) -> Result<&ArcIkClient, Error> {
         if self.is_ik_client(name) {
             Ok(&self.ik_clients[name])
         } else {
             Err(Error::NoIkClient(name.to_owned()))
         }
+    }
+    pub fn joint_trajectory_clients(&self) -> &HashMap<String, Arc<dyn JointTrajectoryClient>> {
+        &self.all_joint_trajectory_clients
+    }
+    pub fn self_collision_checkers(&self) -> &HashMap<String, Arc<SelfCollisionChecker>> {
+        &self.self_collision_checkers
+    }
+    pub fn ik_solvers(&self) -> &HashMap<String, Arc<IkSolverWithChain>> {
+        &self.ik_solvers
     }
 
     pub async fn send_joint_positions(
