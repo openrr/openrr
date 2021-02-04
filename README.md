@@ -55,7 +55,7 @@ See [openrr-apps](https://github.com/openrr/openrr/tree/main/openrr-apps) for de
 
 Inspired by [joint_state_publisher_gui](http://wiki.ros.org/joint_state_publisher)
 
-![joint_sender](https://user-images.githubusercontent.com/43724913/106704866-27600680-6630-11eb-91ee-5eb29515fe46.png)
+<img width="400" alt="joint_sender" src="https://user-images.githubusercontent.com/43724913/106704866-27600680-6630-11eb-91ee-5eb29515fe46.png">
 
 You can use this GUI not only for ROS but anything if you implement `arci::JointTrajectoryClient` and write a small binary main function.
 
