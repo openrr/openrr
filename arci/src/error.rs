@@ -20,8 +20,17 @@ pub enum Error {
     },
     #[error("length mismatch (model = {}, input = {})", model, input)]
     LengthMismatch { model: usize, input: usize },
-    #[error("wait timeout target={:?}, cur={:?}", target, current)]
-    TimeoutWithDiff { target: Vec<f64>, current: Vec<f64> },
+    #[error(
+        "wait timeout target={:?}, cur={:?} is_reached=${:?}",
+        target,
+        current,
+        is_reached
+    )]
+    TimeoutWithDiff {
+        target: Vec<f64>,
+        current: Vec<f64>,
+        is_reached: Vec<bool>,
+    },
     #[error("uninitialized : {}", message)]
     Uninitialized { message: String },
     #[error("connection error : {}", message)]

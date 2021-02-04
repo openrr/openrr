@@ -58,6 +58,7 @@ impl CompleteCondition for TotalJointDiffCondition {
         Err(Error::TimeoutWithDiff {
             target: target_positions.to_vec(),
             current: client.current_joint_positions()?,
+            is_reached: vec![false],
         })
     }
 }
@@ -112,6 +113,7 @@ impl CompleteCondition for EachJointDiffCondition {
         Err(Error::TimeoutWithDiff {
             target: target_positions.to_vec(),
             current: client.current_joint_positions()?,
+            is_reached,
         })
     }
 }
