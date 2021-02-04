@@ -96,14 +96,14 @@ where
     T: JointTrajectoryClient,
 {
     pub client: T,
-    pub collision_checker: SelfCollisionChecker,
+    pub collision_checker: Arc<SelfCollisionChecker>,
 }
 
 impl<T> CollisionCheckClient<T>
 where
     T: JointTrajectoryClient,
 {
-    pub fn new(client: T, collision_checker: SelfCollisionChecker) -> Self {
+    pub fn new(client: T, collision_checker: Arc<SelfCollisionChecker>) -> Self {
         Self {
             client,
             collision_checker,
@@ -156,13 +156,13 @@ pub fn create_collision_check_client<P: AsRef<Path>>(
     let joint_names = client.joint_names().to_owned();
     CollisionCheckClient::new(
         client,
-        create_self_collision_checker(
+        Arc::new(create_self_collision_checker(
             urdf_path,
             self_collision_check_pairs,
             joint_names,
             &config,
             full_chain,
-        ),
+        )),
     )
 }
 
