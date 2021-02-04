@@ -26,8 +26,9 @@ time_interpolate_rate = 0.5
 [[openrr_clients_config.ik_clients_configs]]
 name = "arm_ik"
 client_name = "arm_collision_checked"
+solver_name = "arm_ik_solver"
 
-[openrr_clients_config.ik_clients_configs.ik_solver_config]
+[openrr_clients_config.ik_solvers_configs.arm_ik_solver]
 ik_target = "ee_fixed_joint"
 use_random_ik = false
 allowable_position_error_m = 0.005

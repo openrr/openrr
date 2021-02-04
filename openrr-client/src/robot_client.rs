@@ -85,19 +85,25 @@ where
             all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
         }
 
+        let mut ik_solvers = HashMap::new();
+        for (k, c) in &config.ik_solvers_configs {
+            ik_solvers.insert(
+                k.to_owned(),
+                Arc::new(create_ik_solver_with_chain(
+                    &full_chain_for_collision_checker,
+                    c,
+                )),
+            );
+        }
+
         let ik_clients = create_ik_clients(
             &config.ik_clients_configs,
             &all_joint_trajectory_clients,
-            &full_chain_for_collision_checker,
+            &ik_solvers,
         );
 
         for (name, client) in &ik_clients {
             all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
-        }
-
-        let mut ik_solvers = HashMap::new();
-        for (k, i) in &ik_clients {
-            ik_solvers.insert(k.to_owned(), i.ik_solver_with_chain.clone());
         }
 
         let mut joints_poses: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
@@ -373,6 +379,8 @@ pub struct OpenrrClientsConfig {
     pub collision_check_clients_configs: Vec<CollisionCheckClientConfig>,
     pub ik_clients_configs: Vec<IkClientConfig>,
 
+    pub ik_solvers_configs: HashMap<String, IkSolverConfig>,
+
     pub joints_poses: Vec<JointsPose>,
 }
 
@@ -409,13 +417,13 @@ pub struct JointsPose {
 pub struct IkClientConfig {
     pub name: String,
     pub client_name: String,
-    pub ik_solver_config: IkSolverConfig,
+    pub solver_name: String,
 }
 
 pub fn create_ik_clients(
     configs: &[IkClientConfig],
     name_to_joint_trajectory_client: &HashMap<String, ArcJointTrajectoryClient>,
-    full_chain: &k::Chain<f64>,
+    name_to_ik_solvers: &HashMap<String, Arc<IkSolverWithChain>>,
 ) -> HashMap<String, Arc<IkClient<ArcJointTrajectoryClient>>> {
     let mut clients = HashMap::new();
     for config in configs {
@@ -423,10 +431,7 @@ pub fn create_ik_clients(
             config.name.clone(),
             Arc::new(IkClient::new(
                 name_to_joint_trajectory_client[&config.client_name].clone(),
-                Arc::new(create_ik_solver_with_chain(
-                    full_chain,
-                    &config.ik_solver_config,
-                )),
+                name_to_ik_solvers[&config.solver_name].clone(),
             )),
         );
     }

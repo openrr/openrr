@@ -10,7 +10,7 @@ joints_pose_sender_config.mode = "pose"
 joints_pose_sender_config.duration_secs = 2.0
 
 [[control_nodes_config.ik_node_teleop_configs]]
-solver_name = "arm_ik"
+solver_name = "arm_ik_solver"
 joint_trajectory_client_name = "arm"
 
 [control_nodes_config.ik_node_teleop_configs.config]

@@ -26,8 +26,14 @@ time_interpolate_rate = 0.5
 [[openrr_clients_config.ik_clients_configs]]
 name = "arm_ik"
 client_name = "arm_collision_checked"
+solver_name = "arm_ik_solver"
 
-[openrr_clients_config.ik_clients_configs.ik_solver_config]
+[[openrr_clients_config.joints_poses]]
+pose_name = "zero"
+client_name = "arm_collision_checked"
+positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+[openrr_clients_config.ik_solvers_configs.arm_ik_solver]
 ik_target = "l_tool_fixed"
 use_random_ik = false
 allowable_position_error_m = 0.005
@@ -40,8 +46,3 @@ constraints.position_z = true
 constraints.rotation_x = true
 constraints.rotation_y = true
 constraints.rotation_z = true
-
-[[openrr_clients_config.joints_poses]]
-pose_name = "zero"
-client_name = "arm_collision_checked"
-positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
