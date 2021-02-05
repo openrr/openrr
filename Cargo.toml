@@ -31,3 +31,5 @@ members = [
 "openrr-planner" = {path = "openrr-planner"}
 "openrr-sleep" = {path = "openrr-sleep"}
 "openrr-teleop" = {path = "openrr-teleop"}
+# TODO remove
+k = { git = 'https://github.com/openrr/k', branch = 'support_serde_default' }

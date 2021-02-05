@@ -142,8 +142,26 @@ where
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SelfCollisionCheckerConfig {
+    #[serde(default = "default_prediction")]
     pub prediction: f64,
+    #[serde(default = "default_time_interpolate_rate")]
     pub time_interpolate_rate: f64,
+}
+
+fn default_prediction() -> f64 {
+    0.001
+}
+fn default_time_interpolate_rate() -> f64 {
+    0.5
+}
+
+impl Default for SelfCollisionCheckerConfig {
+    fn default() -> Self {
+        Self {
+            prediction: default_prediction(),
+            time_interpolate_rate: default_time_interpolate_rate(),
+        }
+    }
 }
 
 pub fn create_collision_check_client<P: AsRef<Path>>(

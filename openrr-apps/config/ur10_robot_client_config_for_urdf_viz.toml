@@ -1,9 +1,3 @@
-ros_clients_configs = []
-use_move_base_urdf_viz_web_client = true
-use_navigation_urdf_viz_web_client = true
-urdf_viz_clients_total_complete_allowable_error = 0.02
-urdf_viz_clients_complete_timeout_sec = 10.0
-
 [[urdf_viz_clients_configs]]
 name = "arm"
 joint_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
@@ -11,17 +5,12 @@ wrap_with_joint_velocity_limiter = false
 joint_velocity_limits = []
 
 [openrr_clients_config]
-joint_trajectory_clients_container_configs = []
 urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf.xacro"
 self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
 
 [[openrr_clients_config.collision_check_clients_configs]]
 name = "arm_collision_checked"
 client_name = "arm"
-
-[openrr_clients_config.collision_check_clients_configs.self_collision_checker_config]
-prediction = 0.001
-time_interpolate_rate = 0.5
 
 [[openrr_clients_config.ik_clients_configs]]
 name = "arm_ik"
@@ -30,17 +19,6 @@ solver_name = "arm_ik_solver"
 
 [openrr_clients_config.ik_solvers_configs.arm_ik_solver]
 ik_target = "ee_fixed_joint"
-use_random_ik = false
-allowable_position_error_m = 0.005
-allowable_angle_error_rad = 0.005
-jacobian_multiplier = 0.1
-num_max_try = 300
-constraints.position_x = true
-constraints.position_y = true
-constraints.position_z = true
-constraints.rotation_x = true
-constraints.rotation_y = true
-constraints.rotation_z = true
 
 [[openrr_clients_config.joints_poses]]
 pose_name = "zero"

@@ -1,8 +1,5 @@
-urdf_viz_clients_configs = []
 use_move_base_urdf_viz_web_client = false
 use_navigation_urdf_viz_web_client = false
-urdf_viz_clients_total_complete_allowable_error = 0.02
-urdf_viz_clients_complete_timeout_sec = 10.0
 ros_cmd_vel_move_base_client_config.topic = "/base_controller/command"
 
 [[ros_clients_configs]]
@@ -54,17 +51,9 @@ clients_names = ["torso", "r_arm"]
 client_name = "l_arm_with_torso"
 name = "l_arm_with_torso_collision_checked"
 
-[openrr_clients_config.collision_check_clients_configs.self_collision_checker_config]
-prediction = 0.001
-time_interpolate_rate = 0.5
-
 [[openrr_clients_config.collision_check_clients_configs]]
 client_name = "r_arm_with_torso"
 name = "r_arm_with_torso_collision_checked"
-
-[openrr_clients_config.collision_check_clients_configs.self_collision_checker_config]
-prediction = 0.001
-time_interpolate_rate = 0.5
 
 [[openrr_clients_config.ik_clients_configs]]
 name = "l_arm_with_torso_ik"
@@ -78,31 +67,11 @@ solver_name = "r_arm_with_torso_ik_solver"
 
 [openrr_clients_config.ik_solvers_configs.l_arm_with_torso_ik_solver]
 ik_target = "l_gripper_palm_joint"
-use_random_ik = false
 allowable_position_error_m = 0.01
-allowable_angle_error_rad = 0.005
-jacobian_multiplier = 0.1
-num_max_try = 300
-constraints.position_x = true
-constraints.position_y = true
-constraints.position_z = true
-constraints.rotation_x = true
-constraints.rotation_y = true
-constraints.rotation_z = true
 
 [openrr_clients_config.ik_solvers_configs.r_arm_with_torso_ik_solver]
 ik_target = "r_gripper_palm_joint"
-use_random_ik = false
 allowable_position_error_m = 0.01
-allowable_angle_error_rad = 0.005
-jacobian_multiplier = 0.1
-num_max_try = 300
-constraints.position_x = true
-constraints.position_y = true
-constraints.position_z = true
-constraints.rotation_x = true
-constraints.rotation_y = true
-constraints.rotation_z = true
 
 [[openrr_clients_config.joints_poses]]
 pose_name = "ready"
