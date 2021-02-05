@@ -197,6 +197,9 @@ where
         &self.ik_solvers
     }
 
+    pub fn ik_clients(&self) -> &HashMap<String, ArcIkClient> {
+        &self.ik_clients
+    }
     pub async fn send_joint_positions(
         &self,
         name: &str,
@@ -317,6 +320,9 @@ where
             .keys()
             .map(|k| k.to_owned())
             .collect::<Vec<String>>()
+    }
+    pub fn full_chain_for_collision_checker(&self) -> &Arc<Chain<f64>> {
+        &self.full_chain_for_collision_checker
     }
 }
 
