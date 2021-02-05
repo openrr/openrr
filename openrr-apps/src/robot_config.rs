@@ -7,6 +7,7 @@ use arci_ros::{
 };
 use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWebClientConfig};
 
+use log::debug;
 use openrr_client::{OpenrrClientsConfig, PrintSpeaker, RobotClient};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
@@ -14,10 +15,14 @@ use std::{collections::HashMap, sync::Arc};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RobotConfig {
     #[cfg(feature = "ros")]
+    #[cfg_attr(feature = "ros", serde(default))]
     pub ros_clients_configs: Vec<RosControlClientConfig>,
+    #[serde(default)]
     pub urdf_viz_clients_configs: Vec<UrdfVizWebClientConfig>,
 
+    #[serde(default = "default_urdf_viz_clients_total_complete_allowable_error")]
     pub urdf_viz_clients_total_complete_allowable_error: f64,
+    #[serde(default = "default_urdf_viz_clients_complete_timeout_sec")]
     pub urdf_viz_clients_complete_timeout_sec: f64,
 
     #[cfg(feature = "ros")]
@@ -25,13 +30,31 @@ pub struct RobotConfig {
 
     #[cfg(feature = "ros")]
     pub ros_cmd_vel_move_base_client_config: Option<RosCmdVelMoveBaseConfig>,
+    #[serde(default = "default_use_move_base_urdf_viz_web_client")]
     pub use_move_base_urdf_viz_web_client: bool,
 
     #[cfg(feature = "ros")]
     pub ros_navigation_client_config: Option<RosNavClientConfig>,
+    #[serde(default = "default_use_navigation_urdf_viz_web_client")]
     pub use_navigation_urdf_viz_web_client: bool,
 
     pub openrr_clients_config: OpenrrClientsConfig,
+}
+
+fn default_urdf_viz_clients_total_complete_allowable_error() -> f64 {
+    0.02
+}
+
+fn default_urdf_viz_clients_complete_timeout_sec() -> f64 {
+    10.0
+}
+
+fn default_use_move_base_urdf_viz_web_client() -> bool {
+    true
+}
+
+fn default_use_navigation_urdf_viz_web_client() -> bool {
+    true
 }
 
 impl RobotConfig {
@@ -183,6 +206,7 @@ impl RobotConfig {
         )
         .map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
         config.openrr_clients_config.resolve_path(path)?;
+        debug!("{:?}", config);
         Ok(config)
     }
 }

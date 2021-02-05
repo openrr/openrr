@@ -290,12 +290,34 @@ where
 pub struct IkSolverConfig {
     pub root_node_name: Option<String>,
     pub ik_target: String,
+    #[serde(default = "default_use_random_ik")]
     pub use_random_ik: bool,
+    #[serde(default = "default_allowable_position_error_m")]
     pub allowable_position_error_m: f64,
+    #[serde(default = "default_allowable_angle_error_rad")]
     pub allowable_angle_error_rad: f64,
+    #[serde(default = "default_jacobian_multiplier")]
     pub jacobian_multiplier: f64,
+    #[serde(default = "default_num_max_try")]
     pub num_max_try: usize,
+    #[serde(default)]
     pub constraints: Constraints,
+}
+
+fn default_use_random_ik() -> bool {
+    false
+}
+fn default_allowable_position_error_m() -> f64 {
+    0.005
+}
+fn default_allowable_angle_error_rad() -> f64 {
+    0.005
+}
+fn default_jacobian_multiplier() -> f64 {
+    0.1
+}
+fn default_num_max_try() -> usize {
+    300
 }
 
 pub fn create_ik_solver_with_chain(

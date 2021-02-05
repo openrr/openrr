@@ -51,6 +51,7 @@ where
         move_base: Option<M>,
         navigation: Option<N>,
     ) -> Result<Self, Error> {
+        debug!("{:?}", config);
         let urdf_full_path = if let Some(p) = config.urdf_full_path().clone() {
             p
         } else {
@@ -389,14 +390,18 @@ pub struct JointTrajectoryClientsContainerConfig {
 pub struct OpenrrClientsConfig {
     pub urdf_path: String,
     urdf_full_path: Option<PathBuf>,
+    #[serde(default)]
     pub self_collision_check_pairs: Vec<String>,
 
+    #[serde(default)]
     pub joint_trajectory_clients_container_configs: Vec<JointTrajectoryClientsContainerConfig>,
+    #[serde(default)]
     pub collision_check_clients_configs: Vec<CollisionCheckClientConfig>,
+    #[serde(default)]
     pub ik_clients_configs: Vec<IkClientConfig>,
-
     pub ik_solvers_configs: HashMap<String, IkSolverConfig>,
 
+    #[serde(default)]
     pub joints_poses: Vec<JointsPose>,
 }
 
@@ -458,6 +463,7 @@ pub fn create_ik_clients(
 pub struct CollisionCheckClientConfig {
     pub name: String,
     pub client_name: String,
+    #[serde(default)]
     pub self_collision_checker_config: SelfCollisionCheckerConfig,
 }
 
