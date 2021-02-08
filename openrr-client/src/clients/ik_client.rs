@@ -290,7 +290,7 @@ where
 pub struct IkSolverConfig {
     pub root_node_name: Option<String>,
     pub ik_target: String,
-    #[serde(default = "default_use_random_ik")]
+    #[serde(default)]
     pub use_random_ik: bool,
     #[serde(default = "default_allowable_position_error_m")]
     pub allowable_position_error_m: f64,
@@ -304,9 +304,6 @@ pub struct IkSolverConfig {
     pub constraints: Constraints,
 }
 
-fn default_use_random_ik() -> bool {
-    false
-}
 fn default_allowable_position_error_m() -> f64 {
     0.005
 }
