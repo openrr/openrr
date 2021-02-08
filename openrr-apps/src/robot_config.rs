@@ -30,12 +30,12 @@ pub struct RobotConfig {
 
     #[cfg(feature = "ros")]
     pub ros_cmd_vel_move_base_client_config: Option<RosCmdVelMoveBaseConfig>,
-    #[serde(default = "default_use_move_base_urdf_viz_web_client")]
+    #[serde(default = "default_true")]
     pub use_move_base_urdf_viz_web_client: bool,
 
     #[cfg(feature = "ros")]
     pub ros_navigation_client_config: Option<RosNavClientConfig>,
-    #[serde(default = "default_use_navigation_urdf_viz_web_client")]
+    #[serde(default = "default_true")]
     pub use_navigation_urdf_viz_web_client: bool,
 
     pub openrr_clients_config: OpenrrClientsConfig,
@@ -49,11 +49,7 @@ fn default_urdf_viz_clients_complete_timeout_sec() -> f64 {
     10.0
 }
 
-fn default_use_move_base_urdf_viz_web_client() -> bool {
-    true
-}
-
-fn default_use_navigation_urdf_viz_web_client() -> bool {
+fn default_true() -> bool {
     true
 }
 
