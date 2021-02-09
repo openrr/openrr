@@ -6,7 +6,7 @@ edition = "2018"
 license = "Apache-2.0"
 
 [dependencies]
-arci = {version = "0.0.1", path = "../arci"}
+arci = "0.0.1"
 crossbeam-channel = "0.5.0"
 gilrs = { version = "0.8", features = ["serde-serialize"] }
 log = "0.4"

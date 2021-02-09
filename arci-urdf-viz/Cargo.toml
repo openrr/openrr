@@ -7,12 +7,12 @@ license = "Apache-2.0"
 
 [dependencies]
 anyhow = "1.0"
-arci = { version = "0.0.1", path = "../arci" }
+arci = "0.0.1"
 async-trait = "0.1"
 log = "0.4"
 nalgebra = "0.24"
 openrr-planner = { version = "0.0.1", default-features = false }
-openrr-sleep = { version = "0.0.1", path = "../openrr-sleep" }
+openrr-sleep = "0.0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 ureq = { version = "2", features = ["json"] }
