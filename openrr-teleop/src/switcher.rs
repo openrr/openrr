@@ -66,6 +66,8 @@ where
         let is_running = self.is_running.clone();
         self.is_running.store(true, Ordering::Relaxed);
         self.speak_current_mode().await;
+        let gamepad = Arc::new(gamepad);
+        let gamepad_cloned = gamepad.clone();
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(Duration::from_millis(50));
             while is_running.load(Ordering::Relaxed) {
@@ -75,6 +77,7 @@ where
                     .await;
                 interval.tick().await;
             }
+            gamepad_cloned.stop();
         });
         while self.is_running() {
             let ev = gamepad.next_event().await;

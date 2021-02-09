@@ -2,7 +2,11 @@ use arci_gamepad_gilrs::{GilGamepad, GilGamepadConfig};
 use openrr_apps::{Error, RobotConfig};
 use openrr_client::{resolve_relative_path, ArcRobotClient};
 use openrr_teleop::{ControlNodeSwitcher, ControlNodesConfig};
+#[cfg(feature = "ros")]
+use rosrust;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "ros")]
+use std::thread;
 use std::{path::PathBuf, sync::Arc};
 use structopt::StructOpt;
 
@@ -49,7 +53,9 @@ async fn main() -> Result<(), Error> {
     let robot_config =
         RobotConfig::try_new(teleop_config.robot_config_full_path().as_ref().unwrap())?;
     #[cfg(feature = "ros")]
-    if robot_config.has_ros_clients() {
+    let use_ros = robot_config.has_ros_clients();
+    #[cfg(feature = "ros")]
+    if use_ros {
         arci_ros::init("openrr_apps_robot_teleop");
     }
     let client: Arc<ArcRobotClient> = Arc::new(robot_config.create_robot_client()?);
@@ -65,7 +71,18 @@ async fn main() -> Result<(), Error> {
         panic!("No valid nodes");
     }
 
-    let switcher = ControlNodeSwitcher::new(nodes, client.clone());
+    let switcher = Arc::new(ControlNodeSwitcher::new(nodes, client.clone()));
+    #[cfg(feature = "ros")]
+    if use_ros {
+        let switcher_cloned = switcher.clone();
+        thread::spawn(move || {
+            let rate = rosrust::rate(1.0);
+            while rosrust::is_ok() {
+                rate.sleep();
+            }
+            switcher_cloned.stop();
+        });
+    }
     switcher
         .main(GilGamepad::new_from_config(
             teleop_config.gil_gamepad_config,
