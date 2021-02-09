@@ -6,10 +6,10 @@ edition = "2018"
 license = "Apache-2.0"
 
 [dependencies]
-arci = { version = "0.0.1", path = "../arci" }
+arci = "0.0.1"
 async-recursion = "0.3"
 k = "0.22"
 log = "0.4"
-openrr-client = { version = "0.0.1", path = "../openrr-client" }
+openrr-client = "0.0.1"
 structopt = "0.3.21"
 thiserror = "1.0"

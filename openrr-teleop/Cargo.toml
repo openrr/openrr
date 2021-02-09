@@ -8,11 +8,11 @@ license = "Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-arci = {version="0.0.1", path="../arci"}
+arci = "0.0.1"
 async-trait = "0.1"
 auto_impl = "0.4.1"
 k = "0.22"
 log = "0.4"
-openrr-client = { version = "0.0.1", path = "../openrr-client"}
+openrr-client = "0.0.1"
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }

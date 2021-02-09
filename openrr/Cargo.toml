@@ -14,9 +14,9 @@ assimp = ["openrr-planner/assimp"]
 ros = ["openrr-apps/ros"]
 
 [dependencies]
-openrr-apps = { path = "../openrr-apps", version = "0.0.1" }
-openrr-client = { path = "../openrr-client", version = "0.0.1" }
-openrr-command = { path = "../openrr-command", version = "0.0.1" }
-openrr-planner = { path = "../openrr-planner", version = "0.0.1" }
-openrr-sleep = { path = "../openrr-sleep", version = "0.0.1" }
-openrr-teleop = { path = "../openrr-teleop", version = "0.0.1" }
+openrr-apps = "0.0.1"
+openrr-client = "0.0.1"
+openrr-command = "0.0.1"
+openrr-planner = "0.0.1"
+openrr-sleep = "0.0.1"
+openrr-teleop = "0.0.1"
