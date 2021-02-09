@@ -1,38 +1,13 @@
-use arci_gamepad_gilrs::{GilGamepad, GilGamepadConfig};
-use openrr_apps::{Error, RobotConfig};
-use openrr_client::{resolve_relative_path, ArcRobotClient};
-use openrr_teleop::{ControlNodeSwitcher, ControlNodesConfig};
+use arci_gamepad_gilrs::GilGamepad;
+use openrr_apps::{Error, RobotConfig, RobotTeleopConfig};
+use openrr_client::ArcRobotClient;
+use openrr_teleop::ControlNodeSwitcher;
 #[cfg(feature = "ros")]
 use rosrust;
-use serde::{Deserialize, Serialize};
 #[cfg(feature = "ros")]
 use std::thread;
 use std::{path::PathBuf, sync::Arc};
 use structopt::StructOpt;
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-struct RobotTeleopConfig {
-    pub robot_config_path: String,
-    robot_config_full_path: Option<PathBuf>,
-    pub control_nodes_config: ControlNodesConfig,
-    pub gil_gamepad_config: GilGamepadConfig,
-}
-
-impl RobotTeleopConfig {
-    pub fn try_new<P: AsRef<std::path::Path>>(path: P) -> Result<Self, Error> {
-        let mut config: RobotTeleopConfig = toml::from_str(
-            &std::fs::read_to_string(&path)
-                .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,
-        )
-        .map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
-        config.robot_config_full_path = resolve_relative_path(path, &config.robot_config_path)?;
-        Ok(config)
-    }
-
-    pub fn robot_config_full_path(&self) -> &Option<PathBuf> {
-        &self.robot_config_full_path
-    }
-}
 
 #[derive(StructOpt, Debug)]
 #[structopt(
