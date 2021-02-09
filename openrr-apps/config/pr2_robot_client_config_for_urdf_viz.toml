@@ -1,20 +1,14 @@
 [[urdf_viz_clients_configs]]
 name = "l_arm"
 joint_names = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]
-wrap_with_joint_velocity_limiter = false
-joint_velocity_limits = []
 
 [[urdf_viz_clients_configs]]
 name = "r_arm"
 joint_names = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
-wrap_with_joint_velocity_limiter = false
-joint_velocity_limits = []
 
 [[urdf_viz_clients_configs]]
 name = "torso"
 joint_names = ["torso_lift_joint"]
-wrap_with_joint_velocity_limiter = false
-joint_velocity_limits = []
 
 [openrr_clients_config]
 urdf_path = "/opt/ros/melodic/share/robot_state_publisher/test/pr2.urdf"

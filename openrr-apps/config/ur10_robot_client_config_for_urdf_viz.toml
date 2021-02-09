@@ -1,8 +1,6 @@
 [[urdf_viz_clients_configs]]
 name = "arm"
 joint_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
-wrap_with_joint_velocity_limiter = false
-joint_velocity_limits = []
 
 [openrr_clients_config]
 urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf.xacro"
