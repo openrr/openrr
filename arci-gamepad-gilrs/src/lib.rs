@@ -5,7 +5,14 @@ use log::info;
 use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use std::{collections::HashMap, time::Duration};
+use std::{
+    collections::HashMap,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    time::Duration,
+};
 
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -189,11 +196,14 @@ mod test {
 pub struct GilGamepad {
     rx: crossbeam_channel::Receiver<GamepadEvent>,
     _handle: std::thread::JoinHandle<()>,
+    is_running: Arc<AtomicBool>,
 }
 
 impl GilGamepad {
     pub fn new(id: usize, map: Map) -> Self {
         let (tx, rx) = crossbeam_channel::unbounded();
+        let is_running = Arc::new(AtomicBool::new(true));
+        let is_running_cloned = is_running.clone();
         let _handle = std::thread::spawn(move || {
             let mut gil = gilrs::Gilrs::new().unwrap();
             // TODO: On MacOS `gamepads()` does not works.
@@ -210,7 +220,7 @@ impl GilGamepad {
                     panic!("No Gamepad id={} is found", id);
                 }
             }
-            loop {
+            while is_running_cloned.load(Ordering::Relaxed) {
                 // gil.next_event is no block. We have to polling it.
                 match gil.next_event() {
                     Some(gilrs::Event {
@@ -229,7 +239,11 @@ impl GilGamepad {
             }
         });
 
-        Self { rx, _handle }
+        Self {
+            rx,
+            _handle,
+            is_running,
+        }
     }
     pub fn new_from_config(config: GilGamepadConfig) -> Self {
         Self::new(config.device_id, config.map)
@@ -246,6 +260,9 @@ impl Gamepad for GilGamepad {
                 GamepadEvent::Unknown
             }
         }
+    }
+    fn stop(&self) {
+        self.is_running.store(false, Ordering::Relaxed);
     }
 }
 

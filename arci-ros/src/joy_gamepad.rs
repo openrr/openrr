@@ -89,4 +89,5 @@ impl Gamepad for JoyGamepad {
             GamepadEvent::Unknown
         }
     }
+    fn stop(&self) {}
 }
