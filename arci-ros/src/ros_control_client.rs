@@ -18,14 +18,22 @@ use msg::trajectory_msgs::JointTrajectoryPoint;
 pub struct RosControlClientConfig {
     pub name: String,
     pub joint_names: Vec<String>,
+    #[serde(default)]
     pub wrap_with_joint_velocity_limiter: bool,
+    #[serde(default)]
     pub joint_velocity_limits: Vec<f64>,
 
     pub controller_name: String,
     pub state_topic_name: Option<String>,
+    #[serde(default)]
     pub send_partial_joints_goal: bool,
     pub complete_allowable_errors: Vec<f64>,
+    #[serde(default = "default_complete_timeout_sec")]
     pub complete_timeout_sec: f64,
+}
+
+fn default_complete_timeout_sec() -> f64 {
+    10.0
 }
 
 type StateSubscriber = SubscriberHandler<JointTrajectoryControllerState>;

@@ -23,7 +23,9 @@ use url::Url;
 pub struct UrdfVizWebClientConfig {
     pub name: String,
     pub joint_names: Vec<String>,
+    #[serde(default)]
     pub wrap_with_joint_velocity_limiter: bool,
+    #[serde(default)]
     pub joint_velocity_limits: Vec<f64>,
 }
 
