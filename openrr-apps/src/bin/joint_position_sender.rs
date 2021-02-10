@@ -17,6 +17,10 @@ fn main() -> anyhow::Result<()> {
     let opt = Opt::from_args();
     debug!("opt: {:?}", opt);
     let config = RobotConfig::try_new(&opt.config_path)?;
+    #[cfg(feature = "ros")]
+    if config.has_ros_clients() {
+        arci_ros::init("openrr_apps_joint_position_sender");
+    }
     let client: BoxRobotClient = config.create_robot_client()?;
     joint_position_sender(
         client,
