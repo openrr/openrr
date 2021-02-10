@@ -2,13 +2,13 @@
 name = "openrr-planner"
 version = "0.0.1"
 authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
-description = "Collision avoidance path planning for robotics"
-license = "Apache-2.0"
-keywords = ["pathplanning", "robotics"]
-categories = ["algorithms"]
-repository = "https://github.com/OpenRR/openrr"
-readme = "README.md"
 edition="2018"
+license = "Apache-2.0"
+description = "Collision avoidance path planning for robotics"
+keywords = ["pathplanning", "robotics", "robot"]
+categories = ["algorithms", "science::robotics"]
+repository = "https://github.com/openrr/openrr"
+readme = "README.md"
 
 [features]
 default = [ "assimp" ]
