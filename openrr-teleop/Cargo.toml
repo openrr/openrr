@@ -4,8 +4,10 @@ version = "0.0.1"
 authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "openrr teleoperation library"
+keywords = ["robotics", "robot"]
+categories = ["algorithms", "science::robotics"]
+repository = "https://github.com/openrr/openrr"
 
 [dependencies]
 arci = "0.0.1"

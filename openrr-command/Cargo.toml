@@ -4,6 +4,10 @@ version = "0.0.1"
 authors = ["Mitsuharu Kojima <kojima@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
+description = "openrr command line tool library"
+keywords = ["robotics", "robot"]
+categories = ["science::robotics"]
+repository = "https://github.com/openrr/openrr"
 
 [dependencies]
 arci = "0.0.1"

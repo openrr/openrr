@@ -4,6 +4,10 @@ version = "0.0.1"
 authors = ["Takashi Ogura <t.ogura@gmail.com>"]
 edition = "2018"
 license = "Apache-2.0"
+description = "arci implementation using ROS1"
+keywords = ["robotics", "robot"]
+categories = ["science::robotics"]
+repository = "https://github.com/openrr/openrr"
 
 [dependencies]
 anyhow = "1.0"

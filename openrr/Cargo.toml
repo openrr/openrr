@@ -4,9 +4,11 @@ version = "0.0.1"
 authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
-repository = "https://github.com/OpenRR/openrr"
 homepage = "https://openrr.github.io"
-
+description = "Open Rust Robotics framework"
+keywords = ["robotics", "robot"]
+categories = ["science::robotics"]
+repository = "https://github.com/openrr/openrr"
 
 [features]
 default = ["assimp"]
