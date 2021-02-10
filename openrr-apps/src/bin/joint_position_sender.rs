@@ -10,8 +10,6 @@ use structopt::StructOpt;
 struct Opt {
     /// Path to the setting file.
     config_path: String,
-    /// Path to the URDF file.
-    urdf_path: String,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -20,7 +18,13 @@ fn main() -> anyhow::Result<()> {
     debug!("opt: {:?}", opt);
     let config = RobotConfig::try_new(&opt.config_path)?;
     let client: BoxRobotClient = config.create_robot_client()?;
-
-    joint_position_sender(client, opt.urdf_path)?;
+    joint_position_sender(
+        client,
+        config
+            .openrr_clients_config
+            .urdf_full_path()
+            .as_ref()
+            .unwrap(),
+    )?;
     Ok(())
 }
