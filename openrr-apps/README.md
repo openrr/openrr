@@ -250,8 +250,7 @@ urdf-viz ./openrr-planner/sample.urdf
 
 ```bash
 ./target/release/openrr_apps_joint_position_sender \
-  ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml \
-  ./openrr-planner/sample.urdf
+  ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
 ```
 
 ### Troubleshooting
