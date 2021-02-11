@@ -11,7 +11,7 @@ use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 #[structopt(
-    name = "openrr_apps_robot_teleop",
+    name = env!("CARGO_BIN_NAME"),
     about = "An openrr teleoperation tool."
 )]
 pub struct RobotTeleopArgs {
@@ -31,7 +31,7 @@ async fn main() -> Result<(), Error> {
     let use_ros = robot_config.has_ros_clients();
     #[cfg(feature = "ros")]
     if use_ros {
-        arci_ros::init("openrr_apps_robot_teleop");
+        arci_ros::init(env!("CARGO_BIN_NAME"));
     }
     let client: Arc<ArcRobotClient> = Arc::new(robot_config.create_robot_client()?);
 

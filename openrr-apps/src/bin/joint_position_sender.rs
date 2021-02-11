@@ -19,7 +19,7 @@ fn main() -> anyhow::Result<()> {
     let config = RobotConfig::try_new(&opt.config_path)?;
     #[cfg(feature = "ros")]
     if config.has_ros_clients() {
-        arci_ros::init("openrr_apps_joint_position_sender");
+        arci_ros::init(env!("CARGO_BIN_NAME"));
     }
     let client: BoxRobotClient = config.create_robot_client()?;
     joint_position_sender(

@@ -9,7 +9,7 @@ use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 #[structopt(
-    name = "openrr_apps_robot_command",
+    name = env!("CARGO_BIN_NAME"),
     about = "An openrr command line tool."
 )]
 struct RobotCommandArgs {
@@ -29,7 +29,7 @@ async fn main() -> Result<(), Error> {
         #[cfg(feature = "ros")]
         if robot_config.has_ros_clients() {
             let suffix: u64 = rand::thread_rng().gen();
-            arci_ros::init(&format!("openrr_apps_robot_command_{}", suffix));
+            arci_ros::init(&format!("{}_{}", env!("CARGO_BIN_NAME"), suffix));
         }
         let client = robot_config.create_robot_client()?;
         let executor = RobotCommandExecutor {};
