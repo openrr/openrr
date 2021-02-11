@@ -104,10 +104,10 @@ fn test_ik_solver_with_chain_set_joint_positions_clamped() {
     let constraints = k::Constraints::default();
     let ik_solver_with_chain = IkSolverWithChain::new(arm, Arc::new(ik_solver), constraints);
 
-    let positions = vec![3.0, 3.0, 3.0, 3.0, 3.0, 3.0];
+    let positions = vec![4.0, 3.0, 3.0, 3.0, 9.0, 3.0];
     ik_solver_with_chain.set_joint_positions_clamped(&positions);
     let jp = ik_solver_with_chain.joint_positions();
-    assert_eq!(jp, vec![1.5, 1.5, 2.0, 1.5, 1.5, 2.0]);
+    assert_eq!(jp, vec![3.0, 1.5, 2.0, 1.5, 3.0, 2.0]);
 }
 
 #[test]
