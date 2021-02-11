@@ -408,6 +408,7 @@ mod tests {
         assert_eq!(
             names,
             vec![
+                "root",
                 "l_shoulder_roll",
                 "l_elbow_pitch",
                 "l_wrist_yaw",
