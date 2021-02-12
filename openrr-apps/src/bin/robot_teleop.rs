@@ -3,7 +3,7 @@ use openrr_apps::{Error, RobotConfig, RobotTeleopConfig};
 use openrr_client::ArcRobotClient;
 use openrr_teleop::ControlNodeSwitcher;
 #[cfg(feature = "ros")]
-use rosrust;
+use rosrust::{is_ok, rate};
 #[cfg(feature = "ros")]
 use std::thread;
 use std::{path::PathBuf, sync::Arc};
@@ -51,8 +51,8 @@ async fn main() -> Result<(), Error> {
     if use_ros {
         let switcher_cloned = switcher.clone();
         thread::spawn(move || {
-            let rate = rosrust::rate(1.0);
-            while rosrust::is_ok() {
+            let rate = rate(1.0);
+            while is_ok() {
                 rate.sleep();
             }
             switcher_cloned.stop();
