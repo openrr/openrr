@@ -51,12 +51,12 @@ impl LocalMove {
             && pose_error.rotation.angle().abs() < self.config.reach_angle_threshold
     }
 
-    pub fn send_zero_vel(&self) -> Result<(), arci::Error> {
+    pub fn send_zero_velocity(&self) -> Result<(), arci::Error> {
         self.vel_client
             .send_velocity(&BaseVelocity::new(0.0, 0.0, 0.0))
     }
 
-    pub fn send_control_vel_from_pose_error(
+    pub fn send_control_velocity_from_pose_error(
         &self,
         pose_error: Isometry2<f64>,
     ) -> Result<(), arci::Error> {
@@ -127,7 +127,7 @@ mod tests {
 
         // Set control velocity
         local_move
-            .send_control_vel_from_pose_error(Isometry2::new(Vector2::new(1.0, -1.0), 1.0))
+            .send_control_velocity_from_pose_error(Isometry2::new(Vector2::new(1.0, -1.0), 1.0))
             .unwrap();
         let vel0 = local_move.vel_client.current_velocity().unwrap();
         assert_eq!(vel0.x, 1.0); // linear_gain = 1.0
@@ -135,7 +135,7 @@ mod tests {
         assert_eq!(vel0.theta, 1.0); // angular_gain = 1.0
 
         local_move
-            .send_control_vel_from_pose_error(Isometry2::new(Vector2::new(2.0, -2.0), 2.0))
+            .send_control_velocity_from_pose_error(Isometry2::new(Vector2::new(2.0, -2.0), 2.0))
             .unwrap(); // saturated case
         let vel1 = local_move.vel_client.current_velocity().unwrap();
         assert_eq!(vel1.x, 1.0); // max_linear_vel = 1.0
@@ -143,7 +143,7 @@ mod tests {
         assert_eq!(vel1.theta, 1.0); // max_angular_vel = 1.0
 
         // Set zero velocity
-        local_move.send_zero_vel().unwrap();
+        local_move.send_zero_velocity().unwrap();
         let vel2 = local_move.vel_client.current_velocity().unwrap();
         assert_eq!(vel2.x, 0.0);
         assert_eq!(vel2.y, 0.0);
