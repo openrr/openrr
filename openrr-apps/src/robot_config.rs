@@ -72,29 +72,29 @@ impl RobotConfig {
             self.openrr_clients_config.clone(),
             self.create_raw_joint_trajectory_clients()?,
             self.create_speaker().into(),
-            self.create_move_base()?.map(|m| m.into()),
-            self.create_navigation()?.map(|n| n.into()),
+            self.create_move_base().map(|m| m.into()),
+            self.create_navigation().map(|n| n.into()),
         )?)
     }
-    fn create_navigation_without_ros(&self) -> Result<Option<Box<dyn Navigation>>, Error> {
-        Ok(if self.use_navigation_urdf_viz_web_client {
+    fn create_navigation_without_ros(&self) -> Option<Box<dyn Navigation>> {
+        if self.use_navigation_urdf_viz_web_client {
             let urdf_viz_client = Box::new(UrdfVizWebClient::default());
             Some(urdf_viz_client as Box<dyn Navigation>)
         } else {
             None
-        })
+        }
     }
     #[cfg(feature = "ros")]
-    fn create_navigation_with_ros(&self) -> Result<Option<Box<dyn Navigation>>, Error> {
+    fn create_navigation_with_ros(&self) -> Option<Box<dyn Navigation>> {
         if let Some(ros_navigation_client_config) = &self.ros_navigation_client_config {
-            Ok(Some(Box::new(RosNavClient::new_from_config(
+            Some(Box::new(RosNavClient::new_from_config(
                 ros_navigation_client_config.clone(),
-            )) as Box<dyn Navigation>))
+            )) as Box<dyn Navigation>)
         } else {
             self.create_navigation_without_ros()
         }
     }
-    fn create_navigation(&self) -> Result<Option<Box<dyn Navigation>>, Error> {
+    fn create_navigation(&self) -> Option<Box<dyn Navigation>> {
         #[cfg(not(feature = "ros"))]
         {
             self.create_navigation_without_ros()
@@ -104,27 +104,27 @@ impl RobotConfig {
             self.create_navigation_with_ros()
         }
     }
-    fn create_move_base_without_ros(&self) -> Result<Option<Box<dyn MoveBase>>, Error> {
-        Ok(if self.use_move_base_urdf_viz_web_client {
+    fn create_move_base_without_ros(&self) -> Option<Box<dyn MoveBase>> {
+        if self.use_move_base_urdf_viz_web_client {
             let urdf_viz_client = Box::new(UrdfVizWebClient::default());
             urdf_viz_client.run_thread();
             Some(urdf_viz_client as Box<dyn MoveBase>)
         } else {
             None
-        })
+        }
     }
     #[cfg(feature = "ros")]
-    fn create_move_base_with_ros(&self) -> Result<Option<Box<dyn MoveBase>>, Error> {
+    fn create_move_base_with_ros(&self) -> Option<Box<dyn MoveBase>> {
         if let Some(ros_cmd_vel_move_base_client_config) = &self.ros_cmd_vel_move_base_client_config
         {
-            Ok(Some(Box::new(RosCmdVelMoveBase::new(
+            Some(Box::new(RosCmdVelMoveBase::new(
                 &ros_cmd_vel_move_base_client_config.topic,
-            )) as Box<dyn MoveBase>))
+            )) as Box<dyn MoveBase>)
         } else {
             self.create_move_base_without_ros()
         }
     }
-    fn create_move_base(&self) -> Result<Option<Box<dyn MoveBase>>, Error> {
+    fn create_move_base(&self) -> Option<Box<dyn MoveBase>> {
         #[cfg(not(feature = "ros"))]
         {
             self.create_move_base_without_ros()

@@ -344,10 +344,13 @@ where
             file.as_ref().parent(),
             default_margin,
         );
-        get_joint_path_planner_builder_from_urdf(robot, collision_checker)
+        Ok(get_joint_path_planner_builder_from_urdf(
+            robot,
+            collision_checker,
+        ))
     }
     /// Try to create `JointPathPlannerBuilder` instance from `urdf_rs::Robot` instance
-    pub fn from_urdf_robot<P>(robot: urdf_rs::Robot) -> Result<JointPathPlannerBuilder<N>> {
+    pub fn from_urdf_robot<P>(robot: urdf_rs::Robot) -> JointPathPlannerBuilder<N> {
         let default_margin = na::convert(0.0);
         let collision_checker = CollisionChecker::from_urdf_robot(&robot, default_margin);
         get_joint_path_planner_builder_from_urdf(robot, collision_checker)
@@ -357,11 +360,11 @@ where
 fn get_joint_path_planner_builder_from_urdf<N>(
     urdf_robot: urdf_rs::Robot,
     collision_checker: CollisionChecker<N>,
-) -> Result<JointPathPlannerBuilder<N>>
+) -> JointPathPlannerBuilder<N>
 where
     N: RealField + k::SubsetOf<f64> + num_traits::Float,
 {
-    Ok(JointPathPlannerBuilder::new(urdf_robot, collision_checker))
+    JointPathPlannerBuilder::new(urdf_robot, collision_checker)
 }
 
 #[cfg(test)]

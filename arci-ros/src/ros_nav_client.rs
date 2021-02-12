@@ -154,7 +154,7 @@ impl RosNavClient {
         Ok(())
     }
 
-    fn wait_until_reach(&self, goal_id: &str, timeout: std::time::Duration) -> Result<(), Error> {
+    fn wait_until_reach(&self, goal_id: &str, timeout: std::time::Duration) {
         match self.action_client.wait_for_result(goal_id, timeout) {
             Ok(_) => {
                 rosrust::ros_info!("Action succeeds");
@@ -174,7 +174,6 @@ impl RosNavClient {
                 };
             }
         };
-        Ok(())
     }
 }
 
@@ -199,7 +198,8 @@ impl Navigation for RosNavClient {
             .action_client
             .send_goal(msg::move_base_msgs::MoveBaseGoal { target_pose })
             .map_err(|e| anyhow::anyhow!("Failed to send_goal_and_wait : {}", e.to_string()))?;
-        Ok(self.wait_until_reach(&goal_id, timeout)?)
+        self.wait_until_reach(&goal_id, timeout);
+        Ok(())
     }
 
     fn cancel(&self) -> Result<(), Error> {
