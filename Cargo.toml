@@ -5,6 +5,7 @@ members = [
     "arci-gamepad-gilrs",
     "arci-ros",
     "arci-speak-cmd",
+    "arci-speak-audio",
     "arci-urdf-viz",
     "openrr",
     "openrr-apps",
@@ -19,6 +20,7 @@ members = [
 [patch.crates-io]
 
 "arci-speak-cmd" = {path = "arci-speak-cmd"}
+"arci-speak-audio" = {path = "arci-speak-audio"}
 "arci" = {path = "arci"}
 "arci-gamepad-gilrs" = {path = "arci-gamepad-gilrs"}
 "arci-ros" = {path = "arci-ros"}

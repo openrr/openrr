@@ -1,0 +1,20 @@
+[package]
+name = "arci-speak-audio"
+version = "0.1.0"
+authors = ["shinjo"]
+edition = "2018"
+license = "Apache-2.0"
+description = "arci::Speaker implementation for playing audio files"
+keywords = ["robotics", "robot"]
+categories = ["science::robotics"]
+repository = "https://github.com/openrr/openrr"
+
+[dependencies]
+arci = "0.0.1"
+log = "0.4"
+thiserror = "1.0"
+rodio = "0.13.0"
+
+[dev-dependencies]
+env_logger = "0.8"
+structopt = "0.3"
