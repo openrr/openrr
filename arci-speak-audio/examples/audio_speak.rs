@@ -1,7 +1,7 @@
 use arci::Speaker;
 use arci_speak_audio::AudioSpeaker;
-use structopt::StructOpt;
 use std::collections::HashMap;
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 struct Args {
