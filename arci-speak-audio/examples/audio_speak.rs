@@ -14,5 +14,5 @@ fn main() {
     let mut hash_map = HashMap::new();
     hash_map.insert("test".to_string(), args.file_path);
     let speaker = AudioSpeaker::new(hash_map);
-    speaker.speak("test")
+    speaker.speak("test");
 }

@@ -1,6 +1,6 @@
 use arci::Speaker;
 use log::error;
-use rodio::Source;
+use rodio;
 use std::{collections::HashMap, fs::File, io};
 
 use thiserror::Error;
@@ -52,9 +52,11 @@ impl Speaker for AudioSpeaker {
 
 fn play_audio_file(path: &str) -> Result<(), Error> {
     let (_stream, stream_handle) = rodio::OutputStream::try_default()?;
+    let sink = rodio::Sink::try_new(&stream_handle)?;
     let file = File::open(path)?;
     let source = rodio::Decoder::new(io::BufReader::new(file))?;
-    stream_handle.play_raw(source.convert_samples())?;
+    sink.append(source);
+    sink.sleep_until_end();
 
     Ok(())
 }
