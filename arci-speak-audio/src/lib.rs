@@ -1,6 +1,5 @@
 use arci::Speaker;
 use log::error;
-use rodio;
 use std::{collections::HashMap, fs::File, io};
 
 use thiserror::Error;
