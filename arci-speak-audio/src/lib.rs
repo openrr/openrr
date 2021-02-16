@@ -1,7 +1,7 @@
 use arci::Speaker;
 use log::error;
-use std::{io, collections::HashMap, fs::File};
 use rodio::Source;
+use std::{collections::HashMap, fs::File, io};
 
 use thiserror::Error;
 
@@ -17,17 +17,19 @@ pub enum Error {
     #[error("rodio: {:?}", .0)]
     Play(#[from] rodio::PlayError),
     #[error("not found: {:?}", .0)]
-    HashNotFound(String)
+    HashNotFound(String),
 }
 
 pub struct AudioSpeaker {
-    message_to_file_path: HashMap<String, String>
+    message_to_file_path: HashMap<String, String>,
 }
 
 impl AudioSpeaker {
     /// Creates a new `AudioSpeaker`.
     pub fn new(hashmap: HashMap<String, String>) -> Self {
-        Self {message_to_file_path: hashmap}
+        Self {
+            message_to_file_path: hashmap,
+        }
     }
 
     /// Similar to `Speaker::speak`, but returns an error when the command failed.
