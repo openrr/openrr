@@ -7,10 +7,15 @@ use arci_ros::{
 };
 use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWebClientConfig};
 
+use arci_speak_audio::AudioSpeaker;
 use log::debug;
 use openrr_client::{OpenrrClientsConfig, PrintSpeaker, RobotClient};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RobotConfig {
@@ -27,6 +32,8 @@ pub struct RobotConfig {
 
     #[cfg(feature = "ros")]
     pub ros_espeak_client_config: Option<RosEspeakClientConfig>,
+
+    pub audio_speaker_config: Option<HashMap<String, PathBuf>>,
 
     #[cfg(feature = "ros")]
     pub ros_cmd_vel_move_base_client_config: Option<RosCmdVelMoveBaseConfig>,
@@ -134,25 +141,34 @@ impl RobotConfig {
             self.create_move_base_with_ros()
         }
     }
-    fn create_speaker_without_ros(&self) -> Box<dyn Speaker> {
+    fn create_speaker_print_speaker(&self) -> Box<dyn Speaker> {
         Box::new(PrintSpeaker::new())
     }
+    fn create_speaker_audio_speaker(&self, hash_map: HashMap<String, PathBuf>) -> Box<dyn Speaker> {
+        Box::new(AudioSpeaker::new(hash_map))
+    }
     #[cfg(feature = "ros")]
-    fn create_speaker_with_ros(&self) -> Box<dyn Speaker> {
-        if let Some(c) = &self.ros_espeak_client_config {
-            Box::new(RosEspeakClient::new(&c.topic))
-        } else {
-            self.create_speaker_without_ros()
-        }
+    fn create_speaker_ros_espeak_client(&self, topic: &str) -> Box<dyn Speaker> {
+        Box::new(RosEspeakClient::new(topic))
     }
     fn create_speaker(&self) -> Box<dyn Speaker> {
         #[cfg(not(feature = "ros"))]
         {
-            self.create_speaker_without_ros()
+            if let Some(hash_map) = &self.audio_speaker_config {
+                self.create_speaker_audio_speaker(hash_map.clone())
+            } else {
+                self.create_speaker_print_speaker()
+            }
         }
         #[cfg(feature = "ros")]
         {
-            self.create_speaker_with_ros()
+            if let Some(c) = &self.ros_espeak_client_config {
+                self.create_speaker_ros_espeak_client(&c.topic)
+            } else if let Some(hash_map) = &self.audio_speaker_config {
+                self.create_speaker_audio_speaker(hash_map.clone())
+            } else {
+                self.create_speaker_print_speaker()
+            }
         }
     }
     fn create_raw_joint_trajectory_clients(
@@ -185,15 +201,52 @@ impl RobotConfig {
     }
 }
 
+/// Convert relative path into absolute one
+fn resolve_audio_file_path<P: AsRef<Path>>(
+    base_path: P,
+    relative_hash_map: HashMap<String, PathBuf>,
+) -> Result<HashMap<String, PathBuf>, Error> {
+    let mut absolute_hash_map = HashMap::new();
+    for (k, v) in relative_hash_map.iter() {
+        let path_string = v.clone().into_os_string().into_string().unwrap();
+        let full_path =
+            openrr_client::resolve_relative_path(base_path.as_ref().to_owned(), &path_string)?
+                .unwrap();
+        absolute_hash_map.insert(k.clone(), full_path);
+    }
+    Ok(absolute_hash_map)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_resolve_audio_file_path() {
+        let mut hash = HashMap::new();
+        hash.insert("a".to_owned(), PathBuf::from("dir1/file.mp3"));
+        hash.insert("b".to_owned(), PathBuf::from("../dir2/file.mp3"));
+        let resolved = resolve_audio_file_path("/config/some_file.toml", hash).unwrap();
+        assert_eq!(resolved.len(), 2);
+        assert_eq!(resolved["a"], PathBuf::from("/config/dir1/file.mp3"));
+        assert_eq!(resolved["b"], PathBuf::from("/config/../dir2/file.mp3"));
+    }
+}
+
 impl RobotConfig {
-    pub fn try_new<P: AsRef<std::path::Path>>(path: P) -> Result<Self, Error> {
+    pub fn try_new<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut config: RobotConfig = toml::from_str(
             &std::fs::read_to_string(&path)
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,
         )
         .map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
         if config.openrr_clients_config.urdf_path.is_some() {
-            config.openrr_clients_config.resolve_path(path)?;
+            config.openrr_clients_config.resolve_path(path.as_ref())?;
+        }
+        if let Some(hash_map) = &config.audio_speaker_config {
+            config.audio_speaker_config = Some(resolve_audio_file_path(
+                path.as_ref().to_owned(),
+                hash_map.clone(),
+            )?);
         }
         debug!("{:?}", config);
         Ok(config)

@@ -1,6 +1,6 @@
 use arci::Speaker;
 use log::error;
-use std::{collections::HashMap, fs::File, io};
+use std::{collections::HashMap, fs::File, io, path::Path, path::PathBuf};
 
 use thiserror::Error;
 
@@ -20,12 +20,12 @@ pub enum Error {
 }
 
 pub struct AudioSpeaker {
-    message_to_file_path: HashMap<String, String>,
+    message_to_file_path: HashMap<String, PathBuf>,
 }
 
 impl AudioSpeaker {
     /// Creates a new `AudioSpeaker`.
-    pub fn new(hashmap: HashMap<String, String>) -> Self {
+    pub fn new(hashmap: HashMap<String, PathBuf>) -> Self {
         Self {
             message_to_file_path: hashmap,
         }
@@ -49,7 +49,7 @@ impl Speaker for AudioSpeaker {
     }
 }
 
-fn play_audio_file(path: &str) -> Result<(), Error> {
+fn play_audio_file(path: &Path) -> Result<(), Error> {
     let (_stream, stream_handle) = rodio::OutputStream::try_default()?;
     let sink = rodio::Sink::try_new(&stream_handle)?;
     let file = File::open(path)?;
