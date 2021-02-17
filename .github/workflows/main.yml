@@ -53,7 +53,7 @@ jobs:
           override: true
       - run: sudo apt-get update
       # only for arci-gamepad-gilrs
-      - run: sudo apt-get install -y libudev-dev
+      - run: sudo apt-get install -y libudev-dev libasound2-dev
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -69,7 +69,7 @@ jobs:
           override: true
       - run: sudo apt-get update
       # only for arci-gamepad-gilrs
-      - run: sudo apt-get install -y libudev-dev
+      - run: sudo apt-get install -y libudev-dev libasound2-dev
       # testing arci-ros is done in ros1.yaml
       - uses: actions-rs/cargo@v1
         with:
@@ -102,7 +102,7 @@ jobs:
           override: true
       - run: sudo apt-get update
       # only for arci-gamepad-gilrs
-      - run: sudo apt-get install -y libudev-dev
+      - run: sudo apt-get install -y libudev-dev libasound2-dev
       - run: rustup component add clippy
       - uses: actions-rs/cargo@v1
         with:
