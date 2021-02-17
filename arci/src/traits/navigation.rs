@@ -1,7 +1,7 @@
 use crate::error::Error;
+use crate::Isometry2;
 use async_trait::async_trait;
 use auto_impl::auto_impl;
-use nalgebra::Isometry2;
 
 #[async_trait]
 #[auto_impl(Box, Arc)]
