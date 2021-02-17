@@ -70,7 +70,7 @@ impl RobotConfig {
     {
         Ok(RobotClient::try_new(
             self.openrr_clients_config.clone(),
-            self.create_raw_joint_trajectory_clients()?,
+            self.create_raw_joint_trajectory_clients(),
             self.create_speaker().into(),
             self.create_move_base().map(|m| m.into()),
             self.create_navigation().map(|n| n.into()),
@@ -157,17 +157,13 @@ impl RobotConfig {
     }
     fn create_raw_joint_trajectory_clients(
         &self,
-    ) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, Error> {
+    ) -> HashMap<String, Arc<dyn JointTrajectoryClient>> {
         #[cfg(not(feature = "ros"))]
-        let raw_joint_trajectory_clients = if self.urdf_viz_clients_configs.is_empty() {
-            return Err(Error::NoClientsConfigs("urdf_viz_clients".to_owned()));
-        } else {
-            create_joint_trajectory_clients(
-                self.urdf_viz_clients_configs.clone(),
-                self.urdf_viz_clients_total_complete_allowable_error,
-                self.urdf_viz_clients_complete_timeout_sec,
-            )
-        };
+        let raw_joint_trajectory_clients = create_joint_trajectory_clients(
+            self.urdf_viz_clients_configs.clone(),
+            self.urdf_viz_clients_total_complete_allowable_error,
+            self.urdf_viz_clients_complete_timeout_sec,
+        );
         #[cfg(feature = "ros")]
         let raw_joint_trajectory_clients = {
             let mut clients = if self.urdf_viz_clients_configs.is_empty() {
@@ -183,14 +179,9 @@ impl RobotConfig {
                 arci_ros::create_joint_trajectory_clients(self.ros_clients_configs.clone())
                     .into_iter(),
             );
-            if clients.is_empty() {
-                return Err(Error::NoClientsConfigs(
-                    "urdf_viz_clients_configs / ros_clients_configs".to_owned(),
-                ));
-            }
             clients
         };
-        Ok(raw_joint_trajectory_clients)
+        raw_joint_trajectory_clients
     }
 }
 
@@ -201,7 +192,9 @@ impl RobotConfig {
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,
         )
         .map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
-        config.openrr_clients_config.resolve_path(path)?;
+        if config.openrr_clients_config.urdf_path.is_some() {
+            config.openrr_clients_config.resolve_path(path)?;
+        }
         debug!("{:?}", config);
         Ok(config)
     }

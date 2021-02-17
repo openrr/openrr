@@ -24,7 +24,7 @@ where
     M: MoveBase,
     N: Navigation,
 {
-    full_chain_for_collision_checker: Arc<Chain<f64>>,
+    full_chain_for_collision_checker: Option<Arc<Chain<f64>>>,
     raw_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
     all_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
     collision_check_clients:
@@ -52,13 +52,6 @@ where
         navigation: Option<N>,
     ) -> Result<Self, Error> {
         debug!("{:?}", config);
-        let urdf_full_path = if let Some(p) = config.urdf_full_path().clone() {
-            p
-        } else {
-            return Err(Error::NoUrdfPath);
-        };
-        debug!("Loading {:?}", urdf_full_path);
-        let full_chain_for_collision_checker = Arc::new(Chain::from_urdf_file(&urdf_full_path)?);
 
         let mut all_joint_trajectory_clients = HashMap::new();
         for (name, client) in &raw_joint_trajectory_clients {
@@ -75,44 +68,68 @@ where
             );
         }
 
-        let collision_check_clients = create_collision_check_clients(
-            urdf_full_path,
-            &config.self_collision_check_pairs,
-            &config.collision_check_clients_configs,
-            &all_joint_trajectory_clients,
-            full_chain_for_collision_checker.clone(),
-        );
+        let (
+            full_chain_for_collision_checker,
+            collision_check_clients,
+            ik_clients,
+            self_collision_checkers,
+            ik_solvers,
+        ) = if let Some(urdf_full_path) = config.urdf_full_path().as_ref() {
+            debug!("Loading {:?}", urdf_full_path);
+            let full_chain_for_collision_checker =
+                Arc::new(Chain::from_urdf_file(&urdf_full_path)?);
 
-        let mut self_collision_checkers = HashMap::new();
-        for (name, client) in &collision_check_clients {
-            self_collision_checkers.insert(name.to_owned(), client.collision_checker.clone());
-        }
-
-        for (name, client) in &collision_check_clients {
-            all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
-        }
-
-        let mut ik_solvers = HashMap::new();
-        for (k, c) in &config.ik_solvers_configs {
-            ik_solvers.insert(
-                k.to_owned(),
-                Arc::new(create_ik_solver_with_chain(
-                    &full_chain_for_collision_checker,
-                    c,
-                )),
+            let collision_check_clients = create_collision_check_clients(
+                urdf_full_path,
+                &config.self_collision_check_pairs,
+                &config.collision_check_clients_configs,
+                &all_joint_trajectory_clients,
+                full_chain_for_collision_checker.clone(),
             );
-        }
 
-        let ik_clients = create_ik_clients(
-            &config.ik_clients_configs,
-            &all_joint_trajectory_clients,
-            &ik_solvers,
-        );
+            let mut self_collision_checkers = HashMap::new();
 
-        for (name, client) in &ik_clients {
-            all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
-        }
+            for (name, client) in &collision_check_clients {
+                self_collision_checkers.insert(name.to_owned(), client.collision_checker.clone());
+                all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
+            }
 
+            let mut ik_solvers = HashMap::new();
+            for (k, c) in &config.ik_solvers_configs {
+                ik_solvers.insert(
+                    k.to_owned(),
+                    Arc::new(create_ik_solver_with_chain(
+                        &full_chain_for_collision_checker,
+                        c,
+                    )),
+                );
+            }
+
+            let ik_clients = create_ik_clients(
+                &config.ik_clients_configs,
+                &all_joint_trajectory_clients,
+                &ik_solvers,
+            );
+
+            for (name, client) in &ik_clients {
+                all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
+            }
+            (
+                Some(full_chain_for_collision_checker),
+                collision_check_clients,
+                ik_clients,
+                self_collision_checkers,
+                ik_solvers,
+            )
+        } else {
+            (
+                None,
+                HashMap::new(),
+                HashMap::new(),
+                HashMap::new(),
+                HashMap::new(),
+            )
+        };
         let mut joints_poses: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
         for joints_pose in &config.joints_poses {
             joints_poses
@@ -147,14 +164,22 @@ where
                 return Err(Error::MismatchedLength(positions.len(), joint_names.len()));
             }
             for (index, joint_name) in joint_names.iter().enumerate() {
-                if let Some(joint) = self.full_chain_for_collision_checker.find(joint_name) {
+                if let Some(joint) = self
+                    .full_chain_for_collision_checker
+                    .as_ref()
+                    .unwrap()
+                    .find(joint_name)
+                {
                     joint.set_joint_position_clamped(positions[index])
                 } else {
                     return Err(Error::NoJoint(joint_name.to_owned()));
                 }
             }
         }
-        self.full_chain_for_collision_checker.update_transforms();
+        self.full_chain_for_collision_checker
+            .as_ref()
+            .unwrap()
+            .update_transforms();
         Ok(())
     }
 
@@ -322,7 +347,7 @@ where
             .map(|k| k.to_owned())
             .collect::<Vec<String>>()
     }
-    pub fn full_chain_for_collision_checker(&self) -> &Arc<Chain<f64>> {
+    pub fn full_chain_for_collision_checker(&self) -> &Option<Arc<Chain<f64>>> {
         &self.full_chain_for_collision_checker
     }
 }
@@ -388,7 +413,7 @@ pub struct JointTrajectoryClientsContainerConfig {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OpenrrClientsConfig {
-    pub urdf_path: String,
+    pub urdf_path: Option<String>,
     urdf_full_path: Option<PathBuf>,
     #[serde(default)]
     pub self_collision_check_pairs: Vec<String>,
@@ -399,6 +424,7 @@ pub struct OpenrrClientsConfig {
     pub collision_check_clients_configs: Vec<CollisionCheckClientConfig>,
     #[serde(default)]
     pub ik_clients_configs: Vec<IkClientConfig>,
+    #[serde(default)]
     pub ik_solvers_configs: HashMap<String, IkSolverConfig>,
 
     #[serde(default)]
@@ -420,7 +446,11 @@ pub fn resolve_relative_path<P: AsRef<Path>>(
 
 impl OpenrrClientsConfig {
     pub fn resolve_path<P: AsRef<Path>>(&mut self, path: P) -> Result<(), Error> {
-        self.urdf_full_path = resolve_relative_path(path, &self.urdf_path)?;
+        if let Some(urdf_path) = self.urdf_path.as_ref() {
+            self.urdf_full_path = resolve_relative_path(path, &urdf_path)?;
+        } else {
+            return Err(Error::NoUrdfPath);
+        }
         Ok(())
     }
     pub fn urdf_full_path(&self) -> &Option<PathBuf> {
