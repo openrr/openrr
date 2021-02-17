@@ -19,6 +19,7 @@ gui = ["openrr-gui"]
 anyhow = "1.0"
 arci = "0.0.3"
 arci-gamepad-gilrs = "0.0.3"
+arci-speak-audio = "0.0.3"
 arci-urdf-viz = "0.0.3"
 async-recursion = "0.3"
 async-trait = "0.1"
