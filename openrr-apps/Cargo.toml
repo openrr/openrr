@@ -1,6 +1,6 @@
 [package]
 name = "openrr-apps"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Mitsuharu Kojima <kojima@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -17,17 +17,17 @@ gui = ["openrr-gui"]
 
 [dependencies]
 anyhow = "1.0"
-arci = "0.0.1"
-arci-gamepad-gilrs = "0.0.1"
-arci-urdf-viz = "0.0.1"
+arci = "0.0.3"
+arci-gamepad-gilrs = "0.0.3"
+arci-urdf-viz = "0.0.3"
 async-recursion = "0.3"
 async-trait = "0.1"
 env_logger = "0.8"
 k = "0.22"
 log = "0.4"
-openrr-client = "0.0.1"
-openrr-command = "0.0.1"
-openrr-teleop = "0.0.1"
+openrr-client = "0.0.3"
+openrr-command = "0.0.3"
+openrr-teleop = "0.0.3"
 serde = { version = "1.0", features = ["derive"] }
 structopt = "0.3.21"
 thiserror = "1.0"
@@ -35,8 +35,8 @@ tokio = { version = "1.0", features = ["full"] }
 toml = "0.5"
 urdf-rs = "0.6"
 
-arci-ros = { version = "0.0.2", optional = true }
-openrr-gui = { version = "0.0.1", optional = true }
+arci-ros = { version = "0.0.3", optional = true }
+openrr-gui = { version = "0.0.3", optional = true }
 rand = { version = "0.8.0", optional = true }
 rosrust = { version = "0.9", optional = true }
 

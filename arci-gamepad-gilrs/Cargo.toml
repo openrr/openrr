@@ -1,6 +1,6 @@
 [package]
 name = "arci-gamepad-gilrs"
-version = "0.0.1"
+version = "0.0.3"
 authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -10,7 +10,7 @@ categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 
 [dependencies]
-arci = "0.0.1"
+arci = "0.0.3"
 crossbeam-channel = "0.5.0"
 gilrs = { version = "0.8", features = ["serde-serialize"] }
 log = "0.4"

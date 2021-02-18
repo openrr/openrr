@@ -1,6 +1,6 @@
 [package]
 name = "openrr-gui"
-version = "0.0.1"
+version = "0.0.3"
 authors = ["Taiki Endo <te316e89@gmail.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -10,10 +10,10 @@ categories = ["science::robotics", "gui"]
 repository = "https://github.com/openrr/openrr"
 
 [dependencies]
-arci = "0.0.1"
+arci = "0.0.3"
 iced = "0.2"
 log = "0.4"
-openrr-client = "0.0.1"
+openrr-client = "0.0.3"
 rand = "0.8"
 thiserror = "1"
 urdf-rs = "0.6"
