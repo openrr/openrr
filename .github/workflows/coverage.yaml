@@ -20,7 +20,7 @@ jobs:
           override: true
       - run: sudo apt-get update
       # only for arci-gamepad-gilrs
-      - run: sudo apt-get install -y libudev-dev
+      - run: sudo apt-get install -y libudev-dev libasound2-dev
       # only for arci-ros test (roscore)
       - run: sudo apt-get install -y python-roslaunch python-rostopic
       - uses: actions-rs/cargo@v1
