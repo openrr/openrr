@@ -1,6 +1,6 @@
 [package]
 name = "openrr-teleop"
-version = "0.0.1"
+version = "0.0.3"
 authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -10,11 +10,11 @@ categories = ["algorithms", "science::robotics"]
 repository = "https://github.com/openrr/openrr"
 
 [dependencies]
-arci = "0.0.1"
+arci = "0.0.3"
 async-trait = "0.1"
 auto_impl = "0.4.1"
 k = "0.22"
 log = "0.4"
-openrr-client = "0.0.1"
+openrr-client = "0.0.3"
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }

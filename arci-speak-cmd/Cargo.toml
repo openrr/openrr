@@ -10,7 +10,7 @@ categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 
 [dependencies]
-arci = "0.0.1"
+arci = "0.0.3"
 log = "0.4"
 thiserror = "1.0"
 
