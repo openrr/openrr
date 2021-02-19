@@ -8,6 +8,7 @@ use arci_ros::{
 use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWebClientConfig};
 
 use arci_speak_audio::AudioSpeaker;
+use arci_speak_cmd::LocalCommand;
 use log::debug;
 use openrr_client::{OpenrrClientsConfig, PrintSpeaker, RobotClient};
 use serde::{Deserialize, Serialize};
@@ -16,6 +17,26 @@ use std::{
     path::{Path, PathBuf},
     sync::Arc,
 };
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(tag = "type", content = "args")]
+pub enum SpeakConfig {
+    Print,
+    Command,
+    #[cfg(feature = "ros")]
+    RosEspeak {
+        config: RosEspeakClientConfig,
+    },
+    Audio {
+        map: HashMap<String, PathBuf>,
+    },
+}
+
+impl Default for SpeakConfig {
+    fn default() -> Self {
+        SpeakConfig::Print
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RobotConfig {
@@ -30,10 +51,8 @@ pub struct RobotConfig {
     #[serde(default = "default_urdf_viz_clients_complete_timeout_sec")]
     pub urdf_viz_clients_complete_timeout_sec: f64,
 
-    #[cfg(feature = "ros")]
-    pub ros_espeak_client_config: Option<RosEspeakClientConfig>,
-
-    pub audio_speaker_config: Option<HashMap<String, PathBuf>>,
+    #[serde(default)]
+    pub speak_config: SpeakConfig,
 
     #[cfg(feature = "ros")]
     pub ros_cmd_vel_move_base_client_config: Option<RosCmdVelMoveBaseConfig>,
@@ -64,7 +83,10 @@ impl RobotConfig {
     #[cfg(feature = "ros")]
     pub fn has_ros_clients(&self) -> bool {
         !self.ros_clients_configs.is_empty()
-            || self.ros_espeak_client_config.is_some()
+            || match &self.speak_config {
+                SpeakConfig::RosEspeak { config: _ } => true,
+                _ => false,
+            }
             || self.ros_cmd_vel_move_base_client_config.is_some()
             || self.ros_navigation_client_config.is_some()
     }
@@ -144,6 +166,9 @@ impl RobotConfig {
     fn create_speaker_print_speaker(&self) -> Box<dyn Speaker> {
         Box::new(PrintSpeaker::new())
     }
+    fn create_speaker_local_command(&self) -> Box<dyn Speaker> {
+        Box::new(LocalCommand::new())
+    }
     fn create_speaker_audio_speaker(&self, hash_map: HashMap<String, PathBuf>) -> Box<dyn Speaker> {
         Box::new(AudioSpeaker::new(hash_map))
     }
@@ -152,23 +177,14 @@ impl RobotConfig {
         Box::new(RosEspeakClient::new(topic))
     }
     fn create_speaker(&self) -> Box<dyn Speaker> {
-        #[cfg(not(feature = "ros"))]
-        {
-            if let Some(hash_map) = &self.audio_speaker_config {
-                self.create_speaker_audio_speaker(hash_map.clone())
-            } else {
-                self.create_speaker_print_speaker()
+        match &self.speak_config {
+            #[cfg(feature = "ros")]
+            SpeakConfig::RosEspeak { config } => {
+                self.create_speaker_ros_espeak_client(&config.topic)
             }
-        }
-        #[cfg(feature = "ros")]
-        {
-            if let Some(c) = &self.ros_espeak_client_config {
-                self.create_speaker_ros_espeak_client(&c.topic)
-            } else if let Some(hash_map) = &self.audio_speaker_config {
-                self.create_speaker_audio_speaker(hash_map.clone())
-            } else {
-                self.create_speaker_print_speaker()
-            }
+            SpeakConfig::Audio { ref map } => self.create_speaker_audio_speaker(map.clone()),
+            SpeakConfig::Command => self.create_speaker_local_command(),
+            SpeakConfig::Print => self.create_speaker_print_speaker(),
         }
     }
     fn create_raw_joint_trajectory_clients(
@@ -242,12 +258,9 @@ impl RobotConfig {
         if config.openrr_clients_config.urdf_path.is_some() {
             config.openrr_clients_config.resolve_path(path.as_ref())?;
         }
-        if let Some(hash_map) = &config.audio_speaker_config {
-            config.audio_speaker_config = Some(resolve_audio_file_path(
-                path.as_ref().to_owned(),
-                hash_map.clone(),
-            )?);
-        }
+        if let SpeakConfig::Audio { ref mut map } = config.speak_config {
+            *map = resolve_audio_file_path(path, map.clone())?;
+        };
         debug!("{:?}", config);
         Ok(config)
     }

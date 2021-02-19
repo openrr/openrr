@@ -2,7 +2,9 @@
 name = "arm"
 joint_names = ["l_shoulder_yaw", "l_shoulder_pitch", "l_shoulder_roll", "l_elbow_pitch", "l_wrist_yaw", "l_wrist_pitch"]
 
-[audio_speaker_config]
+[speak_config]
+type = "Audio"
+[speak_config.args.map]
 sine = "../audio/sine.mp3"
 "サイン" = "../audio/sine.mp3"
 
