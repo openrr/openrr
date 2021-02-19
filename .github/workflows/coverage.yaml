@@ -18,21 +18,29 @@ jobs:
         with:
           toolchain: nightly
           override: true
+      - run: rustup component add llvm-tools-preview
       - run: sudo apt-get update
-      # only for arci-gamepad-gilrs
+      # only for arci-gamepad-gilrs, arci-speak-audio
       - run: sudo apt-get install -y libudev-dev libasound2-dev
       # only for arci-ros test (roscore)
       - run: sudo apt-get install -y python-roslaunch python-rostopic
       - uses: actions-rs/cargo@v1
         with:
+          command: build
+          args: --all-features
+        env:
+          RUSTFLAGS: '-Zinstrument-coverage'
+      - uses: actions-rs/cargo@v1
+        with:
           command: test
           args: --all-features --no-fail-fast
         env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-      - run: curl -L https://github.com/mozilla/grcov/releases/latest/download/grcov-linux-x86_64.tar.bz2 | tar jxf -
-      - run: ./grcov ./target/debug/ -s . -t lcov --llvm --branch --ignore-not-existing --ignore "/*" --ignore="**/tests/*.rs" --ignore="**/examples/*.rs" -o lcov.info
+          RUSTFLAGS: '-Zinstrument-coverage'
+      # v0.7.1 causes below problems, so use old v0.6.1
+      # https://github.com/mozilla/grcov/issues/555
+      # https://github.com/mozilla/grcov/issues/575
+      - run: curl -L https://github.com/mozilla/grcov/releases/download/v0.6.1/grcov-linux-x86_64.tar.bz2 | tar jxf -
+      - run: ./grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore="**/tests/*.rs" --ignore="**/examples/*.rs" -o lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
