@@ -8,33 +8,24 @@
 cargo install urdf-viz
 ```
 
-### Build
-
-- Without ROS
+### Install
 
 ```bash
-cargo build --release
+cargo install openrr-apps --features ros
 ```
 
-- With ROS
+If you are Windows user, ROS is not supported.
+So remove it.
 
 ```bash
-cd openrr-apps
-cargo build --release --features ros
+cargo install openrr-apps
 ```
 
-- Without GUI
-
-```bash
-cd openrr-apps
-cargo build --release --no-default-features
-```
-
-### For UR10 sample
+### Option: For UR10 sample
 
 Install [Universal Robot software](https://github.com/ros-industrial/universal_robot).
 
-### For PR2 sample
+### Option: For PR2 sample
 
 Install ros-melodic-pr2-gazebo / ros-melodic-topic-tools.
 
@@ -45,17 +36,30 @@ Install ros-melodic-pr2-gazebo / ros-melodic-topic-tools.
 - Launch urdf-viz.
 
 ```bash
-urdf-viz ./openrr-planner/sample.urdf
+urdf-viz ./openrr-planner/sample.urdf &
 ```
 
 - Run sample commands.
 
 ```bash
-./target/release/openrr_apps_robot_command \
+openrr_apps_robot_command \
   --config-path=./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml \
-  load_commands \
-  ./openrr-apps/config/sample_cmd_urdf_viz.txt
+  load_commands ./openrr-apps/config/sample_cmd_urdf_viz.txt
 ```
+
+#### Environmental Variables
+
+If you set `export OPENRR_APPS_ROBOT_CONFIG_PATH=some_path_to_config.toml`, you can skip
+`--config-path`. If you give `--config-path` explicitly, the env var is ignored.
+
+- Run sample commands with env var
+
+```bash
+export OPENRR_APPS_ROBOT_CONFIG_PATH=$(pwd)/openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
+openrr_apps_robot_command load_commands ./openrr-apps/config/sample_cmd_urdf_viz.txt
+```
+
+Do not forget to unset OPENRR_APPS_ROBOT_CONFIG_PATH before try other settings
 
 ### UR10 (urdf-viz)
 
@@ -70,10 +74,9 @@ urdf-viz $(rospack find ur_description)/urdf/ur10_robot.urdf.xacro
 Change urdf path in [the setting file](./config/ur10_robot_client_config_for_urdf_viz.toml) for your environment.
 
 ```bash
-./target/release/openrr_apps_robot_command \
+openrr_apps_robot_command \
   --config-path=./openrr-apps/config/ur10_robot_client_config_for_urdf_viz.toml \
-  load_commands \
-  ./openrr-apps/config/ur10_cmd_urdf_viz.txt
+  load_commands ./openrr-apps/config/ur10_cmd_urdf_viz.txt
 ```
 
 ### UR10 (ROS gazebo)
@@ -89,10 +92,9 @@ roslaunch ur_gazebo ur10.launch
 Change urdf path in [the setting file](./config/ur10_robot_client_config_for_ros.toml) for your environment.
 
 ```bash
-./target/release/openrr_apps_robot_command \
+openrr_apps_robot_command \
   --config-path=./openrr-apps/config/ur10_robot_client_config_for_ros.toml \
-  load_commands \
-  ./openrr-apps/config/ur10_cmd_ros.txt
+  load_commands ./openrr-apps/config/ur10_cmd_ros.txt
 ```
 
 ### PR2 (urdf-viz)
@@ -108,10 +110,9 @@ urdf-viz $(rospack find pr2_description)/robots/pr2.urdf.xacro
 Change urdf path in [the setting file](./config/pr2_robot_client_config_for_urdf_viz.toml) for your environment.
 
 ```bash
-./target/release/openrr_apps_robot_command \
+openrr_apps_robot_command \
   --config-path=./openrr-apps/config/pr2_robot_client_config_for_urdf_viz.toml \
-  load_commands \
-  ./openrr-apps/config/pr2_cmd_urdf_viz.txt
+  load_commands ./openrr-apps/config/pr2_cmd_urdf_viz.txt
 ```
 
 ### PR2 (ROS gazebo)
@@ -128,10 +129,9 @@ roslaunch ./pr2.launch wait_time_secs:=10
 Change urdf path in [the setting file](./config/pr2_robot_client_config_for_ros.toml) for your environment.
 
 ```bash
-./target/release/openrr_apps_robot_command \
+openrr_apps_robot_command \
   --config-path=./openrr-apps/config/pr2_robot_client_config_for_ros.toml \
-  load_commands \
-  ./openrr-apps/config/pr2_cmd_ros.txt
+  load_commands ./openrr-apps/config/pr2_cmd_ros.txt
 ```
 
 ## How to run openrr_apps_robot_teleop
@@ -141,7 +141,7 @@ Change urdf path in [the setting file](./config/pr2_robot_client_config_for_ros.
 - Launch urdf-viz.
 
 ```bash
-urdf-viz ./openrr-planner/sample.urdf
+urdf-viz ./openrr-planner/sample.urdf &
 ```
 
 - <a id="joystick">Connect joystick</a>.
@@ -159,8 +159,7 @@ gil_gamepad_config.map.axis_value_map = ...
 - Run teleop.
 
 ```bash
-./target/release/openrr_apps_robot_teleop \
-  --config-path=./openrr-apps/config/sample_teleop_config_urdf_viz.toml
+openrr_apps_robot_teleop --config-path=./openrr-apps/config/sample_teleop_config_urdf_viz.toml
 ```
 
 ### UR10 (urdf-viz)
@@ -177,8 +176,7 @@ Change urdf path and joystick settings (see [here](#joystick)) in [the setting f
 
 
 ```bash
-./target/release/openrr_apps_robot_teleop \
-  --config-path=./openrr-apps/config/ur10_teleop_config_urdf_viz.toml \
+openrr_apps_robot_teleop --config-path=./openrr-apps/config/ur10_teleop_config_urdf_viz.toml
 ```
 
 ### UR10 (ROS gazebo)
@@ -195,8 +193,7 @@ Change urdf path and joystick settings (see [here](#joystick)) in [the setting f
 
 
 ```bash
-./target/release/openrr_apps_robot_teleop \
-  --config-path=./openrr-apps/config/ur10_teleop_config_ros.toml \
+openrr_apps_robot_teleop --config-path=./openrr-apps/config/ur10_teleop_config_ros.toml
 ```
 
 ### PR2 (urdf-viz)
@@ -213,8 +210,7 @@ Change urdf path and joystick settings (see [here](#joystick)) in [the setting f
 
 
 ```bash
-./target/release/openrr_apps_robot_teleop \
-  --config-path=./openrr-apps/config/pr2_teleop_config_urdf_viz.toml \
+openrr_apps_robot_teleop --config-path=./openrr-apps/config/pr2_teleop_config_urdf_viz.toml
 ```
 
 ### PR2 (ROS gazebo)
@@ -232,8 +228,7 @@ Change urdf path and joystick settings (see [here](#joystick)) in [the setting f
 
 
 ```bash
-./target/release/openrr_apps_robot_teleop \
-  --config-path=./openrr-apps/config/pr2_teleop_config_ros.toml \
+openrr_apps_robot_teleop --config-path=./openrr-apps/config/pr2_teleop_config_ros.toml
 ```
 
 ## How to run openrr_apps_joint_position_sender
@@ -243,15 +238,29 @@ Change urdf path and joystick settings (see [here](#joystick)) in [the setting f
 - Launch urdf-viz.
 
 ```bash
-urdf-viz ./openrr-planner/sample.urdf
+urdf-viz ./openrr-planner/sample.urdf &
 ```
 
 - Launch openrr_apps_joint_position_sender.
 
 ```bash
-./target/release/openrr_apps_joint_position_sender \
-  ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
+openrr_apps_joint_position_sender \
+  --config ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
 ```
+
+#### Environmental Variables
+
+If you set `export OPENRR_APPS_ROBOT_CONFIG_PATH=some_path_to_config.toml`, you can skip
+`--config-path`. If you give `--config-path` explicitly, the env var is ignored.
+
+- Run for sample urdf with env var
+
+```bash
+export OPENRR_APPS_ROBOT_CONFIG_PATH=$(pwd)/openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
+openrr_apps_joint_position_sender
+```
+
+Do not forget to unset OPENRR_APPS_ROBOT_CONFIG_PATH before try other settings
 
 ### Troubleshooting
 

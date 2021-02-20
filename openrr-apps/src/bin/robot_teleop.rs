@@ -3,8 +3,6 @@ use openrr_apps::{Error, RobotConfig, RobotTeleopConfig};
 use openrr_client::ArcRobotClient;
 use openrr_teleop::ControlNodeSwitcher;
 #[cfg(feature = "ros")]
-use rosrust::{is_ok, rate};
-#[cfg(feature = "ros")]
 use std::thread;
 use std::{path::PathBuf, sync::Arc};
 use structopt::StructOpt;
@@ -27,12 +25,9 @@ async fn main() -> Result<(), Error> {
     let teleop_config = RobotTeleopConfig::try_new(args.config_path)?;
     let robot_config =
         RobotConfig::try_new(teleop_config.robot_config_full_path().as_ref().unwrap())?;
+    openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &robot_config);
     #[cfg(feature = "ros")]
     let use_ros = robot_config.has_ros_clients();
-    #[cfg(feature = "ros")]
-    if use_ros {
-        arci_ros::init(env!("CARGO_BIN_NAME"));
-    }
     let client: Arc<ArcRobotClient> = Arc::new(robot_config.create_robot_client()?);
 
     let nodes = teleop_config.control_nodes_config.create_control_nodes(
@@ -51,8 +46,8 @@ async fn main() -> Result<(), Error> {
     if use_ros {
         let switcher_cloned = switcher.clone();
         thread::spawn(move || {
-            let rate = rate(1.0);
-            while is_ok() {
+            let rate = arci_ros::rate(1.0);
+            while arci_ros::is_ok() {
                 rate.sleep();
             }
             switcher_cloned.stop();
