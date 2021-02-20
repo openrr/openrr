@@ -431,6 +431,14 @@ pub struct OpenrrClientsConfig {
     pub joints_poses: Vec<JointsPose>,
 }
 
+/// Make relative path into absolute path from base file (not base dir).
+///
+/// # Example
+/// ```
+/// use std::path::PathBuf;
+/// let abs_path = openrr_client::resolve_relative_path("/home/a/base_file.toml", "../another_file.mp3").unwrap().unwrap();
+/// assert_eq!(abs_path, PathBuf::from("/home/a/../another_file.mp3"));
+/// ```
 pub fn resolve_relative_path<P: AsRef<Path>>(
     base_path: P,
     path: &str,
