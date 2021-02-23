@@ -11,14 +11,14 @@ cargo install urdf-viz
 ### Install
 
 ```bash
-cargo install openrr-apps --features ros
+cargo install openrr-apps
 ```
 
 If you are Windows user, ROS is not supported.
 So remove it.
 
 ```bash
-cargo install openrr-apps
+cargo install openrr-apps --no-default-features --features gui
 ```
 
 ### Option: For UR10 sample

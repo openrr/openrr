@@ -11,7 +11,7 @@ repository = "https://github.com/openrr/openrr"
 readme = "README.md"
 
 [features]
-default = ["gui"]
+default = ["gui", "ros"]
 ros = ["arci-ros"]
 gui = ["openrr-gui"]
 
