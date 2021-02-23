@@ -44,7 +44,7 @@ urdf-viz ./openrr-planner/sample.urdf &
 ```bash
 openrr_apps_robot_command \
   --config-path=./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml \
-  load_commands ./openrr-apps/config/sample_cmd_urdf_viz.txt
+  load_commands ./openrr-apps/command/sample_cmd_urdf_viz.txt
 ```
 
 #### Environmental Variables
@@ -56,7 +56,7 @@ If you set `export OPENRR_APPS_ROBOT_CONFIG_PATH=some_path_to_config.toml`, you 
 
 ```bash
 export OPENRR_APPS_ROBOT_CONFIG_PATH=$(pwd)/openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
-openrr_apps_robot_command load_commands ./openrr-apps/config/sample_cmd_urdf_viz.txt
+openrr_apps_robot_command load_commands ./openrr-apps/command/sample_cmd_urdf_viz.txt
 ```
 
 Do not forget to unset OPENRR_APPS_ROBOT_CONFIG_PATH before try other settings
@@ -76,7 +76,7 @@ Change urdf path in [the setting file](./config/ur10_robot_client_config_for_urd
 ```bash
 openrr_apps_robot_command \
   --config-path=./openrr-apps/config/ur10_robot_client_config_for_urdf_viz.toml \
-  load_commands ./openrr-apps/config/ur10_cmd_urdf_viz.txt
+  load_commands ./openrr-apps/command/ur10_cmd_urdf_viz.txt
 ```
 
 ### UR10 (ROS gazebo)
@@ -94,7 +94,7 @@ Change urdf path in [the setting file](./config/ur10_robot_client_config_for_ros
 ```bash
 openrr_apps_robot_command \
   --config-path=./openrr-apps/config/ur10_robot_client_config_for_ros.toml \
-  load_commands ./openrr-apps/config/ur10_cmd_ros.txt
+  load_commands ./openrr-apps/command/ur10_cmd_ros.txt
 ```
 
 ### PR2 (urdf-viz)
@@ -112,7 +112,7 @@ Change urdf path in [the setting file](./config/pr2_robot_client_config_for_urdf
 ```bash
 openrr_apps_robot_command \
   --config-path=./openrr-apps/config/pr2_robot_client_config_for_urdf_viz.toml \
-  load_commands ./openrr-apps/config/pr2_cmd_urdf_viz.txt
+  load_commands ./openrr-apps/command/pr2_cmd_urdf_viz.txt
 ```
 
 ### PR2 (ROS gazebo)
@@ -131,7 +131,7 @@ Change urdf path in [the setting file](./config/pr2_robot_client_config_for_ros.
 ```bash
 openrr_apps_robot_command \
   --config-path=./openrr-apps/config/pr2_robot_client_config_for_ros.toml \
-  load_commands ./openrr-apps/config/pr2_cmd_ros.txt
+  load_commands ./openrr-apps/command/pr2_cmd_ros.txt
 ```
 
 ## How to run openrr_apps_robot_teleop
