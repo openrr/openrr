@@ -25,7 +25,12 @@ jobs:
         with:
           command: build
           # rosrust is not supported on Windows
-          args: --workspace --exclude arci-ros
+          args: --workspace --exclude arci-ros --exclude openrr-apps --exclude openrr
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          # rosrust is not supported on Windows
+          args: --manifest-path openrr-apps/Cargo.toml --no-default-features --features gui
 
   macos:
     name: Build on MacOS
