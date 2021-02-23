@@ -53,7 +53,7 @@ fn default_urdf_viz_clients_total_complete_allowable_error() -> f64 {
 }
 
 fn default_urdf_viz_clients_complete_timeout_sec() -> f64 {
-    10.0
+    3.0
 }
 
 fn default_true() -> bool {
