@@ -83,10 +83,7 @@ impl RobotConfig {
     #[cfg(feature = "ros")]
     pub fn has_ros_clients(&self) -> bool {
         !self.ros_clients_configs.is_empty()
-            || match &self.speak_config {
-                SpeakConfig::RosEspeak { config: _ } => true,
-                _ => false,
-            }
+            || matches!(&self.speak_config, SpeakConfig::RosEspeak { config: _ })
             || self.ros_cmd_vel_move_base_client_config.is_some()
             || self.ros_navigation_client_config.is_some()
     }
