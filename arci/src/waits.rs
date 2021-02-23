@@ -10,6 +10,7 @@ pub trait CompleteCondition: Send + Sync {
         &self,
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
+        duration_sec: f64,
     ) -> Result<(), Error>;
 }
 
@@ -39,10 +40,11 @@ impl CompleteCondition for TotalJointDiffCondition {
         &self,
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
+        duration_sec: f64,
     ) -> Result<(), Error> {
         const CHECK_UNIT_SEC: f64 = 0.01;
         let check_unit_duration: Duration = Duration::from_secs_f64(CHECK_UNIT_SEC);
-        let num_repeat: i32 = (self.timeout_sec / CHECK_UNIT_SEC) as i32;
+        let num_repeat: i32 = ((self.timeout_sec + duration_sec) / CHECK_UNIT_SEC) as i32;
         for _j in 0..num_repeat {
             let curs = client.current_joint_positions()?;
             let sum_err: f64 = target_positions
@@ -83,6 +85,7 @@ impl CompleteCondition for EachJointDiffCondition {
         &self,
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
+        duration_sec: f64,
     ) -> Result<(), Error> {
         if target_positions.len() != self.allowable_errors.len() {
             eprintln!("wait_until_each_error_condition condition size mismatch");
@@ -95,7 +98,7 @@ impl CompleteCondition for EachJointDiffCondition {
         let mut is_reached = vec![false; dof];
         const CHECK_UNIT_SEC: f64 = 0.01;
         let check_unit_duration: Duration = Duration::from_secs_f64(CHECK_UNIT_SEC);
-        let num_repeat: i32 = (self.timeout_sec / CHECK_UNIT_SEC) as i32;
+        let num_repeat: i32 = ((self.timeout_sec + duration_sec) / CHECK_UNIT_SEC) as i32;
 
         for _j in 0..num_repeat {
             for i in 0..dof {

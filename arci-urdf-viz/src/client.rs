@@ -208,7 +208,8 @@ impl JointTrajectoryClient for UrdfVizWebClient {
             positions: positions.clone(),
             duration,
         });
-        self.complete_condition.wait(self, &positions)
+        self.complete_condition
+            .wait(self, &positions, duration.as_secs_f64())
     }
 
     async fn send_joint_trajectory(
