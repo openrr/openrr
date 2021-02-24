@@ -12,6 +12,8 @@ pub enum Error {
     NoCommand(Vec<String>),
     #[error("openrr-client: Failed to execute Command {:?} ({}).", .0, .1)]
     CommandExecutionFailure(Vec<String>, #[source] std::io::Error),
+    #[error("openrr-client: Command {:?} Error ({:?}).", .0, .1)]
+    CommandFailure(Vec<String>, String),
     #[error("openrr-client: arci: {:?}", .0)]
     Arci(#[from] arci::Error),
     #[error("openrr-client: openrr-client: {:?}", .0)]

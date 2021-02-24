@@ -2,7 +2,7 @@ use crate::Error as OpenrrCommandError;
 use arci::{BaseVelocity, MoveBase, Navigation, Speaker};
 use async_recursion::async_recursion;
 use k::nalgebra::{Isometry2, Vector2};
-use log::info;
+use log::{error, info};
 use openrr_client::{isometry, BoxRobotClient};
 use std::{
     error::Error,
@@ -301,7 +301,16 @@ impl RobotCommandExecutor {
                 let output = Command::new(cmd_str).args(iter).output().map_err(|e| {
                     OpenrrCommandError::CommandExecutionFailure(command.to_owned(), e)
                 })?;
-                info!("{}", String::from_utf8_lossy(&output.stdout));
+                if output.status.success() {
+                    info!("{}", String::from_utf8_lossy(&output.stdout));
+                } else {
+                    error!("{}", String::from_utf8_lossy(&output.stdout));
+                    error!("{}", String::from_utf8_lossy(&output.stderr));
+                    return Err(OpenrrCommandError::CommandFailure(
+                        command.to_owned(),
+                        String::from_utf8_lossy(&output.stderr).to_string(),
+                    ));
+                }
             }
             RobotCommand::GetNavigationCurrentPose => {
                 println!("Base Pose {}", client.current_pose()?);
