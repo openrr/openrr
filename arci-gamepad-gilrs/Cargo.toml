@@ -13,9 +13,9 @@ repository = "https://github.com/openrr/openrr"
 arci = "0.0.3"
 crossbeam-channel = "0.5.0"
 gilrs = { version = "0.8", features = ["serde-serialize"] }
-log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_with = "1.5"
+tracing = "0.1"
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }

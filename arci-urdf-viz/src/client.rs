@@ -4,7 +4,6 @@ use arci::{
     Navigation, SetCompleteCondition, TotalJointDiffCondition,
 };
 use async_trait::async_trait;
-use log::debug;
 use nalgebra as na;
 use openrr_sleep::ScopedSleep;
 use serde::{Deserialize, Serialize};
@@ -17,6 +16,7 @@ use std::{
     thread::{sleep, JoinHandle},
     time::Duration,
 };
+use tracing::debug;
 use url::Url;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

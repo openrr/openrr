@@ -16,7 +16,6 @@ limitations under the License.
 use super::urdf::urdf_geometry_to_shape_handle;
 use crate::errors::*;
 use k::nalgebra as na;
-use log::*;
 use na::RealField;
 use ncollide3d::{
     query,
@@ -27,6 +26,8 @@ use std::{
     path::Path,
     time::{Duration, Instant},
 };
+use tracing::{debug, warn};
+
 type NameShapeMap<T> = HashMap<String, Vec<(ShapeHandle<T>, na::Isometry3<T>)>>;
 
 /// Check collision between robot and object

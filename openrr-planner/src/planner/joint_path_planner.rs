@@ -17,10 +17,10 @@ use crate::collision::CollisionChecker;
 use crate::errors::*;
 use crate::funcs::*;
 use k::nalgebra as na;
-use log::*;
 use na::RealField;
 use ncollide3d::shape::Compound;
 use std::path::Path;
+use tracing::*;
 
 /// Collision Avoidance Path Planner
 pub struct JointPathPlanner<N>

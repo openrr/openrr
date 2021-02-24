@@ -14,10 +14,10 @@ anyhow = "1.0"
 arci = "0.0.3"
 async-trait = "0.1"
 k = { version = "0.22", features = ["serde-serialize"] }
-log = "0.4"
 openrr-planner = "0.0.3"
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
+tracing = "0.1"
 urdf-rs = "0.6"
 
 [dev-dependencies]

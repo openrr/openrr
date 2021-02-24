@@ -1,7 +1,7 @@
 use crate::error::Error;
 use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
 use async_trait::async_trait;
-use log::debug;
+use tracing::debug;
 
 /// JointVelocityLimiter limits the duration to make all joints velocities lower than the given
 /// velocities limits at each TrajectoryPoint.

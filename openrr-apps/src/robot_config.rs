@@ -9,7 +9,6 @@ use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWe
 
 use arci_speak_audio::AudioSpeaker;
 use arci_speak_cmd::LocalCommand;
-use log::debug;
 use openrr_client::{OpenrrClientsConfig, PrintSpeaker, RobotClient};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -17,6 +16,7 @@ use std::{
     path::{Path, PathBuf},
     sync::Arc,
 };
+use tracing::debug;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "args")]

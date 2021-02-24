@@ -6,7 +6,7 @@ use iced::{
     HorizontalAlignment, Length, PickList, Row, Scrollable, Settings, Slider, Text, TextInput,
 };
 use iced::{pick_list, text_input};
-use log::{debug, error, warn};
+use tracing::{debug, error, warn};
 use openrr_client::RobotClient;
 use rand::Rng;
 use urdf_rs::JointType;
