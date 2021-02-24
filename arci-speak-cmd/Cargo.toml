@@ -12,7 +12,7 @@ repository = "https://github.com/openrr/openrr"
 [dependencies]
 arci = "0.0.3"
 thiserror = "1.0"
-tracing = "0.1"
+tracing = { version = "0.1", features = ["log"] }
 
 [dev-dependencies]
 structopt = "0.3"
