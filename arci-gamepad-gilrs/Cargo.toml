@@ -15,7 +15,7 @@ crossbeam-channel = "0.5.0"
 gilrs = { version = "0.8", features = ["serde-serialize"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_with = "1.5"
-tracing = "0.1"
+tracing = { version = "0.1", features = ["log"] }
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }

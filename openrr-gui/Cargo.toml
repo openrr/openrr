@@ -15,5 +15,5 @@ iced = "0.2"
 openrr-client = "0.0.3"
 rand = "0.8"
 thiserror = "1"
-tracing = "0.1"
+tracing = { version = "0.1", features = ["log"] }
 urdf-rs = "0.6"

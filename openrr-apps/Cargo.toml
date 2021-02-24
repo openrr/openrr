@@ -34,7 +34,7 @@ structopt = "0.3.21"
 thiserror = "1.0"
 tokio = { version = "1.0", features = ["full"] }
 toml = "0.5"
-tracing = "0.1"
+tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = "0.2"
 urdf-rs = "0.6"
 

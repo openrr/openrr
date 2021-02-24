@@ -17,4 +17,4 @@ k = "0.22"
 openrr-client = "0.0.3"
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }
-tracing = "0.1"
+tracing = { version = "0.1", features = ["log"] }

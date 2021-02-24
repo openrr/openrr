@@ -21,7 +21,7 @@ num-traits = "0.2"
 rand = "0.8"
 rrt = "0.4.0"
 thiserror = "1.0"
-tracing = "0.1"
+tracing = { version = "0.1", features = ["log"] }
 trajectory = "0.0.1"
 urdf-rs = "0.6"
 

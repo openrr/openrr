@@ -16,4 +16,4 @@ k = "0.22"
 openrr-client = "0.0.3"
 structopt = "0.3.21"
 thiserror = "1.0"
-tracing = "0.1"
+tracing = { version = "0.1", features = ["log"] }
