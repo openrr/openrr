@@ -339,7 +339,7 @@ struct Opt {
 }
 
 fn main() -> Result<(), openrr_planner::Error> {
-    env_logger::init();
+    tracing_subscriber::fmt::init();
     let opt = Opt::from_args();
     let mut app = CollisionAvoidApp::new(
         &opt.robot_urdf_path,

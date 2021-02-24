@@ -1,9 +1,9 @@
-use log::debug;
 use openrr_apps::RobotConfig;
 use openrr_client::BoxRobotClient;
 use openrr_gui::joint_position_sender;
 use std::path::PathBuf;
 use structopt::StructOpt;
+use tracing::debug;
 
 /// An openrr GUI tool.
 #[derive(StructOpt, Debug)]
@@ -15,7 +15,7 @@ struct Opt {
 }
 
 fn main() -> anyhow::Result<()> {
-    env_logger::init();
+    tracing_subscriber::fmt::init();
     let opt = Opt::from_args();
     debug!("opt: {:?}", opt);
     let config_path = openrr_apps::utils::get_apps_robot_config(opt.config_path).unwrap();

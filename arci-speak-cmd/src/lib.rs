@@ -1,6 +1,6 @@
 use arci::Speaker;
-use log::error;
 use std::{io, process::Command};
+use tracing::error;
 
 /// A [`Speaker`] implementation using a local command.
 ///

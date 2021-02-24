@@ -1,7 +1,7 @@
 use crate::RobotConfig;
-use log::debug;
 use rand::prelude::*;
 use std::path::PathBuf;
+use tracing::{debug, warn};
 
 const OPENRR_APPS_CONFIG_ENV_NAME: &str = "OPENRR_APPS_ROBOT_CONFIG_PATH";
 
@@ -12,7 +12,7 @@ pub fn get_apps_robot_config(config: Option<PathBuf>) -> Option<PathBuf> {
     } else {
         std::env::var(OPENRR_APPS_CONFIG_ENV_NAME)
             .map(|s| {
-                log::warn!("### ENV VAR {} is used ###", s);
+                warn!("### ENV VAR {} is used ###", s);
                 PathBuf::from(s)
             })
             .ok()

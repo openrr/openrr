@@ -24,9 +24,7 @@ arci-speak-cmd = "0.0.3"
 arci-urdf-viz = "0.0.3"
 async-recursion = "0.3"
 async-trait = "0.1"
-env_logger = "0.8"
 k = "0.22"
-log = "0.4"
 openrr-client = "0.0.3"
 openrr-command = "0.0.3"
 openrr-teleop = "0.0.3"
@@ -36,6 +34,8 @@ structopt = "0.3.21"
 thiserror = "1.0"
 tokio = { version = "1.0", features = ["full"] }
 toml = "0.5"
+tracing = "0.1"
+tracing-subscriber = "0.2"
 urdf-rs = "0.6"
 
 arci-ros = { version = "0.0.3", optional = true }

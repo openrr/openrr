@@ -9,7 +9,7 @@ struct Args {
 }
 
 fn main() {
-    env_logger::init();
+    tracing_subscriber::fmt::init();
     let args = Args::from_args();
     let mut hash_map = HashMap::new();
     hash_map.insert("test".to_string(), PathBuf::from(args.file_path));

@@ -8,9 +8,9 @@ use arci::{
 };
 use async_trait::async_trait;
 use k::{nalgebra::Isometry2, Chain, Isometry3};
-use log::debug;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, path::PathBuf, sync::Arc, time::Duration};
+use tracing::debug;
 
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
 pub type ArcRobotClient = RobotClient<Arc<dyn Speaker>, Arc<dyn MoveBase>, Arc<dyn Navigation>>;

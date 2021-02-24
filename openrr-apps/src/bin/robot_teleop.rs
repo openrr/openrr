@@ -19,7 +19,7 @@ pub struct RobotTeleopArgs {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    env_logger::init();
+    tracing_subscriber::fmt::init();
     let args = RobotTeleopArgs::from_args();
 
     let teleop_config = RobotTeleopConfig::try_new(args.config_path)?;

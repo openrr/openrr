@@ -1,10 +1,10 @@
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint};
 use async_trait::async_trait;
-use log::debug;
 use openrr_planner::{collision::parse_colon_separated_pairs, CollisionChecker};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::{path::Path, time::Duration};
+use tracing::debug;
 
 use crate::utils::find_nodes;
 

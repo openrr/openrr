@@ -1,13 +1,13 @@
 use super::control_node::ControlNode;
 use arci::gamepad::{Button, Gamepad, GamepadEvent};
 use arci::Speaker;
-use log::{debug, warn};
 use std::sync::{
     atomic::{AtomicBool, AtomicUsize, Ordering},
     Arc,
 };
 use std::time::Duration;
 use tokio::sync::Mutex as TokioMutex;
+use tracing::{debug, warn};
 
 pub struct ControlNodeSwitcher<N, S>
 where

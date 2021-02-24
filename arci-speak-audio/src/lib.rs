@@ -1,6 +1,6 @@
 use arci::Speaker;
-use log::error;
 use std::{collections::HashMap, fs::File, io, path::Path, path::PathBuf};
+use tracing::error;
 
 use thiserror::Error;
 

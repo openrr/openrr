@@ -1,9 +1,9 @@
 use crate::Error as OpenrrAppsError;
-use log::info;
 use openrr_apps::{Error, RobotConfig};
 use openrr_command::{RobotCommand, RobotCommandExecutor};
 use std::path::PathBuf;
 use structopt::StructOpt;
+use tracing::info;
 
 #[derive(StructOpt, Debug)]
 #[structopt(
@@ -19,7 +19,7 @@ struct RobotCommandArgs {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    env_logger::init();
+    tracing_subscriber::fmt::init();
     let args = RobotCommandArgs::from_args();
     info!("ParsedArgs {:?}", args);
     if let Some(config_path) = openrr_apps::utils::get_apps_robot_config(args.config_path) {

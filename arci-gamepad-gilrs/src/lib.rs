@@ -1,8 +1,5 @@
 use arci::gamepad::*;
 use arci::*;
-#[cfg(not(target_os = "macos"))]
-use log::info;
-use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::{
@@ -13,6 +10,9 @@ use std::{
     },
     time::Duration,
 };
+#[cfg(not(target_os = "macos"))]
+use tracing::info;
+use tracing::{debug, error};
 
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize, Clone)]
