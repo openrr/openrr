@@ -6,9 +6,9 @@ use iced::{
     HorizontalAlignment, Length, PickList, Row, Scrollable, Settings, Slider, Text, TextInput,
 };
 use iced::{pick_list, text_input};
-use tracing::{debug, error, warn};
 use openrr_client::RobotClient;
 use rand::Rng;
+use tracing::{debug, error, warn, Instrument};
 use urdf_rs::JointType;
 
 use crate::{style, Error};
@@ -192,15 +192,27 @@ where
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
+        let debug_span = |joint_trajectory_client| {
+            tracing::debug_span!("Joint Position Sender", ?joint_trajectory_client)
+        };
+
+        let span = debug_span(&self.current_joint_trajectory_client);
+        let _guard = span.enter();
+
         match message {
             Message::Ignore => return Command::none(),
             Message::PickListChanged(client_name) => {
+                drop(_guard);
+                let span = debug_span(&client_name);
+                let _guard = span.enter();
+
                 self.current_joint_trajectory_client = client_name;
                 let joint_trajectory_client = self.current_joint_trajectory_client();
                 let len = joint_trajectory_client.joint_names().len();
                 return Command::perform(
                     // Initializing joint_positions based on current_joint_positions.
-                    async move { joint_trajectory_client.current_joint_positions() },
+                    async move { joint_trajectory_client.current_joint_positions() }
+                        .instrument(span.clone()),
                     move |res| match res {
                         Ok(positions) => Message::UpdateAll(positions),
                         Err(e) => {
@@ -292,7 +304,8 @@ where
                 joint_trajectory_client
                     .send_joint_positions(joint_positions, Duration::from_millis(100))
                     .await
-            },
+            }
+            .instrument(span.clone()),
             |res| match res {
                 Ok(()) => Message::Ignore,
                 Err(e) => {
