@@ -2,9 +2,16 @@
 name = "arm"
 joint_names = ["l_shoulder_yaw", "l_shoulder_pitch", "l_shoulder_roll", "l_elbow_pitch", "l_wrist_yaw", "l_wrist_pitch"]
 
-[speak_config]
+[speak_configs."print"]
+type = "Print"
+
+[speak_configs."audio"]
 type = "Audio"
-[speak_config.args.map]
+
+[speak_configs."command"]
+type = "Command"
+
+[speak_configs."audio".args.map]
 sine = "../audio/sine.mp3"
 "サイン" = "../audio/sine.mp3"
 
