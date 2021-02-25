@@ -52,7 +52,7 @@ pub struct RobotConfig {
     pub urdf_viz_clients_complete_timeout_sec: f64,
 
     #[serde(default)]
-    pub speak_config: SpeakConfig,
+    pub speak_configs: HashMap<String, SpeakConfig>,
 
     #[cfg(feature = "ros")]
     pub ros_cmd_vel_move_base_client_config: Option<RosCmdVelMoveBaseConfig>,
@@ -82,8 +82,14 @@ fn default_true() -> bool {
 impl RobotConfig {
     #[cfg(feature = "ros")]
     pub fn has_ros_clients(&self) -> bool {
+        let mut rosespeak_in_speak_configs = false;
+        let speak_configs = self.speak_configs.clone();
+        for (_, speak_config) in speak_configs {
+            rosespeak_in_speak_configs = rosespeak_in_speak_configs
+                | matches!(speak_config, SpeakConfig::RosEspeak { config: _ });
+        }
         !self.ros_clients_configs.is_empty()
-            || matches!(&self.speak_config, SpeakConfig::RosEspeak { config: _ })
+            || rosespeak_in_speak_configs
             || self.ros_cmd_vel_move_base_client_config.is_some()
             || self.ros_navigation_client_config.is_some()
     }
@@ -94,10 +100,15 @@ impl RobotConfig {
         M: MoveBase + From<Box<dyn MoveBase>>,
         N: Navigation + From<Box<dyn Navigation>>,
     {
+        let mut speakers = HashMap::new();
+        for (name, speaker) in self.create_speakers() {
+            speakers.insert(name, speaker.into());
+        }
+
         Ok(RobotClient::try_new(
             self.openrr_clients_config.clone(),
             self.create_raw_joint_trajectory_clients(),
-            self.create_speaker().into(),
+            speakers,
             self.create_move_base().map(|m| m.into()),
             self.create_navigation().map(|n| n.into()),
         )?)
@@ -173,16 +184,28 @@ impl RobotConfig {
     fn create_speaker_ros_espeak_client(&self, topic: &str) -> Box<dyn Speaker> {
         Box::new(RosEspeakClient::new(topic))
     }
-    fn create_speaker(&self) -> Box<dyn Speaker> {
-        match &self.speak_config {
-            #[cfg(feature = "ros")]
-            SpeakConfig::RosEspeak { config } => {
-                self.create_speaker_ros_espeak_client(&config.topic)
-            }
-            SpeakConfig::Audio { ref map } => self.create_speaker_audio_speaker(map.clone()),
-            SpeakConfig::Command => self.create_speaker_local_command(),
-            SpeakConfig::Print => self.create_speaker_print_speaker(),
+    fn create_speakers(&self) -> HashMap<String, Box<dyn Speaker>> {
+        let mut speakers = HashMap::new();
+        let speak_config = self.speak_configs.clone();
+
+        for (name, speak_config) in speak_config {
+            match speak_config {
+                #[cfg(feature = "ros")]
+                SpeakConfig::RosEspeak { config } => {
+                    speakers.insert(name, self.create_speaker_ros_espeak_client(&config.topic));
+                }
+                SpeakConfig::Audio { ref map } => {
+                    speakers.insert(name, self.create_speaker_audio_speaker(map.clone()));
+                }
+                SpeakConfig::Command => {
+                    speakers.insert(name, self.create_speaker_local_command());
+                }
+                SpeakConfig::Print => {
+                    speakers.insert(name, self.create_speaker_print_speaker());
+                }
+            };
         }
+        speakers
     }
     fn create_raw_joint_trajectory_clients(
         &self,
@@ -217,23 +240,27 @@ impl RobotConfig {
 /// Convert relative path into absolute one
 fn resolve_audio_file_path<P: AsRef<Path>>(
     base_path: P,
-    relative_hash_map: HashMap<String, PathBuf>,
-) -> Result<HashMap<String, PathBuf>, Error> {
-    let mut absolute_hash_map = HashMap::new();
-    for (k, v) in relative_hash_map.iter() {
+    relative_hash_map: &mut HashMap<String, PathBuf>,
+) //-> Result<HashMap<String, PathBuf>, Error>
+{
+    ////  let mut absolute_hash_map = HashMap::new();
+    for (k, v) in relative_hash_map {
         let path_string = v.clone().into_os_string().into_string().unwrap();
         let full_path =
-            openrr_client::resolve_relative_path(base_path.as_ref().to_owned(), &path_string)?
+            openrr_client::resolve_relative_path(base_path.as_ref().to_owned(), &path_string)
+                .unwrap()
                 .unwrap();
-        absolute_hash_map.insert(k.clone(), full_path);
+        *v = full_path;
+        //  absolute_hash_map.insert(k.clone(), full_path);
     }
-    Ok(absolute_hash_map)
+    // Ok(absolute_hash_map)
 }
 
+/*
 #[cfg(test)]
 mod test {
     use super::*;
-    #[test]
+    #[test]hash
     fn test_resolve_audio_file_path() {
         let mut hash = HashMap::new();
         hash.insert("a".to_owned(), PathBuf::from("dir1/file.mp3"));
@@ -244,7 +271,7 @@ mod test {
         assert_eq!(resolved["b"], PathBuf::from("/config/../dir2/file.mp3"));
     }
 }
-
+*/
 impl RobotConfig {
     pub fn try_new<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut config: RobotConfig = toml::from_str(
@@ -255,9 +282,11 @@ impl RobotConfig {
         if config.openrr_clients_config.urdf_path.is_some() {
             config.openrr_clients_config.resolve_path(path.as_ref())?;
         }
-        if let SpeakConfig::Audio { ref mut map } = config.speak_config {
-            *map = resolve_audio_file_path(path, map.clone())?;
-        };
+        for (_, speak_config) in &mut config.speak_configs {
+            if let SpeakConfig::Audio { ref mut map } = speak_config {
+                resolve_audio_file_path(path.as_ref(), map);
+            };
+        }
         debug!("{:?}", config);
         Ok(config)
     }
