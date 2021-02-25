@@ -6,6 +6,7 @@ use openrr_teleop::ControlNodeSwitcher;
 use std::thread;
 use std::{path::PathBuf, sync::Arc};
 use structopt::StructOpt;
+use tracing::info;
 
 #[derive(StructOpt, Debug)]
 #[structopt(
@@ -42,6 +43,7 @@ async fn main() -> Result<(), Error> {
     }
 
     let initial_node_index = if teleop_config.initial_mode.is_empty() {
+        info!("Use first node as initial node");
         0
     } else if let Some(initial_node_index) = nodes
         .iter()
@@ -49,7 +51,7 @@ async fn main() -> Result<(), Error> {
     {
         initial_node_index
     } else {
-        0
+        return Err(Error::NoSpecifiedNode(teleop_config.initial_mode));
     };
 
     let switcher = Arc::new(ControlNodeSwitcher::new(
