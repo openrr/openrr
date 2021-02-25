@@ -32,7 +32,7 @@ where
     ik_clients: HashMap<String, ArcIkClient>,
     self_collision_checkers: HashMap<String, Arc<SelfCollisionChecker>>,
     ik_solvers: HashMap<String, Arc<IkSolverWithChain>>,
-    speaker: S,
+    speakers: HashMap<String, S>,
     move_base: Option<M>,
     navigation: Option<N>,
     joints_poses: HashMap<String, HashMap<String, Vec<f64>>>,
@@ -47,7 +47,7 @@ where
     pub fn try_new(
         config: OpenrrClientsConfig,
         raw_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
-        speaker: S,
+        speakers: HashMap<String, S>,
         move_base: Option<M>,
         navigation: Option<N>,
     ) -> Result<Self, Error> {
@@ -148,7 +148,7 @@ where
             ik_clients,
             self_collision_checkers,
             ik_solvers,
-            speaker,
+            speakers,
             move_base,
             navigation,
             joints_poses,
@@ -350,6 +350,16 @@ where
     pub fn full_chain_for_collision_checker(&self) -> &Option<Arc<Chain<f64>>> {
         &self.full_chain_for_collision_checker
     }
+    pub fn speak_with(&self, name: &str, message: &str) {
+        match self.speakers.get(&name.to_string()) {
+            Some(speaker) => {
+                speaker.speak(message);
+            }
+            Nonw => {
+                // Not found.
+            }
+        }
+    }
 }
 
 #[async_trait]
@@ -401,7 +411,9 @@ where
     N: Navigation,
 {
     fn speak(&self, message: &str) {
-        self.speaker.speak(message)
+        if let Some(speaker) = self.speakers.values().next() {
+            speaker.speak(message);
+        }
     }
 }
 

@@ -83,7 +83,7 @@ pub enum RobotCommand {
     /// List available clients.
     List,
     /// Speak text message.
-    Speak { message: Vec<String> },
+    Speak { name: String, message: Vec<String> },
     /// Execute an external command.
     ExecuteCommand { command: Vec<String> },
     /// Get navigation current pose.
@@ -287,11 +287,11 @@ impl RobotCommandExecutor {
                     println!(" {}", name);
                 }
             }
-            RobotCommand::Speak { message } => {
+            RobotCommand::Speak { name, message } => {
                 // TODO: Parse quotations and comments
                 // Currently '"Foo bar" # hoge' is parsed as message in below command.
                 // 'openrr_apps_robot_command speak "Foo bar" # hoge'
-                client.speak(&message.join(" "));
+                client.speak_with(&name, &message.join(" "));
             }
             RobotCommand::ExecuteCommand { command } => {
                 let mut iter = command.iter();
