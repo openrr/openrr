@@ -1,5 +1,5 @@
 use crate::Error as OpenrrCommandError;
-use arci::{BaseVelocity, MoveBase, Navigation, Speaker};
+use arci::{BaseVelocity, MoveBase, Navigation};
 use async_recursion::async_recursion;
 use k::nalgebra::{Isometry2, Vector2};
 use openrr_client::{isometry, BoxRobotClient};
@@ -291,7 +291,7 @@ impl RobotCommandExecutor {
                 // TODO: Parse quotations and comments
                 // Currently '"Foo bar" # hoge' is parsed as message in below command.
                 // 'openrr_apps_robot_command speak "Foo bar" # hoge'
-                client.speak_with(&name, &message.join(" "));
+                client.speak(&name, &message.join(" "));
             }
             RobotCommand::ExecuteCommand { command } => {
                 let mut iter = command.iter();

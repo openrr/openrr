@@ -13,14 +13,13 @@ use std::{collections::HashMap, path::Path, path::PathBuf, sync::Arc, time::Dura
 use tracing::{debug, error};
 
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
-pub type ArcRobotClient = RobotClient<Arc<dyn Speaker>, Arc<dyn MoveBase>, Arc<dyn Navigation>>;
-pub type BoxRobotClient = RobotClient<Box<dyn Speaker>, Box<dyn MoveBase>, Box<dyn Navigation>>;
+pub type ArcRobotClient = RobotClient<Arc<dyn MoveBase>, Arc<dyn Navigation>>;
+pub type BoxRobotClient = RobotClient<Box<dyn MoveBase>, Box<dyn Navigation>>;
 
 type ArcJointTrajectoryClient = Arc<dyn JointTrajectoryClient>;
 
-pub struct RobotClient<S, M, N>
+pub struct RobotClient<M, N>
 where
-    S: Speaker,
     M: MoveBase,
     N: Navigation,
 {
@@ -32,22 +31,21 @@ where
     ik_clients: HashMap<String, ArcIkClient>,
     self_collision_checkers: HashMap<String, Arc<SelfCollisionChecker>>,
     ik_solvers: HashMap<String, Arc<IkSolverWithChain>>,
-    speakers: HashMap<String, S>,
+    speakers: HashMap<String, Arc<dyn Speaker>>,
     move_base: Option<M>,
     navigation: Option<N>,
     joints_poses: HashMap<String, HashMap<String, Vec<f64>>>,
 }
 
-impl<S, M, N> RobotClient<S, M, N>
+impl<M, N> RobotClient<M, N>
 where
-    S: Speaker,
     M: MoveBase,
     N: Navigation,
 {
     pub fn try_new(
         config: OpenrrClientsConfig,
         raw_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
-        speakers: HashMap<String, S>,
+        speakers: HashMap<String, Arc<dyn Speaker>>,
         move_base: Option<M>,
         navigation: Option<N>,
     ) -> Result<Self, Error> {
@@ -350,7 +348,11 @@ where
     pub fn full_chain_for_collision_checker(&self) -> &Option<Arc<Chain<f64>>> {
         &self.full_chain_for_collision_checker
     }
-    pub fn speak_with(&self, name: &str, message: &str) {
+
+    pub fn speakers(&self) -> &HashMap<String, Arc<dyn Speaker>> {
+        &self.speakers
+    }
+    pub fn speak(&self, name: &str, message: &str) {
         match self.speakers.get(&name.to_string()) {
             Some(speaker) => {
                 speaker.speak(message);
@@ -363,9 +365,8 @@ where
 }
 
 #[async_trait]
-impl<S, M, N> Navigation for RobotClient<S, M, N>
+impl<M, N> Navigation for RobotClient<M, N>
 where
-    S: Speaker,
     M: MoveBase,
     N: Navigation,
 {
@@ -390,9 +391,8 @@ where
     }
 }
 
-impl<S, M, N> MoveBase for RobotClient<S, M, N>
+impl<M, N> MoveBase for RobotClient<M, N>
 where
-    S: Speaker,
     M: MoveBase,
     N: Navigation,
 {
@@ -401,19 +401,6 @@ where
     }
     fn current_velocity(&self) -> Result<BaseVelocity, ArciError> {
         self.move_base.as_ref().unwrap().current_velocity()
-    }
-}
-
-impl<S, M, N> Speaker for RobotClient<S, M, N>
-where
-    S: Speaker,
-    M: MoveBase,
-    N: Navigation,
-{
-    fn speak(&self, message: &str) {
-        if let Some(speaker) = self.speakers.values().next() {
-            speaker.speak(message);
-        }
     }
 }
 
@@ -448,26 +435,24 @@ pub struct OpenrrClientsConfig {
 /// # Example
 /// ```
 /// use std::path::PathBuf;
-/// let abs_path = openrr_client::resolve_relative_path("/home/a/base_file.toml", "../another_file.mp3").unwrap().unwrap();
+/// let abs_path = openrr_client::resolve_relative_path("/home/a/base_file.toml", "../another_file.mp3").unwrap();
 /// assert_eq!(abs_path, PathBuf::from("/home/a/../another_file.mp3"));
 /// ```
-pub fn resolve_relative_path<P: AsRef<Path>>(
-    base_path: P,
-    path: &str,
-) -> Result<Option<PathBuf>, Error> {
-    Ok(Some(
-        base_path
-            .as_ref()
-            .parent()
-            .ok_or_else(|| Error::NoParentDirectory(base_path.as_ref().to_owned()))?
-            .join(path),
-    ))
+pub fn resolve_relative_path<B: AsRef<Path>, P: AsRef<Path>>(
+    base_path: B,
+    path: P,
+) -> Result<PathBuf, Error> {
+    Ok(base_path
+        .as_ref()
+        .parent()
+        .ok_or_else(|| Error::NoParentDirectory(base_path.as_ref().to_owned()))?
+        .join(path))
 }
 
 impl OpenrrClientsConfig {
     pub fn resolve_path<P: AsRef<Path>>(&mut self, path: P) -> Result<(), Error> {
         if let Some(urdf_path) = self.urdf_path.as_ref() {
-            self.urdf_full_path = resolve_relative_path(path, &urdf_path)?;
+            self.urdf_full_path = Some(resolve_relative_path(path, &urdf_path)?);
         } else {
             return Err(Error::NoUrdfPath);
         }

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, f64, path::Path, sync::Arc, time::Duration, usize};
 
-use arci::{JointTrajectoryClient, MoveBase, Navigation, Speaker};
+use arci::{JointTrajectoryClient, MoveBase, Navigation};
 use iced::{
     button, scrollable, slider, window, Application, Button, Column, Command, Container, Element,
     HorizontalAlignment, Length, PickList, Row, Scrollable, Settings, Slider, Text, TextInput,
@@ -62,12 +62,11 @@ fn read_urdf(path: impl AsRef<Path>) -> Result<Robot, Error> {
 }
 
 /// Launches GUI that send joint positions from GUI to the given `robot_client`.
-pub fn joint_position_sender<S, M, N>(
-    robot_client: RobotClient<S, M, N>,
+pub fn joint_position_sender<M, N>(
+    robot_client: RobotClient<M, N>,
     urdf_path: impl AsRef<Path>,
 ) -> Result<(), Error>
 where
-    S: Speaker + 'static,
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
@@ -106,13 +105,12 @@ where
     Ok(())
 }
 
-struct JointPositionSender<S, M, N>
+struct JointPositionSender<M, N>
 where
-    S: Speaker + 'static,
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
-    robot_client: RobotClient<S, M, N>,
+    robot_client: RobotClient<M, N>,
     robot: Robot,
 
     joint_trajectory_client_names: Vec<String>,
@@ -179,14 +177,13 @@ impl Errors {
     }
 }
 
-impl<S, M, N> JointPositionSender<S, M, N>
+impl<M, N> JointPositionSender<M, N>
 where
-    S: Speaker + 'static,
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
     fn new(
-        robot_client: RobotClient<S, M, N>,
+        robot_client: RobotClient<M, N>,
         robot: Robot,
         joint_trajectory_client_names: Vec<String>,
     ) -> Self {
@@ -250,9 +247,8 @@ enum Message {
     PickListChanged(String),
 }
 
-impl<S, M, N> Application for JointPositionSender<S, M, N>
+impl<M, N> Application for JointPositionSender<M, N>
 where
-    S: Speaker + 'static,
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
