@@ -12,8 +12,7 @@ This starts as a copy of [`gear`](https://github.com/openrr/gear) crate.
 ### [minimum code example](examples/minimum.rs)
 
 ```rust
-extern crate openrr_planner;
-extern crate nalgebra as na;
+use nalgebra as na;
 
 fn main() {
     // Create path planner with loading urdf file and set end link name
