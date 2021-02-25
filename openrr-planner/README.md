@@ -1,7 +1,7 @@
 # OpenRR Planner
 
-Collision Avoidance Path Planning for robotics in Rust-lang
-This starts as a copy of `openrr_planner` crate.
+Collision Avoidance Path Planning for robotics in Rust-lang.
+This starts as a copy of [`gear`](https://github.com/openrr/gear) crate.
 
 [![Video](https://j.gifs.com/kZZyJK.gif)](http://www.youtube.com/watch?v=jEu3EfpVAI8)
 
