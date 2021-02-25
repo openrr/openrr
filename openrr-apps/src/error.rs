@@ -12,6 +12,8 @@ pub enum Error {
     NoFile(PathBuf, #[source] std::io::Error),
     #[error("openrr-apps: No ParentDirectory {:?} is found.", .0)]
     NoParentDirectory(PathBuf),
+    #[error("openrr-apps: No SpecifiedNode {:?} is found.", .0)]
+    NoSpecifiedNode(String),
     #[error("openrr-apps: openrr-client: {:?}", .0)]
     OpenrrClient(#[from] openrr_client::Error),
     #[error("openrr-apps: openrr-command: {:?}", .0)]
