@@ -10,7 +10,7 @@ use async_trait::async_trait;
 use k::{nalgebra::Isometry2, Chain, Isometry3};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, path::PathBuf, sync::Arc, time::Duration};
-use tracing::debug;
+use tracing::{debug, error};
 
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
 pub type ArcRobotClient = RobotClient<Arc<dyn Speaker>, Arc<dyn MoveBase>, Arc<dyn Navigation>>;
@@ -355,8 +355,8 @@ where
             Some(speaker) => {
                 speaker.speak(message);
             }
-            Nonw => {
-                // Not found.
+            _ => {
+                error!("Speaker \"{}\" is not found.", name);
             }
         }
     }
