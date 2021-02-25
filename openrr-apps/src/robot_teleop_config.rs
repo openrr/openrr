@@ -11,6 +11,8 @@ use crate::Error;
 pub struct RobotTeleopConfig {
     pub robot_config_path: String,
     robot_config_full_path: Option<PathBuf>,
+    #[serde(default)]
+    pub initial_mode: String,
     pub control_nodes_config: ControlNodesConfig,
     #[serde(default)]
     pub gil_gamepad_config: GilGamepadConfig,
