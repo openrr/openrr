@@ -43,15 +43,13 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           apt-get update
-          apt-get -y install curl libasound2-dev
+          apt-get -y install curl
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-      - run: sudo apt-get update
-      # only for arci-gamepad-gilrs
-      - run: sudo apt-get install -y libudev-dev libasound2-dev
+      - run: ci/ubuntu-install-dependencies.sh
       - name: cargo test
         shell: bash -ieo pipefail {0}
         working-directory: openrr-apps

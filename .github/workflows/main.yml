@@ -58,12 +58,11 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - run: sudo apt-get update
-      # only for arci-gamepad-gilrs
-      - run: sudo apt-get install -y libudev-dev libasound2-dev
+      - run: ci/ubuntu-install-dependencies.sh
       - uses: actions-rs/cargo@v1
         with:
           command: check
+
   test:
     name: Test Suite
     runs-on: ubuntu-latest
@@ -74,14 +73,13 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - run: sudo apt-get update
-      # only for arci-gamepad-gilrs
-      - run: sudo apt-get install -y libudev-dev libasound2-dev
+      - run: ci/ubuntu-install-dependencies.sh
       # testing arci-ros is done in ros1.yaml
       - uses: actions-rs/cargo@v1
         with:
           command: test
           args: --workspace --exclude arci-ros
+
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
@@ -97,6 +95,7 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
+
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
@@ -107,9 +106,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - run: sudo apt-get update
-      # only for arci-gamepad-gilrs
-      - run: sudo apt-get install -y libudev-dev libasound2-dev
+      - run: ci/ubuntu-install-dependencies.sh
       - run: rustup component add clippy
       - uses: actions-rs/cargo@v1
         with:
