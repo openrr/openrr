@@ -25,10 +25,10 @@ where
     N: 'static + ControlNode,
     S: 'static + Speaker,
 {
-    pub fn new(control_nodes: Vec<N>, speaker: S) -> Self {
+    pub fn new(control_nodes: Vec<N>, speaker: S, initial_node_index: usize) -> Self {
         assert!(!control_nodes.is_empty());
         Self {
-            current_index: Arc::new(AtomicUsize::new(0)),
+            current_index: Arc::new(AtomicUsize::new(initial_node_index)),
             control_nodes: Arc::new(TokioMutex::new(control_nodes)),
             speaker: Arc::new(speaker),
             is_running: Arc::new(AtomicBool::new(false)),

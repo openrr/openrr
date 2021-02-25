@@ -41,7 +41,22 @@ async fn main() -> Result<(), Error> {
         panic!("No valid nodes");
     }
 
-    let switcher = Arc::new(ControlNodeSwitcher::new(nodes, client.clone()));
+    let initial_node_index = if teleop_config.initial_mode.is_empty() {
+        0
+    } else if let Some(initial_node_index) = nodes
+        .iter()
+        .position(|node| node.mode() == teleop_config.initial_mode)
+    {
+        initial_node_index
+    } else {
+        0
+    };
+
+    let switcher = Arc::new(ControlNodeSwitcher::new(
+        nodes,
+        client.clone(),
+        initial_node_index,
+    ));
     #[cfg(feature = "ros")]
     if use_ros {
         let switcher_cloned = switcher.clone();
