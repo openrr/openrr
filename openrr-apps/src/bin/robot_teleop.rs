@@ -31,8 +31,10 @@ async fn main() -> Result<(), Error> {
     let use_ros = robot_config.has_ros_clients();
     let client: Arc<ArcRobotClient> = Arc::new(robot_config.create_robot_client()?);
 
+    let speaker = client.speakers().values().next().unwrap();
+
     let nodes = teleop_config.control_nodes_config.create_control_nodes(
-        client.clone(),
+        speaker.clone(),
         client.joint_trajectory_clients(),
         client.ik_solvers(),
         Some(client.clone()),
@@ -56,7 +58,7 @@ async fn main() -> Result<(), Error> {
 
     let switcher = Arc::new(ControlNodeSwitcher::new(
         nodes,
-        client.clone(),
+        speaker.clone(),
         initial_node_index,
     ));
     #[cfg(feature = "ros")]

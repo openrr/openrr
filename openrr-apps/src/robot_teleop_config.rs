@@ -25,7 +25,8 @@ impl RobotTeleopConfig {
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,
         )
         .map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
-        config.robot_config_full_path = resolve_relative_path(path, &config.robot_config_path)?;
+        config.robot_config_full_path =
+            Some(resolve_relative_path(path, &config.robot_config_path)?);
         Ok(config)
     }
 
