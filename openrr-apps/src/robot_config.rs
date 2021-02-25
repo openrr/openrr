@@ -241,9 +241,7 @@ impl RobotConfig {
 fn resolve_audio_file_path<P: AsRef<Path>>(
     base_path: P,
     relative_hash_map: &mut HashMap<String, PathBuf>,
-) //-> Result<HashMap<String, PathBuf>, Error>
-{
-    ////  let mut absolute_hash_map = HashMap::new();
+) {
     for (k, v) in relative_hash_map {
         let path_string = v.clone().into_os_string().into_string().unwrap();
         let full_path =
@@ -251,27 +249,24 @@ fn resolve_audio_file_path<P: AsRef<Path>>(
                 .unwrap()
                 .unwrap();
         *v = full_path;
-        //  absolute_hash_map.insert(k.clone(), full_path);
     }
-    // Ok(absolute_hash_map)
 }
 
-/*
 #[cfg(test)]
 mod test {
     use super::*;
-    #[test]hash
+    #[test]
     fn test_resolve_audio_file_path() {
         let mut hash = HashMap::new();
         hash.insert("a".to_owned(), PathBuf::from("dir1/file.mp3"));
         hash.insert("b".to_owned(), PathBuf::from("../dir2/file.mp3"));
-        let resolved = resolve_audio_file_path("/config/some_file.toml", hash).unwrap();
-        assert_eq!(resolved.len(), 2);
-        assert_eq!(resolved["a"], PathBuf::from("/config/dir1/file.mp3"));
-        assert_eq!(resolved["b"], PathBuf::from("/config/../dir2/file.mp3"));
+        resolve_audio_file_path("/config/some_file.toml", hash);
+        assert_eq!(hash.len(), 2);
+        assert_eq!(hash["a"], PathBuf::from("/config/dir1/file.mp3"));
+        assert_eq!(hash["b"], PathBuf::from("/config/../dir2/file.mp3"));
     }
 }
-*/
+
 impl RobotConfig {
     pub fn try_new<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut config: RobotConfig = toml::from_str(
