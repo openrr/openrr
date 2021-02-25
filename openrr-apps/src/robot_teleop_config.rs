@@ -12,6 +12,7 @@ pub struct RobotTeleopConfig {
     pub robot_config_path: String,
     robot_config_full_path: Option<PathBuf>,
     pub control_nodes_config: ControlNodesConfig,
+    #[serde(default)]
     pub gil_gamepad_config: GilGamepadConfig,
 }
 

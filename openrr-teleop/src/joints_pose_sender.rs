@@ -120,6 +120,16 @@ where
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JointsPoseSenderConfig {
+    #[serde(default = "default_mode")]
     pub mode: String,
+    #[serde(default = "default_duration_secs")]
     pub duration_secs: f64,
+}
+
+fn default_mode() -> String {
+    "pose".to_string()
+}
+
+fn default_duration_secs() -> f64 {
+    2.0
 }
