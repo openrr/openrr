@@ -196,7 +196,22 @@ where
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct IkNodeConfig {
     pub mode: String,
+    #[serde(default = "default_move_step_angular")]
     pub move_step_angular: [f64; 3],
+    #[serde(default = "default_move_step_linear")]
     pub move_step_linear: [f64; 3],
+    #[serde(default = "default_step_duration_secs")]
     pub step_duration_secs: f64,
+}
+
+fn default_move_step_angular() -> [f64; 3] {
+    [0.05, 0.05, 0.17]
+}
+
+fn default_move_step_linear() -> [f64; 3] {
+    [0.01, 0.01, 0.01]
+}
+
+fn default_step_duration_secs() -> f64 {
+    0.1
 }

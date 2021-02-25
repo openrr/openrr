@@ -142,6 +142,16 @@ where
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JoyJointTeleopNodeConfig {
     pub mode: String,
+    #[serde(default = "default_joint_step")]
     pub joint_step: f64,
+    #[serde(default = "default_step_duration_secs")]
     pub step_duration_secs: f64,
+}
+
+fn default_joint_step() -> f64 {
+    0.02
+}
+
+fn default_step_duration_secs() -> f64 {
+    0.1
 }

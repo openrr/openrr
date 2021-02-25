@@ -18,46 +18,22 @@ use tracing::{debug, error};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Map {
     #[serde_as(as = "Vec<(_, _)>")]
+    #[serde(default = "default_button_map")]
     button_map: HashMap<gilrs::Button, Button>,
     #[serde_as(as = "Vec<(_, _)>")]
+    #[serde(default = "default_axis_map")]
     axis_map: HashMap<gilrs::Axis, Axis>,
     #[serde_as(as = "Vec<(_, _)>")]
+    #[serde(default = "default_axis_value_map")]
     axis_value_map: HashMap<Axis, f64>,
 }
 
 impl Map {
     pub fn new() -> Self {
-        let mut button_map = HashMap::new();
-        button_map.insert(gilrs::Button::South, Button::South);
-        button_map.insert(gilrs::Button::East, Button::East);
-        button_map.insert(gilrs::Button::North, Button::North);
-        button_map.insert(gilrs::Button::West, Button::West);
-        button_map.insert(gilrs::Button::LeftTrigger, Button::LeftTrigger);
-        button_map.insert(gilrs::Button::LeftTrigger2, Button::LeftTrigger2);
-        button_map.insert(gilrs::Button::RightTrigger, Button::RightTrigger);
-        button_map.insert(gilrs::Button::RightTrigger2, Button::RightTrigger2);
-        button_map.insert(gilrs::Button::Select, Button::Select);
-        button_map.insert(gilrs::Button::Start, Button::Start);
-        button_map.insert(gilrs::Button::Mode, Button::Mode);
-        button_map.insert(gilrs::Button::LeftThumb, Button::LeftThumb);
-        button_map.insert(gilrs::Button::RightThumb, Button::RightThumb);
-        button_map.insert(gilrs::Button::DPadUp, Button::DPadUp);
-        button_map.insert(gilrs::Button::DPadDown, Button::DPadDown);
-        button_map.insert(gilrs::Button::DPadLeft, Button::DPadLeft);
-        button_map.insert(gilrs::Button::DPadRight, Button::DPadRight);
-
-        let mut axis_map = HashMap::new();
-        axis_map.insert(gilrs::Axis::LeftStickX, Axis::LeftStickX);
-        axis_map.insert(gilrs::Axis::LeftStickY, Axis::LeftStickY);
-        axis_map.insert(gilrs::Axis::RightStickX, Axis::RightStickX);
-        axis_map.insert(gilrs::Axis::RightStickY, Axis::RightStickY);
-        axis_map.insert(gilrs::Axis::DPadX, Axis::DPadX);
-        axis_map.insert(gilrs::Axis::DPadY, Axis::DPadY);
-
         Self {
-            button_map,
-            axis_map,
-            axis_value_map: HashMap::new(),
+            button_map: default_button_map(),
+            axis_map: default_axis_map(),
+            axis_value_map: default_axis_value_map(),
         }
     }
 
@@ -140,6 +116,46 @@ impl Default for Map {
     fn default() -> Self {
         Self::new()
     }
+}
+
+fn default_button_map() -> HashMap<gilrs::Button, Button> {
+    let mut button_map = HashMap::new();
+    button_map.insert(gilrs::Button::South, Button::South);
+    button_map.insert(gilrs::Button::East, Button::East);
+    button_map.insert(gilrs::Button::North, Button::North);
+    button_map.insert(gilrs::Button::West, Button::West);
+    button_map.insert(gilrs::Button::LeftTrigger, Button::LeftTrigger);
+    button_map.insert(gilrs::Button::LeftTrigger2, Button::LeftTrigger2);
+    button_map.insert(gilrs::Button::RightTrigger, Button::RightTrigger);
+    button_map.insert(gilrs::Button::RightTrigger2, Button::RightTrigger2);
+    button_map.insert(gilrs::Button::Select, Button::Select);
+    button_map.insert(gilrs::Button::Start, Button::Start);
+    button_map.insert(gilrs::Button::Mode, Button::Mode);
+    button_map.insert(gilrs::Button::LeftThumb, Button::LeftThumb);
+    button_map.insert(gilrs::Button::RightThumb, Button::RightThumb);
+    button_map.insert(gilrs::Button::DPadUp, Button::DPadUp);
+    button_map.insert(gilrs::Button::DPadDown, Button::DPadDown);
+    button_map.insert(gilrs::Button::DPadLeft, Button::DPadLeft);
+    button_map.insert(gilrs::Button::DPadRight, Button::DPadRight);
+    button_map
+}
+
+fn default_axis_map() -> HashMap<gilrs::Axis, Axis> {
+    let mut axis_map = HashMap::new();
+    axis_map.insert(gilrs::Axis::LeftStickX, Axis::LeftStickX);
+    axis_map.insert(gilrs::Axis::LeftStickY, Axis::LeftStickY);
+    axis_map.insert(gilrs::Axis::RightStickX, Axis::RightStickX);
+    axis_map.insert(gilrs::Axis::RightStickY, Axis::RightStickY);
+    axis_map.insert(gilrs::Axis::DPadX, Axis::DPadX);
+    axis_map.insert(gilrs::Axis::DPadY, Axis::DPadY);
+    axis_map
+}
+
+fn default_axis_value_map() -> HashMap<Axis, f64> {
+    let mut axis_value_map = HashMap::new();
+    axis_value_map.insert(Axis::RightStickX, -1.0);
+    axis_value_map.insert(Axis::LeftStickX, -1.0);
+    axis_value_map
 }
 
 #[cfg(test)]
@@ -280,8 +296,10 @@ mod test {
 }
 */
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct GilGamepadConfig {
+    #[serde(default)]
     device_id: usize,
+    #[serde(default)]
     map: Map,
 }
