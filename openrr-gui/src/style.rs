@@ -25,7 +25,7 @@ impl From<Theme> for Box<dyn radio::StyleSheet> {
 
 impl From<Theme> for Box<dyn text_input::StyleSheet> {
     fn from(_: Theme) -> Self {
-        TextInput.into()
+        TextInput::Default.into()
     }
 }
 
@@ -95,6 +95,11 @@ const HOVERED: Color = Color::from_rgb(
     0xC4 as f32 / 255.0,
 );
 
+pub const ERROR_TEXT_SIZE: u16 = 18;
+
+pub const ERRORED: Color =
+    Color::from_rgb(u8::MAX as f32 / 255.0, 0 as f32 / 255.0, 0 as f32 / 255.0);
+
 pub struct Container;
 
 impl container::StyleSheet for Container {
@@ -127,31 +132,48 @@ impl radio::StyleSheet for Radio {
     }
 }
 
-pub struct TextInput;
+pub enum TextInput {
+    Default,
+    Error,
+}
 
 impl text_input::StyleSheet for TextInput {
     fn active(&self) -> text_input::Style {
-        text_input::Style {
-            background: SURFACE.into(),
-            border_radius: 2.0,
-            border_width: 0.0,
-            border_color: Color::TRANSPARENT,
+        match self {
+            Self::Default => text_input::Style {
+                background: SURFACE.into(),
+                border_radius: 2.0,
+                border_width: 0.0,
+                border_color: Color::TRANSPARENT,
+            },
+            Self::Error => text_input::Style {
+                background: SURFACE.into(),
+                border_radius: 2.0,
+                border_width: 1.5,
+                border_color: ERRORED,
+            },
         }
     }
 
     fn focused(&self) -> text_input::Style {
-        text_input::Style {
-            border_width: 1.0,
-            border_color: ACCENT,
-            ..self.active()
+        match self {
+            Self::Default => text_input::Style {
+                border_width: 1.0,
+                border_color: ACCENT,
+                ..self.active()
+            },
+            Self::Error => self.active(),
         }
     }
 
     fn hovered(&self) -> text_input::Style {
-        text_input::Style {
-            border_width: 1.0,
-            border_color: Color { a: 0.3, ..ACCENT },
-            ..self.focused()
+        match self {
+            Self::Default => text_input::Style {
+                border_width: 1.0,
+                border_color: Color { a: 0.3, ..ACCENT },
+                ..self.focused()
+            },
+            Self::Error => self.focused(),
         }
     }
 

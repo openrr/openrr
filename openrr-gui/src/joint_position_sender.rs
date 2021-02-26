@@ -8,7 +8,7 @@ use iced::{
 use iced::{pick_list, text_input};
 use openrr_client::RobotClient;
 use rand::Rng;
-use tracing::{debug, error, warn, Instrument};
+use tracing::{debug, debug_span, error, warn, Instrument};
 use urdf_rs::JointType;
 
 use crate::{style, Error};
@@ -19,8 +19,16 @@ const THEME: style::Theme = style::Theme;
 struct JointState {
     name: String,
     slider: slider::State,
-    text_input: text_input::State,
     position: f64,
+    position_input: String,
+    position_input_state: text_input::State,
+}
+
+impl JointState {
+    fn update_position(&mut self, position: f64) {
+        self.position = position;
+        self.position_input = format!("{:.2}", position);
+    }
 }
 
 struct Robot {
@@ -39,6 +47,20 @@ impl From<urdf_rs::Robot> for Robot {
     }
 }
 
+fn read_urdf(path: impl AsRef<Path>) -> Result<Robot, Error> {
+    let mut robot = urdf_rs::read_file(path)?;
+
+    for joint in &mut robot.joints {
+        // If limit is not specified, urdf-rs assigns f64::default.
+        if JointType::Continuous == joint.joint_type {
+            joint.limit.lower = -f64::consts::PI;
+            joint.limit.upper = f64::consts::PI;
+        }
+    }
+
+    Ok(robot.into())
+}
+
 /// Launches GUI that send joint positions from GUI to the given `robot_client`.
 pub fn joint_position_sender<S, M, N>(
     robot_client: RobotClient<S, M, N>,
@@ -50,48 +72,13 @@ where
     N: Navigation + 'static,
 {
     // TODO: If the urdf file read by `robot_client` and this urdf file are different, we should emit an error.
-    let mut robot = urdf_rs::read_file(urdf_path)?;
-
-    for joint in &mut robot.joints {
-        // If limit is not specified, urdf-rs assigns f64::default.
-        if let JointType::Continuous = joint.joint_type {
-            joint.limit.lower = -f64::consts::PI;
-            joint.limit.upper = f64::consts::PI;
-        }
-    }
+    let robot = read_urdf(&urdf_path)?;
 
     let mut joint_trajectory_client_names = robot_client.joint_trajectory_clients_names();
     joint_trajectory_client_names.sort_unstable();
     debug!("{:?}", joint_trajectory_client_names);
 
-    let joint_states = joint_trajectory_client_names
-        .iter()
-        .map(|client_name| {
-            (
-                client_name.clone(),
-                robot_client.joint_trajectory_clients()[client_name]
-                    .joint_names()
-                    .iter()
-                    .map(|joint_name| JointState {
-                        name: joint_name.clone(),
-                        ..Default::default()
-                    })
-                    .collect::<Vec<_>>(),
-            )
-        })
-        .collect();
-
-    let mut gui = JointPositionSender {
-        robot_client,
-        robot: robot.into(),
-        current_joint_trajectory_client: joint_trajectory_client_names[0].clone(),
-        joint_trajectory_client_names,
-        pick_list: Default::default(),
-        scroll: Default::default(),
-        randomize_button: Default::default(),
-        zero_button: Default::default(),
-        joint_states,
-    };
+    let mut gui = JointPositionSender::new(robot_client, robot, joint_trajectory_client_names);
 
     let joint_trajectory_client = gui.current_joint_trajectory_client();
     for (index, position) in joint_trajectory_client
@@ -102,14 +89,14 @@ where
         gui.joint_states
             .get_mut(&gui.current_joint_trajectory_client)
             .unwrap()[index]
-            .position = position;
+            .update_position(position);
     }
 
     // Should we expose some of the settings to the user?
     let settings = Settings {
         flags: Some(gui),
         window: window::Settings {
-            size: (400, 500),
+            size: (400, 550),
             ..window::Settings::default()
         },
         ..Settings::default()
@@ -136,10 +123,60 @@ where
     scroll: scrollable::State,
     randomize_button: button::State,
     zero_button: button::State,
+
     // TODO: Currently, we have separate states for each joint_trajectory_client,
     // but we initialize/update joint_positions based on current_joint_positions
     // when joint_trajectory_client changed. Do we really need to separate state?
     joint_states: HashMap<String, Vec<JointState>>,
+
+    duration: Duration,
+    duration_input: String,
+    duration_input_state: text_input::State,
+
+    errors: Errors,
+}
+
+#[derive(Debug, Default)]
+struct Errors {
+    joint_states: Option<(usize, String)>,
+    duration_input: Option<String>,
+    update_on_error: bool,
+}
+
+impl Errors {
+    fn is_none(&self) -> bool {
+        self.joint_states.is_none() && self.duration_input.is_none()
+    }
+
+    fn skip_update(&mut self, message: &Message) -> bool {
+        self.update_on_error = false;
+        // update always if there is no error.
+        if self.is_none() {
+            return false;
+        }
+
+        match message {
+            Message::DurationTextInputChanged(..) if self.duration_input.is_some() => false,
+            Message::SliderChanged { index, .. }
+            | Message::SliderTextInputChanged { index, .. }
+                if self.joint_states.is_some()
+                    && self.joint_states.as_ref().unwrap().0 == *index =>
+            {
+                false
+            }
+            Message::ZeroButtonPressed
+            | Message::RandomizeButtonPressed
+            | Message::UpdateAll(..)
+                if self.joint_states.is_some() =>
+            {
+                false
+            }
+            _ => {
+                self.update_on_error = true;
+                true
+            }
+        }
+    }
 }
 
 impl<S, M, N> JointPositionSender<S, M, N>
@@ -148,6 +185,46 @@ where
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
+    fn new(
+        robot_client: RobotClient<S, M, N>,
+        robot: Robot,
+        joint_trajectory_client_names: Vec<String>,
+    ) -> Self {
+        let joint_states = joint_trajectory_client_names
+            .iter()
+            .map(|client_name| {
+                (
+                    client_name.clone(),
+                    robot_client.joint_trajectory_clients()[client_name]
+                        .joint_names()
+                        .iter()
+                        .map(|joint_name| JointState {
+                            name: joint_name.clone(),
+                            position_input: "0.00".into(),
+                            ..Default::default()
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            })
+            .collect();
+
+        Self {
+            robot_client,
+            robot,
+            current_joint_trajectory_client: joint_trajectory_client_names[0].clone(),
+            joint_trajectory_client_names,
+            pick_list: Default::default(),
+            scroll: Default::default(),
+            randomize_button: Default::default(),
+            zero_button: Default::default(),
+            joint_states,
+            duration: Duration::from_secs_f64(0.1),
+            duration_input: "0.1".into(),
+            duration_input_state: Default::default(),
+            errors: Default::default(),
+        }
+    }
+
     fn current_joint_trajectory_client(&self) -> Arc<dyn JointTrajectoryClient> {
         self.robot_client.joint_trajectory_clients()[&self.current_joint_trajectory_client].clone()
     }
@@ -168,7 +245,8 @@ enum Message {
     ZeroButtonPressed,
     RandomizeButtonPressed,
     SliderChanged { index: usize, position: f64 },
-    TextInputChanged { index: usize, position: String },
+    SliderTextInputChanged { index: usize, position: String },
+    DurationTextInputChanged(String),
     PickListChanged(String),
 }
 
@@ -193,11 +271,16 @@ where
 
     fn update(&mut self, message: Message) -> Command<Message> {
         let debug_span = |joint_trajectory_client| {
-            tracing::debug_span!("Joint Position Sender", ?joint_trajectory_client)
+            debug_span!("Joint Position Sender", ?joint_trajectory_client)
         };
 
         let span = debug_span(&self.current_joint_trajectory_client);
         let _guard = span.enter();
+
+        if self.errors.skip_update(&message) {
+            debug!("skip update");
+            return Command::none();
+        }
 
         match message {
             Message::Ignore => return Command::none(),
@@ -224,85 +307,146 @@ where
                 );
             }
             Message::UpdateAll(positions) => {
+                self.errors.joint_states = None;
+
                 for (index, position) in positions.into_iter().enumerate() {
                     self.joint_states
                         .get_mut(&self.current_joint_trajectory_client)
                         .unwrap()[index]
-                        .position = position;
+                        .update_position(position);
                 }
             }
             Message::RandomizeButtonPressed => {
+                self.errors.joint_states = None;
+
                 for joint_state in self
                     .joint_states
                     .get_mut(&self.current_joint_trajectory_client)
                     .unwrap()
                 {
                     let limit = &self.robot.joints[&joint_state.name].limit;
-                    joint_state.position = rand::thread_rng().gen_range(limit.lower..=limit.upper);
+                    joint_state
+                        .update_position(rand::thread_rng().gen_range(limit.lower..=limit.upper));
                 }
             }
             Message::ZeroButtonPressed => {
+                self.errors.joint_states = None;
+
                 for joint_state in self
                     .joint_states
                     .get_mut(&self.current_joint_trajectory_client)
                     .unwrap()
                 {
-                    joint_state.position = 0.0;
+                    joint_state.update_position(0.0);
                 }
             }
-            Message::SliderChanged { index, position } => {
+            Message::SliderChanged {
+                index,
+                mut position,
+            } => {
+                position = round_f64(position);
+
+                self.errors.joint_states = None;
+
                 let joint_state = &mut self
                     .joint_states
                     .get_mut(&self.current_joint_trajectory_client)
                     .unwrap()[index];
+
                 if (position * 100.0) as i64 == (joint_state.position * 100.0) as i64 {
+                    joint_state.update_position(position);
                     // Ignore if the position has not changed at all.
                     return Command::none();
                 }
-                joint_state.position = position;
-            }
-            Message::TextInputChanged { index, position } => match position.parse::<f64>() {
-                Ok(position) => {
-                    // round position: https://stackoverflow.com/questions/28655362/how-does-one-round-a-floating-point-number-to-a-specified-number-of-digits
-                    let position = format!("{:.2}", position);
-                    let position = position.parse::<f64>().unwrap();
 
-                    let joint_state = &mut self
-                        .joint_states
-                        .get_mut(&self.current_joint_trajectory_client)
-                        .unwrap()[index];
-                    let limit = &self.robot.joints[&joint_state.name].limit;
-                    if (position * 100.0) as i64 == (joint_state.position * 100.0) as i64 {
-                        // Ignore if the position has not changed at all.
-                        return Command::none();
+                joint_state.update_position(position);
+            }
+            Message::SliderTextInputChanged { index, position } => {
+                let joint_state = &mut self
+                    .joint_states
+                    .get_mut(&self.current_joint_trajectory_client)
+                    .unwrap()[index];
+                joint_state.position_input = position;
+
+                match joint_state.position_input.parse::<f64>() {
+                    Ok(position) => {
+                        // We don't round the input for now. If we do that, we also need to update
+                        // the text input that we show to the user.
+
+                        let limit = &self.robot.joints[&joint_state.name].limit;
+                        if (limit.lower..=limit.upper).contains(&position) {
+                            self.errors.joint_states = None;
+
+                            if (position * 100.0) as i64 == (joint_state.position * 100.0) as i64 {
+                                // Ignore if the position has not changed at all.
+                                return Command::none();
+                            }
+
+                            joint_state.position = position;
+                        } else {
+                            let msg = format!(
+                                "Position for joint `{}` is out of limit",
+                                joint_state.name
+                            );
+                            warn!(?joint_state.position_input, ?limit.lower, ?limit.upper, ?msg);
+                            self.errors.joint_states = Some((index, msg));
+                            return Command::none();
+                        }
                     }
-                    if (limit.lower..=limit.upper).contains(&position) {
-                        joint_state.position = position;
-                    } else {
-                        warn!(
-                            "out of limit (ignored): input = {:.2}, limit {:.2}..={:.2}",
-                            position, limit.lower, limit.upper
+                    Err(e) => {
+                        let msg = format!(
+                            "Position for joint `{}` is not a valid number",
+                            joint_state.name
                         );
+                        warn!(?joint_state.position_input, ?msg, "error=\"{}\"", e);
+                        self.errors.joint_states = Some((index, msg));
                         return Command::none();
                     }
                 }
-                Err(e) => {
-                    warn!(
-                        "invalid input (ignored): input = {}, error = {}",
-                        position, e
-                    );
-                    return Command::none();
+            }
+            Message::DurationTextInputChanged(duration) => {
+                self.duration_input = duration;
+
+                match self.duration_input.parse::<f64>() {
+                    Ok(duration) => {
+                        // We don't round the input for now. If we do that, we also need to update
+                        // the text input that we show to the user.
+
+                        if !duration.is_normal() {
+                            let msg = "Duration is not a normal number".to_string();
+                            warn!(?self.duration_input, ?msg);
+                            self.errors.duration_input = Some(msg);
+                            return Command::none();
+                        }
+                        if !duration.is_sign_positive() {
+                            let msg = "Duration is not a positive number".to_string();
+                            warn!(?self.duration_input, ?msg);
+                            self.errors.duration_input = Some(msg);
+                            return Command::none();
+                        }
+
+                        self.errors.duration_input = None;
+                        self.duration = Duration::from_secs_f64(duration);
+                        return Command::none();
+                    }
+                    Err(e) => {
+                        let msg = "Duration is not a valid number".to_string();
+                        warn!(?self.duration_input, ?msg, "error=\"{}\"", e);
+                        self.errors.duration_input = Some(msg);
+                        return Command::none();
+                    }
                 }
-            },
+            }
         }
 
         let joint_positions = self.current_joint_positions();
         let joint_trajectory_client = self.current_joint_trajectory_client();
-        debug!("send_joint_positions: {:?}", joint_positions);
+        let duration = self.duration;
+        debug!(?joint_positions, ?duration);
         Command::perform(
             async move {
                 joint_trajectory_client
-                    .send_joint_positions(joint_positions, Duration::from_millis(100))
+                    .send_joint_positions(joint_positions, duration)
                     .await
             }
             .instrument(span.clone()),
@@ -354,7 +498,10 @@ where
         .style(THEME)
         .width(Length::Fill);
 
-        let mut sliders = Scrollable::new(&mut self.scroll).style(THEME);
+        let mut sliders = Scrollable::new(&mut self.scroll)
+            .style(THEME)
+            .width(Length::Fill)
+            .height(Length::Fill);
         for (index, joint_state) in self
             .joint_states
             .get_mut(&self.current_joint_trajectory_client)
@@ -378,18 +525,39 @@ where
 
             // TODO: set horizontal_alignment on TextInput, once https://github.com/hecrj/iced/pull/373 merged and released.
             let current_position = TextInput::new(
-                &mut joint_state.text_input,
+                &mut joint_state.position_input_state,
                 "",
-                &format!("{:.2}", joint_state.position),
-                move |position| Message::TextInputChanged { index, position },
+                &joint_state.position_input,
+                move |position| Message::SliderTextInputChanged { index, position },
             )
-            .style(THEME);
+            .style(match self.errors.joint_states {
+                Some((i, _)) if i == index => style::TextInput::Error,
+                _ => style::TextInput::Default,
+            });
 
             let content = Column::new()
                 .push(Row::new().push(joint_name).push(current_position))
                 .push(slider);
             sliders = sliders.push(content);
         }
+
+        let duration = Row::new()
+            .spacing(10)
+            .padding(5)
+            .push(Text::new("Duration (sec)").width(Length::Fill))
+            .push(
+                TextInput::new(
+                    &mut self.duration_input_state,
+                    "",
+                    &self.duration_input,
+                    Message::DurationTextInputChanged,
+                )
+                .style(if self.errors.duration_input.is_none() {
+                    style::TextInput::Default
+                } else {
+                    style::TextInput::Error
+                }),
+            );
 
         let mut content = Column::new().spacing(20).padding(20).max_width(400);
         if let Some(pick_list) = pick_list {
@@ -399,7 +567,46 @@ where
             .push(randomize_button)
             .push(zero_button)
             .push(sliders)
+            .push(duration)
             .height(Length::Fill);
+
+        if self.errors.is_none() {
+            content = content.push(
+                Text::new(" ")
+                    .size(style::ERROR_TEXT_SIZE)
+                    .width(Length::Fill),
+            );
+        } else {
+            let mut errors = Column::new().max_width(400);
+            if let Some((_index, msg)) = &self.errors.joint_states {
+                errors = errors.push(
+                    Text::new(&format!("Error: {}", msg))
+                        .size(style::ERROR_TEXT_SIZE)
+                        .horizontal_alignment(HorizontalAlignment::Left)
+                        .width(Length::Fill)
+                        .color(style::ERRORED),
+                );
+            }
+            if let Some(msg) = &self.errors.duration_input {
+                errors = errors.push(
+                    Text::new(&format!("Error: {}", msg))
+                        .size(style::ERROR_TEXT_SIZE)
+                        .horizontal_alignment(HorizontalAlignment::Left)
+                        .width(Length::Fill)
+                        .color(style::ERRORED),
+                );
+            }
+            if self.errors.update_on_error {
+                errors = errors.push(
+                    Text::new("Error: Please resolve the above error first")
+                        .size(style::ERROR_TEXT_SIZE)
+                        .horizontal_alignment(HorizontalAlignment::Left)
+                        .width(Length::Fill)
+                        .color(style::ERRORED),
+                );
+            }
+            content = content.push(errors);
+        }
 
         Container::new(content)
             .width(Length::Fill)
@@ -409,4 +616,10 @@ where
             .style(THEME)
             .into()
     }
+}
+
+// round float: https://stackoverflow.com/questions/28655362/how-does-one-round-a-floating-point-number-to-a-specified-number-of-digits
+fn round_f64(n: f64) -> f64 {
+    let n = format!("{:.2}", n);
+    n.parse().unwrap()
 }
