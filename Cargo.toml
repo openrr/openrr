@@ -33,6 +33,3 @@ members = [
 "openrr-planner" = {path = "openrr-planner"}
 "openrr-sleep" = {path = "openrr-sleep"}
 "openrr-teleop" = {path = "openrr-teleop"}
-
-# CAVEAT: remove on release(?)
-k = { git = 'https://github.com/openrr/k', branch = 'main' }
