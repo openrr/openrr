@@ -8,6 +8,7 @@ description = "openrr GUI library"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics", "gui"]
 repository = "https://github.com/openrr/openrr"
+documentation = "http://docs.rs/openrr-gui"
 
 [dependencies]
 arci = "0.0.3"

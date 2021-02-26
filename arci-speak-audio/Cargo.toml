@@ -8,6 +8,7 @@ description = "arci::Speaker implementation for playing audio files"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
+documentation = "http://docs.rs/arci-speak-audio"
 
 [dependencies]
 arci = "0.0.3"

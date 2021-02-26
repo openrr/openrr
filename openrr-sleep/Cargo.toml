@@ -8,6 +8,7 @@ description = "openrr sleep library"
 keywords = ["robotics", "robot"]
 categories = ["algorithms", "science::robotics"]
 repository = "https://github.com/openrr/openrr"
+documentation = "http://docs.rs/openrr-sleep"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
