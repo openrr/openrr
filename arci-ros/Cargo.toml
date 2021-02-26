@@ -8,6 +8,7 @@ description = "arci implementation using ROS1"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
+documentation = "http://docs.rs/arci-ros"
 
 [dependencies]
 anyhow = "1.0"
