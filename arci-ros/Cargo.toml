@@ -24,7 +24,7 @@ thiserror = "1.0"
 tokio = { version = "1.0", features = ["full"] }
 
 [dev-dependencies]
-k = "0.22"
+k = "0.22.1"
 
 # for tests/utils (using same version of rosrust 0.9.5)
 
