@@ -48,8 +48,8 @@ jobs:
         with:
           command: build
 
-  check:
-    name: Check
+  build:
+    name: Build on Linux
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -61,7 +61,7 @@ jobs:
       - run: ci/ubuntu-install-dependencies.sh
       - uses: actions-rs/cargo@v1
         with:
-          command: check
+          command: build
 
   test:
     name: Test Suite
