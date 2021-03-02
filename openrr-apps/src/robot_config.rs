@@ -20,12 +20,21 @@ use tracing::debug;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "args")]
+#[non_exhaustive] // The variants will increase depending on the feature flag.
 pub enum SpeakConfig {
     Print,
     Command,
     #[cfg(feature = "ros")]
     RosEspeak {
         config: RosEspeakClientConfig,
+    },
+    // Not public API.
+    // A dummy variant to catch that there is a config that requires the ros feature.
+    #[doc(hidden)]
+    #[cfg(not(feature = "ros"))]
+    #[serde(rename = "RosEspeak")]
+    __RosEspeak {
+        config: toml::Value,
     },
     Audio {
         map: HashMap<String, PathBuf>,
@@ -39,10 +48,14 @@ impl Default for SpeakConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[non_exhaustive] // The fields will increase depending on the feature flag.
 pub struct RobotConfig {
     #[cfg(feature = "ros")]
-    #[cfg_attr(feature = "ros", serde(default))]
+    #[serde(default)]
     pub ros_clients_configs: Vec<RosControlClientConfig>,
+    // A dummy field to catch that there is a config that requires the ros feature.
+    #[cfg(not(feature = "ros"))]
+    ros_clients_configs: Option<toml::Value>,
     #[serde(default)]
     pub urdf_viz_clients_configs: Vec<UrdfVizWebClientConfig>,
 
@@ -56,11 +69,17 @@ pub struct RobotConfig {
 
     #[cfg(feature = "ros")]
     pub ros_cmd_vel_move_base_client_config: Option<RosCmdVelMoveBaseConfig>,
+    // A dummy field to catch that there is a config that requires the ros feature.
+    #[cfg(not(feature = "ros"))]
+    ros_cmd_vel_move_base_client_config: Option<toml::Value>,
     #[serde(default = "default_true")]
     pub use_move_base_urdf_viz_web_client: bool,
 
     #[cfg(feature = "ros")]
     pub ros_navigation_client_config: Option<RosNavClientConfig>,
+    // A dummy field to catch that there is a config that requires the ros feature.
+    #[cfg(not(feature = "ros"))]
+    ros_navigation_client_config: Option<toml::Value>,
     #[serde(default = "default_true")]
     pub use_navigation_urdf_viz_web_client: bool,
 
@@ -193,6 +212,8 @@ impl RobotConfig {
                     SpeakConfig::RosEspeak { config } => {
                         self.create_ros_espeak_client(&config.topic)
                     }
+                    #[cfg(not(feature = "ros"))]
+                    SpeakConfig::__RosEspeak { .. } => unreachable!(),
                     SpeakConfig::Audio { ref map } => self.create_audio_speaker(map.clone()),
                     SpeakConfig::Command => self.create_local_command_speaker(),
                     SpeakConfig::Print => self.create_print_speaker(),
@@ -272,6 +293,30 @@ impl RobotConfig {
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,
         )
         .map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
+
+        // Returns an error if a config requires ros feature but ros feature is disabled.
+        #[cfg(not(feature = "ros"))]
+        {
+            for (name, speak_config) in &config.speak_configs {
+                if matches!(speak_config, SpeakConfig::__RosEspeak { .. }) {
+                    return Err(Error::ConfigRequireRos(format!("speak_configs.{}", name)));
+                }
+            }
+            if config.ros_clients_configs.is_some() {
+                return Err(Error::ConfigRequireRos("ros_clients_configs".into()));
+            }
+            if config.ros_cmd_vel_move_base_client_config.is_some() {
+                return Err(Error::ConfigRequireRos(
+                    "ros_cmd_vel_move_base_client_config".into(),
+                ));
+            }
+            if config.ros_navigation_client_config.is_some() {
+                return Err(Error::ConfigRequireRos(
+                    "ros_navigation_client_config".into(),
+                ));
+            }
+        }
+
         if config.openrr_clients_config.urdf_path.is_some() {
             config.openrr_clients_config.resolve_path(path.as_ref())?;
         }
