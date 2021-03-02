@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 mod msg {
@@ -21,11 +22,16 @@ impl RosEspeakClient {
     }
 }
 
+#[async_trait]
 impl arci::Speaker for RosEspeakClient {
-    fn speak(&self, message: &str) {
+    async fn speak(&self, message: &str) -> Result<(), arci::Error> {
         let ros_msg = msg::std_msgs::String {
             data: message.to_string(),
         };
-        self.publisher.send(ros_msg).unwrap();
+        self.publisher
+            .send(ros_msg)
+            // TODO: use anyhow::Error::from once rosrust::Error implements Sync.
+            .map_err(|e| anyhow::format_err!("{}", e))?;
+        Ok(())
     }
 }

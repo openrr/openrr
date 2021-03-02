@@ -7,10 +7,11 @@ struct Args {
     message: String,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), arci::Error> {
     tracing_subscriber::fmt::init();
     let args = Args::from_args();
 
     let speaker = LocalCommand::default();
-    speaker.speak(&args.message)
+    speaker.speak(&args.message).await
 }

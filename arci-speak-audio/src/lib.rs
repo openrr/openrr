@@ -1,7 +1,6 @@
 use arci::Speaker;
+use async_trait::async_trait;
 use std::{collections::HashMap, fs::File, io, path::Path, path::PathBuf};
-use tracing::error;
-
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -30,22 +29,16 @@ impl AudioSpeaker {
             message_to_file_path: hashmap,
         }
     }
+}
 
-    /// Similar to `Speaker::speak`, but returns an error when the command failed.
-    pub fn try_speak(&self, message: &str) -> Result<(), Error> {
+#[async_trait]
+impl Speaker for AudioSpeaker {
+    async fn speak(&self, message: &str) -> Result<(), arci::Error> {
         match self.message_to_file_path.get(message) {
             Some(path) => play_audio_file(path),
             None => Err(Error::HashNotFound(message.to_string())),
         }
-    }
-}
-
-impl Speaker for AudioSpeaker {
-    fn speak(&self, message: &str) {
-        if let Err(e) = self.try_speak(message) {
-            // TODO: Speaker trait seems to assume that speak method will always succeed.
-            error!("{}", e);
-        }
+        .map_err(|e| arci::Error::Other(e.into()))
     }
 }
 

@@ -1,4 +1,5 @@
 use arci::Speaker;
+use async_trait::async_trait;
 
 pub struct PrintSpeaker {}
 
@@ -14,8 +15,10 @@ impl Default for PrintSpeaker {
     }
 }
 
+#[async_trait]
 impl Speaker for PrintSpeaker {
-    fn speak(&self, message: &str) {
+    async fn speak(&self, message: &str) -> Result<(), arci::Error> {
         println!("PrintSpeaker: {}", message);
+        Ok(())
     }
 }
