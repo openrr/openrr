@@ -23,4 +23,6 @@ pub enum Error {
     Arci(#[from] arci::Error),
     #[error("openrr-client: urdf-rs: {:?}", .0)]
     UrdfRs(#[from] UrdfError),
+    #[error("openrr-client: Other: {:?}", .0)]
+    Other(#[from] anyhow::Error),
 }

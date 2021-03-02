@@ -70,14 +70,16 @@ impl<S> ControlNode for JointsPoseSender<S>
 where
     S: Speaker,
 {
-    fn set_event(&mut self, event: arci::gamepad::GamepadEvent) {
+    async fn set_event(&mut self, event: arci::gamepad::GamepadEvent) {
         match event {
             GamepadEvent::ButtonPressed(Button::East) => {
                 self.pose_index = (self.pose_index + 1) % self.joints_poses.len();
                 let joints_pose = &self.joints_poses[self.pose_index];
                 self.submode = format!(" {} {}", joints_pose.client_name, joints_pose.pose_name);
                 self.speaker
-                    .speak(&format!("{}{}", self.mode, self.submode()));
+                    .speak(&format!("{}{}", self.mode, self.submode()))
+                    .await
+                    .unwrap();
             }
             GamepadEvent::ButtonPressed(Button::RightTrigger2) => {
                 self.is_trigger_holding = true;

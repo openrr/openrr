@@ -18,4 +18,6 @@ pub enum Error {
     OpenrrClient(#[from] openrr_client::Error),
     #[error("openrr-apps: openrr-command: {:?}", .0)]
     OpenrrCommand(#[from] openrr_command::Error),
+    #[error("openrr-apps: arci: {:?}", .0)]
+    Arci(#[from] arci::Error),
 }

@@ -36,19 +36,19 @@ where
             is_running: Arc::new(AtomicBool::new(false)),
         }
     }
-    pub async fn increment_mode(&self) {
+    pub async fn increment_mode(&self) -> Result<(), arci::Error> {
         let len = self.control_nodes.lock().await.len();
         self.current_index.fetch_add(1, Ordering::Relaxed);
         let next = self.current_index.load(Ordering::Relaxed) % len;
         self.current_index.store(next, Ordering::Relaxed);
-        self.speak_current_mode().await;
+        self.speak_current_mode().await
     }
-    pub async fn speak_current_mode(&self) {
+    pub async fn speak_current_mode(&self) -> Result<(), arci::Error> {
         let nodes = self.control_nodes.lock().await;
         let i = self.current_index();
         let mode = nodes[i].mode();
         let submode = nodes[i].submode();
-        self.speaker.speak(&format!("{}{}", mode, submode,));
+        self.speaker.speak(&format!("{}{}", mode, submode)).await
     }
     fn current_index(&self) -> usize {
         self.current_index.load(Ordering::Relaxed)
@@ -59,7 +59,7 @@ where
     pub fn stop(&self) {
         self.is_running.store(false, Ordering::Relaxed);
     }
-    pub async fn main<G>(&self, gamepad: G)
+    pub async fn main<G>(&self, gamepad: G) -> Result<(), arci::Error>
     where
         G: 'static + Gamepad,
     {
@@ -67,7 +67,7 @@ where
         let index = self.current_index.clone();
         let is_running = self.is_running.clone();
         self.is_running.store(true, Ordering::Relaxed);
-        self.speak_current_mode().await;
+        self.speak_current_mode().await?;
         let gamepad = Arc::new(gamepad);
         let gamepad_cloned = gamepad.clone();
         tokio::spawn(async move {
@@ -86,16 +86,19 @@ where
             debug!("event: {:?}", ev);
             match ev {
                 GamepadEvent::ButtonPressed(Button::North) => {
-                    self.increment_mode().await;
+                    self.increment_mode().await?;
                 }
                 GamepadEvent::Unknown => {
                     warn!("gamepad Unkwon");
                     self.stop();
                 }
                 _ => {
-                    self.control_nodes.lock().await[self.current_index()].set_event(ev);
+                    self.control_nodes.lock().await[self.current_index()]
+                        .set_event(ev)
+                        .await;
                 }
             }
         }
+        Ok(())
     }
 }

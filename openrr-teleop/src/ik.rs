@@ -96,7 +96,7 @@ where
     N: JointTrajectoryClient,
     S: Speaker,
 {
-    fn set_event(&mut self, event: GamepadEvent) {
+    async fn set_event(&mut self, event: GamepadEvent) {
         match event {
             GamepadEvent::ButtonPressed(Button::LeftTrigger2) => {
                 self.is_turbo = true;
@@ -181,7 +181,7 @@ where
                     .await
                     .unwrap();
             } else {
-                self.speaker.speak("ik fail");
+                self.speaker.speak("ik fail").await.unwrap();
             }
         }
     }

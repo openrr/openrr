@@ -74,13 +74,15 @@ where
     N: JointTrajectoryClient,
     S: Speaker,
 {
-    fn set_event(&mut self, event: GamepadEvent) {
+    async fn set_event(&mut self, event: GamepadEvent) {
         match event {
             GamepadEvent::ButtonPressed(Button::East) => {
                 self.joint_index = (self.joint_index + 1) % self.dof;
                 self.submode = format!("{}", self.joint_index);
                 self.speaker
-                    .speak(&format!("{}{}", self.mode, self.submode()));
+                    .speak(&format!("{}{}", self.mode, self.submode()))
+                    .await
+                    .unwrap();
             }
             GamepadEvent::ButtonPressed(Button::LeftTrigger2) => {
                 self.is_turbo = true;

@@ -37,7 +37,7 @@ impl<T> ControlNode for MoveBaseNode<T>
 where
     T: MoveBase,
 {
-    fn set_event(&mut self, ev: GamepadEvent) {
+    async fn set_event(&mut self, ev: GamepadEvent) {
         match ev {
             GamepadEvent::AxisChanged(Axis::LeftStickX, v) => {
                 self.vel.y = v * BASE_LINEAR_VEL_AXIS_GAIN

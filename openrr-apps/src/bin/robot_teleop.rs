@@ -76,7 +76,7 @@ async fn main() -> Result<(), Error> {
         .main(GilGamepad::new_from_config(
             teleop_config.gil_gamepad_config,
         ))
-        .await;
+        .await?;
 
     Ok(())
 }
