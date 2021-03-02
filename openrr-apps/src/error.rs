@@ -14,6 +14,8 @@ pub enum Error {
     NoParentDirectory(PathBuf),
     #[error("openrr-apps: No SpecifiedNode {:?} is found.", .0)]
     NoSpecifiedNode(String),
+    #[error("openrr-apps: Config {:?} requires ros feature.", .0)]
+    ConfigRequireRos(String),
     #[error("openrr-apps: openrr-client: {:?}", .0)]
     OpenrrClient(#[from] openrr_client::Error),
     #[error("openrr-apps: openrr-command: {:?}", .0)]
