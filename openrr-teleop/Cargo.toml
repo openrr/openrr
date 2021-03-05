@@ -14,7 +14,7 @@ documentation = "http://docs.rs/openrr-teleop"
 arci = "0.0.3"
 async-trait = "0.1"
 auto_impl = "0.4.1"
-k = "0.22.1"
+k = "0.23"
 openrr-client = "0.0.3"
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }

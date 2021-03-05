@@ -15,16 +15,16 @@ anyhow = "1.0"
 arci = "0.0.3"
 async-trait = "0.1"
 crossbeam-channel = "0.5.0"
-nalgebra = "0.24"
+nalgebra = "0.25"
 paste = "1.0"
-ros-nalgebra = "0.0.4"
+ros-nalgebra = "0.0.5"
 rosrust = "0.9"
 serde = { version = "1", features = ["derive"] }
 thiserror = "1.0"
 tokio = { version = "1.0", features = ["full"] }
 
 [dev-dependencies]
-k = "0.22.1"
+k = "0.23"
 
 # for tests/utils (using same version of rosrust 0.9.5)
 
