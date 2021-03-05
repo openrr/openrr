@@ -18,6 +18,3 @@ rand = "0.8"
 thiserror = "1"
 tracing = { version = "0.1", features = ["log"] }
 urdf-rs = "0.6"
-
-# zerocopy 0.3.1 removed support for stable Rust.
-zerocopy = "=0.3.0"
