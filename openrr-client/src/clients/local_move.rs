@@ -27,18 +27,22 @@ impl LocalMoveConfig {
     }
 }
 
-pub struct LocalMove {
-    pub nav_client: Box<dyn Navigation>,
-    pub vel_client: Box<dyn MoveBase>,
+pub struct LocalMove<N, M>
+where
+    N: Navigation,
+    M: MoveBase,
+{
+    pub nav_client: N,
+    pub vel_client: M,
     pub config: LocalMoveConfig,
 }
 
-impl LocalMove {
-    pub fn new(
-        nav_client: Box<dyn Navigation>,
-        vel_client: Box<dyn MoveBase>,
-        config: LocalMoveConfig,
-    ) -> Self {
+impl<N, M> LocalMove<N, M>
+where
+    N: Navigation,
+    M: MoveBase,
+{
+    pub fn new(nav_client: N, vel_client: M, config: LocalMoveConfig) -> Self {
         Self {
             nav_client,
             vel_client,
