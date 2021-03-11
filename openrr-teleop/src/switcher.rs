@@ -9,25 +9,23 @@ use std::time::Duration;
 use tokio::sync::Mutex as TokioMutex;
 use tracing::{debug, warn};
 
-pub struct ControlNodeSwitcher<N>
+pub struct ControlNodeSwitcher<N, S>
 where
     N: ControlNode,
+    S: Speaker,
 {
     current_index: Arc<AtomicUsize>,
     control_nodes: Arc<TokioMutex<Vec<N>>>,
-    speaker: Arc<dyn Speaker>,
+    speaker: S,
     is_running: Arc<AtomicBool>,
 }
 
-impl<N> ControlNodeSwitcher<N>
+impl<N, S> ControlNodeSwitcher<N, S>
 where
     N: 'static + ControlNode,
+    S: Speaker,
 {
-    pub fn new(
-        control_nodes: Vec<N>,
-        speaker: Arc<dyn Speaker>,
-        initial_node_index: usize,
-    ) -> Self {
+    pub fn new(control_nodes: Vec<N>, speaker: S, initial_node_index: usize) -> Self {
         assert!(!control_nodes.is_empty());
         Self {
             current_index: Arc::new(AtomicUsize::new(initial_node_index)),
