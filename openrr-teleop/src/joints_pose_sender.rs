@@ -6,15 +6,16 @@ use arci::{
 use async_trait::async_trait;
 use openrr_client::JointsPose;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
-pub struct JointsPoseSender<S>
+pub struct JointsPoseSender<S, J>
 where
     S: Speaker,
+    J: JointTrajectoryClient,
 {
     mode: String,
     joints_poses: Vec<JointsPose>,
-    joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
+    joint_trajectory_clients: HashMap<String, J>,
     speaker: S,
     submode: String,
     pose_index: usize,
@@ -23,14 +24,15 @@ where
     duration: Duration,
 }
 
-impl<S> JointsPoseSender<S>
+impl<S, J> JointsPoseSender<S, J>
 where
     S: Speaker,
+    J: JointTrajectoryClient,
 {
     pub fn new(
         mode: String,
         joints_poses: Vec<JointsPose>,
-        joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
+        joint_trajectory_clients: HashMap<String, J>,
         speaker: S,
         duration: Duration,
     ) -> Self {
@@ -52,7 +54,7 @@ where
     pub fn new_from_config(
         config: JointsPoseSenderConfig,
         joints_poses: Vec<JointsPose>,
-        joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
+        joint_trajectory_clients: HashMap<String, J>,
         speaker: S,
     ) -> Self {
         Self::new(
@@ -66,9 +68,10 @@ where
 }
 
 #[async_trait]
-impl<S> ControlNode for JointsPoseSender<S>
+impl<S, J> ControlNode for JointsPoseSender<S, J>
 where
     S: Speaker,
+    J: JointTrajectoryClient,
 {
     fn set_event(&mut self, event: arci::gamepad::GamepadEvent) {
         match event {
@@ -97,7 +100,10 @@ where
     }
     async fn proc(&self) {
         let joints_pose = &self.joints_poses[self.pose_index];
-        let client = self.joint_trajectory_clients[&joints_pose.client_name].clone();
+        let client = self
+            .joint_trajectory_clients
+            .get(&joints_pose.client_name)
+            .unwrap();
         if self.is_sending && self.is_trigger_holding {
             client
                 .send_joint_positions(joints_pose.positions.to_owned(), self.duration)
