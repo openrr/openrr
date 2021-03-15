@@ -6,14 +6,18 @@ use std::sync::Mutex;
 
 #[derive(Debug)]
 pub struct DummyNavigation {
-    pub current_pose: Mutex<Isometry2<f64>>,
+    pub goal_pose: Mutex<Isometry2<f64>>,
 }
 
 impl DummyNavigation {
     pub fn new() -> Self {
         Self {
-            current_pose: Mutex::new(Isometry2::new(Vector2::new(0.0, 0.0), 0.0)),
+            goal_pose: Mutex::new(Isometry2::new(Vector2::new(0.0, 0.0), 0.0)),
         }
+    }
+
+    pub fn current_goal_pose(&self) -> Result<Isometry2<f64>, Error> {
+        Ok(self.goal_pose.lock().unwrap().to_owned())
     }
 }
 
@@ -31,12 +35,8 @@ impl Navigation for DummyNavigation {
         _frame_id: &str,
         _timeout: std::time::Duration,
     ) -> Result<(), Error> {
-        *self.current_pose.lock().unwrap() = goal;
+        *self.goal_pose.lock().unwrap() = goal;
         Ok(())
-    }
-
-    fn current_pose(&self) -> Result<Isometry2<f64>, Error> {
-        Ok(self.current_pose.lock().unwrap().to_owned())
     }
 
     fn cancel(&self) -> Result<(), Error> {
@@ -47,20 +47,19 @@ impl Navigation for DummyNavigation {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assert_approx_eq::assert_approx_eq;
     #[test]
-    fn test_set_get() {
+    fn test_set() {
         let nav = DummyNavigation::new();
-        let pose0 = nav.current_pose().unwrap();
-        assert_eq!(pose0, pose0.inverse()); // only identity mapping satisfies this
         assert!(tokio_test::block_on(nav.send_pose(
             Isometry2::new(Vector2::new(1.0, 2.0), 3.0),
             "",
             std::time::Duration::default(),
         ))
         .is_ok());
-        let pose1 = nav.current_pose().unwrap();
-        assert_eq!(pose1.translation, nalgebra::Translation2::new(1.0, 2.0));
-        assert_approx_eq!(pose1.rotation.angle(), 3.0);
+
+        let current_goal_pose = nav.current_goal_pose().unwrap();
+        assert_eq!(current_goal_pose.translation.x, 1.0);
+        assert_eq!(current_goal_pose.translation.y, 2.0);
+        assert_eq!(current_goal_pose.rotation.angle(), 3.0);
     }
 }
