@@ -12,7 +12,6 @@ pub trait Navigation: Send + Sync {
         frame_id: &str,
         timeout: std::time::Duration,
     ) -> Result<(), Error>;
-    fn current_pose(&self) -> Result<Isometry2<f64>, Error>;
 
     fn cancel(&self) -> Result<(), Error>;
 }
