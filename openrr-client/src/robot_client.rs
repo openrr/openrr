@@ -410,7 +410,7 @@ pub struct JointTrajectoryClientsContainerConfig {
     pub clients_names: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct OpenrrClientsConfig {
     pub urdf_path: Option<String>,
     urdf_full_path: Option<PathBuf>,
