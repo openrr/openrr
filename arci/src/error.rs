@@ -21,7 +21,7 @@ pub enum Error {
     #[error("length mismatch (model = {}, input = {})", model, input)]
     LengthMismatch { model: usize, input: usize },
     #[error(
-        "wait timeout target={:?}, cur={:?} is_reached=${:?}",
+        "wait timeout target={:?}, cur={:?} is_reached={:?}",
         target,
         current,
         is_reached
