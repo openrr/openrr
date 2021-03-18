@@ -1,5 +1,5 @@
 use crate::Error as OpenrrCommandError;
-use arci::{BaseVelocity, MoveBase, Navigation};
+use arci::{BaseVelocity, Localization, MoveBase, Navigation};
 use async_recursion::async_recursion;
 use k::nalgebra::{Isometry2, Vector2};
 use openrr_client::{isometry, BoxRobotClient};
@@ -313,7 +313,7 @@ impl RobotCommandExecutor {
                 }
             }
             RobotCommand::GetNavigationCurrentPose => {
-                println!("Base Pose {}", client.current_pose()?);
+                println!("Base Pose {}", client.current_pose("")?);
             }
             RobotCommand::SendNavigationGoal {
                 x,

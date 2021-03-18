@@ -4,7 +4,7 @@ use crate::{
 };
 use arci::{
     BaseVelocity, Error as ArciError, JointTrajectoryClient, JointTrajectoryClientsContainer,
-    MoveBase, Navigation, Speaker,
+    Localization, MoveBase, Navigation, Speaker,
 };
 use async_trait::async_trait;
 use k::{nalgebra::Isometry2, Chain, Isometry3};
@@ -13,13 +13,16 @@ use std::{collections::HashMap, path::Path, path::PathBuf, sync::Arc, time::Dura
 use tracing::{debug, error};
 
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
-pub type ArcRobotClient = RobotClient<Arc<dyn MoveBase>, Arc<dyn Navigation>>;
-pub type BoxRobotClient = RobotClient<Box<dyn MoveBase>, Box<dyn Navigation>>;
+pub type ArcRobotClient =
+    RobotClient<Arc<dyn Localization>, Arc<dyn MoveBase>, Arc<dyn Navigation>>;
+pub type BoxRobotClient =
+    RobotClient<Box<dyn Localization>, Box<dyn MoveBase>, Box<dyn Navigation>>;
 
 type ArcJointTrajectoryClient = Arc<dyn JointTrajectoryClient>;
 
-pub struct RobotClient<M, N>
+pub struct RobotClient<L, M, N>
 where
+    L: Localization,
     M: MoveBase,
     N: Navigation,
 {
@@ -32,13 +35,15 @@ where
     self_collision_checkers: HashMap<String, Arc<SelfCollisionChecker>>,
     ik_solvers: HashMap<String, Arc<IkSolverWithChain>>,
     speakers: HashMap<String, Arc<dyn Speaker>>,
+    localization: Option<L>,
     move_base: Option<M>,
     navigation: Option<N>,
     joints_poses: HashMap<String, HashMap<String, Vec<f64>>>,
 }
 
-impl<M, N> RobotClient<M, N>
+impl<L, M, N> RobotClient<L, M, N>
 where
+    L: Localization,
     M: MoveBase,
     N: Navigation,
 {
@@ -46,6 +51,7 @@ where
         config: OpenrrClientsConfig,
         raw_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
         speakers: HashMap<String, Arc<dyn Speaker>>,
+        localization: Option<L>,
         move_base: Option<M>,
         navigation: Option<N>,
     ) -> Result<Self, Error> {
@@ -147,6 +153,7 @@ where
             self_collision_checkers,
             ik_solvers,
             speakers,
+            localization,
             move_base,
             navigation,
             joints_poses,
@@ -364,9 +371,21 @@ where
     }
 }
 
-#[async_trait]
-impl<M, N> Navigation for RobotClient<M, N>
+impl<L, M, N> Localization for RobotClient<L, M, N>
 where
+    L: Localization,
+    M: MoveBase,
+    N: Navigation,
+{
+    fn current_pose(&self, frame_id: &str) -> Result<Isometry2<f64>, ArciError> {
+        Ok(self.localization.as_ref().unwrap().current_pose(frame_id)?)
+    }
+}
+
+#[async_trait]
+impl<L, M, N> Navigation for RobotClient<L, M, N>
+where
+    L: Localization,
     M: MoveBase,
     N: Navigation,
 {
@@ -383,16 +402,15 @@ where
             .send_pose(goal, frame_id, timeout)
             .await?)
     }
-    fn current_pose(&self) -> Result<Isometry2<f64>, ArciError> {
-        Ok(self.navigation.as_ref().unwrap().current_pose()?)
-    }
+
     fn cancel(&self) -> Result<(), ArciError> {
         Ok(self.navigation.as_ref().unwrap().cancel()?)
     }
 }
 
-impl<M, N> MoveBase for RobotClient<M, N>
+impl<L, M, N> MoveBase for RobotClient<L, M, N>
 where
+    L: Localization,
     M: MoveBase,
     N: Navigation,
 {

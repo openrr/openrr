@@ -1,5 +1,4 @@
 use crate::msg;
-use crate::rosrust_utils::*;
 use arci::*;
 use nalgebra as na;
 use serde::{Deserialize, Serialize};
@@ -22,7 +21,6 @@ impl From<na::Isometry2<f64>> for msg::geometry_msgs::Pose {
     }
 }
 
-const AMCL_POSE_TOPIC: &str = "/amcl_pose";
 const NO_MOTION_UPDATE_SERVICE: &str = "request_nomotion_update";
 const MOVE_BASE_ACTION: &str = "/move_base";
 const CLEAR_COSTMAP_SERVICE: &str = "/move_base/clear_costmaps";
@@ -110,7 +108,6 @@ impl Default for RosNavClientBuilder {
 }
 
 pub struct RosNavClient {
-    pose_subscriber: SubscriberHandler<msg::geometry_msgs::PoseWithCovarianceStamped>,
     pub clear_costmap_before_start: bool,
     action_client: SimpleActionClient,
     nomotion_update_client: Option<rosrust::Client<std_srvs::Empty>>,
@@ -120,7 +117,6 @@ impl RosNavClient {
     pub fn new(request_final_nomotion_update_hack: bool) -> Self {
         let action_client = SimpleActionClient::new(MOVE_BASE_ACTION, 1, 10.0);
 
-        let pose_subscriber = SubscriberHandler::new(AMCL_POSE_TOPIC, 1);
         let nomotion_update_client = if request_final_nomotion_update_hack {
             rosrust::wait_for_service(
                 NO_MOTION_UPDATE_SERVICE,
@@ -132,7 +128,6 @@ impl RosNavClient {
             None
         };
         Self {
-            pose_subscriber,
             clear_costmap_before_start: false,
             action_client,
             nomotion_update_client,
@@ -207,22 +202,6 @@ impl Navigation for RosNavClient {
             .cancel_all_goal()
             .map_err(|e| anyhow::anyhow!("Failed to cancel_all_goal : {}", e.to_string()))?;
         Ok(())
-    }
-
-    fn current_pose(&self) -> Result<na::Isometry2<f64>, Error> {
-        self.pose_subscriber.wait_message(100);
-        let pose_with_cov_stamped =
-            self.pose_subscriber
-                .get()?
-                .ok_or_else(|| Error::Connection {
-                    message: format!("Failed to get pose from {}", AMCL_POSE_TOPIC),
-                })?;
-        let pose: na::Isometry3<f64> = pose_with_cov_stamped.pose.pose.into();
-
-        Ok(na::Isometry2::new(
-            na::Vector2::new(pose.translation.vector[0], pose.translation.vector[1]),
-            pose.rotation.euler_angles().2,
-        ))
     }
 }
 

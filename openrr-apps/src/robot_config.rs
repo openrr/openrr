@@ -1,9 +1,9 @@
 use crate::Error;
-use arci::{JointTrajectoryClient, MoveBase, Navigation, Speaker};
+use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker};
 #[cfg(feature = "ros")]
 use arci_ros::{
     RosCmdVelMoveBase, RosCmdVelMoveBaseConfig, RosControlClientConfig, RosEspeakClient,
-    RosEspeakClientConfig, RosNavClient, RosNavClientConfig,
+    RosEspeakClientConfig, RosLocalizationClient, RosLocalizationClientConfig, RosNavClient, RosNavClientConfig,
 };
 use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWebClientConfig};
 
@@ -83,6 +83,14 @@ pub struct RobotConfig {
     #[serde(default = "default_true")]
     pub use_navigation_urdf_viz_web_client: bool,
 
+    #[cfg(feature = "ros")]
+    pub ros_localization_client_config: Option<RosLocalizationClientConfig>,
+    // A dummy field to catch that there is a config that requires the ros feature.
+    #[cfg(not(feature = "ros"))]
+    ros_localization_client_config: Option<toml::Value>,
+    #[serde(default = "default_true")]
+    pub use_localization_urdf_viz_web_client: bool,
+
     pub openrr_clients_config: OpenrrClientsConfig,
 }
 
@@ -113,8 +121,9 @@ impl RobotConfig {
             || self.ros_navigation_client_config.is_some()
     }
 
-    pub fn create_robot_client<M, N>(&self) -> Result<RobotClient<M, N>, Error>
+    pub fn create_robot_client<L, M, N>(&self) -> Result<RobotClient<L, M, N>, Error>
     where
+        L: Localization + From<Box<dyn Localization>>,
         M: MoveBase + From<Box<dyn MoveBase>>,
         N: Navigation + From<Box<dyn Navigation>>,
     {
@@ -127,9 +136,38 @@ impl RobotConfig {
             self.openrr_clients_config.clone(),
             self.create_raw_joint_trajectory_clients(),
             speakers,
+            self.create_localization().map(|l| l.into()),
             self.create_move_base().map(|m| m.into()),
             self.create_navigation().map(|n| n.into()),
         )?)
+    }
+    fn create_localization_without_ros(&self) -> Option<Box<dyn Localization>> {
+        if self.use_localization_urdf_viz_web_client {
+            let urdf_viz_client = Box::new(UrdfVizWebClient::default());
+            Some(urdf_viz_client as Box<dyn Localization>)
+        } else {
+            None
+        }
+    }
+    #[cfg(feature = "ros")]
+    fn create_localization_with_ros(&self) -> Option<Box<dyn Localization>> {
+        if let Some(ros_localization_client_config) = &self.ros_localization_client_config {
+            Some(Box::new(RosLocalizationClient::new_from_config(
+                ros_localization_client_config.clone(),
+            )) as Box<dyn Localization>)
+        } else {
+            self.create_localization_without_ros()
+        }
+    }
+    fn create_localization(&self) -> Option<Box<dyn Localization>> {
+        #[cfg(not(feature = "ros"))]
+        {
+            self.create_localization_without_ros()
+        }
+        #[cfg(feature = "ros")]
+        {
+            self.create_localization_with_ros()
+        }
     }
     fn create_navigation_without_ros(&self) -> Option<Box<dyn Navigation>> {
         if self.use_navigation_urdf_viz_web_client {
