@@ -323,7 +323,7 @@ impl RobotCommandExecutor {
                 timeout_secs,
             } => {
                 client
-                    .send_pose(
+                    .move_to(
                         Isometry2::new(Vector2::new(*x, *y), *yaw),
                         frame_id,
                         Duration::from_secs_f64(*timeout_secs),

@@ -29,7 +29,7 @@ impl Default for DummyNavigation {
 
 #[async_trait]
 impl Navigation for DummyNavigation {
-    async fn send_pose(
+    async fn move_to(
         &self,
         goal: Isometry2<f64>,
         _frame_id: &str,
@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn test_set() {
         let nav = DummyNavigation::new();
-        assert!(tokio_test::block_on(nav.send_pose(
+        assert!(tokio_test::block_on(nav.move_to(
             Isometry2::new(Vector2::new(1.0, 2.0), 3.0),
             "",
             std::time::Duration::default(),

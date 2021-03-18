@@ -6,7 +6,7 @@ use auto_impl::auto_impl;
 #[async_trait]
 #[auto_impl(Box, Arc)]
 pub trait Navigation: Send + Sync {
-    async fn send_pose(
+    async fn move_to(
         &self,
         goal: Isometry2<f64>,
         frame_id: &str,

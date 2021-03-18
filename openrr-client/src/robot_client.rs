@@ -389,7 +389,7 @@ where
     M: MoveBase,
     N: Navigation,
 {
-    async fn send_pose(
+    async fn move_to(
         &self,
         goal: Isometry2<f64>,
         frame_id: &str,
@@ -399,7 +399,7 @@ where
             .navigation
             .as_ref()
             .unwrap()
-            .send_pose(goal, frame_id, timeout)
+            .move_to(goal, frame_id, timeout)
             .await?)
     }
 

@@ -174,7 +174,7 @@ impl RosNavClient {
 
 #[async_trait]
 impl Navigation for RosNavClient {
-    async fn send_pose(
+    async fn move_to(
         &self,
         goal: na::Isometry2<f64>,
         frame_id: &str,
