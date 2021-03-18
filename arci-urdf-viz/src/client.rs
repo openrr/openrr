@@ -1,7 +1,7 @@
 use crate::utils::*;
 use arci::{
-    BaseVelocity, CompleteCondition, JointTrajectoryClient, JointVelocityLimiter, MoveBase,
-    Navigation, SetCompleteCondition, TotalJointDiffCondition,
+    BaseVelocity, CompleteCondition, JointTrajectoryClient, JointVelocityLimiter, Localization,
+    MoveBase, Navigation, SetCompleteCondition, TotalJointDiffCondition,
 };
 use async_trait::async_trait;
 use nalgebra as na;
@@ -226,6 +226,19 @@ impl JointTrajectoryClient for UrdfVizWebClient {
     }
 }
 
+impl Localization for UrdfVizWebClient {
+    fn current_pose(&self, _frame_id: &str) -> Result<na::Isometry2<f64>, arci::Error> {
+        let pose = get_robot_origin(&self.base_url).map_err(|e| arci::Error::Connection {
+            message: format!("base_url:{}: {:?}", self.base_url, e),
+        })?;
+        let yaw = euler_angles_from_quaternion(&pose.quaternion).2;
+        Ok(na::Isometry2::new(
+            na::Vector2::new(pose.position[0], pose.position[1]),
+            yaw,
+        ))
+    }
+}
+
 #[async_trait]
 impl Navigation for UrdfVizWebClient {
     async fn send_pose(
@@ -245,17 +258,6 @@ impl Navigation for UrdfVizWebClient {
         }
 
         Ok(())
-    }
-
-    fn current_pose(&self) -> Result<na::Isometry2<f64>, arci::Error> {
-        let pose = get_robot_origin(&self.base_url).map_err(|e| arci::Error::Connection {
-            message: format!("base_url:{}: {:?}", self.base_url, e),
-        })?;
-        let yaw = euler_angles_from_quaternion(&pose.quaternion).2;
-        Ok(na::Isometry2::new(
-            na::Vector2::new(pose.position[0], pose.position[1]),
-            yaw,
-        ))
     }
 
     fn cancel(&self) -> Result<(), arci::Error> {

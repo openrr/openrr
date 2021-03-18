@@ -1,6 +1,6 @@
 use std::{collections::HashMap, f64, path::Path, sync::Arc, time::Duration, usize};
 
-use arci::{JointTrajectoryClient, MoveBase, Navigation};
+use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation};
 use iced::{
     button, scrollable, slider, window, Application, Button, Column, Command, Container, Element,
     HorizontalAlignment, Length, PickList, Row, Scrollable, Settings, Slider, Text, TextInput,
@@ -62,11 +62,12 @@ fn read_urdf(path: impl AsRef<Path>) -> Result<Robot, Error> {
 }
 
 /// Launches GUI that send joint positions from GUI to the given `robot_client`.
-pub fn joint_position_sender<M, N>(
-    robot_client: RobotClient<M, N>,
+pub fn joint_position_sender<L, M, N>(
+    robot_client: RobotClient<L, M, N>,
     urdf_path: impl AsRef<Path>,
 ) -> Result<(), Error>
 where
+    L: Localization + 'static,
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
@@ -105,12 +106,13 @@ where
     Ok(())
 }
 
-struct JointPositionSender<M, N>
+struct JointPositionSender<L, M, N>
 where
+    L: Localization + 'static,
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
-    robot_client: RobotClient<M, N>,
+    robot_client: RobotClient<L, M, N>,
     robot: Robot,
 
     joint_trajectory_client_names: Vec<String>,
@@ -177,13 +179,14 @@ impl Errors {
     }
 }
 
-impl<M, N> JointPositionSender<M, N>
+impl<L, M, N> JointPositionSender<L, M, N>
 where
+    L: Localization + 'static,
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
     fn new(
-        robot_client: RobotClient<M, N>,
+        robot_client: RobotClient<L, M, N>,
         robot: Robot,
         joint_trajectory_client_names: Vec<String>,
     ) -> Self {
@@ -247,8 +250,9 @@ enum Message {
     PickListChanged(String),
 }
 
-impl<M, N> Application for JointPositionSender<M, N>
+impl<L, M, N> Application for JointPositionSender<L, M, N>
 where
+    L: Localization + 'static,
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
