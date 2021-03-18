@@ -241,7 +241,7 @@ impl Localization for UrdfVizWebClient {
 
 #[async_trait]
 impl Navigation for UrdfVizWebClient {
-    async fn send_pose(
+    async fn move_to(
         &self,
         goal: na::Isometry2<f64>,
         _frame_id: &str,
