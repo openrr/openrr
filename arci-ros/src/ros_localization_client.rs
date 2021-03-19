@@ -72,8 +72,7 @@ impl RosLocalizationClientBuilder {
     /// let client = arci_ros::RosLocalizationClientBuilder::new().finalize();
     /// ```
     pub fn finalize(self) -> RosLocalizationClient {
-        let c = RosLocalizationClient::new(self.request_final_nomotion_update_hack);
-        c
+        RosLocalizationClient::new(self.request_final_nomotion_update_hack)
     }
 }
 
@@ -107,12 +106,17 @@ impl RosLocalizationClient {
         }
     }
     pub fn new_from_config(config: RosLocalizationClientConfig) -> Self {
-        let s = Self::new(config.request_final_nomotion_update_hack);
-        s
+        Self::new(config.request_final_nomotion_update_hack)
     }
 
     pub fn request_nomotion_update(&self) {
-        self.nomotion_update_client.borrow().as_ref().unwrap().req(&msg::std_srvs::EmptyReq {}).unwrap().unwrap();
+        self.nomotion_update_client
+            .borrow()
+            .as_ref()
+            .unwrap()
+            .req(&msg::std_srvs::EmptyReq {})
+            .unwrap()
+            .unwrap();
     }
 }
 

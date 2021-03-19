@@ -3,7 +3,8 @@ use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker};
 #[cfg(feature = "ros")]
 use arci_ros::{
     RosCmdVelMoveBase, RosCmdVelMoveBaseConfig, RosControlClientConfig, RosEspeakClient,
-    RosEspeakClientConfig, RosLocalizationClient, RosLocalizationClientConfig, RosNavClient, RosNavClientConfig,
+    RosEspeakClientConfig, RosLocalizationClient, RosLocalizationClientConfig, RosNavClient,
+    RosNavClientConfig,
 };
 use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWebClientConfig};
 
