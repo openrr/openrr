@@ -9,6 +9,7 @@ use openrr_sleep::ScopedSleep;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
+    mem,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc, Mutex,
@@ -63,11 +64,23 @@ struct SendJointPositionsTarget {
     duration: Duration,
 }
 
+enum SendJointPositionsTargetState {
+    Some(SendJointPositionsTarget),
+    None,
+    Abort,
+}
+
+impl SendJointPositionsTargetState {
+    fn take(&mut self) -> Self {
+        mem::replace(self, Self::None)
+    }
+}
+
 pub struct UrdfVizWebClient {
     base_url: Url,
     joint_names: Vec<String>,
     velocity: Arc<Mutex<BaseVelocity>>,
-    send_joint_positions_target: Arc<Mutex<Option<SendJointPositionsTarget>>>,
+    send_joint_positions_target: Arc<Mutex<SendJointPositionsTargetState>>,
     complete_condition: Box<dyn CompleteCondition>,
     send_joint_positions_thread: Option<JoinHandle<()>>,
     is_dropping: Arc<AtomicBool>,
@@ -77,7 +90,7 @@ impl UrdfVizWebClient {
     pub fn try_new(base_url: Url) -> Result<Self, anyhow::Error> {
         let joint_state = get_joint_positions(&base_url)?;
         let velocity = Arc::new(Mutex::new(BaseVelocity::default()));
-        let send_joint_positions_target = Arc::new(Mutex::new(None));
+        let send_joint_positions_target = Arc::new(Mutex::new(SendJointPositionsTargetState::None));
         Ok(Self {
             base_url,
             joint_names: joint_state.names,
@@ -119,7 +132,7 @@ impl UrdfVizWebClient {
                 const UNIT_DURATION: Duration = Duration::from_millis(10);
                 let send_joint_positions_target =
                     { send_joint_positions_target_arc_mutex.lock().unwrap().take() };
-                if let Some(target) = send_joint_positions_target {
+                if let SendJointPositionsTargetState::Some(target) = send_joint_positions_target {
                     let current = get_joint_positions(&base_url)
                         .map_err(|e| arci::Error::Connection {
                             message: format!("{:?}", e),
@@ -137,11 +150,11 @@ impl UrdfVizWebClient {
                     .unwrap();
 
                     for traj in trajectories {
-                        if send_joint_positions_target_arc_mutex
-                            .lock()
-                            .unwrap()
-                            .is_some()
-                        {
+                        if matches!(
+                            *send_joint_positions_target_arc_mutex.lock().unwrap(),
+                            SendJointPositionsTargetState::Some(..)
+                                | SendJointPositionsTargetState::Abort
+                        ) {
                             debug!("Abort old target.");
                             break;
                         }
@@ -166,6 +179,10 @@ impl UrdfVizWebClient {
                 }
             }
         }));
+    }
+
+    pub fn abort(&self) {
+        *self.send_joint_positions_target.lock().unwrap() = SendJointPositionsTargetState::Abort;
     }
 }
 
@@ -204,10 +221,11 @@ impl JointTrajectoryClient for UrdfVizWebClient {
         if self.send_joint_positions_thread.is_none() {
             panic!("Call run_joint_positions_thread.");
         }
-        *self.send_joint_positions_target.lock().unwrap() = Some(SendJointPositionsTarget {
-            positions: positions.clone(),
-            duration,
-        });
+        *self.send_joint_positions_target.lock().unwrap() =
+            SendJointPositionsTargetState::Some(SendJointPositionsTarget {
+                positions: positions.clone(),
+                duration,
+            });
         self.complete_condition
             .wait(self, &positions, duration.as_secs_f64())
     }
