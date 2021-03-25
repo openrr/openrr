@@ -378,7 +378,7 @@ where
     N: Navigation,
 {
     fn current_pose(&self, frame_id: &str) -> Result<Isometry2<f64>, ArciError> {
-        Ok(self.localization.as_ref().unwrap().current_pose(frame_id)?)
+        self.localization.as_ref().unwrap().current_pose(frame_id)
     }
 }
 
@@ -404,7 +404,7 @@ where
     }
 
     fn cancel(&self) -> Result<(), ArciError> {
-        Ok(self.navigation.as_ref().unwrap().cancel()?)
+        self.navigation.as_ref().unwrap().cancel()
     }
 }
 
