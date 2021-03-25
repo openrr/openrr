@@ -22,7 +22,7 @@ use na::RealField;
 
 /// Randomize initial joint angles before solving
 #[derive(Debug)]
-pub struct RandomInitializeIKSolver<T, I>
+pub struct RandomInitializeIkSolver<T, I>
 where
     I: InverseKinematicsSolver<T>,
     T: RealField,
@@ -34,13 +34,13 @@ where
     phantom: ::std::marker::PhantomData<T>,
 }
 
-impl<T, I> RandomInitializeIKSolver<T, I>
+impl<T, I> RandomInitializeIkSolver<T, I>
 where
     T: RealField,
     I: InverseKinematicsSolver<T>,
 {
     pub fn new(solver: I, num_max_try: usize) -> Self {
-        RandomInitializeIKSolver {
+        RandomInitializeIkSolver {
             solver,
             num_max_try,
             phantom: ::std::marker::PhantomData,
@@ -48,7 +48,7 @@ where
     }
 }
 
-impl<T, I> InverseKinematicsSolver<T> for RandomInitializeIKSolver<T, I>
+impl<T, I> InverseKinematicsSolver<T> for RandomInitializeIkSolver<T, I>
 where
     T: RealField + SubsetOf<f64>,
     I: InverseKinematicsSolver<T>,

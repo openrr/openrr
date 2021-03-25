@@ -27,9 +27,9 @@ fn main() {
         .finalize();
     // Create inverse kinematics solver
     let solver = openrr_planner::JacobianIkSolver::default();
-    let solver = openrr_planner::RandomInitializeIKSolver::new(solver, 100);
+    let solver = openrr_planner::RandomInitializeIkSolver::new(solver, 100);
     // Create path planner with IK solver
-    let mut planner = openrr_planner::JointPathPlannerWithIK::new(planner, solver);
+    let mut planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);
     let target_name = "l_tool_fixed";
     // Create obstacles
     let obstacles = Compound::from_urdf_file("obstacles.urdf").expect("obstacle file not found");

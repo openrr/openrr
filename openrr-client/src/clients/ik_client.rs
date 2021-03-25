@@ -30,8 +30,8 @@ pub fn create_jacobian_ik_solver(parameters: &IkSolverParameters) -> k::Jacobian
 
 pub fn create_random_jacobian_ik_solver(
     parameters: &IkSolverParameters,
-) -> openrr_planner::RandomInitializeIKSolver<f64, k::JacobianIkSolver<f64>> {
-    openrr_planner::RandomInitializeIKSolver::new(
+) -> openrr_planner::RandomInitializeIkSolver<f64, k::JacobianIkSolver<f64>> {
+    openrr_planner::RandomInitializeIkSolver::new(
         create_jacobian_ik_solver(parameters),
         parameters.num_max_try,
     )

@@ -21,9 +21,9 @@ use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 struct CollisionAvoidApp {
-    planner: openrr_planner::JointPathPlannerWithIK<
+    planner: openrr_planner::JointPathPlannerWithIk<
         f64,
-        openrr_planner::RandomInitializeIKSolver<f64, openrr_planner::JacobianIkSolver<f64>>,
+        openrr_planner::RandomInitializeIkSolver<f64, openrr_planner::JacobianIkSolver<f64>>,
     >,
     obstacles: Compound<f64>,
     ik_target_pose: na::Isometry3<f64>,
@@ -52,8 +52,8 @@ impl CollisionAvoidApp {
             .collision_check_margin(0.01f64)
             .finalize();
         let solver = openrr_planner::JacobianIkSolver::new(0.001f64, 0.005, 0.2, 100);
-        let solver = openrr_planner::RandomInitializeIKSolver::new(solver, 100);
-        let planner = openrr_planner::JointPathPlannerWithIK::new(planner, solver);
+        let solver = openrr_planner::RandomInitializeIkSolver::new(solver, 100);
+        let planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);
         let mut viewer = urdf_viz::Viewer::new("openrr_planner: example reach");
         viewer.add_robot_with_base_dir(planner.urdf_robot().as_ref().unwrap(), robot_path.parent());
         viewer.add_axis_cylinders("origin", 1.0);

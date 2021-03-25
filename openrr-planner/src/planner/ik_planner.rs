@@ -21,7 +21,7 @@ use na::RealField;
 use ncollide3d::shape::Compound;
 
 /// Joint path planner which supports inverse kinematics
-pub struct JointPathPlannerWithIK<T, I>
+pub struct JointPathPlannerWithIk<T, I>
 where
     I: k::InverseKinematicsSolver<T>,
     T: RealField + k::SubsetOf<f64>,
@@ -34,7 +34,7 @@ where
     pub ik_solver: I,
 }
 
-impl<T, I> JointPathPlannerWithIK<T, I>
+impl<T, I> JointPathPlannerWithIk<T, I>
 where
     //T: RealField + num_traits::Float + k::SubsetOf<f64>,
     T: RealField + k::SubsetOf<f64> + num_traits::Float,
@@ -53,7 +53,7 @@ where
     /// // Create inverse kinematics solver
     /// let solver = openrr_planner::JacobianIkSolver::default();
     /// // Create path planner with IK solver
-    /// let _planner = openrr_planner::JointPathPlannerWithIK::new(planner, solver);
+    /// let _planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);
     /// ```
     pub fn new(path_planner: JointPathPlanner<T>, ik_solver: I) -> Self {
         Self {
