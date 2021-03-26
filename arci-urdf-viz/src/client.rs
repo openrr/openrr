@@ -133,6 +133,19 @@ impl UrdfVizWebClient {
                 let send_joint_positions_target =
                     { send_joint_positions_target_arc_mutex.lock().unwrap().take() };
                 if let SendJointPositionsTargetState::Some(target) = send_joint_positions_target {
+                    if target.duration.as_nanos() == 0 {
+                        let target_state = JointState {
+                            names: joint_names.clone(),
+                            positions: target.positions.clone(),
+                        };
+                        send_joint_positions(&base_url, target_state)
+                            .map_err(|e| arci::Error::Connection {
+                                message: format!("{:?}", e),
+                            })
+                            .unwrap();
+                        continue;
+                    }
+
                     let current = get_joint_positions(&base_url)
                         .map_err(|e| arci::Error::Connection {
                             message: format!("{:?}", e),

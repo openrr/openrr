@@ -412,7 +412,7 @@ where
                         // We don't round the input for now. If we do that, we also need to update
                         // the text input that we show to the user.
 
-                        if !duration.is_normal() {
+                        if !duration.is_normal() && !duration.is_sign_positive() {
                             let msg = "Duration is not a normal number".to_string();
                             warn!(?self.duration_input, ?msg);
                             self.errors.duration_input = Some(msg);

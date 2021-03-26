@@ -245,7 +245,7 @@ urdf-viz ./openrr-planner/sample.urdf &
 
 ```bash
 openrr_apps_joint_position_sender \
-  --config ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
+  --config-path ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
 ```
 
 #### Environmental Variables
