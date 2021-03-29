@@ -1,6 +1,6 @@
 [package]
 name = "arci-ros"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Takashi Ogura <t.ogura@gmail.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -12,7 +12,7 @@ documentation = "http://docs.rs/arci-ros"
 
 [dependencies]
 anyhow = "1.0"
-arci = "0.0.4"
+arci = "0.0.5"
 async-trait = "0.1"
 crossbeam-channel = "0.5.0"
 nalgebra = "0.25"

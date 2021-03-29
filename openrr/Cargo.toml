@@ -1,6 +1,6 @@
 [package]
 name = "openrr"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -18,13 +18,13 @@ assimp = ["openrr-planner/assimp"]
 ros = ["openrr-apps/ros"]
 
 [dependencies]
-openrr-client = "0.0.4"
-openrr-command = "0.0.4"
-openrr-planner = "0.0.4"
-openrr-sleep = "0.0.4"
-openrr-teleop = "0.0.4"
+openrr-client = "0.0.5"
+openrr-command = "0.0.5"
+openrr-planner = "0.0.5"
+openrr-sleep = "0.0.5"
+openrr-teleop = "0.0.5"
 
 [dependencies.openrr-apps]
-version = "0.0.4"
+version = "0.0.5"
 default-features = false
 features = ["gui"]

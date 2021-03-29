@@ -1,6 +1,6 @@
 [package]
 name = "openrr-gui"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Taiki Endo <te316e89@gmail.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -11,9 +11,9 @@ repository = "https://github.com/openrr/openrr"
 documentation = "http://docs.rs/openrr-gui"
 
 [dependencies]
-arci = "0.0.4"
+arci = "0.0.5"
 iced = "0.2"
-openrr-client = "0.0.4"
+openrr-client = "0.0.5"
 rand = "0.8"
 thiserror = "1"
 tracing = { version = "0.1", features = ["log"] }
