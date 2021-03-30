@@ -148,15 +148,22 @@ pub fn interpolate<T>(
 where
     T: Float,
 {
-    let mut times = Vec::new();
     let key_frame_unit_duration = total_duration / (T::from(points.len())? - T::one());
+    let mut times = Vec::with_capacity(points.len());
     for i in 0..points.len() {
         times.push(key_frame_unit_duration * T::from(i)?);
     }
+    /* FIXME:
+     * 	let time = (0_usize..points.len())
+	 *					.map( |i| T::from(i)*key_frame_unit_duration)
+	 *					.collect::<Vec<f64>>();
+     * Another purpose
+     * I don't compare and I've not know which is more efficiently yet.
+     */
     assert_eq!(times.len(), points.len());
     let spline = CubicSpline::new(times, points.to_vec())?;
     let mut t = T::zero();
-    let mut ret = Vec::new();
+    let mut ret = Vec::with_capacity(points.len());
     while t < total_duration {
         ret.push(TrajectoryPoint {
             position: spline.position(t)?,
