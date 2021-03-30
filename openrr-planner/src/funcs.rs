@@ -152,6 +152,7 @@ where
     let times = (0_usize..points.len())
         .map(|i| T::from(i).unwrap() * key_frame_unit_duration)
         .collect::<Vec<T>>();
+    let mut times = Vec::with_capacity(points.len());
     assert_eq!(times.len(), points.len());
 
     let spline = CubicSpline::new(times, points.to_vec())?;
