@@ -1,15 +1,16 @@
 // This is copy of urdf-viz/web_server.rs
-// version = "0.21.1"
-// https://github.com/OpenRR/urdf-viz/blob/v0.21.1/src/web_server.rs
+// version = "0.25.0"
+// https://github.com/OpenRR/urdf-viz/blob/v0.25.0/src/web_server.rs
 // It is difficult to test with urdf-viz with `RUSTFLAGS=-Cpanic=abort`
 // because of wayland-client.
 // That flag is needed to get the test coverage.
-//
-// https://github.com/smilerobotics/sorriso/runs/1416786487
-//
-use rouille::*;
-use serde_derive::*;
-use std::sync::{Arc, Mutex};
+
+use actix_web::*;
+use serde::{Deserialize, Serialize};
+use std::{
+    io,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub struct JointNamesAndPositions {
@@ -50,6 +51,14 @@ pub struct WebServer {
     pub current_robot_origin: Arc<Mutex<RobotOrigin>>,
 }
 
+#[derive(Debug, Clone)]
+struct Data {
+    target_joint_positions: Arc<Mutex<JointNamesAndPositionsRequest>>,
+    current_joint_positions: Arc<Mutex<JointNamesAndPositions>>,
+    target_robot_origin: Arc<Mutex<RobotOriginRequest>>,
+    current_robot_origin: Arc<Mutex<RobotOrigin>>,
+}
+
 impl WebServer {
     pub fn new(port: u16) -> Self {
         Self {
@@ -66,76 +75,139 @@ impl WebServer {
             current_robot_origin: Arc::new(Mutex::new(RobotOrigin::default())),
         }
     }
-    pub fn start(self) {
-        rouille::start_server(("0.0.0.0", self.port), move |request| {
-            router!(request,
-                (POST) (/set_joint_positions) => {
-                    let json: JointNamesAndPositions = try_or_400!(rouille::input::json_input(request));
-                    let mut jp_request = try_or_404!(self.target_joint_positions.lock());
-                    jp_request.joint_positions = json;
-                    let jp = jp_request.joint_positions.clone();
-                    if jp.names.len() != jp.positions.len() {
-                        Response::json(
-                            &ResultResponse {
-                                is_ok: false,
-                                reason: format!("names and positions size mismatch ({} != {})",
-                                jp.names.len(), jp.positions.len()),
-                            })
-                    } else {
-                        jp_request.requested = true;
-                        Response::json(&ResultResponse { is_ok: true, reason: "".to_string() })
-                    }
-                },
-                (POST) (/set_robot_origin) => {
-                    let json: RobotOrigin = try_or_400!(rouille::input::json_input(request));
-                    let mut pose_request = try_or_404!(self.target_robot_origin.lock());
-                    pose_request.origin = json;
-                    pose_request.requested = true;
-                    Response::json(&ResultResponse { is_ok: true, reason: "".to_string() })
-                },
-                (OPTIONS) (/set_joint_positions) => {
-                    Response::empty_204()
-                        .with_additional_header("Allow", "OPTIONS, POST")
-                        .with_additional_header("Access-Control-Allow-Methods", "POST")
-                        .with_additional_header("Access-Control-Allow-Origin", "*")
-                        .with_additional_header("Access-Control-Allow-Headers", "authorization,content-type")
-                        .with_additional_header("Access-Control-Max-Age", "86400")
-                },
-                (OPTIONS) (/set_robot_origin) => {
-                    Response::empty_204()
-                        .with_additional_header("Allow", "OPTIONS, POST")
-                        .with_additional_header("Access-Control-Allow-Methods", "POST")
-                        .with_additional_header("Access-Control-Allow-Origin", "*")
-                        .with_additional_header("Access-Control-Allow-Headers", "authorization,content-type")
-                        .with_additional_header("Access-Control-Max-Age", "86400")
-                },
-                (GET) (/get_joint_positions) => {
-                    let ja = try_or_404!(self.current_joint_positions.lock());
-                    Response::json(&*ja)
-                },
-                (GET) (/get_robot_origin) => {
-                    let origin = try_or_404!(self.current_robot_origin.lock());
-                    Response::json(&*origin)
-                },
-                (OPTIONS) (/get_joint_positions) => {
-                    Response::empty_204()
-                        .with_additional_header("Allow", "OPTIONS, GET")
-                        .with_additional_header("Access-Control-Allow-Methods", "GET")
-                        .with_additional_header("Access-Control-Allow-Origin", "*")
-                        .with_additional_header("Access-Control-Allow-Headers", "authorization")
-                        .with_additional_header("Access-Control-Max-Age", "86400")
-                },
-                (OPTIONS) (/get_robot_origin) => {
-                    Response::empty_204()
-                        .with_additional_header("Allow", "OPTIONS, GET")
-                        .with_additional_header("Access-Control-Allow-Methods", "GET")
-                        .with_additional_header("Access-Control-Allow-Origin", "*")
-                        .with_additional_header("Access-Control-Allow-Headers", "authorization")
-                        .with_additional_header("Access-Control-Max-Age", "86400")
-                },
 
-                _ => Response::empty_404(),
-            )
-        });
+    pub fn clone_in_out(
+        &self,
+    ) -> (
+        Arc<Mutex<JointNamesAndPositionsRequest>>,
+        Arc<Mutex<JointNamesAndPositions>>,
+        Arc<Mutex<RobotOriginRequest>>,
+        Arc<Mutex<RobotOrigin>>,
+    ) {
+        (
+            self.target_joint_positions.clone(),
+            self.current_joint_positions.clone(),
+            self.target_robot_origin.clone(),
+            self.current_robot_origin.clone(),
+        )
     }
+
+    #[actix_web::main]
+    pub async fn start(self) -> io::Result<()> {
+        let data = Data {
+            target_joint_positions: self.target_joint_positions,
+            current_joint_positions: self.current_joint_positions,
+            target_robot_origin: self.target_robot_origin,
+            current_robot_origin: self.current_robot_origin,
+        };
+
+        HttpServer::new(move || {
+            App::new()
+                .data(data.clone())
+                .service(set_joint_positions)
+                .service(set_robot_origin)
+                .service(options_set_joint_positions)
+                .service(options_set_robot_origin)
+                .service(get_joint_positions)
+                .service(get_robot_origin)
+                .service(options_get_joint_positions)
+                .service(options_get_robot_origin)
+        })
+        .bind(("0.0.0.0", self.port))?
+        .run()
+        .await
+    }
+}
+
+#[post("set_joint_positions")]
+async fn set_joint_positions(
+    json: web::Json<JointNamesAndPositions>,
+    data: web::Data<Data>,
+) -> HttpResponse {
+    let mut jp_request = data.target_joint_positions.lock().unwrap();
+    jp_request.joint_positions = json.into_inner();
+    let jp = jp_request.joint_positions.clone();
+    if jp.names.len() != jp.positions.len() {
+        HttpResponse::Ok().json(&ResultResponse {
+            is_ok: false,
+            reason: format!(
+                "names and positions size mismatch ({} != {})",
+                jp.names.len(),
+                jp.positions.len()
+            ),
+        })
+    } else {
+        jp_request.requested = true;
+        HttpResponse::Ok().json(&ResultResponse {
+            is_ok: true,
+            reason: "".to_string(),
+        })
+    }
+}
+
+#[post("set_robot_origin")]
+async fn set_robot_origin(json: web::Json<RobotOrigin>, data: web::Data<Data>) -> HttpResponse {
+    let mut pose_request = data.target_robot_origin.lock().unwrap();
+    pose_request.origin = json.into_inner();
+    pose_request.requested = true;
+    HttpResponse::Ok().json(&ResultResponse {
+        is_ok: true,
+        reason: "".to_string(),
+    })
+}
+
+#[options("set_joint_positions")]
+async fn options_set_joint_positions() -> HttpResponse {
+    HttpResponse::NoContent()
+        .header("Allow", "OPTIONS, POST")
+        .header("Access-Control-Allow-Methods", "POST")
+        .header("Access-Control-Allow-Origin", "*")
+        .header("Access-Control-Allow-Headers", "authorization,content-type")
+        .header("Access-Control-Max-Age", "86400")
+        .finish()
+}
+
+#[options("set_robot_origin")]
+async fn options_set_robot_origin() -> HttpResponse {
+    HttpResponse::NoContent()
+        .header("Allow", "OPTIONS, POST")
+        .header("Access-Control-Allow-Methods", "POST")
+        .header("Access-Control-Allow-Origin", "*")
+        .header("Access-Control-Allow-Headers", "authorization,content-type")
+        .header("Access-Control-Max-Age", "86400")
+        .finish()
+}
+
+#[get("get_joint_positions")]
+async fn get_joint_positions(server: web::Data<Data>) -> HttpResponse {
+    let json = server.current_joint_positions.lock().unwrap();
+    HttpResponse::Ok().json(&*json)
+}
+
+#[get("get_robot_origin")]
+async fn get_robot_origin(server: web::Data<Data>) -> HttpResponse {
+    let origin = server.current_robot_origin.lock().unwrap();
+    HttpResponse::Ok().json(&*origin)
+}
+
+#[options("get_joint_positions")]
+async fn options_get_joint_positions() -> HttpResponse {
+    HttpResponse::NoContent()
+        .header("Allow", "OPTIONS, GET")
+        .header("Access-Control-Allow-Methods", "GET")
+        .header("Access-Control-Allow-Origin", "*")
+        .header("Access-Control-Allow-Headers", "authorization")
+        .header("Access-Control-Max-Age", "86400")
+        .finish()
+}
+
+#[options("get_robot_origin")]
+async fn options_get_robot_origin() -> HttpResponse {
+    HttpResponse::NoContent()
+        .header("Allow", "OPTIONS, GET")
+        .header("Access-Control-Allow-Methods", "GET")
+        .header("Access-Control-Allow-Origin", "*")
+        .header("Access-Control-Allow-Headers", "authorization")
+        .header("Access-Control-Max-Age", "86400")
+        .finish()
 }
