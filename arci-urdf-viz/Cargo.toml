@@ -24,8 +24,8 @@ ureq = { version = "2", features = ["json"] }
 url = "2.0"
 
 [dev-dependencies]
+actix-web = "3"
 assert_approx_eq = "1.1"
-rouille = "3.0"
 serde_derive = "1.0"
 tokio = { version = "1.0", features = ["full"] }
 tokio-test = "0.4"
