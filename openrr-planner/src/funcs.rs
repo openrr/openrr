@@ -149,18 +149,11 @@ where
     T: Float,
 {
     let key_frame_unit_duration = total_duration / (T::from(points.len())? - T::one());
-    let mut times = Vec::with_capacity(points.len());
-    for i in 0..points.len() {
-        times.push(key_frame_unit_duration * T::from(i)?);
-    }
-    /* FIXME:
-     * 	let time = (0_usize..points.len())
-     *					.map( |i| T::from(i)*key_frame_unit_duration)
-     *					.collect::<Vec<f64>>();
-     * Another purpose
-     * I don't compare and I've not know which is more efficiently yet.
-     */
+    let times = (0_usize..points.len())
+        .map(|i| T::from(i).unwrap() * key_frame_unit_duration)
+        .collect::<Vec<T>>();
     assert_eq!(times.len(), points.len());
+
     let spline = CubicSpline::new(times, points.to_vec())?;
     let mut t = T::zero();
     let mut ret = Vec::with_capacity(points.len());
