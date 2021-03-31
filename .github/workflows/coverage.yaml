@@ -13,7 +13,7 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2.3.4
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly-2021-03-04
