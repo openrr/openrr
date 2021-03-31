@@ -39,6 +39,7 @@ set -x
 for i in "${!MEMBERS[@]}"; do
     (
         cd "${MEMBERS[${i}]}"
+        cargo clean
         cargo publish
     )
     if [[ $((i + 1)) != "${#MEMBERS[@]}" ]]; then
