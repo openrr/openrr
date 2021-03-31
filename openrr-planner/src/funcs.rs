@@ -155,8 +155,8 @@ where
     }
     /* FIXME:
      * 	let time = (0_usize..points.len())
-	 *					.map( |i| T::from(i)*key_frame_unit_duration)
-	 *					.collect::<Vec<f64>>();
+     *					.map( |i| T::from(i)*key_frame_unit_duration)
+     *					.collect::<Vec<f64>>();
      * Another purpose
      * I don't compare and I've not know which is more efficiently yet.
      */
@@ -188,8 +188,4 @@ where
 {
     let limits = robot.iter_joints().map(|j| j.limits).collect();
     robot.set_joint_positions(&generate_random_joint_positions_from_limits(&limits))
-}
-
-#[cfg(test)]
-mod tests {
 }
