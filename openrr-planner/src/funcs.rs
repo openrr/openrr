@@ -148,15 +148,15 @@ pub fn interpolate<T>(
 where
     T: Float,
 {
-    let mut times = Vec::new();
     let key_frame_unit_duration = total_duration / (T::from(points.len())? - T::one());
-    for i in 0..points.len() {
-        times.push(key_frame_unit_duration * T::from(i)?);
-    }
+    let times = (0_usize..points.len())
+        .map(|i| T::from(i).unwrap() * key_frame_unit_duration)
+        .collect::<Vec<T>>();
     assert_eq!(times.len(), points.len());
+
     let spline = CubicSpline::new(times, points.to_vec())?;
     let mut t = T::zero();
-    let mut ret = Vec::new();
+    let mut ret = Vec::with_capacity(points.len());
     while t < total_duration {
         ret.push(TrajectoryPoint {
             position: spline.position(t)?,
@@ -181,33 +181,4 @@ where
 {
     let limits = robot.iter_joints().map(|j| j.limits).collect();
     robot.set_joint_positions(&generate_random_joint_positions_from_limits(&limits))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_funcs() {
-        let limits: Vec<Option<k::joint::Range<f64>>> = vec![
-            None,
-            Some(k::joint::Range::new(-1.0, 1.0)),
-            Some(k::joint::Range::new(0.0, 0.1)),
-        ];
-        for _ in 0..1000 {
-            let angles = generate_random_joint_positions_from_limits(&limits);
-            assert_eq!(angles.len(), limits.len());
-            assert!(angles[0] >= -PI && angles[0] < PI);
-            assert!(angles[1] >= -1.0 && angles[1] < 1.0);
-            assert!(angles[2] >= 0.0 && angles[2] < 0.1);
-        }
-        let angles_fail = vec![0.1];
-        assert!(generate_clamped_joint_positions_from_limits(&angles_fail, &limits).is_err());
-
-        let angles1 = vec![100.0, -2.0, 0.5];
-        let clamped = generate_clamped_joint_positions_from_limits(&angles1, &limits).unwrap();
-        const TORELANCE: f64 = 0.00001;
-        assert!((clamped[0] - 100.0).abs() < TORELANCE);
-        assert!((clamped[1] - (-1.0)).abs() < TORELANCE);
-        assert!((clamped[2] - 0.1).abs() < TORELANCE);
-    }
 }
