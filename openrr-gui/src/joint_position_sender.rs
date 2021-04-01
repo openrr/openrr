@@ -2,8 +2,9 @@ use std::{collections::HashMap, f64, path::Path, sync::Arc, time::Duration, usiz
 
 use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation};
 use iced::{
-    button, scrollable, slider, window, Application, Button, Column, Command, Container, Element,
-    HorizontalAlignment, Length, PickList, Row, Scrollable, Settings, Slider, Text, TextInput,
+    button, scrollable, slider, window, Application, Button, Clipboard, Column, Command, Container,
+    Element, HorizontalAlignment, Length, PickList, Row, Scrollable, Settings, Slider, Text,
+    TextInput,
 };
 use iced::{pick_list, text_input};
 use openrr_client::RobotClient;
@@ -269,7 +270,7 @@ where
         "Joint Position Sender".into()
     }
 
-    fn update(&mut self, message: Message) -> Command<Message> {
+    fn update(&mut self, message: Message, _clipboard: &mut Clipboard) -> Command<Message> {
         let debug_span = |joint_trajectory_client| {
             debug_span!("Joint Position Sender", ?joint_trajectory_client)
         };
