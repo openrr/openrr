@@ -1,6 +1,6 @@
 [package]
 name = "arci-speak-cmd"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Taiki Endo <te316e89@gmail.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -11,7 +11,7 @@ repository = "https://github.com/openrr/openrr"
 documentation = "http://docs.rs/arci-speak-cmd"
 
 [dependencies]
-arci = "0.0.4"
+arci = "0.0.5"
 thiserror = "1.0"
 tracing = { version = "0.1", features = ["log"] }
 
