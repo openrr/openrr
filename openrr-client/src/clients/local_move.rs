@@ -91,22 +91,24 @@ where
 mod tests {
     use super::*;
     use arci::{DummyMoveBase, DummyNavigation};
+    use assert_approx_eq::assert_approx_eq;
     use na::Vector2;
+
     #[test]
     fn test_config() {
         let path = std::path::Path::new("tests/local_move_sample.toml");
         let config = LocalMoveConfig::try_new(path).unwrap();
-        assert_eq!(config.reach_distance_threshold, 0.1);
-        assert_eq!(config.control_frequency, 10.0);
-        assert_eq!(config.linear_gain, 1.0);
-        assert_eq!(config.max_linear_vel, 1.0);
+        assert_approx_eq!(config.reach_distance_threshold, 0.1);
+        assert_approx_eq!(config.control_frequency, 10.0);
+        assert_approx_eq!(config.linear_gain, 1.0);
+        assert_approx_eq!(config.max_linear_vel, 1.0);
     }
 
     #[test]
     fn test() {
         let path = std::path::Path::new("tests/local_move_sample.toml");
         let config = LocalMoveConfig::try_new(path).unwrap();
-        assert_eq!(config.linear_gain, 1.0);
+        assert_approx_eq!(config.linear_gain, 1.0);
         let move_base = DummyMoveBase::new();
         let nav = DummyNavigation::new();
         let local_move = LocalMove::new(Box::new(nav), Box::new(move_base), config);
@@ -134,23 +136,23 @@ mod tests {
             .send_control_velocity_from_pose_error(Isometry2::new(Vector2::new(1.0, -1.0), 1.0))
             .unwrap();
         let vel0 = local_move.vel_client.current_velocity().unwrap();
-        assert_eq!(vel0.x, 1.0); // linear_gain = 1.0
-        assert_eq!(vel0.y, -1.0); // linear_gain = 1.0
-        assert_eq!(vel0.theta, 1.0); // angular_gain = 1.0
+        assert_approx_eq!(vel0.x, 1.0); // linear_gain = 1.0
+        assert_approx_eq!(vel0.y, -1.0); // linear_gain = 1.0
+        assert_approx_eq!(vel0.theta, 1.0); // angular_gain = 1.0
 
         local_move
             .send_control_velocity_from_pose_error(Isometry2::new(Vector2::new(2.0, -2.0), 2.0))
             .unwrap(); // saturated case
         let vel1 = local_move.vel_client.current_velocity().unwrap();
-        assert_eq!(vel1.x, 1.0); // max_linear_vel = 1.0
-        assert_eq!(vel1.y, -1.0); // max_linear_vel = 1.0
-        assert_eq!(vel1.theta, 1.0); // max_angular_vel = 1.0
+        assert_approx_eq!(vel1.x, 1.0); // max_linear_vel = 1.0
+        assert_approx_eq!(vel1.y, -1.0); // max_linear_vel = 1.0
+        assert_approx_eq!(vel1.theta, 1.0); // max_angular_vel = 1.0
 
         // Set zero velocity
         local_move.send_zero_velocity().unwrap();
         let vel2 = local_move.vel_client.current_velocity().unwrap();
-        assert_eq!(vel2.x, 0.0);
-        assert_eq!(vel2.y, 0.0);
-        assert_eq!(vel2.theta, 0.0);
+        assert_approx_eq!(vel2.x, 0.0);
+        assert_approx_eq!(vel2.y, 0.0);
+        assert_approx_eq!(vel2.theta, 0.0);
     }
 }

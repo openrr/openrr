@@ -47,6 +47,8 @@ impl Navigation for DummyNavigation {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use assert_approx_eq::assert_approx_eq;
+
     #[test]
     fn test_set() {
         let nav = DummyNavigation::new();
@@ -58,8 +60,8 @@ mod tests {
         .is_ok());
 
         let current_goal_pose = nav.current_goal_pose().unwrap();
-        assert_eq!(current_goal_pose.translation.x, 1.0);
-        assert_eq!(current_goal_pose.translation.y, 2.0);
-        assert_eq!(current_goal_pose.rotation.angle(), 3.0);
+        assert_approx_eq!(current_goal_pose.translation.x, 1.0);
+        assert_approx_eq!(current_goal_pose.translation.y, 2.0);
+        assert_approx_eq!(current_goal_pose.rotation.angle(), 3.0);
     }
 }
