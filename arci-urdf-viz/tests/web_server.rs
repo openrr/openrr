@@ -77,7 +77,7 @@ impl WebServer {
     }
 
     #[actix_web::main]
-    pub async fn start(self) -> io::Result<()> {
+    async fn start(self) -> io::Result<()> {
         let data = Data {
             target_joint_positions: self.target_joint_positions,
             current_joint_positions: self.current_joint_positions,
@@ -100,6 +100,11 @@ impl WebServer {
         .bind(("0.0.0.0", self.port))?
         .run()
         .await
+    }
+
+    pub fn start_background(self) {
+        std::thread::spawn(move || self.start().unwrap());
+        std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
     }
 }
 
