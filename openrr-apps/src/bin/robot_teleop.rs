@@ -18,8 +18,7 @@ pub struct RobotTeleopArgs {
     config_path: PathBuf,
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
+fn main() -> Result<(), Error> {
     tracing_subscriber::fmt::init();
     let args = RobotTeleopArgs::from_args();
 
@@ -72,11 +71,9 @@ async fn main() -> Result<(), Error> {
             switcher_cloned.stop();
         });
     }
-    switcher
-        .main(GilGamepad::new_from_config(
-            teleop_config.gil_gamepad_config,
-        ))
-        .await;
+    switcher.main(GilGamepad::new_from_config(
+        teleop_config.gil_gamepad_config,
+    ));
 
     Ok(())
 }

@@ -1,7 +1,6 @@
 use super::control_node::ControlNode;
 use arci::gamepad::{Axis, Button, GamepadEvent};
 use arci::{JointTrajectoryClient, Speaker};
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -68,7 +67,6 @@ where
     }
 }
 
-#[async_trait]
 impl<N, S> ControlNode for JoyJointTeleopNode<N, S>
 where
     N: JointTrajectoryClient,
@@ -113,7 +111,7 @@ where
             _ => {}
         }
     }
-    async fn proc(&self) {
+    fn proc(&self) {
         if self.is_sending {
             let mut pos = self
                 .joint_trajectory_client
@@ -126,8 +124,9 @@ where
                     1.0
                 };
             self.joint_trajectory_client
-                .send_joint_positions(pos, self.step_duration)
-                .await
+                .send_joint_positions(&pos, self.step_duration)
+                .unwrap()
+                .wait()
                 .unwrap();
         }
     }

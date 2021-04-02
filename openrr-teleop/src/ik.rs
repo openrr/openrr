@@ -1,7 +1,6 @@
 use super::control_node::ControlNode;
 use arci::gamepad::{Axis, Button, GamepadEvent};
 use arci::{JointTrajectoryClient, Speaker};
-use async_trait::async_trait;
 use k::{Translation3, Vector3};
 use openrr_client::IkSolverWithChain;
 use serde::{Deserialize, Serialize};
@@ -90,7 +89,6 @@ where
     }
 }
 
-#[async_trait]
 impl<N, S> ControlNode for IkNode<N, S>
 where
     N: JointTrajectoryClient,
@@ -150,7 +148,7 @@ where
             _ => {}
         }
     }
-    async fn proc(&self) {
+    fn proc(&self) {
         if self.is_sending {
             let current_positions = self
                 .joint_trajectory_client
@@ -177,8 +175,9 @@ where
             if self.ik_solver_with_chain.solve(&target_pose).is_ok() {
                 let pos = self.ik_solver_with_chain.joint_positions();
                 self.joint_trajectory_client
-                    .send_joint_positions(pos, self.step_duration)
-                    .await
+                    .send_joint_positions(&pos, self.step_duration)
+                    .unwrap()
+                    .wait()
                     .unwrap();
             } else {
                 self.speaker.speak("ik fail");

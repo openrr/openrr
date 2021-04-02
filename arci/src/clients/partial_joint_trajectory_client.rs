@@ -1,6 +1,5 @@
 use crate::error::Error;
-use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
-use async_trait::async_trait;
+use crate::traits::{JointTrajectoryClient, TrajectoryPoint, Wait};
 
 pub struct PartialJointTrajectoryClient<C>
 where
@@ -38,7 +37,6 @@ where
     }
 }
 
-#[async_trait]
 impl<C> JointTrajectoryClient for PartialJointTrajectoryClient<C>
 where
     C: JointTrajectoryClient,
@@ -56,11 +54,11 @@ where
         );
         Ok(result)
     }
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
-        positions: Vec<f64>,
+        positions: &[f64],
         duration: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<Wait, Error> {
         let mut full_positions = self.shared_client.current_joint_positions()?;
         copy_joint_positions(
             self.joint_names(),
@@ -69,10 +67,9 @@ where
             &mut full_positions,
         );
         self.shared_client
-            .send_joint_positions(full_positions, duration)
-            .await
+            .send_joint_positions(&full_positions, duration)
     }
-    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<(), Error> {
+    fn send_joint_trajectory(&self, trajectory: &[TrajectoryPoint]) -> Result<Wait, Error> {
         let full_positions_base = self.shared_client.current_joint_positions()?;
         let mut full_trajectory = vec![];
         let full_dof = full_positions_base.len();
@@ -97,8 +94,6 @@ where
             }
             full_trajectory.push(full_point);
         }
-        self.shared_client
-            .send_joint_trajectory(full_trajectory)
-            .await
+        self.shared_client.send_joint_trajectory(&full_trajectory)
     }
 }

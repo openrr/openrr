@@ -1,8 +1,8 @@
 use crate::msg::sensor_msgs::Joy;
 use arci::gamepad::*;
-use arci::*;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use std::thread;
 
 pub struct JoyGamepad {
     _last_joy_msg: Arc<Mutex<Joy>>,
@@ -22,9 +22,15 @@ impl JoyGamepad {
         let (tx, rx) = crossbeam_channel::unbounded();
         let tx_for_stop = tx.clone();
         // spawn for stop by Ctrl-C
-        tokio::spawn(async move {
-            tokio::signal::ctrl_c().await.unwrap();
-            tx_for_stop.send(GamepadEvent::Unknown).unwrap();
+        thread::spawn(move || {
+            if signal_hook::iterator::Signals::new(&[signal_hook::consts::SIGINT])
+                .expect("cannot set signal handler for SIGINT")
+                .forever()
+                .next()
+                .is_some()
+            {
+                tx_for_stop.send(GamepadEvent::Unknown).unwrap();
+            }
         });
 
         let last_joy_msg_clone = last_joy_msg.clone();
@@ -80,9 +86,8 @@ impl JoyGamepad {
     }
 }
 
-#[async_trait]
 impl Gamepad for JoyGamepad {
-    async fn next_event(&self) -> GamepadEvent {
+    fn next_event(&self) -> GamepadEvent {
         if let Ok(ev) = self.rx.recv() {
             ev
         } else {

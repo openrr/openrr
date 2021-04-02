@@ -1,6 +1,6 @@
 use crate::error::Error;
-use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
-use async_trait::async_trait;
+use crate::traits::{JointTrajectoryClient, TrajectoryPoint, Wait};
+use crate::waits::WaitContainer;
 
 pub struct JointTrajectoryClientsContainer<T: JointTrajectoryClient> {
     joint_names: Vec<String>,
@@ -23,7 +23,6 @@ where
     }
 }
 
-#[async_trait]
 impl<T> JointTrajectoryClient for JointTrajectoryClientsContainer<T>
 where
     T: JointTrajectoryClient + Sync,
@@ -39,11 +38,11 @@ where
         }
         Ok(ret)
     }
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
-        positions: Vec<f64>,
+        positions: &[f64],
         duration: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<Wait, Error> {
         let mut offset = 0;
         let mut waits = vec![];
         for c in &self.clients {
@@ -54,17 +53,11 @@ where
                 }
             }
             offset += current_positions.len();
-            waits.push(c.send_joint_positions(current_positions, duration));
+            waits.push(c.send_joint_positions(&current_positions, duration)?);
         }
-        for f in waits {
-            f.await?;
-        }
-        Ok(())
+        Ok(WaitContainer::new_boxed(waits))
     }
-    async fn send_joint_trajectory(
-        &self,
-        full_trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<(), Error> {
+    fn send_joint_trajectory(&self, full_trajectory: &[TrajectoryPoint]) -> Result<Wait, Error> {
         let mut offset = 0;
         let full_dof = self.joint_names().len();
         let mut waits = vec![];
@@ -72,7 +65,7 @@ where
             let mut current_positions = client.current_joint_positions()?;
             let partial_dof = current_positions.len();
             let mut partial_trajectory: Vec<TrajectoryPoint> = vec![];
-            for full_point in &full_trajectory {
+            for full_point in full_trajectory {
                 for (i, current) in current_positions.iter_mut().enumerate().take(partial_dof) {
                     if full_dof > (offset + i) {
                         *current = full_point.positions[offset + i];
@@ -97,12 +90,9 @@ where
                     time_from_start: full_point.time_from_start,
                 });
             }
-            waits.push(client.send_joint_trajectory(partial_trajectory));
+            waits.push(client.send_joint_trajectory(&partial_trajectory)?);
             offset += partial_dof;
         }
-        for f in waits {
-            f.await?;
-        }
-        Ok(())
+        Ok(WaitContainer::new_boxed(waits))
     }
 }

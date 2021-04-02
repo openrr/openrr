@@ -1,9 +1,9 @@
 use crate::utils::*;
 use arci::{
-    BaseVelocity, CompleteCondition, JointTrajectoryClient, JointVelocityLimiter, Localization,
-    MoveBase, Navigation, SetCompleteCondition, TotalJointDiffCondition,
+    BaseVelocity, CompleteCondition, DummyWait, JointTrajectoryClient, JointVelocityLimiter,
+    Localization, MoveBase, Navigation, SetCompleteCondition, TargetDiffWait,
+    TotalJointDiffCondition, Wait,
 };
-use async_trait::async_trait;
 use nalgebra as na;
 use openrr_sleep::ScopedSleep;
 use serde::{Deserialize, Serialize};
@@ -214,7 +214,6 @@ impl Default for UrdfVizWebClient {
     }
 }
 
-#[async_trait]
 impl JointTrajectoryClient for UrdfVizWebClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
@@ -226,34 +225,25 @@ impl JointTrajectoryClient for UrdfVizWebClient {
             })?
             .positions)
     }
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
-        positions: Vec<f64>,
+        positions: &[f64],
         duration: Duration,
-    ) -> Result<(), arci::Error> {
+    ) -> Result<Wait, arci::Error> {
         if self.send_joint_positions_thread.is_none() {
             panic!("Call run_joint_positions_thread.");
         }
         *self.send_joint_positions_target.lock().unwrap() =
             SendJointPositionsTargetState::Some(SendJointPositionsTarget {
-                positions: positions.clone(),
+                positions: positions.to_vec(),
                 duration,
             });
-        self.complete_condition
-            .wait(self, &positions, duration.as_secs_f64())
-    }
-
-    async fn send_joint_trajectory(
-        &self,
-        trajectory: Vec<arci::TrajectoryPoint>,
-    ) -> Result<(), arci::Error> {
-        let mut last_time = Duration::default();
-        for traj in trajectory {
-            self.send_joint_positions(traj.positions, traj.time_from_start - last_time)
-                .await?;
-            last_time = traj.time_from_start;
-        }
-        Ok(())
+        Ok(TargetDiffWait::new_boxed(
+            self,
+            positions.to_vec(),
+            duration.as_secs_f64(),
+            &self.complete_condition,
+        ))
     }
 }
 
@@ -270,14 +260,13 @@ impl Localization for UrdfVizWebClient {
     }
 }
 
-#[async_trait]
 impl Navigation for UrdfVizWebClient {
-    async fn move_to(
+    fn move_to(
         &self,
         goal: na::Isometry2<f64>,
         _frame_id: &str,
         _timeout: Duration,
-    ) -> Result<(), arci::Error> {
+    ) -> Result<Wait, arci::Error> {
         // JUMP!
         let re = send_robot_origin(&self.base_url, goal.into()).map_err(|e| {
             arci::Error::Connection {
@@ -288,7 +277,7 @@ impl Navigation for UrdfVizWebClient {
             return Err(arci::Error::Connection { message: re.reason });
         }
 
-        Ok(())
+        Ok(DummyWait::new_boxed())
     }
 
     fn cancel(&self) -> Result<(), arci::Error> {

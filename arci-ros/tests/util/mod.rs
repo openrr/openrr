@@ -16,7 +16,7 @@ fn rostopic_listing_succeeds() -> bool {
         .success()
 }
 
-fn await_roscore() {
+fn wait_roscore() {
     while !rostopic_listing_succeeds() {
         sleep(Duration::from_millis(100));
     }
@@ -28,7 +28,7 @@ fn run_roscore(port: u32) -> ChildProcessTerminator {
     let roscore = ChildProcessTerminator::spawn(
         &mut Command::new("roscore").arg("-p").arg(format!("{}", port)),
     );
-    await_roscore();
+    wait_roscore();
     roscore
 }
 

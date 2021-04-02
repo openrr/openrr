@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use auto_impl::auto_impl;
 use serde::{Deserialize, Serialize};
 
@@ -45,9 +44,8 @@ pub enum GamepadEvent {
     Unknown,
 }
 
-#[async_trait]
 #[auto_impl(Box, Arc)]
 pub trait Gamepad: Send + Sync {
-    async fn next_event(&self) -> GamepadEvent;
+    fn next_event(&self) -> GamepadEvent;
     fn stop(&self);
 }

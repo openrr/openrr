@@ -16,8 +16,8 @@ mod msg {
 use msg::sensor_msgs::Joy;
 
 #[cfg(target_os = "linux")]
-#[tokio::test]
-async fn test_joy() {
+#[test]
+fn test_joy() {
     let _roscore = util::run_roscore_for(util::Language::None, util::Feature::Publisher);
 
     rosrust::init("test_joy_gamepad");
@@ -57,8 +57,8 @@ async fn test_joy() {
     };
     publisher.send(message3).unwrap();
 
-    println!("await0");
-    let event = pad.next_event().await;
+    println!("event0");
+    let event = pad.next_event();
     match event {
         GamepadEvent::AxisChanged(ax, value) => {
             assert_eq!(ax, arci::gamepad::Axis::LeftStickY);
@@ -67,15 +67,15 @@ async fn test_joy() {
         _ => panic!("unexpected {:?}", event),
     }
 
-    println!("await1");
-    let event = pad.next_event().await;
+    println!("event1");
+    let event = pad.next_event();
     match event {
         GamepadEvent::ButtonPressed(b) => assert_eq!(b, arci::gamepad::Button::East),
         _ => panic!("unexpected {:?}", event),
     }
 
-    println!("await2");
-    let event = pad.next_event().await;
+    println!("event2");
+    let event = pad.next_event();
     match event {
         GamepadEvent::ButtonReleased(b) => assert_eq!(b, arci::gamepad::Button::East),
         _ => panic!("unexpected {:?}", event),

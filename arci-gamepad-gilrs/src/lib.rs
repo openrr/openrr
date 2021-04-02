@@ -1,5 +1,4 @@
 use arci::gamepad::*;
-use arci::*;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::{
@@ -266,9 +265,8 @@ impl GilGamepad {
     }
 }
 
-#[async_trait]
 impl Gamepad for GilGamepad {
-    async fn next_event(&self) -> GamepadEvent {
+    fn next_event(&self) -> GamepadEvent {
         match self.rx.recv() {
             Ok(e) => e,
             Err(e) => {
@@ -286,11 +284,10 @@ impl Gamepad for GilGamepad {
 #[cfg(test)]
 mod test {
     use super::*;
-    #[tokio::test]
-    async fn test_gil() {
+    fn test_gil() {
         let g = GilGamepad::new(0, Map::new_playstation());
         for _i in 0..100 {
-            println!("Result = {:?}", g.next_event().await);
+            println!("Result = {:?}", g.next_event());
         }
     }
 }

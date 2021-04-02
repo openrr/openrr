@@ -1,10 +1,8 @@
-use anyhow::Error;
 use arci::Gamepad;
 use arci_ros::JoyGamepad;
 use std::collections::HashMap;
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
+fn main() {
     arci_ros::init("joy_gamepad");
     let mut button_map = HashMap::new();
     button_map.insert(0, arci::gamepad::Button::West);
@@ -20,8 +18,7 @@ async fn main() -> Result<(), Error> {
     axis_map.insert(7, arci::gamepad::Axis::DPadX);
     let pad = JoyGamepad::new("joy", button_map, axis_map);
     while arci_ros::is_ok() {
-        let event = pad.next_event().await;
+        let event = pad.next_event();
         println!("{:?}", event);
     }
-    Ok(())
 }

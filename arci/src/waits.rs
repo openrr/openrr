@@ -1,8 +1,22 @@
+mod dummy_wait;
+mod sleep_wait;
+mod target_diff_wait;
+mod wait_container;
+mod wait_fn;
+mod wait_thread;
+
+pub use dummy_wait::*;
+pub use sleep_wait::*;
+pub use target_diff_wait::*;
+pub use wait_container::*;
+pub use wait_fn::*;
+pub use wait_thread::*;
+
+use auto_impl::auto_impl;
 use std::time::Duration;
 
 use crate::error::Error;
 use crate::traits::JointTrajectoryClient;
-use auto_impl::auto_impl;
 
 #[auto_impl(Box, Rc, Arc)]
 pub trait CompleteCondition: Send + Sync {

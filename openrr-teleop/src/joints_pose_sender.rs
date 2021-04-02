@@ -3,7 +3,6 @@ use arci::{
     gamepad::{Button, GamepadEvent},
     JointTrajectoryClient, Speaker,
 };
-use async_trait::async_trait;
 use openrr_client::JointsPose;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::Duration};
@@ -67,7 +66,6 @@ where
     }
 }
 
-#[async_trait]
 impl<S, J> ControlNode for JointsPoseSender<S, J>
 where
     S: Speaker,
@@ -98,7 +96,7 @@ where
             _ => {}
         }
     }
-    async fn proc(&self) {
+    fn proc(&self) {
         let joints_pose = &self.joints_poses[self.pose_index];
         let client = self
             .joint_trajectory_clients
@@ -106,13 +104,15 @@ where
             .unwrap();
         if self.is_sending && self.is_trigger_holding {
             client
-                .send_joint_positions(joints_pose.positions.to_owned(), self.duration)
-                .await
+                .send_joint_positions(&joints_pose.positions, self.duration)
+                .unwrap()
+                .wait()
                 .unwrap();
         } else {
             client
-                .send_joint_positions(client.current_joint_positions().unwrap(), self.duration)
-                .await
+                .send_joint_positions(&client.current_joint_positions().unwrap(), self.duration)
+                .unwrap()
+                .wait()
                 .unwrap();
         }
     }

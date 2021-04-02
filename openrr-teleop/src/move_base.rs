@@ -1,7 +1,6 @@
 use super::control_node::ControlNode;
 use arci::gamepad::{Axis, Button, GamepadEvent};
 use arci::{BaseVelocity, MoveBase};
-use async_trait::async_trait;
 
 const BASE_LINEAR_VEL_AXIS_GAIN: f64 = 0.5;
 const BASE_ANGULAR_VEL_AXIS_GAIN: f64 = 1.5;
@@ -32,7 +31,6 @@ where
     }
 }
 
-#[async_trait]
 impl<T> ControlNode for MoveBaseNode<T>
 where
     T: MoveBase,
@@ -67,7 +65,7 @@ where
             _ => {}
         }
     }
-    async fn proc(&self) {
+    fn proc(&self) {
         if self.is_enabled {
             if self.is_turbo {
                 let turbo_vel = self.vel * BASE_TURBO_GAIN;

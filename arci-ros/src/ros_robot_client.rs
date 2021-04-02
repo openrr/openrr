@@ -1,6 +1,5 @@
 use crate::msg;
 use arci::*;
-use async_trait::async_trait;
 use std::sync::{Arc, Mutex};
 
 pub struct RosRobotClient {
@@ -68,7 +67,6 @@ impl RosRobotClient {
     }
 }
 
-#[async_trait]
 impl JointTrajectoryClient for RosRobotClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
@@ -78,11 +76,11 @@ impl JointTrajectoryClient for RosRobotClient {
         Ok(message.position.clone())
     }
 
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
-        positions: Vec<f64>,
+        positions: &[f64],
         duration: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<Wait, Error> {
         if let Some(ref publisher) = self.trajectory_publisher {
             if self.joint_names.len() != positions.len() {
                 return Err(arci::Error::LengthMismatch {
@@ -101,12 +99,17 @@ impl JointTrajectoryClient for RosRobotClient {
                 ..Default::default()
             };
             publisher.send(traj).unwrap();
-            self.complete_condition
-                .wait(self, &positions, duration.as_secs_f64())?;
+            Ok(TargetDiffWait::new_boxed(
+                self,
+                positions.to_vec(),
+                duration.as_secs_f64(),
+                &self.complete_condition,
+            ))
+        } else {
+            Ok(DummyWait::new_boxed())
         }
-        Ok(())
     }
-    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<(), Error> {
+    fn send_joint_trajectory(&self, trajectory: &[TrajectoryPoint]) -> Result<Wait, Error> {
         if let Some(ref publisher) = self.trajectory_publisher {
             let traj = msg::trajectory_msgs::JointTrajectory {
                 joint_names: self.joint_names.clone(),
@@ -114,13 +117,15 @@ impl JointTrajectoryClient for RosRobotClient {
                 ..Default::default()
             };
             publisher.send(traj).unwrap();
-            self.complete_condition.wait(
+            Ok(TargetDiffWait::new_boxed(
                 self,
-                &trajectory.last().unwrap().positions,
+                trajectory.last().unwrap().positions.clone(),
                 trajectory.last().unwrap().time_from_start.as_secs_f64(),
-            )?;
+                &self.complete_condition,
+            ))
+        } else {
+            Ok(DummyWait::new_boxed())
         }
-        Ok(())
     }
 }
 

@@ -116,8 +116,8 @@ fn test_set_complete_condition() {
     client.set_complete_condition(Box::new(cond));
 }
 
-#[tokio::test]
-async fn test_send_joint_positions() {
+#[test]
+fn test_send_joint_positions() {
     const PORT: u16 = 7780;
     let mut web_server = WebServer::new(PORT);
     web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
@@ -130,13 +130,14 @@ async fn test_send_joint_positions() {
             .unwrap();
     client.run_send_joint_positions_thread();
     let result = client
-        .send_joint_positions(vec![0.0], std::time::Duration::from_secs(1))
-        .await;
+        .send_joint_positions(&[0.0], std::time::Duration::from_secs(1))
+        .unwrap()
+        .wait();
     assert!(result.is_ok());
 }
 
-#[tokio::test]
-async fn test_send_joint_trajectory() {
+#[test]
+fn test_send_joint_trajectory() {
     const PORT: u16 = 7781;
     let mut web_server = WebServer::new(PORT);
     web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
@@ -152,6 +153,6 @@ async fn test_send_joint_trajectory() {
         TrajectoryPoint::new(vec![0.0], std::time::Duration::from_millis(200)),
     ];
     client.run_send_joint_positions_thread();
-    let result = client.send_joint_trajectory(trajectory).await;
+    let result = client.send_joint_trajectory(&trajectory);
     assert!(result.is_ok());
 }

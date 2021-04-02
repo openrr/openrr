@@ -12,7 +12,6 @@ documentation = "http://docs.rs/openrr-command"
 
 [dependencies]
 arci = "0.0.5"
-async-recursion = "0.3"
 k = "0.23"
 openrr-client = "0.0.5"
 structopt = "0.3.21"

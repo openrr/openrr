@@ -1,5 +1,4 @@
-use arci::{Error, JointTrajectoryClient, TrajectoryPoint};
-use async_trait::async_trait;
+use arci::{Error, JointTrajectoryClient, TrajectoryPoint, Wait};
 use k::Isometry3;
 use k::{nalgebra as na, Constraints};
 use serde::{Deserialize, Serialize};
@@ -172,26 +171,26 @@ where
         Ok(self.ik_solver_with_chain.end_transform())
     }
 
-    pub async fn move_ik_with_constraints(
+    pub fn move_ik_with_constraints(
         &self,
         target_pose: &k::Isometry3<f64>,
         constraints: &Constraints,
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<Wait, Error> {
         self.ik_solver_with_chain
             .solve_with_constraints(&target_pose, constraints)?;
 
         let positions = self.ik_solver_with_chain.joint_positions();
         let duration = std::time::Duration::from_secs_f64(duration_sec);
-        self.client.send_joint_positions(positions, duration).await
+        self.client.send_joint_positions(&positions, duration)
     }
 
-    pub async fn move_ik_with_interpolation_and_constraints(
+    pub fn move_ik_with_interpolation_and_constraints(
         &self,
         target_pose: &k::Isometry3<f64>,
         constraints: &Constraints,
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<Wait, Error> {
         let mut traj = self
             .ik_solver_with_chain
             .generate_trajectory_with_interpolation_and_constraints(
@@ -205,26 +204,26 @@ where
         let dof = self.client.joint_names().len();
         traj.first_mut().unwrap().velocities = Some(vec![0.0; dof]);
         traj.last_mut().unwrap().velocities = Some(vec![0.0; dof]);
-        self.client.send_joint_trajectory(traj).await
+        self.client.send_joint_trajectory(&traj)
     }
 
-    pub async fn move_ik(
+    pub fn move_ik(
         &self,
         target_pose: &k::Isometry3<f64>,
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<Wait, Error> {
         self.ik_solver_with_chain.solve(&target_pose)?;
 
         let positions = self.ik_solver_with_chain.joint_positions();
         let duration = std::time::Duration::from_secs_f64(duration_sec);
-        self.client.send_joint_positions(positions, duration).await
+        self.client.send_joint_positions(&positions, duration)
     }
 
-    pub async fn move_ik_with_interpolation(
+    pub fn move_ik_with_interpolation(
         &self,
         target_pose: &k::Isometry3<f64>,
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<Wait, Error> {
         let mut traj = self
             .ik_solver_with_chain
             .generate_trajectory_with_interpolation(
@@ -237,7 +236,7 @@ where
         let dof = self.client.joint_names().len();
         traj.first_mut().unwrap().velocities = Some(vec![0.0; dof]);
         traj.last_mut().unwrap().velocities = Some(vec![0.0; dof]);
-        self.client.send_joint_trajectory(traj).await
+        self.client.send_joint_trajectory(&traj)
     }
 
     /// Get relative pose from current pose of the IK target
@@ -263,7 +262,6 @@ where
     }
 }
 
-#[async_trait]
 impl<T> JointTrajectoryClient for IkClient<T>
 where
     T: JointTrajectoryClient,
@@ -274,15 +272,15 @@ where
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         self.client.current_joint_positions()
     }
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
-        positions: Vec<f64>,
+        positions: &[f64],
         duration: std::time::Duration,
-    ) -> Result<(), Error> {
-        self.client.send_joint_positions(positions, duration).await
+    ) -> Result<Wait, Error> {
+        self.client.send_joint_positions(positions, duration)
     }
-    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<(), Error> {
-        self.client.send_joint_trajectory(trajectory).await
+    fn send_joint_trajectory(&self, trajectory: &[TrajectoryPoint]) -> Result<Wait, Error> {
+        self.client.send_joint_trajectory(trajectory)
     }
 }
 

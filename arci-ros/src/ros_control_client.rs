@@ -4,9 +4,9 @@ use crate::msg;
 use crate::{error::Error, SubscriberHandler};
 use arci::{
     copy_joint_positions, CompleteCondition, EachJointDiffCondition, JointTrajectoryClient,
-    JointVelocityLimiter, SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint,
+    JointVelocityLimiter, SetCompleteCondition, TargetDiffWait, TotalJointDiffCondition,
+    TrajectoryPoint, Wait,
 };
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -279,7 +279,6 @@ impl RosControlClient {
     }
 }
 
-#[async_trait]
 impl JointTrajectoryClient for RosControlClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
@@ -291,15 +290,15 @@ impl JointTrajectoryClient for RosControlClient {
         ))
     }
 
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
-        positions: Vec<f64>,
+        positions: &[f64],
         duration: Duration,
-    ) -> Result<(), arci::Error> {
+    ) -> Result<Wait, arci::Error> {
         let traj = if self.send_partial_joints_goal {
             JointTrajectory {
                 points: vec![JointTrajectoryPoint {
-                    positions: positions.clone(),
+                    positions: positions.to_vec(),
                     // add zero velocity to use cubic interpolation in trajectory_controller
                     velocities: vec![0.0; self.joint_names().len()],
                     time_from_start: duration.into(),
@@ -317,13 +316,14 @@ impl JointTrajectoryClient for RosControlClient {
             )?
         };
         self.trajectory_publisher.send(traj).unwrap();
-        self.complete_condition
-            .wait(self, &positions, duration.as_secs_f64())
+        Ok(TargetDiffWait::new_boxed(
+            self,
+            positions.to_vec(),
+            duration.as_secs_f64(),
+            &self.complete_condition,
+        ))
     }
-    async fn send_joint_trajectory(
-        &self,
-        trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<(), arci::Error> {
+    fn send_joint_trajectory(&self, trajectory: &[TrajectoryPoint]) -> Result<Wait, arci::Error> {
         let traj = if self.send_partial_joints_goal {
             JointTrajectory {
                 points: trajectory
@@ -350,11 +350,12 @@ impl JointTrajectoryClient for RosControlClient {
             )?
         };
         self.trajectory_publisher.send(traj).unwrap();
-        self.complete_condition.wait(
+        Ok(TargetDiffWait::new_boxed(
             self,
-            &trajectory.last().unwrap().positions,
+            trajectory.last().unwrap().positions.clone(),
             trajectory.last().unwrap().time_from_start.as_secs_f64(),
-        )
+            &self.complete_condition,
+        ))
     }
 }
 

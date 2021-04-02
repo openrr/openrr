@@ -17,8 +17,7 @@ struct RobotCommandArgs {
     command: RobotCommand,
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
+fn main() -> Result<(), Error> {
     tracing_subscriber::fmt::init();
     let args = RobotCommandArgs::from_args();
     info!("ParsedArgs {:?}", args);
@@ -27,7 +26,7 @@ async fn main() -> Result<(), Error> {
         openrr_apps::utils::init_with_anonymize(env!("CARGO_BIN_NAME"), &robot_config);
         let client = robot_config.create_robot_client()?;
         let executor = RobotCommandExecutor {};
-        Ok(executor.execute(&client, &args.command).await?)
+        Ok(executor.execute(&client, &args.command)?)
     } else {
         Err(OpenrrAppsError::NoConfigPath)
     }

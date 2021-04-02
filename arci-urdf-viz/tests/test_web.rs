@@ -35,11 +35,13 @@ fn test_set_get_pose() {
     assert_approx_eq!(pose.translation.x, 0.0);
     assert_approx_eq!(pose.translation.y, 0.0);
     assert_approx_eq!(pose.rotation.angle(), 0.0);
-    tokio_test::block_on(c.move_to(
+    c.move_to(
         nalgebra::Isometry2::new(nalgebra::Vector2::new(1.0, 2.0), 3.0),
         "",
         std::time::Duration::from_secs(0),
-    ))
+    )
+    .unwrap()
+    .wait()
     .unwrap();
     let pose = c.current_pose("").unwrap();
     assert_approx_eq!(pose.translation.x, 0.0);

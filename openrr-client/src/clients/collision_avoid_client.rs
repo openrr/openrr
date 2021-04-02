@@ -1,5 +1,4 @@
-use arci::{Error, JointTrajectoryClient, TrajectoryPoint};
-use async_trait::async_trait;
+use arci::{DummyWait, Error, JointTrajectoryClient, TrajectoryPoint, Wait};
 
 // TODO: speed limit
 fn trajectory_from_positions(
@@ -48,8 +47,7 @@ where
     }
 }
 
-#[async_trait]
-impl<'a, T> JointTrajectoryClient for CollisionAvoidClient<'a, T>
+impl<T> JointTrajectoryClient for CollisionAvoidClient<'_, T>
 where
     T: JointTrajectoryClient,
 {
@@ -59,11 +57,11 @@ where
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         self.client.current_joint_positions()
     }
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
-        positions: Vec<f64>,
+        positions: &[f64],
         duration: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<Wait, Error> {
         self.using_joints
             .set_joint_positions_clamped(&self.current_joint_positions()?);
         let current = self.using_joints.joint_positions();
@@ -72,12 +70,11 @@ where
             .plan_avoid_self_collision(&self.using_joints, &current, &positions)
             .map_err(|e| Error::Other(e.into()))?;
         self.client
-            .send_joint_trajectory(trajectory_from_positions(&traj, duration))
-            .await
+            .send_joint_trajectory(&trajectory_from_positions(&traj, duration))
     }
-    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<(), Error> {
+    fn send_joint_trajectory(&self, trajectory: &[TrajectoryPoint]) -> Result<Wait, Error> {
         if trajectory.is_empty() {
-            return Ok(());
+            return Ok(DummyWait::new_boxed());
         }
         self.using_joints
             .set_joint_positions_clamped(&self.current_joint_positions()?);
@@ -102,6 +99,6 @@ where
                 trajectory[i].time_from_start,
             ));
         }
-        self.client.send_joint_trajectory(trajs).await
+        self.client.send_joint_trajectory(&trajs)
     }
 }

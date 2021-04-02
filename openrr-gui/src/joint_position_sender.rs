@@ -447,8 +447,8 @@ where
         Command::perform(
             async move {
                 joint_trajectory_client
-                    .send_joint_positions(joint_positions, duration)
-                    .await
+                    .send_joint_positions(&joint_positions, duration)?
+                    .wait()
             }
             .instrument(span.clone()),
             |res| match res {
