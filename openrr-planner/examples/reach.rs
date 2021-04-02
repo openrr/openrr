@@ -116,10 +116,12 @@ impl CollisionAvoidApp {
     fn run(&mut self) {
         let mut is_collide_show = false;
 
-        let mut c = k::Constraints::default();
-        c.rotation_x = !self.ignore_rotation_x;
-        c.rotation_y = !self.ignore_rotation_y;
-        c.rotation_z = !self.ignore_rotation_z;
+        let c = k::Constraints {
+            rotation_x: !self.ignore_rotation_x,
+            rotation_y: !self.ignore_rotation_y,
+            rotation_z: !self.ignore_rotation_z,
+            ..Default::default()
+        };
 
         self.update_robot();
         self.update_ik_target();
@@ -194,10 +196,12 @@ impl CollisionAvoidApp {
                         }
                         Key::I => {
                             self.reset_colliding_link_colors();
-                            let mut c = k::Constraints::default();
-                            c.rotation_x = !self.ignore_rotation_x;
-                            c.rotation_y = !self.ignore_rotation_y;
-                            c.rotation_z = !self.ignore_rotation_z;
+                            let c = k::Constraints {
+                                rotation_x: !self.ignore_rotation_x,
+                                rotation_y: !self.ignore_rotation_y,
+                                rotation_z: !self.ignore_rotation_z,
+                                ..Default::default()
+                            };
                             let result = self.planner.solve_ik_with_constraints(
                                 &self.arm,
                                 &self.ik_target_pose,
@@ -282,10 +286,12 @@ impl CollisionAvoidApp {
                         Key::X => {
                             println!("start reachable region calculation");
 
-                            let mut c = k::Constraints::default();
-                            c.rotation_x = !self.ignore_rotation_x;
-                            c.rotation_y = !self.ignore_rotation_y;
-                            c.rotation_z = !self.ignore_rotation_z;
+                            let c = k::Constraints {
+                                rotation_x: !self.ignore_rotation_x,
+                                rotation_y: !self.ignore_rotation_y,
+                                rotation_z: !self.ignore_rotation_z,
+                                ..Default::default()
+                            };
                             for v in openrr_planner::get_reachable_region(
                                 &self.planner.ik_solver,
                                 &self.arm,

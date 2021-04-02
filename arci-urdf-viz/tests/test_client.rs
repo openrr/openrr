@@ -48,6 +48,7 @@ fn test_urdf_viz_web_client_config_debug() {
     )
 }
 
+#[allow(clippy::redundant_clone)] // This is intentional.
 #[test]
 fn test_urdf_viz_web_client_config_clone() {
     let config1 = UrdfVizWebClientConfig {

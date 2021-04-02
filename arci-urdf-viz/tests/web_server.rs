@@ -76,22 +76,6 @@ impl WebServer {
         }
     }
 
-    pub fn clone_in_out(
-        &self,
-    ) -> (
-        Arc<Mutex<JointNamesAndPositionsRequest>>,
-        Arc<Mutex<JointNamesAndPositions>>,
-        Arc<Mutex<RobotOriginRequest>>,
-        Arc<Mutex<RobotOrigin>>,
-    ) {
-        (
-            self.target_joint_positions.clone(),
-            self.current_joint_positions.clone(),
-            self.target_robot_origin.clone(),
-            self.current_robot_origin.clone(),
-        )
-    }
-
     #[actix_web::main]
     pub async fn start(self) -> io::Result<()> {
         let data = Data {
