@@ -219,7 +219,7 @@ fn test_ik_solver_with_chain_generate_trajectory_with_interpolation() {
     let result = ik_solver_with_chain
         .generate_trajectory_with_interpolation(&current, &target, 1.0, 0.05, 10)
         .unwrap();
-    assert!(result.len() > 0);
+    assert!(!result.is_empty());
 }
 
 #[test]
@@ -256,5 +256,5 @@ fn test_ik_solver_with_chain_generate_trajectory_with_interpolation_and_constrai
             10,
         )
         .unwrap();
-    assert!(result.len() > 0);
+    assert!(!result.is_empty());
 }
