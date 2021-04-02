@@ -70,8 +70,7 @@ fn test_urdf_viz_web_client_config_clone() {
 fn test_create_joint_trajectory_clients() {
     const DEFAULT_PORT: u16 = 7777;
     let web_server = WebServer::new(DEFAULT_PORT);
-    std::thread::spawn(move || web_server.start());
-    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
+    web_server.start_background();
     let configs = vec![
         UrdfVizWebClientConfig {
             name: "c1".to_owned(),
@@ -97,8 +96,7 @@ fn test_current_joint_positions() {
         names: vec!["j1".to_owned(), "j2".to_owned()],
         positions: vec![1.0, -1.0],
     }));
-    std::thread::spawn(move || web_server.start());
-    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
+    web_server.start_background();
     let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
         .unwrap();
     let v = c.current_joint_positions().unwrap();
@@ -110,8 +108,7 @@ fn test_current_joint_positions() {
 fn test_set_complete_condition() {
     const PORT: u16 = 7779;
     let web_server = WebServer::new(PORT);
-    std::thread::spawn(move || web_server.start());
-    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
+    web_server.start_background();
     let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
             .unwrap();
@@ -127,8 +124,7 @@ async fn test_send_joint_positions() {
         names: vec!["j1".to_owned()],
         positions: vec![0.0],
     }));
-    std::thread::spawn(move || web_server.start());
-    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
+    web_server.start_background();
     let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
             .unwrap();
@@ -147,8 +143,7 @@ async fn test_send_joint_trajectory() {
         names: vec!["j1".to_owned()],
         positions: vec![0.0],
     }));
-    std::thread::spawn(move || web_server.start());
-    std::thread::sleep(std::time::Duration::from_secs(1)); // Wait for web server to start.
+    web_server.start_background();
     let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
             .unwrap();
