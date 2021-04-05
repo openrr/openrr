@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::Result;
 use crate::traits::Localization;
 use nalgebra::{Isometry2, Vector2};
 
@@ -22,7 +22,7 @@ impl Default for DummyLocalization {
 }
 
 impl Localization for DummyLocalization {
-    fn current_pose(&self, _frame_id: &str) -> Result<Isometry2<f64>, Error> {
+    fn current_pose(&self, _frame_id: &str) -> Result<Isometry2<f64>> {
         Ok(self.current_pose)
     }
 }

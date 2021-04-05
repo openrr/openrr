@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::Result;
 use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
 use async_trait::async_trait;
 use std::sync::{Arc, Mutex};
@@ -27,21 +27,18 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
-    fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
+    fn current_joint_positions(&self) -> Result<Vec<f64>> {
         Ok(self.positions.lock().unwrap().clone())
     }
     async fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         _duration: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         *self.positions.lock().unwrap() = positions;
         Ok(())
     }
-    async fn send_joint_trajectory(
-        &self,
-        full_trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<(), Error> {
+    async fn send_joint_trajectory(&self, full_trajectory: Vec<TrajectoryPoint>) -> Result<()> {
         if let Some(last_point) = full_trajectory.last() {
             *self.positions.lock().unwrap() = last_point.positions.to_owned();
         }

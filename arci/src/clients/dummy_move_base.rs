@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::Result;
 use crate::traits::{BaseVelocity, MoveBase};
 use std::sync::Mutex;
 
@@ -16,11 +16,11 @@ impl DummyMoveBase {
 }
 
 impl MoveBase for DummyMoveBase {
-    fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error> {
+    fn send_velocity(&self, velocity: &BaseVelocity) -> Result<()> {
         *self.current_velocity.lock().unwrap() = *velocity;
         Ok(())
     }
-    fn current_velocity(&self) -> Result<BaseVelocity, Error> {
+    fn current_velocity(&self) -> Result<BaseVelocity> {
         Ok(self.current_velocity.lock().unwrap().to_owned())
     }
 }

@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::Result;
 use auto_impl::auto_impl;
 
 #[derive(Clone, Debug, Default, Copy)]
@@ -42,6 +42,6 @@ impl std::ops::Mul<f64> for BaseVelocity {
 
 #[auto_impl(Box, Arc)]
 pub trait MoveBase: Send + Sync {
-    fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error>;
-    fn current_velocity(&self) -> Result<BaseVelocity, Error>;
+    fn send_velocity(&self, velocity: &BaseVelocity) -> Result<()>;
+    fn current_velocity(&self) -> Result<BaseVelocity>;
 }

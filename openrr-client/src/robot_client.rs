@@ -3,8 +3,8 @@ use crate::{
     IkClient, IkSolverConfig, IkSolverWithChain, SelfCollisionChecker, SelfCollisionCheckerConfig,
 };
 use arci::{
-    BaseVelocity, Error as ArciError, JointTrajectoryClient, JointTrajectoryClientsContainer,
-    Localization, MoveBase, Navigation, Speaker,
+    BaseVelocity, JointTrajectoryClient, JointTrajectoryClientsContainer, Localization, MoveBase,
+    Navigation, Speaker,
 };
 use async_trait::async_trait;
 use k::{nalgebra::Isometry2, Chain, Isometry3};
@@ -377,7 +377,7 @@ where
     M: MoveBase,
     N: Navigation,
 {
-    fn current_pose(&self, frame_id: &str) -> Result<Isometry2<f64>, ArciError> {
+    fn current_pose(&self, frame_id: &str) -> arci::Result<Isometry2<f64>> {
         self.localization.as_ref().unwrap().current_pose(frame_id)
     }
 }
@@ -394,7 +394,7 @@ where
         goal: Isometry2<f64>,
         frame_id: &str,
         timeout: std::time::Duration,
-    ) -> Result<(), ArciError> {
+    ) -> arci::Result<()> {
         Ok(self
             .navigation
             .as_ref()
@@ -403,7 +403,7 @@ where
             .await?)
     }
 
-    fn cancel(&self) -> Result<(), ArciError> {
+    fn cancel(&self) -> arci::Result<()> {
         self.navigation.as_ref().unwrap().cancel()
     }
 }
@@ -414,10 +414,10 @@ where
     M: MoveBase,
     N: Navigation,
 {
-    fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), ArciError> {
+    fn send_velocity(&self, velocity: &BaseVelocity) -> arci::Result<()> {
         self.move_base.as_ref().unwrap().send_velocity(velocity)
     }
-    fn current_velocity(&self) -> Result<BaseVelocity, ArciError> {
+    fn current_velocity(&self) -> arci::Result<BaseVelocity> {
         self.move_base.as_ref().unwrap().current_velocity()
     }
 }

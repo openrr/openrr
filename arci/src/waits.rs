@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::error::Error;
+use crate::error::{Error, Result};
 use crate::traits::JointTrajectoryClient;
 use auto_impl::auto_impl;
 
@@ -11,7 +11,7 @@ pub trait CompleteCondition: Send + Sync {
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
         duration_sec: f64,
-    ) -> Result<(), Error>;
+    ) -> Result<()>;
 }
 
 #[derive(Clone, Debug)]
@@ -41,7 +41,7 @@ impl CompleteCondition for TotalJointDiffCondition {
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         const CHECK_UNIT_SEC: f64 = 0.01;
         let check_unit_duration: Duration = Duration::from_secs_f64(CHECK_UNIT_SEC);
         let num_repeat: i32 = ((self.timeout_sec + duration_sec) / CHECK_UNIT_SEC) as i32;
@@ -86,7 +86,7 @@ impl CompleteCondition for EachJointDiffCondition {
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         if target_positions.len() != self.allowable_errors.len() {
             eprintln!("wait_until_each_error_condition condition size mismatch");
             return Err(Error::LengthMismatch {

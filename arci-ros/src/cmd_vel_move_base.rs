@@ -16,7 +16,7 @@ impl RosCmdVelMoveBase {
 }
 
 impl MoveBase for RosCmdVelMoveBase {
-    fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error> {
+    fn send_velocity(&self, velocity: &BaseVelocity) -> Result<()> {
         let mut twist_msg = msg::geometry_msgs::Twist::default();
         twist_msg.linear.x = velocity.x;
         twist_msg.linear.y = velocity.y;
@@ -27,7 +27,7 @@ impl MoveBase for RosCmdVelMoveBase {
                 message: format!("rosrust publish error: {:?}", e),
             })
     }
-    fn current_velocity(&self) -> Result<BaseVelocity, Error> {
+    fn current_velocity(&self) -> Result<BaseVelocity> {
         panic!("not implemented yet");
     }
 }

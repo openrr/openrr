@@ -51,7 +51,7 @@ impl JointTrajectoryClient for RosControlActionClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
-    fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
+    fn current_joint_positions(&self) -> arci::Result<Vec<f64>> {
         Ok(extract_current_joint_positions_from_message(
             self,
             self.get_joint_state()?,
@@ -62,7 +62,7 @@ impl JointTrajectoryClient for RosControlActionClient {
         &self,
         positions: Vec<f64>,
         duration: std::time::Duration,
-    ) -> Result<(), arci::Error> {
+    ) -> arci::Result<()> {
         let traj = create_joint_trajectory_message_for_send_joint_positions(
             self,
             self.get_joint_state()?,
@@ -89,10 +89,7 @@ impl JointTrajectoryClient for RosControlActionClient {
         ))
         */
     }
-    async fn send_joint_trajectory(
-        &self,
-        trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<(), arci::Error> {
+    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> arci::Result<()> {
         let traj = create_joint_trajectory_message_for_send_joint_trajectory(
             self,
             self.get_joint_state()?,

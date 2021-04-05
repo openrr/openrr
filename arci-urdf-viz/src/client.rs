@@ -219,7 +219,7 @@ impl JointTrajectoryClient for UrdfVizWebClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
-    fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
+    fn current_joint_positions(&self) -> arci::Result<Vec<f64>> {
         Ok(get_joint_positions(&self.base_url)
             .map_err(|e| arci::Error::Connection {
                 message: format!("{:?}", e),
@@ -230,7 +230,7 @@ impl JointTrajectoryClient for UrdfVizWebClient {
         &self,
         positions: Vec<f64>,
         duration: Duration,
-    ) -> Result<(), arci::Error> {
+    ) -> arci::Result<()> {
         if self.send_joint_positions_thread.is_none() {
             panic!("Call run_joint_positions_thread.");
         }
@@ -246,7 +246,7 @@ impl JointTrajectoryClient for UrdfVizWebClient {
     async fn send_joint_trajectory(
         &self,
         trajectory: Vec<arci::TrajectoryPoint>,
-    ) -> Result<(), arci::Error> {
+    ) -> arci::Result<()> {
         let mut last_time = Duration::default();
         for traj in trajectory {
             self.send_joint_positions(traj.positions, traj.time_from_start - last_time)
@@ -277,7 +277,7 @@ impl Navigation for UrdfVizWebClient {
         goal: na::Isometry2<f64>,
         _frame_id: &str,
         _timeout: Duration,
-    ) -> Result<(), arci::Error> {
+    ) -> arci::Result<()> {
         // JUMP!
         let re = send_robot_origin(&self.base_url, goal.into()).map_err(|e| {
             arci::Error::Connection {
@@ -291,18 +291,18 @@ impl Navigation for UrdfVizWebClient {
         Ok(())
     }
 
-    fn cancel(&self) -> Result<(), arci::Error> {
+    fn cancel(&self) -> arci::Result<()> {
         todo!()
     }
 }
 
 impl MoveBase for UrdfVizWebClient {
-    fn send_velocity(&self, velocity: &arci::BaseVelocity) -> Result<(), arci::Error> {
+    fn send_velocity(&self, velocity: &arci::BaseVelocity) -> arci::Result<()> {
         *self.velocity.lock().expect("failed to lock velocity") = velocity.to_owned();
         Ok(())
     }
 
-    fn current_velocity(&self) -> Result<arci::BaseVelocity, arci::Error> {
+    fn current_velocity(&self) -> arci::Result<arci::BaseVelocity> {
         Ok(self
             .velocity
             .lock()

@@ -73,7 +73,7 @@ impl JointTrajectoryClient for RosRobotClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
-    fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
+    fn current_joint_positions(&self) -> Result<Vec<f64>> {
         let message = self.joint_state_message.lock().unwrap();
         Ok(message.position.clone())
     }
@@ -82,7 +82,7 @@ impl JointTrajectoryClient for RosRobotClient {
         &self,
         positions: Vec<f64>,
         duration: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         if let Some(ref publisher) = self.trajectory_publisher {
             if self.joint_names.len() != positions.len() {
                 return Err(arci::Error::LengthMismatch {
@@ -106,7 +106,7 @@ impl JointTrajectoryClient for RosRobotClient {
         }
         Ok(())
     }
-    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<(), Error> {
+    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<()> {
         if let Some(ref publisher) = self.trajectory_publisher {
             let traj = msg::trajectory_msgs::JointTrajectory {
                 joint_names: self.joint_names.clone(),

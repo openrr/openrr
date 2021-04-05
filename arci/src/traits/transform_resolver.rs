@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::Result;
 use crate::Isometry3;
 use auto_impl::auto_impl;
 
@@ -9,5 +9,5 @@ pub trait TransformResolver: Send + Sync {
         from: &str,
         to: &str,
         time: std::time::SystemTime,
-    ) -> Result<Isometry3<f64>, Error>;
+    ) -> Result<Isometry3<f64>>;
 }

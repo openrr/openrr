@@ -138,7 +138,7 @@ impl RosNavClient {
         s.clear_costmap_before_start = config.clear_costmap_before_start;
         s
     }
-    pub fn clear_costmap(&self) -> Result<(), Error> {
+    pub fn clear_costmap(&self) -> Result<()> {
         // Wait ten seconds for the service to appear
         rosrust::wait_for_service(CLEAR_COSTMAP_SERVICE, Some(time::Duration::from_secs(10)))
             .unwrap();
@@ -179,7 +179,7 @@ impl Navigation for RosNavClient {
         goal: na::Isometry2<f64>,
         frame_id: &str,
         timeout: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         if self.clear_costmap_before_start {
             self.clear_costmap()?;
         }
@@ -197,7 +197,7 @@ impl Navigation for RosNavClient {
         Ok(())
     }
 
-    fn cancel(&self) -> Result<(), Error> {
+    fn cancel(&self) -> Result<()> {
         self.action_client
             .cancel_all_goal()
             .map_err(|e| anyhow::anyhow!("Failed to cancel_all_goal : {}", e.to_string()))?;

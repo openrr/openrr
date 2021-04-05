@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::Result;
 use crate::Isometry2;
 use async_trait::async_trait;
 use auto_impl::auto_impl;
@@ -11,7 +11,7 @@ pub trait Navigation: Send + Sync {
         goal: Isometry2<f64>,
         frame_id: &str,
         timeout: std::time::Duration,
-    ) -> Result<(), Error>;
+    ) -> Result<()>;
 
-    fn cancel(&self) -> Result<(), Error>;
+    fn cancel(&self) -> Result<()>;
 }

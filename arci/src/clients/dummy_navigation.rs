@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::Result;
 use crate::traits::Navigation;
 use async_trait::async_trait;
 use nalgebra::{Isometry2, Vector2};
@@ -16,7 +16,7 @@ impl DummyNavigation {
         }
     }
 
-    pub fn current_goal_pose(&self) -> Result<Isometry2<f64>, Error> {
+    pub fn current_goal_pose(&self) -> Result<Isometry2<f64>> {
         Ok(self.goal_pose.lock().unwrap().to_owned())
     }
 }
@@ -34,12 +34,12 @@ impl Navigation for DummyNavigation {
         goal: Isometry2<f64>,
         _frame_id: &str,
         _timeout: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         *self.goal_pose.lock().unwrap() = goal;
         Ok(())
     }
 
-    fn cancel(&self) -> Result<(), Error> {
+    fn cancel(&self) -> Result<()> {
         Ok(())
     }
 }

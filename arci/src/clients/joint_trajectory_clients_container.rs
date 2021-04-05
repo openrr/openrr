@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::Result;
 use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
 use async_trait::async_trait;
 
@@ -31,7 +31,7 @@ where
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
-    fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
+    fn current_joint_positions(&self) -> Result<Vec<f64>> {
         let mut ret = vec![];
         for c in &self.clients {
             let mut positions = c.current_joint_positions()?;
@@ -43,7 +43,7 @@ where
         &self,
         positions: Vec<f64>,
         duration: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let mut offset = 0;
         let mut waits = vec![];
         for c in &self.clients {
@@ -61,10 +61,7 @@ where
         }
         Ok(())
     }
-    async fn send_joint_trajectory(
-        &self,
-        full_trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<(), Error> {
+    async fn send_joint_trajectory(&self, full_trajectory: Vec<TrajectoryPoint>) -> Result<()> {
         let mut offset = 0;
         let full_dof = self.joint_names().len();
         let mut waits = vec![];

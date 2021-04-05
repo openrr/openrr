@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::Result;
 use crate::waits::CompleteCondition;
 use async_trait::async_trait;
 use auto_impl::auto_impl;
@@ -29,13 +29,13 @@ pub trait SetCompleteCondition {
 #[auto_impl(Box, Arc)]
 pub trait JointTrajectoryClient: Send + Sync {
     fn joint_names(&self) -> &[String];
-    fn current_joint_positions(&self) -> Result<Vec<f64>, Error>;
+    fn current_joint_positions(&self) -> Result<Vec<f64>>;
     async fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         duration: std::time::Duration,
-    ) -> Result<(), Error>;
-    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<(), Error>;
+    ) -> Result<()>;
+    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<()>;
 }
 
 #[cfg(test)]
