@@ -2,11 +2,13 @@ use std::time::Duration;
 
 use crate::error::Error;
 use crate::traits::JointTrajectoryClient;
+use async_trait::async_trait;
 use auto_impl::auto_impl;
 
+#[async_trait]
 #[auto_impl(Box, Rc, Arc)]
 pub trait CompleteCondition: Send + Sync {
-    fn wait(
+    async fn wait(
         &self,
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
@@ -35,13 +37,15 @@ impl Default for TotalJointDiffCondition {
     }
 }
 
+#[async_trait]
 impl CompleteCondition for TotalJointDiffCondition {
-    fn wait(
+    async fn wait(
         &self,
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
         duration_sec: f64,
     ) -> Result<(), Error> {
+        let i = std::time::Instant::now();
         const CHECK_UNIT_SEC: f64 = 0.01;
         let check_unit_duration: Duration = Duration::from_secs_f64(CHECK_UNIT_SEC);
         let num_repeat: i32 = ((self.timeout_sec + duration_sec) / CHECK_UNIT_SEC) as i32;
@@ -53,9 +57,10 @@ impl CompleteCondition for TotalJointDiffCondition {
                 .map(|(tar, cur)| (tar - cur).abs())
                 .sum();
             if sum_err <= self.allowable_error {
+                i.elapsed();
                 return Ok(());
             }
-            std::thread::sleep(check_unit_duration);
+            tokio::time::sleep(check_unit_duration).await;
         }
         Err(Error::TimeoutWithDiff {
             target: target_positions.to_vec(),
@@ -80,8 +85,9 @@ impl EachJointDiffCondition {
     }
 }
 
+#[async_trait]
 impl CompleteCondition for EachJointDiffCondition {
-    fn wait(
+    async fn wait(
         &self,
         client: &dyn JointTrajectoryClient,
         target_positions: &[f64],
@@ -111,7 +117,7 @@ impl CompleteCondition for EachJointDiffCondition {
             if !is_reached.contains(&false) {
                 return Ok(());
             }
-            std::thread::sleep(check_unit_duration);
+            tokio::time::sleep(check_unit_duration).await;
         }
         Err(Error::TimeoutWithDiff {
             target: target_positions.to_vec(),

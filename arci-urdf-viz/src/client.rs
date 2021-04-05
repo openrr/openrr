@@ -240,7 +240,7 @@ impl JointTrajectoryClient for UrdfVizWebClient {
                 duration,
             });
         self.complete_condition
-            .wait(self, &positions, duration.as_secs_f64())
+            .wait(self, &positions, duration.as_secs_f64()).await
     }
 
     async fn send_joint_trajectory(

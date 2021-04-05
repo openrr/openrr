@@ -102,7 +102,8 @@ impl JointTrajectoryClient for RosRobotClient {
             };
             publisher.send(traj).unwrap();
             self.complete_condition
-                .wait(self, &positions, duration.as_secs_f64())?;
+                .wait(self, &positions, duration.as_secs_f64())
+                .await?;
         }
         Ok(())
     }
@@ -114,11 +115,13 @@ impl JointTrajectoryClient for RosRobotClient {
                 ..Default::default()
             };
             publisher.send(traj).unwrap();
-            self.complete_condition.wait(
-                self,
-                &trajectory.last().unwrap().positions,
-                trajectory.last().unwrap().time_from_start.as_secs_f64(),
-            )?;
+            self.complete_condition
+                .wait(
+                    self,
+                    &trajectory.last().unwrap().positions,
+                    trajectory.last().unwrap().time_from_start.as_secs_f64(),
+                )
+                .await?;
         }
         Ok(())
     }
