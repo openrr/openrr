@@ -12,7 +12,10 @@ where
     T: JointTrajectoryClient,
 {
     pub fn new(clients: Vec<T>) -> Self {
-        let joint_names = clients.iter().map( |c| c.joint_names().to_vec() ).collect();
+        let mut joint_names = vec![];
+        for c in &clients {
+            joint_names.append(&mut c.joint_names().to_vec());
+        }
         Self {
             joint_names,
             clients,
