@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 
 pub struct JoyGamepad {
     _last_joy_msg: Arc<Mutex<Joy>>,
-    rx: crossbeam_channel::Receiver<GamepadEvent>,
+    rx: flume::Receiver<GamepadEvent>,
     _sub: rosrust::Subscriber,
 }
 
@@ -19,7 +19,7 @@ impl JoyGamepad {
         const DEAD_ZONE: f32 = 0.00001;
         const TOPIC_BUFFER_SIZE: usize = 100;
         let last_joy_msg = Arc::new(Mutex::new(Joy::default()));
-        let (tx, rx) = crossbeam_channel::unbounded();
+        let (tx, rx) = flume::unbounded();
         let tx_for_stop = tx.clone();
         // spawn for stop by Ctrl-C
         tokio::spawn(async move {
@@ -83,7 +83,7 @@ impl JoyGamepad {
 #[async_trait]
 impl Gamepad for JoyGamepad {
     async fn next_event(&self) -> GamepadEvent {
-        if let Ok(ev) = self.rx.recv() {
+        if let Ok(ev) = self.rx.recv_async().await {
             ev
         } else {
             GamepadEvent::Unknown

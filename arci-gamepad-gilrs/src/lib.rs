@@ -210,14 +210,14 @@ mod test {
 }
 
 pub struct GilGamepad {
-    rx: crossbeam_channel::Receiver<GamepadEvent>,
+    rx: flume::Receiver<GamepadEvent>,
     _handle: std::thread::JoinHandle<()>,
     is_running: Arc<AtomicBool>,
 }
 
 impl GilGamepad {
     pub fn new(id: usize, map: Map) -> Self {
-        let (tx, rx) = crossbeam_channel::unbounded();
+        let (tx, rx) = flume::unbounded();
         let is_running = Arc::new(AtomicBool::new(true));
         let is_running_cloned = is_running.clone();
         let _handle = std::thread::spawn(move || {
@@ -269,10 +269,10 @@ impl GilGamepad {
 #[async_trait]
 impl Gamepad for GilGamepad {
     async fn next_event(&self) -> GamepadEvent {
-        match self.rx.recv() {
+        match self.rx.recv_async().await {
             Ok(e) => e,
             Err(e) => {
-                error!("recv error: {:?}", e);
+                error!("recv error: {}", e);
                 GamepadEvent::Unknown
             }
         }
