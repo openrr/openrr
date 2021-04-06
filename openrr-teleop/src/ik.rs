@@ -182,7 +182,7 @@ where
                     .await
                     .unwrap();
             } else {
-                self.speaker.speak("ik fail");
+                self.speaker.speak("ik fail").unwrap().await.unwrap();
             }
         }
     }

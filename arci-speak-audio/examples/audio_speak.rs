@@ -8,11 +8,13 @@ struct Args {
     file_path: String,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), arci::Error> {
     tracing_subscriber::fmt::init();
     let args = Args::from_args();
     let mut hash_map = HashMap::new();
     hash_map.insert("test".to_string(), PathBuf::from(args.file_path));
     let speaker = AudioSpeaker::new(hash_map);
-    speaker.speak("test");
+    let wait = speaker.speak("test")?;
+    wait.await
 }

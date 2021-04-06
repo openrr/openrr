@@ -11,8 +11,8 @@ fn test_print_speaker_default() {
     let _ps = PrintSpeaker::default();
 }
 
-#[test]
-fn test_print_speaker_speak() {
+#[tokio::test]
+async fn test_print_speaker_speak() {
     let ps = PrintSpeaker {};
-    ps.speak("test message");
+    ps.speak("test message").unwrap().await.unwrap();
 }

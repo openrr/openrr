@@ -1,6 +1,5 @@
-use arci::Speaker;
+use arci::{Speaker, WaitFuture};
 use std::{io, process::Command};
-use tracing::error;
 
 /// A [`Speaker`] implementation using a local command.
 ///
@@ -22,19 +21,21 @@ impl LocalCommand {
     pub fn new() -> Self {
         Self::default()
     }
-
-    /// Similar to `Speaker::speak`, but returns an error when the command failed.
-    pub fn try_speak(&self, message: &str) -> io::Result<()> {
-        run_local_command(message)
-    }
 }
 
 impl Speaker for LocalCommand {
-    fn speak(&self, message: &str) {
-        if let Err(e) = self.try_speak(message) {
-            // TODO: Speaker trait seems to assume that speak method will always succeed.
-            error!("{}", e);
-        }
+    fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        let message = message.to_string();
+
+        std::thread::spawn(move || {
+            let res = run_local_command(&message).map_err(|e| arci::Error::Other(e.into()));
+            let _ = sender.send(res);
+        });
+
+        Ok(WaitFuture::new(async move {
+            receiver.await.map_err(|e| arci::Error::Other(e.into()))?
+        }))
     }
 }
 

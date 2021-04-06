@@ -79,8 +79,11 @@ where
             GamepadEvent::ButtonPressed(Button::East) => {
                 self.joint_index = (self.joint_index + 1) % self.dof;
                 self.submode = format!("{}", self.joint_index);
-                self.speaker
-                    .speak(&format!("{}{}", self.mode, self.submode()));
+                // do not wait
+                let _ = self
+                    .speaker
+                    .speak(&format!("{}{}", self.mode, self.submode()))
+                    .unwrap();
             }
             GamepadEvent::ButtonPressed(Button::LeftTrigger2) => {
                 self.is_turbo = true;

@@ -79,8 +79,11 @@ where
                 self.pose_index = (self.pose_index + 1) % self.joints_poses.len();
                 let joints_pose = &self.joints_poses[self.pose_index];
                 self.submode = format!(" {} {}", joints_pose.client_name, joints_pose.pose_name);
-                self.speaker
-                    .speak(&format!("{}{}", self.mode, self.submode()));
+                // do not wait
+                let _ = self
+                    .speaker
+                    .speak(&format!("{}{}", self.mode, self.submode()))
+                    .unwrap();
             }
             GamepadEvent::ButtonPressed(Button::RightTrigger2) => {
                 self.is_trigger_holding = true;
