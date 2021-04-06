@@ -125,10 +125,10 @@ where
                 } else {
                     1.0
                 };
-            self.joint_trajectory_client
+            // do not wait
+            let _ = self
+                .joint_trajectory_client
                 .send_joint_positions(pos, self.step_duration)
-                .unwrap()
-                .await
                 .unwrap();
         }
     }
