@@ -127,6 +127,7 @@ where
                 };
             self.joint_trajectory_client
                 .send_joint_positions(pos, self.step_duration)
+                .unwrap()
                 .await
                 .unwrap();
         }

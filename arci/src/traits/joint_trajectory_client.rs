@@ -1,6 +1,5 @@
 use crate::error::Error;
-use crate::waits::CompleteCondition;
-use async_trait::async_trait;
+use crate::waits::{CompleteCondition, WaitFuture};
 use auto_impl::auto_impl;
 
 #[derive(Clone, Debug)]
@@ -25,17 +24,16 @@ pub trait SetCompleteCondition {
     fn set_complete_condition(&mut self, condition: Box<dyn CompleteCondition>);
 }
 
-#[async_trait]
 #[auto_impl(Box, Arc)]
 pub trait JointTrajectoryClient: Send + Sync {
     fn joint_names(&self) -> &[String];
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error>;
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         duration: std::time::Duration,
-    ) -> Result<(), Error>;
-    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<(), Error>;
+    ) -> Result<WaitFuture, Error>;
+    fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error>;
 }
 
 #[cfg(test)]

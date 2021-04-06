@@ -14,7 +14,7 @@ async fn main() -> Result<(), Error> {
     let rate = arci_ros::rate(1.0);
     let angles = vec![1.0, 2.0, 3.0, 4.0];
     while arci_ros::is_ok() {
-        c.send_joint_positions(angles.clone(), std::time::Duration::from_secs(1))
+        c.send_joint_positions(angles.clone(), std::time::Duration::from_secs(1))?
             .await?;
         println!("{:?}", c.current_joint_positions());
         rate.sleep();

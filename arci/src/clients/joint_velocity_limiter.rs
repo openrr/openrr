@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
-use async_trait::async_trait;
+use crate::waits::WaitFuture;
 use tracing::debug;
 
 /// JointVelocityLimiter limits the duration to make all joints velocities lower than the given
@@ -36,7 +36,6 @@ where
     }
 }
 
-#[async_trait]
 impl<C> JointTrajectoryClient for JointVelocityLimiter<C>
 where
     C: JointTrajectoryClient,
@@ -49,21 +48,19 @@ where
         self.client.current_joint_positions()
     }
 
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         duration: std::time::Duration,
-    ) -> Result<(), Error> {
-        Ok(self
-            .send_joint_trajectory(vec![TrajectoryPoint {
-                positions,
-                velocities: None,
-                time_from_start: duration,
-            }])
-            .await?)
+    ) -> Result<WaitFuture, Error> {
+        self.send_joint_trajectory(vec![TrajectoryPoint {
+            positions,
+            velocities: None,
+            time_from_start: duration,
+        }])
     }
 
-    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<(), Error> {
+    fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
         let mut prev_positions = self.current_joint_positions()?;
 
         let mut limited_trajectory = vec![];
@@ -115,10 +112,7 @@ where
         debug!("OriginalTrajectory {:?}", trajectory);
         debug!("LimitedTrajectory {:?}", limited_trajectory);
 
-        Ok(self
-            .client
-            .send_joint_trajectory(limited_trajectory)
-            .await?)
+        self.client.send_joint_trajectory(limited_trajectory)
     }
 }
 
@@ -151,7 +145,9 @@ mod tests {
         ]));
         let limiter = JointVelocityLimiter::new(client.clone(), limits);
         assert!(tokio_test::block_on(
-            limiter.send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs_f64(4.0))
+            limiter
+                .send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs_f64(4.0))
+                .unwrap()
         )
         .is_ok());
         let joint_positions = limiter.current_joint_positions().unwrap();
@@ -193,18 +189,22 @@ mod tests {
             "b".to_owned(),
         ]));
         let limiter = JointVelocityLimiter::new(client.clone(), limits);
-        assert!(tokio_test::block_on(limiter.send_joint_trajectory(vec![
-            TrajectoryPoint {
-                positions: vec![1.0, 2.0],
-                velocities: Some(vec![3.0, 4.0]),
-                time_from_start: std::time::Duration::from_secs_f64(4.0)
-            },
-            TrajectoryPoint {
-                positions: vec![3.0, 6.0],
-                velocities: Some(vec![3.0, 4.0]),
-                time_from_start: std::time::Duration::from_secs_f64(8.0)
-            }
-        ]))
+        assert!(tokio_test::block_on(
+            limiter
+                .send_joint_trajectory(vec![
+                    TrajectoryPoint {
+                        positions: vec![1.0, 2.0],
+                        velocities: Some(vec![3.0, 4.0]),
+                        time_from_start: std::time::Duration::from_secs_f64(4.0)
+                    },
+                    TrajectoryPoint {
+                        positions: vec![3.0, 6.0],
+                        velocities: Some(vec![3.0, 4.0]),
+                        time_from_start: std::time::Duration::from_secs_f64(8.0)
+                    }
+                ])
+                .unwrap()
+        )
         .is_ok());
         let joint_positions = limiter.current_joint_positions().unwrap();
         assert_eq!(joint_positions.len(), 2);

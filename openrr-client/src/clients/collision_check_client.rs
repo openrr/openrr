@@ -1,5 +1,4 @@
-use arci::{Error, JointTrajectoryClient, TrajectoryPoint};
-use async_trait::async_trait;
+use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
 use openrr_planner::{collision::parse_colon_separated_pairs, CollisionChecker};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -111,7 +110,6 @@ where
     }
 }
 
-#[async_trait]
 impl<T> JointTrajectoryClient for CollisionCheckClient<T>
 where
     T: JointTrajectoryClient,
@@ -122,21 +120,21 @@ where
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         self.client.current_joint_positions()
     }
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         duration: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         self.collision_checker.check_joint_positions(
             &self.current_joint_positions()?,
             &positions,
             duration,
         )?;
-        self.client.send_joint_positions(positions, duration).await
+        self.client.send_joint_positions(positions, duration)
     }
-    async fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<(), Error> {
+    fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
         self.collision_checker.check_joint_trajectory(&trajectory)?;
-        self.client.send_joint_trajectory(trajectory).await
+        self.client.send_joint_trajectory(trajectory)
     }
 }
 

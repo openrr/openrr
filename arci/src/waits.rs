@@ -1,12 +1,78 @@
-use std::time::Duration;
+use std::{
+    pin::Pin,
+    task::{Context, Poll},
+    time::Duration,
+};
 
 use crate::error::Error;
 use crate::traits::JointTrajectoryClient;
 use async_trait::async_trait;
 use auto_impl::auto_impl;
+use futures::{
+    future::{self, BoxFuture, Future, FutureExt},
+    stream::{Stream, TryStreamExt},
+};
+
+/// Waits until the underlying future is complete.
+pub struct WaitFuture<'a> {
+    future: BoxFuture<'a, Result<(), Error>>,
+}
+
+impl<'a> WaitFuture<'a> {
+    /// Waits until the `future` is complete.
+    pub fn new(future: impl Future<Output = Result<(), Error>> + Send + 'a) -> Self {
+        Self {
+            future: future.boxed(),
+        }
+    }
+
+    /// Waits until the `stream` is complete.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), arci::Error> {
+    /// use arci::WaitFuture;
+    /// use futures::stream::FuturesOrdered;
+    ///
+    /// let mut waits = FuturesOrdered::new();
+    /// waits.push(WaitFuture::dummy());
+    /// waits.push(WaitFuture::dummy());
+    /// WaitFuture::from_stream(waits).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn from_stream(stream: impl Stream<Item = Result<(), Error>> + Send + 'a) -> Self {
+        Self::new(async move {
+            futures::pin_mut!(stream);
+            while stream.try_next().await?.is_some() {}
+            Ok(())
+        })
+    }
+
+    /// Creates a new `WaitFuture` which immediately complete.
+    pub fn dummy() -> Self {
+        Self::new(future::ready(Ok(())))
+    }
+}
+
+impl Future for WaitFuture<'_> {
+    type Output = Result<(), Error>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        self.future.as_mut().poll(cx)
+    }
+}
+
+impl<'a> From<BoxFuture<'a, Result<(), Error>>> for WaitFuture<'a> {
+    fn from(future: BoxFuture<'a, Result<(), Error>>) -> Self {
+        Self { future }
+    }
+}
 
 #[async_trait]
-#[auto_impl(Box, Rc, Arc)]
+#[auto_impl(Box, Arc)]
 pub trait CompleteCondition: Send + Sync {
     async fn wait(
         &self,

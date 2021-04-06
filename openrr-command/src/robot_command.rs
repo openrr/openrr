@@ -126,7 +126,7 @@ impl RobotCommandExecutor {
                 use_interpolation,
                 joint,
             } => {
-                let mut positions = client.current_joint_positions(name).await?;
+                let mut positions = client.current_joint_positions(name)?;
 
                 let mut should_send = false;
                 for (index, position) in joint {
@@ -140,11 +140,11 @@ impl RobotCommandExecutor {
                 }
                 if *use_interpolation {
                     client
-                        .send_joint_positions_with_pose_interpolation(name, &positions, *duration)
+                        .send_joint_positions_with_pose_interpolation(name, &positions, *duration)?
                         .await?;
                 } else {
                     client
-                        .send_joint_positions(name, &positions, *duration)
+                        .send_joint_positions(name, &positions, *duration)?
                         .await?;
                 }
             }
@@ -153,7 +153,7 @@ impl RobotCommandExecutor {
                 pose_name,
                 duration,
             } => {
-                client.send_joints_pose(name, pose_name, *duration).await?;
+                client.send_joints_pose(name, pose_name, *duration)?.await?;
             }
             RobotCommand::MoveIk {
                 name,
@@ -171,7 +171,7 @@ impl RobotCommandExecutor {
                     return Err(OpenrrCommandError::NoIkClient(name.clone()));
                 }
                 let mut should_send = false;
-                let current_pose = client.current_end_transform(name).await?;
+                let current_pose = client.current_end_transform(name)?;
                 let target_pose = [
                     if let Some(x) = x {
                         should_send = true;
@@ -235,25 +235,25 @@ impl RobotCommandExecutor {
                 );
 
                 let target_pose = if *is_local {
-                    client.transform(name, &target_pose).await?
+                    client.transform(name, &target_pose)?
                 } else {
                     target_pose
                 };
                 if *use_interpolation {
                     client
-                        .move_ik_with_interpolation(name, &target_pose, *duration)
+                        .move_ik_with_interpolation(name, &target_pose, *duration)?
                         .await?
                 } else {
-                    client.move_ik(name, &target_pose, *duration).await?
+                    client.move_ik(name, &target_pose, *duration)?.await?
                 }
             }
             RobotCommand::GetState { name } => {
                 println!(
                     "Joint positions : {:?}",
-                    client.current_joint_positions(name).await?
+                    client.current_joint_positions(name)?
                 );
                 if client.is_ik_client(name) {
-                    let pose = client.current_end_transform(name).await?;
+                    let pose = client.current_end_transform(name)?;
                     println!("End pose");
                     println!(" translation = {:?}", pose.translation.vector.data);
                     println!(" rotation = {:?}", pose.rotation.euler_angles());

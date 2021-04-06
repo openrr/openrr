@@ -1,9 +1,10 @@
 use crate::utils::*;
 use arci::{
     BaseVelocity, CompleteCondition, JointTrajectoryClient, JointVelocityLimiter, Localization,
-    MoveBase, Navigation, SetCompleteCondition, TotalJointDiffCondition,
+    MoveBase, Navigation, SetCompleteCondition, TotalJointDiffCondition, WaitFuture,
 };
 use async_trait::async_trait;
+use futures::stream::FuturesOrdered;
 use nalgebra as na;
 use openrr_sleep::ScopedSleep;
 use serde::{Deserialize, Serialize};
@@ -214,7 +215,6 @@ impl Default for UrdfVizWebClient {
     }
 }
 
-#[async_trait]
 impl JointTrajectoryClient for UrdfVizWebClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
@@ -226,11 +226,11 @@ impl JointTrajectoryClient for UrdfVizWebClient {
             })?
             .positions)
     }
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         duration: Duration,
-    ) -> Result<(), arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         if self.send_joint_positions_thread.is_none() {
             panic!("Call run_joint_positions_thread.");
         }
@@ -239,21 +239,25 @@ impl JointTrajectoryClient for UrdfVizWebClient {
                 positions: positions.clone(),
                 duration,
             });
-        self.complete_condition
-            .wait(self, &positions, duration.as_secs_f64()).await
+        Ok(WaitFuture::new(async move {
+            self.complete_condition
+                .wait(self, &positions, duration.as_secs_f64())
+                .await
+        }))
     }
 
-    async fn send_joint_trajectory(
+    fn send_joint_trajectory(
         &self,
         trajectory: Vec<arci::TrajectoryPoint>,
-    ) -> Result<(), arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         let mut last_time = Duration::default();
+        let mut waits = FuturesOrdered::new();
         for traj in trajectory {
-            self.send_joint_positions(traj.positions, traj.time_from_start - last_time)
-                .await?;
+            waits
+                .push(self.send_joint_positions(traj.positions, traj.time_from_start - last_time)?);
             last_time = traj.time_from_start;
         }
-        Ok(())
+        Ok(WaitFuture::from_stream(waits))
     }
 }
 

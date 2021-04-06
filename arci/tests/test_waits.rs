@@ -15,6 +15,7 @@ async fn test_total_condition() {
     assert!(c1.wait(&client, &[-0.5, 0.8], 1.0).await.is_err());
     client
         .send_joint_positions(vec![3.0, -10.0], std::time::Duration::from_millis(100))
+        .unwrap()
         .await
         .unwrap();
     assert!(c1.wait(&client, &[-0.5, 0.8], 1.0).await.is_err());
@@ -63,6 +64,7 @@ async fn test_each_condition() {
     assert!(c1.wait(&client, &[-0.5, 0.2], 1.0).await.is_err());
     client
         .send_joint_positions(vec![3.0, -10.0], std::time::Duration::from_millis(100))
+        .unwrap()
         .await
         .unwrap();
     assert!(c1.wait(&client, &[3.0, 0.8], 1.0).await.is_err());
@@ -80,6 +82,7 @@ async fn test_each_condition_err() {
     assert!(c1.wait(&client, &[], 1.0).await.is_err());
     client
         .send_joint_positions(vec![3.0, -10.0], std::time::Duration::from_millis(100))
+        .unwrap()
         .await
         .unwrap();
     assert!(c1.wait(&client, &[3.5, -10.0, 0.0], 1.0).await.is_err());

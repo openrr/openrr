@@ -1,6 +1,5 @@
 use crate::utils::find_nodes;
-use arci::JointTrajectoryClient;
-use async_trait::async_trait;
+use arci::{JointTrajectoryClient, WaitFuture};
 use std::sync::Arc;
 
 pub struct ChainWrapper {
@@ -20,7 +19,6 @@ impl ChainWrapper {
     }
 }
 
-#[async_trait]
 impl JointTrajectoryClient for ChainWrapper {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
@@ -37,26 +35,26 @@ impl JointTrajectoryClient for ChainWrapper {
         Ok(positions)
     }
 
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         _duration: std::time::Duration,
-    ) -> Result<(), arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         for (index, node) in self.nodes.iter().enumerate() {
             node.set_joint_position_clamped(positions[index]);
         }
         self.full_chain.update_transforms();
-        Ok(())
+        Ok(WaitFuture::dummy())
     }
 
-    async fn send_joint_trajectory(
+    fn send_joint_trajectory(
         &self,
         trajectory: Vec<arci::TrajectoryPoint>,
-    ) -> Result<(), arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         if let Some(last_point) = trajectory.last() {
             self.send_joint_positions(last_point.positions.clone(), last_point.time_from_start)
-                .await?;
+        } else {
+            Ok(WaitFuture::dummy())
         }
-        Ok(())
     }
 }
