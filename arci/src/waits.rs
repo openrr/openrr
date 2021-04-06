@@ -14,6 +14,7 @@ use futures::{
 };
 
 /// Waits until the underlying future is complete.
+#[must_use = "You must explicitly choose whether to wait for the complete or do not wait"]
 pub struct WaitFuture<'a> {
     future: BoxFuture<'a, Result<(), Error>>,
 }
