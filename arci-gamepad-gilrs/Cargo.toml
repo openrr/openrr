@@ -12,7 +12,7 @@ documentation = "http://docs.rs/arci-gamepad-gilrs"
 
 [dependencies]
 arci = "0.0.5"
-crossbeam-channel = "0.5.0"
+flume = "0.10"
 gilrs = { version = "0.8", features = ["serde-serialize"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_with = "1.5"
