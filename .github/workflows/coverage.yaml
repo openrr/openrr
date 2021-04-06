@@ -25,6 +25,7 @@ jobs:
       - name: Generate code coverage
         run: |
           # for test of arci-ros (roscore, rostopic)
+          source ~/.bashrc
           source /opt/ros/melodic/setup.bash
           cargo +nightly-2021-03-04 tarpaulin --verbose --all-features --workspace --out Xml
       - name: Upload to codecov.io
