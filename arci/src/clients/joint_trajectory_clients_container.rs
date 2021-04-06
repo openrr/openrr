@@ -106,3 +106,113 @@ where
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_container_new() {
+        use super::*;
+        #[derive(Debug, Clone)]
+        struct Dammy {
+            name: Vec<String>,
+        }
+        #[async_trait]
+        impl JointTrajectoryClient for Dammy {
+            fn joint_names(&self) -> &[String] {
+                &self.name
+            }
+            fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
+                unimplemented!();
+            }
+            async fn send_joint_positions(
+                &self,
+                _positions: Vec<f64>,
+                _duration: std::time::Duration,
+            ) -> Result<(), Error> {
+                unimplemented!();
+            }
+            async fn send_joint_trajectory(
+                &self,
+                _trajectory: Vec<TrajectoryPoint>,
+            ) -> Result<(), Error> {
+                unimplemented!()
+            }
+        }
+
+        let clients = vec![
+            Dammy {
+                name: vec![String::from("part1"), String::from("high")],
+            },
+            Dammy {
+                name: vec![String::from("part2"), String::from("low")],
+            },
+        ];
+
+        let container = JointTrajectoryClientsContainer::new(clients.clone());
+
+        assert_eq!(
+            format!("{:?}", container.joint_names),
+            "[\"part1\", \"high\", \"part2\", \"low\"]"
+        );
+        assert_eq!(
+            format!("{:?}", clients[0]),
+            format!("{:?}", container.clients[0])
+        );
+        assert_eq!(
+            format!("{:?}", clients[1]),
+            format!("{:?}", container.clients[1])
+        );
+    }
+
+    #[test]
+    fn test_container_jointname() {
+        use super::*;
+        struct Dammy {
+            name: Vec<String>,
+        }
+        #[async_trait]
+        impl JointTrajectoryClient for Dammy {
+            fn joint_names(&self) -> &[String] {
+                &self.name
+            }
+            fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
+                unimplemented!();
+            }
+            async fn send_joint_positions(
+                &self,
+                _positions: Vec<f64>,
+                _duration: std::time::Duration,
+            ) -> Result<(), Error> {
+                unimplemented!();
+            }
+            async fn send_joint_trajectory(
+                &self,
+                _trajectory: Vec<TrajectoryPoint>,
+            ) -> Result<(), Error> {
+                unimplemented!()
+            }
+        }
+
+        let clients = vec![
+            Dammy {
+                name: vec![String::from("part1"), String::from("high")],
+            },
+            Dammy {
+                name: vec![String::from("part2"), String::from("low")],
+            },
+            Dammy {
+                name: vec![String::from("part3"), String::from("high")],
+            },
+            Dammy {
+                name: vec![String::from("part4"), String::from("middle")],
+            },
+        ];
+
+        let container = JointTrajectoryClientsContainer::new(clients);
+
+        assert_eq!(
+            format!("{:?}", container.joint_names()),
+            "[\"part1\", \"high\", \"part2\", \"low\", \"part3\", \"high\", \"part4\", \"middle\"]"
+        );
+    }
+}
