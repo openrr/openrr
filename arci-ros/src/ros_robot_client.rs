@@ -105,7 +105,7 @@ impl JointTrajectoryClient for RosRobotClient {
                     .await
             }))
         } else {
-            Ok(WaitFuture::dummy())
+            Ok(WaitFuture::ready())
         }
     }
     fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
@@ -126,7 +126,7 @@ impl JointTrajectoryClient for RosRobotClient {
                     .await
             }))
         } else {
-            Ok(WaitFuture::dummy())
+            Ok(WaitFuture::ready())
         }
     }
 }
