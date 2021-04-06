@@ -23,6 +23,7 @@ jobs:
           override: true
       - run: ci/ubuntu-install-dependencies.sh
       - name: Generate code coverage
+        shell: bash -ieo pipefail {0}
         run: |
           # for test of arci-ros (roscore, rostopic)
           source /opt/ros/melodic/setup.bash
