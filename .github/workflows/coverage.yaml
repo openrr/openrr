@@ -13,19 +13,15 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     container:
-      image: docker://openrr:openrr-coverage-ci
+      image: docker://openrr/openrr-coverage-ci:0
       options: --security-opt seccomp=unconfined
     steps:
       - uses: actions/checkout@v2
-      - run: |
-          apt-get update
-          apt-get -y install curl libfreetype6-dev
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly-2021-03-04
           override: true
       - run: ci/ubuntu-install-dependencies.sh
-      - run: cargo install cargo-tarpaulin
       - name: Generate code coverage
         run: |
           # for test of arci-ros (roscore, rostopic)
