@@ -12,28 +12,25 @@ env:
 jobs:
   coverage:
     runs-on: ubuntu-latest
+    container:
+      image: docker://ros:melodic-ros-base
+      options: --security-opt seccomp=unconfined
     steps:
       - uses: actions/checkout@v2
+      - run: |
+          apt-get update
+          apt-get -y install curl
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly-2021-03-04
           override: true
       - run: ci/ubuntu-install-dependencies.sh
-      # only for arci-ros test (roscore)
-      - run: sudo apt-get install -y python3-roslaunch python3-rostopic
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features --no-fail-fast
-        env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-      - run: curl -L https://github.com/mozilla/grcov/releases/latest/download/grcov-linux-x86_64.tar.bz2 | tar jxf -
-      - run: ./grcov ./target/debug/ -s . -t lcov --llvm --branch --ignore-not-existing --ignore "/*" --ignore="**/tests/*.rs" --ignore="**/examples/*.rs" -o lcov.info
+      - run: cargo install cargo-tarpaulin
+      - name: Generate code coverage
+        run: |
+          cargo +nightly-2021-03-04 tarpaulin --verbose --all-features --workspace --out Xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
-          file: lcov.info
