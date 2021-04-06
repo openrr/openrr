@@ -126,14 +126,14 @@ mod tests {
             }
             async fn send_joint_positions(
                 &self,
-                positions: Vec<f64>,
-                duration: std::time::Duration,
+                _positions: Vec<f64>,
+                _duration: std::time::Duration,
             ) -> Result<(), Error> {
                 unimplemented!();
             }
             async fn send_joint_trajectory(
                 &self,
-                trajectory: Vec<TrajectoryPoint>,
+                _trajectory: Vec<TrajectoryPoint>,
             ) -> Result<(), Error> {
                 unimplemented!()
             }
@@ -180,14 +180,14 @@ mod tests {
             }
             async fn send_joint_positions(
                 &self,
-                positions: Vec<f64>,
-                duration: std::time::Duration,
+                _positions: Vec<f64>,
+                _duration: std::time::Duration,
             ) -> Result<(), Error> {
                 unimplemented!();
             }
             async fn send_joint_trajectory(
                 &self,
-                trajectory: Vec<TrajectoryPoint>,
+                _trajectory: Vec<TrajectoryPoint>,
             ) -> Result<(), Error> {
                 unimplemented!()
             }
