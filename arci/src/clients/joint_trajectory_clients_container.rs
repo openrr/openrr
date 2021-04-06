@@ -112,6 +112,7 @@ mod tests {
     #[test]
     fn test_container_new() {
         use super::*;
+        #[derive(Debug, Clone)]
         struct Dammy {
             name: Vec<String>,
         }
@@ -145,17 +146,22 @@ mod tests {
             Dammy {
                 name: vec![String::from("part2"), String::from("low")],
             },
-            Dammy {
-                name: vec![String::from("part3"), String::from("high")],
-            },
-            Dammy {
-                name: vec![String::from("part4"), String::from("middle")],
-            },
         ];
 
-        unimplemented!()
-        //wait for survey of specification
-        //		let container = JointTrajectoryClientsContainer::new(clients);
+        let container = JointTrajectoryClientsContainer::new(clients.clone());
+
+        assert_eq!(
+            format!("{:?}", container.joint_names),
+            "[\"part1\", \"high\", \"part2\", \"low\"]"
+        );
+        assert_eq!(
+            format!("{:?}", clients[0]),
+            format!("{:?}", container.clients[0])
+        );
+        assert_eq!(
+            format!("{:?}", clients[1]),
+            format!("{:?}", container.clients[1])
+        );
     }
 
     #[test]
@@ -205,7 +211,7 @@ mod tests {
         let container = JointTrajectoryClientsContainer::new(clients);
 
         assert_eq!(
-            format!("{:?}", container.joint_names),
+            format!("{:?}", container.joint_names()),
             "[\"part1\", \"high\", \"part2\", \"low\", \"part3\", \"high\", \"part4\", \"middle\"]"
         );
     }
