@@ -12,10 +12,7 @@ where
     T: JointTrajectoryClient,
 {
     pub fn new(clients: Vec<T>) -> Self {
-        let mut joint_names = vec![];
-        for c in &clients {
-            joint_names.append(&mut c.joint_names().to_vec());
-        }
+        let joint_names = clients.iter().map( |c| c.joint_names().to_vec() ).collect();
         Self {
             joint_names,
             clients,
@@ -105,4 +102,33 @@ where
         }
         Ok(())
     }
+}
+
+#[cfg(test)]
+{
+	#[test]
+	fn test_container_new()
+	{
+		struct Dammy
+		{
+			name :Vec<String>,
+		}
+		impl JointTrajectoryClient for Dammy
+		{
+			fn joint_names(&self) -> &[String]
+			{
+				&self.name
+			}
+		}
+
+		let clients = vec![
+								Dammy{ name :vec![String::from("part1"), String::from("high")] },
+								Dammy{ name :vec![String::from("part2"), String::from("low")] },
+								Dammy{ name :vec![String::from("part3"), String::from("high")] },
+								Dammy{ name :vec![String::from("part4"), String::from("middle")] },
+							];
+
+		let container = JointTrajectoryClientsContainer::new(clients);
+
+	}
 }
