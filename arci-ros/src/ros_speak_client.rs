@@ -1,3 +1,4 @@
+use arci::WaitFuture;
 use serde::{Deserialize, Serialize};
 
 mod msg {
@@ -22,10 +23,13 @@ impl RosEspeakClient {
 }
 
 impl arci::Speaker for RosEspeakClient {
-    fn speak(&self, message: &str) {
+    fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
         let ros_msg = msg::std_msgs::String {
             data: message.to_string(),
         };
-        self.publisher.send(ros_msg).unwrap();
+        self.publisher
+            .send(ros_msg)
+            .map_err(|e| anyhow::format_err!("{}", e))?;
+        Ok(WaitFuture::ready())
     }
 }

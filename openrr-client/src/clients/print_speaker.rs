@@ -1,4 +1,4 @@
-use arci::Speaker;
+use arci::{Speaker, WaitFuture};
 
 pub struct PrintSpeaker {}
 
@@ -15,7 +15,8 @@ impl Default for PrintSpeaker {
 }
 
 impl Speaker for PrintSpeaker {
-    fn speak(&self, message: &str) {
+    fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
         println!("PrintSpeaker: {}", message);
+        Ok(WaitFuture::ready())
     }
 }

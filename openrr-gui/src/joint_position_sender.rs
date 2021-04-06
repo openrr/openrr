@@ -446,7 +446,7 @@ where
         debug!(?joint_positions, ?duration);
         Command::perform(
             async move {
-                // ignore wait future
+                // do not wait
                 let _ = joint_trajectory_client.send_joint_positions(joint_positions, duration)?;
                 Ok(())
             }

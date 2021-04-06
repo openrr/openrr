@@ -15,6 +15,7 @@ arci = "0.0.5"
 rodio = "0.13.0"
 thiserror = "1.0"
 tracing = { version = "0.1", features = ["log"] }
+tokio = { version = "1", features = ["full"] }
 
 [dev-dependencies]
 structopt = "0.3"
