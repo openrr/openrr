@@ -131,6 +131,7 @@ async fn test_send_joint_positions() {
     client.run_send_joint_positions_thread();
     let result = client
         .send_joint_positions(vec![0.0], std::time::Duration::from_secs(1))
+        .unwrap()
         .await;
     assert!(result.is_ok());
 }
@@ -152,6 +153,6 @@ async fn test_send_joint_trajectory() {
         TrajectoryPoint::new(vec![0.0], std::time::Duration::from_millis(200)),
     ];
     client.run_send_joint_positions_thread();
-    let result = client.send_joint_trajectory(trajectory).await;
+    let result = client.send_joint_trajectory(trajectory).unwrap().await;
     assert!(result.is_ok());
 }

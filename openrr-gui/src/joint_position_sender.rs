@@ -446,12 +446,12 @@ where
         debug!(?joint_positions, ?duration);
         Command::perform(
             async move {
-                joint_trajectory_client
-                    .send_joint_positions(joint_positions, duration)
-                    .await
+                // ignore wait future
+                let _ = joint_trajectory_client.send_joint_positions(joint_positions, duration)?;
+                Ok(())
             }
             .instrument(span.clone()),
-            |res| match res {
+            |res: Result<_, Error>| match res {
                 Ok(()) => Message::Ignore,
                 Err(e) => {
                     error!("{}", e);

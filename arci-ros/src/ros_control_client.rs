@@ -5,8 +5,8 @@ use crate::{error::Error, SubscriberHandler};
 use arci::{
     copy_joint_positions, CompleteCondition, EachJointDiffCondition, JointTrajectoryClient,
     JointVelocityLimiter, SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint,
+    WaitFuture,
 };
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -279,7 +279,6 @@ impl RosControlClient {
     }
 }
 
-#[async_trait]
 impl JointTrajectoryClient for RosControlClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
@@ -291,11 +290,11 @@ impl JointTrajectoryClient for RosControlClient {
         ))
     }
 
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         duration: Duration,
-    ) -> Result<(), arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         let traj = if self.send_partial_joints_goal {
             JointTrajectory {
                 points: vec![JointTrajectoryPoint {
@@ -317,14 +316,16 @@ impl JointTrajectoryClient for RosControlClient {
             )?
         };
         self.trajectory_publisher.send(traj).unwrap();
-        self.complete_condition
-            .wait(self, &positions, duration.as_secs_f64())
-            .await
+        Ok(WaitFuture::new(async move {
+            self.complete_condition
+                .wait(self, &positions, duration.as_secs_f64())
+                .await
+        }))
     }
-    async fn send_joint_trajectory(
+    fn send_joint_trajectory(
         &self,
         trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<(), arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         let traj = if self.send_partial_joints_goal {
             JointTrajectory {
                 points: trajectory
@@ -351,13 +352,15 @@ impl JointTrajectoryClient for RosControlClient {
             )?
         };
         self.trajectory_publisher.send(traj).unwrap();
-        self.complete_condition
-            .wait(
-                self,
-                &trajectory.last().unwrap().positions,
-                trajectory.last().unwrap().time_from_start.as_secs_f64(),
-            )
-            .await
+        Ok(WaitFuture::new(async move {
+            self.complete_condition
+                .wait(
+                    self,
+                    &trajectory.last().unwrap().positions,
+                    trajectory.last().unwrap().time_from_start.as_secs_f64(),
+                )
+                .await
+        }))
     }
 }
 

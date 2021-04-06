@@ -4,7 +4,7 @@ use crate::{
 };
 use arci::{
     BaseVelocity, Error as ArciError, JointTrajectoryClient, JointTrajectoryClientsContainer,
-    Localization, MoveBase, Navigation, Speaker,
+    Localization, MoveBase, Navigation, Speaker, WaitFuture,
 };
 use async_trait::async_trait;
 use k::{nalgebra::Isometry2, Chain, Isometry3};
@@ -231,27 +231,26 @@ where
     pub fn ik_clients(&self) -> &HashMap<String, ArcIkClient> {
         &self.ik_clients
     }
-    pub async fn send_joint_positions(
+    pub fn send_joint_positions(
         &self,
         name: &str,
         positions: &[f64],
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         if self.is_ik_client(name) {
-            Ok(self
-                .ik_client(name)?
-                .client
-                .send_joint_positions(positions.to_owned(), Duration::from_secs_f64(duration_sec))
-                .await?)
+            Ok(self.ik_client(name)?.client.send_joint_positions(
+                positions.to_owned(),
+                Duration::from_secs_f64(duration_sec),
+            )?)
         } else {
-            Ok(self
-                .joint_trajectory_client(name)?
-                .send_joint_positions(positions.to_owned(), Duration::from_secs_f64(duration_sec))
-                .await?)
+            Ok(self.joint_trajectory_client(name)?.send_joint_positions(
+                positions.to_owned(),
+                Duration::from_secs_f64(duration_sec),
+            )?)
         }
     }
-    pub async fn current_joint_positions(&self, name: &str) -> Result<Vec<f64>, Error> {
+    pub fn current_joint_positions(&self, name: &str) -> Result<Vec<f64>, Error> {
         if self.is_ik_client(name) {
             self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
             Ok(self.ik_client(name)?.current_joint_positions()?)
@@ -261,71 +260,63 @@ where
                 .current_joint_positions()?)
         }
     }
-    pub async fn send_joints_pose(
+    pub fn send_joints_pose(
         &self,
         name: &str,
         pose_name: &str,
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         if self.joints_poses.contains_key(name) && self.joints_poses[name].contains_key(pose_name) {
-            Ok(self
-                .send_joint_positions(name, &self.joints_poses[name][pose_name], duration_sec)
-                .await?)
+            Ok(self.send_joint_positions(
+                name,
+                &self.joints_poses[name][pose_name],
+                duration_sec,
+            )?)
         } else {
             Err(Error::NoJointsPose(name.to_owned(), pose_name.to_owned()))
         }
     }
-    pub async fn current_end_transform(&self, name: &str) -> Result<Isometry3<f64>, Error> {
+    pub fn current_end_transform(&self, name: &str) -> Result<Isometry3<f64>, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         Ok(self.ik_client(name)?.current_end_transform()?)
     }
-    pub async fn transform(
-        &self,
-        name: &str,
-        pose: &Isometry3<f64>,
-    ) -> Result<Isometry3<f64>, Error> {
+    pub fn transform(&self, name: &str, pose: &Isometry3<f64>) -> Result<Isometry3<f64>, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         Ok(self.ik_client(name)?.transform(pose)?)
     }
-    pub async fn move_ik(
+    pub fn move_ik(
         &self,
         name: &str,
         target_pose: &Isometry3<f64>,
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
-        Ok(self
-            .ik_client(name)?
-            .move_ik(target_pose, duration_sec)
-            .await?)
+        Ok(self.ik_client(name)?.move_ik(target_pose, duration_sec)?)
     }
-    pub async fn move_ik_with_interpolation(
+    pub fn move_ik_with_interpolation(
         &self,
         name: &str,
         target_pose: &Isometry3<f64>,
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         Ok(self
             .ik_client(name)?
-            .move_ik_with_interpolation(target_pose, duration_sec)
-            .await?)
+            .move_ik_with_interpolation(target_pose, duration_sec)?)
     }
-    pub async fn send_joint_positions_with_pose_interpolation(
+    pub fn send_joint_positions_with_pose_interpolation(
         &self,
         name: &str,
         positions: &[f64],
         duration_sec: f64,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         let target_pose = {
             let ik_client = self.ik_client(name)?;
             ik_client.set_joint_positions_clamped(positions);
             ik_client.ik_solver_with_chain.end_transform()
         };
-        Ok(self
-            .move_ik_with_interpolation(name, &target_pose, duration_sec)
-            .await?)
+        self.move_ik_with_interpolation(name, &target_pose, duration_sec)
     }
 
     pub fn raw_joint_trajectory_clients_names(&self) -> Vec<String> {

@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
-use async_trait::async_trait;
+use crate::waits::WaitFuture;
 use std::sync::{Arc, Mutex};
 
 /// Dummy JointTrajectoryClient for Debug or Tests
@@ -22,7 +22,6 @@ impl DummyJointTrajectoryClient {
     }
 }
 
-#[async_trait]
 impl JointTrajectoryClient for DummyJointTrajectoryClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
@@ -30,23 +29,23 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         Ok(self.positions.lock().unwrap().clone())
     }
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         _duration: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         *self.positions.lock().unwrap() = positions;
-        Ok(())
+        Ok(WaitFuture::dummy())
     }
-    async fn send_joint_trajectory(
+    fn send_joint_trajectory(
         &self,
         full_trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         if let Some(last_point) = full_trajectory.last() {
             *self.positions.lock().unwrap() = last_point.positions.to_owned();
         }
         *self.last_trajectory.lock().unwrap() = full_trajectory;
-        Ok(())
+        Ok(WaitFuture::dummy())
     }
 }
 
@@ -54,8 +53,9 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
 mod tests {
     use super::*;
     use assert_approx_eq::assert_approx_eq;
-    #[test]
-    fn send_and_get() {
+
+    #[tokio::test]
+    async fn send_and_get() {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned(), "b".to_owned()]);
         assert_eq!(client.joint_names().len(), 2);
         assert_eq!(client.joint_names()[0], "a");
@@ -64,24 +64,28 @@ mod tests {
         assert_eq!(pos.len(), 2);
         assert_approx_eq!(pos[0], 0.0);
         assert_approx_eq!(pos[1], 0.0);
-        assert!(tokio_test::block_on(
-            client.send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs(1)),
-        )
-        .is_ok());
+        assert!(client
+            .send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs(1))
+            .unwrap()
+            .await
+            .is_ok());
         let pos2 = client.current_joint_positions().unwrap();
         assert_eq!(pos2.len(), 2);
         assert_approx_eq!(pos2[0], 1.0);
         assert_approx_eq!(pos2[1], 2.0);
     }
-    #[test]
-    fn trajectory() {
+
+    #[tokio::test]
+    async fn trajectory() {
         let client = DummyJointTrajectoryClient::new(vec!["aa".to_owned(), "bb".to_owned()]);
         assert_eq!(client.last_trajectory.lock().unwrap().len(), 0);
-        let result = client.send_joint_trajectory(vec![
-            TrajectoryPoint::new(vec![1.0, -1.0], std::time::Duration::from_secs(1)),
-            TrajectoryPoint::new(vec![2.0, -3.0], std::time::Duration::from_secs(2)),
-        ]);
-        assert!(tokio_test::block_on(result).is_ok());
+        let result = client
+            .send_joint_trajectory(vec![
+                TrajectoryPoint::new(vec![1.0, -1.0], std::time::Duration::from_secs(1)),
+                TrajectoryPoint::new(vec![2.0, -3.0], std::time::Duration::from_secs(2)),
+            ])
+            .unwrap();
+        assert!(result.await.is_ok());
         assert_eq!(client.last_trajectory.lock().unwrap().len(), 2);
 
         let pos = client.current_joint_positions().unwrap();
