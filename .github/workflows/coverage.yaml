@@ -13,7 +13,7 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     container:
-      image: docker://ros:melodic-ros-base
+      image: docker://openrr:openrr-coverage-ci
       options: --security-opt seccomp=unconfined
     steps:
       - uses: actions/checkout@v2
@@ -28,6 +28,8 @@ jobs:
       - run: cargo install cargo-tarpaulin
       - name: Generate code coverage
         run: |
+          # for test of arci-ros (roscore, rostopic)
+          source /opt/ros/melodic/setup.bash
           cargo +nightly-2021-03-04 tarpaulin --verbose --all-features --workspace --out Xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
