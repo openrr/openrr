@@ -37,8 +37,8 @@ impl<'a> WaitFuture<'a> {
     /// use futures::stream::FuturesOrdered;
     ///
     /// let mut waits = FuturesOrdered::new();
-    /// waits.push(WaitFuture::dummy());
-    /// waits.push(WaitFuture::dummy());
+    /// waits.push(WaitFuture::ready());
+    /// waits.push(WaitFuture::ready());
     /// WaitFuture::from_stream(waits).await?;
     /// # Ok(())
     /// # }
@@ -52,7 +52,7 @@ impl<'a> WaitFuture<'a> {
     }
 
     /// Creates a new `WaitFuture` which immediately complete.
-    pub fn dummy() -> Self {
+    pub fn ready() -> Self {
         Self::new(future::ready(Ok(())))
     }
 }

@@ -44,7 +44,7 @@ impl JointTrajectoryClient for ChainWrapper {
             node.set_joint_position_clamped(positions[index]);
         }
         self.full_chain.update_transforms();
-        Ok(WaitFuture::dummy())
+        Ok(WaitFuture::ready())
     }
 
     fn send_joint_trajectory(
@@ -54,7 +54,7 @@ impl JointTrajectoryClient for ChainWrapper {
         if let Some(last_point) = trajectory.last() {
             self.send_joint_positions(last_point.positions.clone(), last_point.time_from_start)
         } else {
-            Ok(WaitFuture::dummy())
+            Ok(WaitFuture::ready())
         }
     }
 }

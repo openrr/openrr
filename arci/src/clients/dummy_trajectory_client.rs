@@ -35,7 +35,7 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
         _duration: std::time::Duration,
     ) -> Result<WaitFuture, Error> {
         *self.positions.lock().unwrap() = positions;
-        Ok(WaitFuture::dummy())
+        Ok(WaitFuture::ready())
     }
     fn send_joint_trajectory(
         &self,
@@ -45,7 +45,7 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
             *self.positions.lock().unwrap() = last_point.positions.to_owned();
         }
         *self.last_trajectory.lock().unwrap() = full_trajectory;
-        Ok(WaitFuture::dummy())
+        Ok(WaitFuture::ready())
     }
 }
 

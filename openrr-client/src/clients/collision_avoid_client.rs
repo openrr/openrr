@@ -74,7 +74,7 @@ where
     }
     fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
         if trajectory.is_empty() {
-            return Ok(WaitFuture::dummy());
+            return Ok(WaitFuture::ready());
         }
         self.using_joints
             .set_joint_positions_clamped(&self.current_joint_positions()?);
