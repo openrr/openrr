@@ -13,5 +13,12 @@ fn verify_sample_configs() {
     for f in files {
         let result = RobotTeleopConfig::try_new(f);
         assert!(result.is_ok(), "{:?} {:?}", f, result);
+        let ser_result = toml::to_string(&result.unwrap());
+        assert!(ser_result.is_ok(), "{:?} {:?}", f, ser_result);
     }
+}
+
+#[test]
+fn ser_default_config() {
+    toml::to_string(&RobotTeleopConfig::default()).unwrap();
 }

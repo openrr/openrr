@@ -436,15 +436,23 @@ pub struct OpenrrClientsConfig {
     pub self_collision_check_pairs: Vec<String>,
 
     #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub joint_trajectory_clients_container_configs: Vec<JointTrajectoryClientsContainerConfig>,
     #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub collision_check_clients_configs: Vec<CollisionCheckClientConfig>,
     #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub ik_clients_configs: Vec<IkClientConfig>,
     #[serde(default)]
     pub ik_solvers_configs: HashMap<String, IkSolverConfig>,
 
     #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub joints_poses: Vec<JointsPose>,
 }
 

@@ -21,6 +21,13 @@ fn verify_sample_configs() {
             );
         } else {
             assert!(result.is_ok(), "{:?} {:?}", f, result);
+            let ser_result = toml::to_string(&result.unwrap());
+            assert!(ser_result.is_ok(), "{:?} {:?}", f, ser_result);
         }
     }
+}
+
+#[test]
+fn ser_default_config() {
+    toml::to_string(&RobotConfig::default()).unwrap();
 }

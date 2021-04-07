@@ -51,19 +51,29 @@ impl Default for SpeakConfig {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[non_exhaustive] // The fields will increase depending on the feature flag.
 pub struct RobotConfig {
+    #[serde(default = "default_urdf_viz_clients_total_complete_allowable_error")]
+    pub urdf_viz_clients_total_complete_allowable_error: f64,
+    #[serde(default = "default_urdf_viz_clients_complete_timeout_sec")]
+    pub urdf_viz_clients_complete_timeout_sec: f64,
+    #[serde(default = "default_true")]
+    pub use_move_base_urdf_viz_web_client: bool,
+    #[serde(default = "default_true")]
+    pub use_navigation_urdf_viz_web_client: bool,
+    #[serde(default = "default_true")]
+    pub use_localization_urdf_viz_web_client: bool,
+
     #[cfg(feature = "ros")]
     #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub ros_clients_configs: Vec<RosControlClientConfig>,
     // A dummy field to catch that there is a config that requires the ros feature.
     #[cfg(not(feature = "ros"))]
     ros_clients_configs: Option<toml::Value>,
     #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub urdf_viz_clients_configs: Vec<UrdfVizWebClientConfig>,
-
-    #[serde(default = "default_urdf_viz_clients_total_complete_allowable_error")]
-    pub urdf_viz_clients_total_complete_allowable_error: f64,
-    #[serde(default = "default_urdf_viz_clients_complete_timeout_sec")]
-    pub urdf_viz_clients_complete_timeout_sec: f64,
 
     #[serde(default)]
     pub speak_configs: HashMap<String, SpeakConfig>,
@@ -73,26 +83,40 @@ pub struct RobotConfig {
     // A dummy field to catch that there is a config that requires the ros feature.
     #[cfg(not(feature = "ros"))]
     ros_cmd_vel_move_base_client_config: Option<toml::Value>,
-    #[serde(default = "default_true")]
-    pub use_move_base_urdf_viz_web_client: bool,
 
     #[cfg(feature = "ros")]
     pub ros_navigation_client_config: Option<RosNavClientConfig>,
     // A dummy field to catch that there is a config that requires the ros feature.
     #[cfg(not(feature = "ros"))]
     ros_navigation_client_config: Option<toml::Value>,
-    #[serde(default = "default_true")]
-    pub use_navigation_urdf_viz_web_client: bool,
 
     #[cfg(feature = "ros")]
     pub ros_localization_client_config: Option<RosLocalizationClientConfig>,
     // A dummy field to catch that there is a config that requires the ros feature.
     #[cfg(not(feature = "ros"))]
     ros_localization_client_config: Option<toml::Value>,
-    #[serde(default = "default_true")]
-    pub use_localization_urdf_viz_web_client: bool,
 
     pub openrr_clients_config: OpenrrClientsConfig,
+}
+
+impl Default for RobotConfig {
+    fn default() -> Self {
+        Self {
+            ros_clients_configs: Default::default(),
+            urdf_viz_clients_configs: Default::default(),
+            urdf_viz_clients_total_complete_allowable_error:
+                default_urdf_viz_clients_total_complete_allowable_error(),
+            urdf_viz_clients_complete_timeout_sec: default_urdf_viz_clients_complete_timeout_sec(),
+            speak_configs: Default::default(),
+            ros_cmd_vel_move_base_client_config: Default::default(),
+            use_move_base_urdf_viz_web_client: default_true(),
+            ros_navigation_client_config: Default::default(),
+            use_navigation_urdf_viz_web_client: default_true(),
+            ros_localization_client_config: Default::default(),
+            use_localization_urdf_viz_web_client: default_true(),
+            openrr_clients_config: Default::default(),
+        }
+    }
 }
 
 fn default_urdf_viz_clients_total_complete_allowable_error() -> f64 {

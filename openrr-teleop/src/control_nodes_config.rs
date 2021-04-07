@@ -9,21 +9,21 @@ use std::{collections::HashMap, sync::Arc};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JoyJointTeleopConfig {
-    pub config: JoyJointTeleopNodeConfig,
     pub client_name: String,
+    pub config: JoyJointTeleopNodeConfig,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct IkNodeTeleopConfig {
-    pub config: IkNodeConfig,
     pub solver_name: String,
     pub joint_trajectory_client_name: String,
+    pub config: IkNodeConfig,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct ControlNodesConfig {
-    pub joy_joint_teleop_configs: Vec<JoyJointTeleopConfig>,
     pub move_base_mode: Option<String>,
+    pub joy_joint_teleop_configs: Vec<JoyJointTeleopConfig>,
     pub ik_node_teleop_configs: Vec<IkNodeTeleopConfig>,
     pub joints_pose_sender_config: Option<JointsPoseSenderConfig>,
 }
