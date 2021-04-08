@@ -38,7 +38,7 @@ impl Map {
     }
 
     pub fn new_playstation() -> Self {
-        let mut button_map = HashMap::new();
+        let mut button_map = default_button_map();
         button_map.insert(gilrs::Button::East, Button::South);
         button_map.insert(gilrs::Button::C, Button::East);
         button_map.insert(gilrs::Button::North, Button::North);
@@ -49,22 +49,14 @@ impl Map {
         button_map.insert(gilrs::Button::RightTrigger, Button::RightTrigger2);
         button_map.insert(gilrs::Button::LeftTrigger2, Button::Select);
         button_map.insert(gilrs::Button::RightTrigger2, Button::Start);
-        button_map.insert(gilrs::Button::Mode, Button::Mode);
         button_map.insert(gilrs::Button::Select, Button::LeftThumb);
         button_map.insert(gilrs::Button::Start, Button::RightThumb);
-        button_map.insert(gilrs::Button::DPadUp, Button::DPadUp);
-        button_map.insert(gilrs::Button::DPadDown, Button::DPadDown);
-        button_map.insert(gilrs::Button::DPadLeft, Button::DPadLeft);
-        button_map.insert(gilrs::Button::DPadRight, Button::DPadRight);
 
-        let mut axis_map = HashMap::new();
-        axis_map.insert(gilrs::Axis::LeftStickX, Axis::LeftStickX);
-        axis_map.insert(gilrs::Axis::LeftStickY, Axis::LeftStickY);
+        let mut axis_map = default_axis_map();
         axis_map.insert(gilrs::Axis::LeftZ, Axis::RightStickX);
         axis_map.insert(gilrs::Axis::RightZ, Axis::RightStickY);
-        axis_map.insert(gilrs::Axis::DPadX, Axis::DPadX);
-        axis_map.insert(gilrs::Axis::DPadY, Axis::DPadY);
-        let mut axis_value_map = HashMap::new();
+
+        let mut axis_value_map = default_axis_value_map();
         axis_value_map.insert(Axis::RightStickX, -1.0);
         axis_value_map.insert(Axis::RightStickY, -1.0);
 
