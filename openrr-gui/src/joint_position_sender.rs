@@ -354,6 +354,14 @@ where
                     .get_mut(&self.current_joint_trajectory_client)
                     .unwrap()[index];
 
+                let limit = &self.robot.joints[&joint_state.name].limit;
+
+                // The position specified by the slider is guaranteed to be in range,
+                // but it may actually be out of range because the value is rounded.
+                // So, if the position is out of the range, handle it as the same
+                // value as the limit.
+                position = position.clamp(limit.lower, limit.upper);
+
                 if (position * 100.0) as i64 == (joint_state.position * 100.0) as i64 {
                     joint_state.update_position(position);
                     // Ignore if the position has not changed at all.
