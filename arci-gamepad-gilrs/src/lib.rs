@@ -80,7 +80,7 @@ impl Map {
             debug!("convert_button {:?} -> {:?}", b, e);
             *e
         } else {
-            debug!("unkown map {:?}", b);
+            debug!("unknown map {:?}", b);
             Button::Unknown
         }
     }
@@ -90,7 +90,7 @@ impl Map {
             debug!("convert_axis {:?} -> {:?}", a, e);
             (*e, v as f64 * self.axis_value_map.get(e).unwrap_or(&1.0))
         } else {
-            debug!("unkown map {:?}", a);
+            debug!("unknown map {:?}", a);
             (Axis::Unknown, 0.0)
         }
     }
