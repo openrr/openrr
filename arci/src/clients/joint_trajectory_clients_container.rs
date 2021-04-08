@@ -1,6 +1,7 @@
 use crate::error::Error;
 use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
-use async_trait::async_trait;
+use crate::waits::WaitFuture;
+use futures::stream::FuturesOrdered;
 
 pub struct JointTrajectoryClientsContainer<T: JointTrajectoryClient> {
     joint_names: Vec<String>,
@@ -23,7 +24,6 @@ where
     }
 }
 
-#[async_trait]
 impl<T> JointTrajectoryClient for JointTrajectoryClientsContainer<T>
 where
     T: JointTrajectoryClient + Sync,
@@ -39,13 +39,13 @@ where
         }
         Ok(ret)
     }
-    async fn send_joint_positions(
+    fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         duration: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         let mut offset = 0;
-        let mut waits = vec![];
+        let mut waits = FuturesOrdered::new();
         for c in &self.clients {
             let mut current_positions = c.current_joint_positions()?;
             for i in 0..current_positions.len() {
@@ -54,20 +54,17 @@ where
                 }
             }
             offset += current_positions.len();
-            waits.push(c.send_joint_positions(current_positions, duration));
+            waits.push(c.send_joint_positions(current_positions, duration)?);
         }
-        for f in waits {
-            f.await?;
-        }
-        Ok(())
+        Ok(WaitFuture::from_stream(waits))
     }
-    async fn send_joint_trajectory(
+    fn send_joint_trajectory(
         &self,
         full_trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         let mut offset = 0;
         let full_dof = self.joint_names().len();
-        let mut waits = vec![];
+        let mut waits = FuturesOrdered::new();
         for client in &self.clients {
             let mut current_positions = client.current_joint_positions()?;
             let partial_dof = current_positions.len();
@@ -97,13 +94,10 @@ where
                     time_from_start: full_point.time_from_start,
                 });
             }
-            waits.push(client.send_joint_trajectory(partial_trajectory));
+            waits.push(client.send_joint_trajectory(partial_trajectory)?);
             offset += partial_dof;
         }
-        for f in waits {
-            f.await?;
-        }
-        Ok(())
+        Ok(WaitFuture::from_stream(waits))
     }
 }
 
@@ -113,37 +107,36 @@ mod tests {
     fn test_container_new() {
         use super::*;
         #[derive(Debug, Clone)]
-        struct Dammy {
+        struct Dummy {
             name: Vec<String>,
         }
-        #[async_trait]
-        impl JointTrajectoryClient for Dammy {
+        impl JointTrajectoryClient for Dummy {
             fn joint_names(&self) -> &[String] {
                 &self.name
             }
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
                 unimplemented!();
             }
-            async fn send_joint_positions(
+            fn send_joint_positions(
                 &self,
                 _positions: Vec<f64>,
                 _duration: std::time::Duration,
-            ) -> Result<(), Error> {
+            ) -> Result<WaitFuture, Error> {
                 unimplemented!();
             }
-            async fn send_joint_trajectory(
+            fn send_joint_trajectory(
                 &self,
                 _trajectory: Vec<TrajectoryPoint>,
-            ) -> Result<(), Error> {
+            ) -> Result<WaitFuture, Error> {
                 unimplemented!()
             }
         }
 
         let clients = vec![
-            Dammy {
+            Dummy {
                 name: vec![String::from("part1"), String::from("high")],
             },
-            Dammy {
+            Dummy {
                 name: vec![String::from("part2"), String::from("low")],
             },
         ];
@@ -167,43 +160,42 @@ mod tests {
     #[test]
     fn test_container_jointname() {
         use super::*;
-        struct Dammy {
+        struct Dummy {
             name: Vec<String>,
         }
-        #[async_trait]
-        impl JointTrajectoryClient for Dammy {
+        impl JointTrajectoryClient for Dummy {
             fn joint_names(&self) -> &[String] {
                 &self.name
             }
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
                 unimplemented!();
             }
-            async fn send_joint_positions(
+            fn send_joint_positions(
                 &self,
                 _positions: Vec<f64>,
                 _duration: std::time::Duration,
-            ) -> Result<(), Error> {
+            ) -> Result<WaitFuture, Error> {
                 unimplemented!();
             }
-            async fn send_joint_trajectory(
+            fn send_joint_trajectory(
                 &self,
                 _trajectory: Vec<TrajectoryPoint>,
-            ) -> Result<(), Error> {
+            ) -> Result<WaitFuture, Error> {
                 unimplemented!()
             }
         }
 
         let clients = vec![
-            Dammy {
+            Dummy {
                 name: vec![String::from("part1"), String::from("high")],
             },
-            Dammy {
+            Dummy {
                 name: vec![String::from("part2"), String::from("low")],
             },
-            Dammy {
+            Dummy {
                 name: vec![String::from("part3"), String::from("high")],
             },
-            Dammy {
+            Dummy {
                 name: vec![String::from("part4"), String::from("middle")],
             },
         ];
