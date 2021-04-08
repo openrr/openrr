@@ -150,57 +150,6 @@ fn default_axis_value_map() -> HashMap<Axis, f64> {
     axis_value_map
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn test_playstation_map() {
-        let m = Map::new_playstation();
-        assert_eq!(
-            m.convert_button(gilrs::Button::North),
-            arci::gamepad::Button::North
-        );
-        assert_eq!(
-            m.convert_button(gilrs::Button::South),
-            arci::gamepad::Button::West
-        );
-        let (a, v) = m.convert_axis(gilrs::Axis::RightZ, 0.1);
-        assert_eq!(a, arci::gamepad::Axis::RightStickY);
-        assert!((v - -0.1).abs() < 0.00001);
-    }
-    #[test]
-    fn test_default_map() {
-        let m = Map::default();
-        assert_eq!(
-            m.convert_button(gilrs::Button::North),
-            arci::gamepad::Button::North
-        );
-        assert_eq!(
-            m.convert_button(gilrs::Button::South),
-            arci::gamepad::Button::South
-        );
-        let (a, v) = m.convert_axis(gilrs::Axis::RightStickY, 0.1);
-        assert_eq!(a, arci::gamepad::Axis::RightStickY);
-        assert!((v - 0.1).abs() < 0.00001);
-    }
-
-    #[test]
-    fn test_make_map() {
-        let m = Map {
-            button_map: HashMap::new(),
-            axis_map: HashMap::new(),
-            axis_value_map: HashMap::new(),
-        };
-        assert_eq!(
-            m.convert_button(gilrs::Button::North),
-            arci::gamepad::Button::Unknown,
-        );
-        let (a, v) = m.convert_axis(gilrs::Axis::RightStickY, 0.1);
-        assert_eq!(a, arci::gamepad::Axis::Unknown);
-        assert!((v - 0.0).abs() < 0.00001);
-    }
-}
-
 pub struct GilGamepad {
     rx: flume::Receiver<GamepadEvent>,
     _handle: std::thread::JoinHandle<()>,
@@ -258,6 +207,14 @@ impl GilGamepad {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct GilGamepadConfig {
+    #[serde(default)]
+    device_id: usize,
+    #[serde(default)]
+    map: Map,
+}
+
 #[async_trait]
 impl Gamepad for GilGamepad {
     async fn next_event(&self) -> GamepadEvent {
@@ -274,24 +231,60 @@ impl Gamepad for GilGamepad {
     }
 }
 
-/* We need gamepad to test actually
 #[cfg(test)]
 mod test {
     use super::*;
-    #[tokio::test]
-    async fn test_gil() {
-        let g = GilGamepad::new(0, Map::new_playstation());
-        for _i in 0..100 {
-            println!("Result = {:?}", g.next_event().await);
-        }
-    }
-}
-*/
+    use assert_approx_eq::assert_approx_eq;
+    use std::collections::HashMap;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct GilGamepadConfig {
-    #[serde(default)]
-    device_id: usize,
-    #[serde(default)]
-    map: Map,
+    #[test]
+    fn test_playstation_map() {
+        let m = Map::new_playstation();
+        assert_eq!(
+            m.convert_button(gilrs::Button::North),
+            arci::gamepad::Button::North
+        );
+        assert_eq!(
+            m.convert_button(gilrs::Button::South),
+            arci::gamepad::Button::West
+        );
+        let (axis, value) = m.convert_axis(gilrs::Axis::RightStickX, 0.2);
+        assert_eq!(axis, arci::gamepad::Axis::RightStickX);
+        assert_approx_eq!(value, 0.2);
+        let (a, v) = m.convert_axis(gilrs::Axis::RightZ, 0.1);
+        assert_eq!(a, arci::gamepad::Axis::RightStickY);
+        assert!((v - -0.1).abs() < 0.00001);
+    }
+
+    #[test]
+    fn test_default_map() {
+        let m = Map::default();
+        assert_eq!(
+            m.convert_button(gilrs::Button::North),
+            arci::gamepad::Button::North
+        );
+        assert_eq!(
+            m.convert_button(gilrs::Button::South),
+            arci::gamepad::Button::South
+        );
+        let (a, v) = m.convert_axis(gilrs::Axis::RightStickY, 0.1);
+        assert_eq!(a, arci::gamepad::Axis::RightStickY);
+        assert!((v - 0.1).abs() < 0.00001);
+    }
+
+    #[test]
+    fn test_make_map() {
+        let m = Map {
+            button_map: HashMap::new(),
+            axis_map: HashMap::new(),
+            axis_value_map: HashMap::new(),
+        };
+        assert_eq!(
+            m.convert_button(gilrs::Button::North),
+            arci::gamepad::Button::Unknown,
+        );
+        let (a, v) = m.convert_axis(gilrs::Axis::RightStickY, 0.1);
+        assert_eq!(a, arci::gamepad::Axis::Unknown);
+        assert!((v - 0.0).abs() < 0.00001);
+    }
 }
