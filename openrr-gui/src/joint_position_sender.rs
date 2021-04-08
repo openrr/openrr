@@ -9,7 +9,7 @@ use iced::{
 use iced::{pick_list, text_input};
 use openrr_client::RobotClient;
 use rand::Rng;
-use tracing::{debug, debug_span, error, warn, Instrument};
+use tracing::{debug, debug_span, error, warn};
 use urdf_rs::JointType;
 
 use crate::{style, Error};
@@ -141,18 +141,25 @@ where
 struct Errors {
     joint_states: Option<(usize, String)>,
     duration_input: Option<String>,
+    other: Option<String>,
     update_on_error: bool,
 }
 
 impl Errors {
     fn is_none(&self) -> bool {
-        self.joint_states.is_none() && self.duration_input.is_none()
+        self.joint_states.is_none() && self.duration_input.is_none() && self.other.is_none()
     }
 
     fn skip_update(&mut self, message: &Message) -> bool {
         self.update_on_error = false;
         // update always if there is no error.
         if self.is_none() {
+            return false;
+        }
+
+        if self.joint_states.is_none() && self.duration_input.is_none() && self.other.is_some() {
+            self.other = None;
+            // Other errors are usually unresolvable by user's action.
             return false;
         }
 
@@ -165,9 +172,7 @@ impl Errors {
             {
                 false
             }
-            Message::ZeroButtonPressed
-            | Message::RandomizeButtonPressed
-            | Message::UpdateAll(..)
+            Message::ZeroButtonPressed | Message::RandomizeButtonPressed
                 if self.joint_states.is_some() =>
             {
                 false
@@ -240,9 +245,6 @@ where
 
 #[derive(Debug, Clone)]
 enum Message {
-    Ignore,
-    // Update all positions in current joint_trajectory_client
-    UpdateAll(Vec<f64>),
     ZeroButtonPressed,
     RandomizeButtonPressed,
     SliderChanged { index: usize, position: f64 },
@@ -284,7 +286,6 @@ where
         }
 
         match message {
-            Message::Ignore => return Command::none(),
             Message::PickListChanged(client_name) => {
                 drop(_guard);
                 let span = debug_span(&client_name);
@@ -293,29 +294,23 @@ where
                 self.current_joint_trajectory_client = client_name;
                 let joint_trajectory_client = self.current_joint_trajectory_client();
                 let len = joint_trajectory_client.joint_names().len();
-                return Command::perform(
-                    // Initializing joint_positions based on current_joint_positions.
-                    async move { joint_trajectory_client.current_joint_positions() }
-                        .instrument(span.clone()),
-                    move |res| match res {
-                        Ok(positions) => Message::UpdateAll(positions),
-                        Err(e) => {
-                            error!("{}", e);
-                            // TODO: Decide how to handle errors.
-                            Message::UpdateAll(vec![Default::default(); len])
-                        }
-                    },
-                );
-            }
-            Message::UpdateAll(positions) => {
-                self.errors.joint_states = None;
 
+                // Initializing joint_positions based on current_joint_positions.
+                let positions = match joint_trajectory_client.current_joint_positions() {
+                    Ok(positions) => positions,
+                    Err(e) => {
+                        error!("{}", e);
+                        self.errors.other = Some(e.to_string());
+                        vec![Default::default(); len]
+                    }
+                };
                 for (index, position) in positions.into_iter().enumerate() {
                     self.joint_states
                         .get_mut(&self.current_joint_trajectory_client)
                         .unwrap()[index]
                         .update_position(position);
                 }
+                return Command::none();
             }
             Message::RandomizeButtonPressed => {
                 self.errors.joint_states = None;
@@ -444,22 +439,15 @@ where
         let joint_trajectory_client = self.current_joint_trajectory_client();
         let duration = self.duration;
         debug!(?joint_positions, ?duration);
-        Command::perform(
-            async move {
-                // do not wait
-                let _ = joint_trajectory_client.send_joint_positions(joint_positions, duration)?;
-                Ok(())
+        match joint_trajectory_client.send_joint_positions(joint_positions, duration) {
+            Err(e) => {
+                error!("{}", e);
+                self.errors.other = Some(e.to_string());
             }
-            .instrument(span.clone()),
-            |res: Result<_, Error>| match res {
-                Ok(()) => Message::Ignore,
-                Err(e) => {
-                    error!("{}", e);
-                    // TODO: Decide how to handle errors.
-                    Message::Ignore
-                }
-            },
-        )
+            // do not wait
+            Ok(wait) => drop(wait),
+        }
+        Command::none()
     }
 
     fn view(&mut self) -> Element<Message> {
@@ -579,16 +567,14 @@ where
             );
         } else {
             let mut errors = Column::new().max_width(400);
-            if let Some((_index, msg)) = &self.errors.joint_states {
-                errors = errors.push(
-                    Text::new(&format!("Error: {}", msg))
-                        .size(style::ERROR_TEXT_SIZE)
-                        .horizontal_alignment(HorizontalAlignment::Left)
-                        .width(Length::Fill)
-                        .color(style::ERRORED),
-                );
-            }
-            if let Some(msg) = &self.errors.duration_input {
+            for msg in [
+                self.errors.joint_states.as_ref().map(|(_, msg)| msg),
+                self.errors.duration_input.as_ref(),
+                self.errors.other.as_ref(),
+            ]
+            .iter()
+            .filter_map(|e| e.as_ref())
+            {
                 errors = errors.push(
                     Text::new(&format!("Error: {}", msg))
                         .size(style::ERROR_TEXT_SIZE)
