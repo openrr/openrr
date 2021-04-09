@@ -108,16 +108,12 @@ where
             .get(&joints_pose.client_name)
             .unwrap();
         if self.is_sending && self.is_trigger_holding {
-            client
+            let _ = client
                 .send_joint_positions(joints_pose.positions.to_owned(), self.duration)
-                .unwrap()
-                .await
                 .unwrap();
         } else {
-            client
+            let _ = client
                 .send_joint_positions(client.current_joint_positions().unwrap(), self.duration)
-                .unwrap()
-                .await
                 .unwrap();
         }
     }
