@@ -248,7 +248,11 @@ openrr_apps_joint_position_sender \
   --config-path ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
 ```
 
-#### Environmental Variables
+### Troubleshooting
+
+See [openrr-gui](../openrr-gui/README.md#troubleshooting) crate for troubleshooting on GUI.
+
+## Environmental Variables
 
 If you set `export OPENRR_APPS_ROBOT_CONFIG_PATH=some_path_to_config.toml`, you can skip
 `--config-path`. If you give `--config-path` explicitly, the env var is ignored.
@@ -261,7 +265,3 @@ openrr_apps_joint_position_sender
 ```
 
 Do not forget to unset OPENRR_APPS_ROBOT_CONFIG_PATH before try other settings
-
-### Troubleshooting
-
-See [openrr-gui](../openrr-gui/README.md#troubleshooting) crate for troubleshooting.

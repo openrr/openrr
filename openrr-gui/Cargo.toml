@@ -10,6 +10,11 @@ categories = ["science::robotics", "gui"]
 repository = "https://github.com/openrr/openrr"
 documentation = "http://docs.rs/openrr-gui"
 
+[features]
+# Enables the `iced_glow` renderer on GUI.
+# This might be useful if the default renderer doesn't work.
+glow = ["iced/glow"]
+
 [dependencies]
 arci = "0.0.5"
 iced = "0.3"

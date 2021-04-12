@@ -15,6 +15,9 @@ readme = "README.md"
 default = ["gui", "ros"]
 ros = ["arci-ros"]
 gui = ["openrr-gui"]
+# Enables the `iced_glow` renderer on GUI.
+# This might be useful if the default renderer doesn't work.
+glow = ["openrr-gui/glow"]
 
 [dependencies]
 anyhow = "1.0"
