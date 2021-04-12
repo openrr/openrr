@@ -177,7 +177,7 @@ where
                 {
                     joint.set_joint_position_clamped(positions[index])
                 } else {
-                    return Err(Error::NoJoint(joint_name.to_owned()));
+                    return Err(ArciError::NoJoint(joint_name.to_owned()).into());
                 }
             }
         }
