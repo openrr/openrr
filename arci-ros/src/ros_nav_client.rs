@@ -2,7 +2,7 @@ use crate::msg;
 use arci::*;
 use nalgebra as na;
 use serde::{Deserialize, Serialize};
-use std::time;
+use std::{sync::Arc, time};
 
 use crate::define_action_client_internal;
 define_action_client_internal!(SimpleActionClient, msg::move_base_msgs, MoveBase);
@@ -107,9 +107,10 @@ impl Default for RosNavClientBuilder {
     }
 }
 
+#[derive(Clone)]
 pub struct RosNavClient {
     pub clear_costmap_before_start: bool,
-    action_client: SimpleActionClient,
+    action_client: Arc<SimpleActionClient>,
     nomotion_update_client: Option<rosrust::Client<std_srvs::Empty>>,
 }
 
@@ -129,7 +130,7 @@ impl RosNavClient {
         };
         Self {
             clear_costmap_before_start: false,
-            action_client,
+            action_client: Arc::new(action_client),
             nomotion_update_client,
         }
     }
@@ -172,14 +173,13 @@ impl RosNavClient {
     }
 }
 
-#[async_trait]
 impl Navigation for RosNavClient {
-    async fn move_to(
+    fn send_goal_pose(
         &self,
         goal: na::Isometry2<f64>,
         frame_id: &str,
         timeout: std::time::Duration,
-    ) -> Result<(), Error> {
+    ) -> Result<WaitFuture, Error> {
         if self.clear_costmap_before_start {
             self.clear_costmap()?;
         }
@@ -193,8 +193,21 @@ impl Navigation for RosNavClient {
             .action_client
             .send_goal(msg::move_base_msgs::MoveBaseGoal { target_pose })
             .map_err(|e| anyhow::anyhow!("Failed to send_goal_and_wait : {}", e.to_string()))?;
-        self.wait_until_reach(&goal_id, timeout);
-        Ok(())
+
+        let self_clone = self.clone();
+        // Creates a WaitFuture that waits until reach only if the future
+        // is polled. This future is a bit tricky, but it's more efficient than
+        // using only `tokio::task::spawn_blocking` because it doesn't spawn threads
+        // if the WaitFuture is ignored.
+        let wait = WaitFuture::new(async move {
+            tokio::task::spawn_blocking(move || {
+                self_clone.wait_until_reach(&goal_id, timeout);
+            })
+            .await
+            .map_err(|e| arci::Error::Other(e.into()))
+        });
+
+        Ok(wait)
     }
 
     fn cancel(&self) -> Result<(), Error> {

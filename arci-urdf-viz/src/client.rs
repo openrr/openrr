@@ -3,7 +3,6 @@ use arci::{
     BaseVelocity, CompleteCondition, JointTrajectoryClient, JointVelocityLimiter, Localization,
     MoveBase, Navigation, SetCompleteCondition, TotalJointDiffCondition, WaitFuture,
 };
-use async_trait::async_trait;
 use futures::stream::FuturesOrdered;
 use nalgebra as na;
 use openrr_sleep::ScopedSleep;
@@ -274,14 +273,13 @@ impl Localization for UrdfVizWebClient {
     }
 }
 
-#[async_trait]
 impl Navigation for UrdfVizWebClient {
-    async fn move_to(
+    fn send_goal_pose(
         &self,
         goal: na::Isometry2<f64>,
         _frame_id: &str,
         _timeout: Duration,
-    ) -> Result<(), arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         // JUMP!
         let re = send_robot_origin(&self.base_url, goal.into()).map_err(|e| {
             arci::Error::Connection {
@@ -292,7 +290,7 @@ impl Navigation for UrdfVizWebClient {
             return Err(arci::Error::Connection { message: re.reason });
         }
 
-        Ok(())
+        Ok(WaitFuture::ready())
     }
 
     fn cancel(&self) -> Result<(), arci::Error> {

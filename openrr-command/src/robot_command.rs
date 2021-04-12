@@ -323,11 +323,11 @@ impl RobotCommandExecutor {
                 timeout_secs,
             } => {
                 client
-                    .move_to(
+                    .send_goal_pose(
                         Isometry2::new(Vector2::new(*x, *y), *yaw),
                         frame_id,
                         Duration::from_secs_f64(*timeout_secs),
-                    )
+                    )?
                     .await?;
             }
             RobotCommand::CancelNavigationGoal => {

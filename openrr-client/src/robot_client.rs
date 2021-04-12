@@ -6,7 +6,6 @@ use arci::{
     BaseVelocity, Error as ArciError, JointTrajectoryClient, JointTrajectoryClientsContainer,
     Localization, MoveBase, Navigation, Speaker, WaitFuture,
 };
-use async_trait::async_trait;
 use k::{nalgebra::Isometry2, Chain, Isometry3};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, path::PathBuf, sync::Arc, time::Duration};
@@ -369,25 +368,22 @@ where
     }
 }
 
-#[async_trait]
 impl<L, M, N> Navigation for RobotClient<L, M, N>
 where
     L: Localization,
     M: MoveBase,
     N: Navigation,
 {
-    async fn move_to(
+    fn send_goal_pose(
         &self,
         goal: Isometry2<f64>,
         frame_id: &str,
         timeout: std::time::Duration,
-    ) -> Result<(), ArciError> {
-        Ok(self
-            .navigation
+    ) -> Result<WaitFuture, ArciError> {
+        self.navigation
             .as_ref()
             .unwrap()
-            .move_to(goal, frame_id, timeout)
-            .await?)
+            .send_goal_pose(goal, frame_id, timeout)
     }
 
     fn cancel(&self) -> Result<(), ArciError> {
