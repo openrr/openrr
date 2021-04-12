@@ -1,13 +1,12 @@
 mod clients;
 mod error;
 mod traits;
-mod utils;
+pub mod utils;
 mod waits;
 
 pub use clients::*;
 pub use error::*;
 pub use traits::*;
-pub use utils::*;
 pub use waits::*;
 
 // re-export
