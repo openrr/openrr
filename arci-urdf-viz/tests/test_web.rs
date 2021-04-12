@@ -44,9 +44,9 @@ async fn test_set_get_pose() {
     .await
     .unwrap();
     let pose = c.current_pose("").unwrap();
-    assert_approx_eq!(pose.translation.x, 0.0);
-    assert_approx_eq!(pose.translation.y, 0.0);
-    assert_approx_eq!(pose.rotation.angle(), 0.0);
+    assert_approx_eq!(pose.translation.x, 1.0);
+    assert_approx_eq!(pose.translation.y, 2.0);
+    assert_approx_eq!(pose.rotation.angle(), 3.0);
 }
 
 #[test]
@@ -68,7 +68,7 @@ fn test_set_get_pose_no_wait() {
         )
         .unwrap();
     let pose = c.current_pose("").unwrap();
-    assert_approx_eq!(pose.translation.x, 0.0);
-    assert_approx_eq!(pose.translation.y, 0.0);
-    assert_approx_eq!(pose.rotation.angle(), 0.0);
+    assert_approx_eq!(pose.translation.x, 1.0);
+    assert_approx_eq!(pose.translation.y, 2.0);
+    assert_approx_eq!(pose.rotation.angle(), 3.0);
 }
