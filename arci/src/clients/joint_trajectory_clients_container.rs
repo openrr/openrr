@@ -207,4 +207,115 @@ mod tests {
             "[\"part1\", \"high\", \"part2\", \"low\", \"part3\", \"high\", \"part4\", \"middle\"]"
         );
     }
+
+    #[test]
+    fn test_container_current_pos_ok() {
+        use super::*;
+        use assert_approx_eq::assert_approx_eq;
+
+        #[derive(Debug, Clone)]
+        struct Dummy {
+            name: Vec<String>,
+            pos: Vec<f64>,
+        }
+        impl JointTrajectoryClient for Dummy {
+            fn joint_names(&self) -> &[String] {
+                &self.name
+            }
+            fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
+                Ok(self.pos.clone())
+            }
+            fn send_joint_positions(
+                &self,
+                _positions: Vec<f64>,
+                _duration: std::time::Duration,
+            ) -> Result<WaitFuture, Error> {
+                unimplemented!();
+            }
+            fn send_joint_trajectory(
+                &self,
+                _trajectory: Vec<TrajectoryPoint>,
+            ) -> Result<WaitFuture, Error> {
+                unimplemented!()
+            }
+        }
+        let clients = vec![
+            Dummy {
+                name: vec![String::from("part1"), String::from("high")],
+                pos: vec![1.0_f64, 3.0_f64],
+            },
+            Dummy {
+                name: vec![String::from("part2"), String::from("low")],
+                pos: vec![2.2_f64, 4.0_f64],
+            },
+        ];
+
+        let container = JointTrajectoryClientsContainer::new(clients.clone());
+        let current = container.current_joint_positions();
+        let expect = vec![1.0_f64, 3.0_f64, 2.2_f64, 4.0_f64];
+
+        let positions = current.unwrap();
+
+        positions
+            .iter()
+            .zip(expect)
+            .for_each(|(pos, correct)| assert_approx_eq!(*pos, correct));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_container_current_pos_err() {
+        use super::*;
+        use assert_approx_eq::assert_approx_eq;
+
+        #[derive(Debug, Clone)]
+        struct Dummy {
+            name: Vec<String>,
+            pos: Vec<f64>,
+        }
+        impl JointTrajectoryClient for Dummy {
+            fn joint_names(&self) -> &[String] {
+                &self.name
+            }
+            fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
+                Err(Error::Uninitialized {
+                    message: String::from("current pos is not exist."),
+                })
+            }
+            fn send_joint_positions(
+                &self,
+                _positions: Vec<f64>,
+                _duration: std::time::Duration,
+            ) -> Result<WaitFuture, Error> {
+                unimplemented!();
+            }
+            fn send_joint_trajectory(
+                &self,
+                _trajectory: Vec<TrajectoryPoint>,
+            ) -> Result<WaitFuture, Error> {
+                unimplemented!()
+            }
+        }
+        let clients = vec![
+            Dummy {
+                name: vec![String::from("part1"), String::from("high")],
+                pos: vec![1.0_f64, 3.0_f64],
+            },
+            Dummy {
+                name: vec![String::from("part2"), String::from("low")],
+                pos: vec![2.2_f64, 4.0_f64],
+            },
+        ];
+
+        let container = JointTrajectoryClientsContainer::new(clients.clone());
+        let current = container.current_joint_positions();
+        let expect = vec![1.0_f64, 3.0_f64, 2.2_f64, 4.0_f64];
+
+        let positions = current.unwrap();
+
+        positions
+            .iter()
+            .zip(expect)
+            .for_each(|(pos, correct)| assert_approx_eq!(*pos, correct));
+    }
 }
