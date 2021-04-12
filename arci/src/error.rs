@@ -18,10 +18,12 @@ pub enum Error {
         allowable_total_diff: f64,
         err: f64,
     },
-    #[error("length mismatch (model = {}, input = {})", model, input)]
+    #[error("arci: Length mismatch (model = {}, input = {})", model, input)]
     LengthMismatch { model: usize, input: usize },
+    #[error("arci: No Joint={} is found.", .0)]
+    NoJoint(String),
     #[error(
-        "wait timeout target={:?}, cur={:?} is_reached={:?}",
+        "arci: Wait timeout target={:?}, cur={:?} is_reached={:?}",
         target,
         current,
         is_reached
@@ -31,9 +33,9 @@ pub enum Error {
         current: Vec<f64>,
         is_reached: Vec<bool>,
     },
-    #[error("uninitialized : {}", message)]
+    #[error("arci: Uninitialized : {}", message)]
     Uninitialized { message: String },
-    #[error("connection error : {}", message)]
+    #[error("arci: Connection error : {}", message)]
     Connection { message: String },
     #[error("arci: Other: {:?}", .0)]
     Other(#[from] anyhow::Error),

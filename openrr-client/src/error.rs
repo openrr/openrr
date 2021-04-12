@@ -13,8 +13,6 @@ pub enum Error {
     NoFile(PathBuf, #[source] std::io::Error),
     #[error("openrr-client: No IkClient={} is found.", .0)]
     NoIkClient(String),
-    #[error("openrr-client: No Joint={} is found.", .0)]
-    NoJoint(String),
     #[error("openrr-client: No JointsPose {} {} is found.", .0, .1)]
     NoJointsPose(String, String),
     #[error("openrr-client: No JointTrajectoryClient={} is found.", .0)]
