@@ -2,6 +2,7 @@ mod web_server;
 
 use assert_approx_eq::assert_approx_eq;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use url::Url;
 
 use arci::{JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint};
@@ -130,14 +131,16 @@ async fn test_send_joint_positions() {
             .unwrap();
     client.run_send_joint_positions_thread();
     let result = client
-        .send_joint_positions(vec![0.0], std::time::Duration::from_secs(1))
+        .send_joint_positions(vec![1.0], Duration::from_secs(1))
         .unwrap()
         .await;
     assert!(result.is_ok());
+    let v = client.current_joint_positions().unwrap();
+    assert_approx_eq!(v[0], 1.0);
 }
 
-#[tokio::test]
-async fn test_send_joint_trajectory() {
+#[test]
+fn test_send_joint_positions_no_wait() {
     const PORT: u16 = 7781;
     let mut web_server = WebServer::new(PORT);
     web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
@@ -148,11 +151,39 @@ async fn test_send_joint_trajectory() {
     let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
             .unwrap();
+    client.run_send_joint_positions_thread();
+    let _ = client
+        .send_joint_positions(vec![1.0], Duration::from_secs(1))
+        .unwrap();
+    let v = client.current_joint_positions().unwrap();
+    assert_approx_eq!(v[0], 0.0);
+    std::thread::sleep(Duration::from_secs(2));
+    let v = client.current_joint_positions().unwrap();
+    assert_approx_eq!(v[0], 1.0);
+}
+
+#[tokio::test]
+async fn test_send_joint_trajectory() {
+    const PORT: u16 = 7782;
+    let mut web_server = WebServer::new(PORT);
+    web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
+        names: vec!["j1".to_owned()],
+        positions: vec![0.0],
+    }));
+    web_server.start_background();
+    let mut client =
+        UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
+            .unwrap();
     let trajectory = vec![
-        TrajectoryPoint::new(vec![0.0], std::time::Duration::from_millis(100)),
-        TrajectoryPoint::new(vec![0.0], std::time::Duration::from_millis(200)),
+        TrajectoryPoint::new(vec![1.0], Duration::from_millis(100)),
+        TrajectoryPoint::new(vec![2.0], Duration::from_millis(200)),
     ];
     client.run_send_joint_positions_thread();
-    let result = client.send_joint_trajectory(trajectory).unwrap().await;
-    assert!(result.is_ok());
+    client
+        .send_joint_trajectory(trajectory)
+        .unwrap()
+        .await
+        .unwrap();
+    let v = client.current_joint_positions().unwrap();
+    assert_approx_eq!(v[0], 2.0);
 }
