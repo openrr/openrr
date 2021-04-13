@@ -15,7 +15,7 @@ anyhow = "1.0"
 async-trait = "0.1"
 auto_impl = "0.4"
 futures = "0.3"
-nalgebra = "0.25"
+nalgebra = "0.26"
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.0", features = ["time"] }
 thiserror = "1.0"
