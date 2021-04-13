@@ -9,6 +9,11 @@ use arci::{JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition,
 use arci_urdf_viz::{UrdfVizWebClient, UrdfVizWebClientConfig};
 use web_server::*;
 
+// TotalJointDiffCondition allows error of 0.02, so WaitFuture may complete
+// before the joint reaches the target. So, allow more error than
+// TotalJointDiffCondition allows, when comparison.
+const TOTAL_COMPLETE_ALLOWABLE_ERROR: f64 = 0.03;
+
 #[test]
 fn test_urdf_viz_web_client_config_accessor() {
     let mut config = UrdfVizWebClientConfig {
@@ -136,7 +141,7 @@ async fn test_send_joint_positions() {
         .await;
     assert!(result.is_ok());
     let v = client.current_joint_positions().unwrap();
-    assert_approx_eq!(v[0], 1.0);
+    assert_approx_eq!(v[0], 1.0, TOTAL_COMPLETE_ALLOWABLE_ERROR);
 }
 
 #[test]
@@ -185,5 +190,5 @@ async fn test_send_joint_trajectory() {
         .await
         .unwrap();
     let v = client.current_joint_positions().unwrap();
-    assert_approx_eq!(v[0], 2.0);
+    assert_approx_eq!(v[0], 2.0, TOTAL_COMPLETE_ALLOWABLE_ERROR);
 }
