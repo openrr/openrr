@@ -212,7 +212,6 @@ mod tests {
     fn test_container_current_pos_ok() {
         use super::*;
         use assert_approx_eq::assert_approx_eq;
-
         #[derive(Debug, Clone)]
         struct Dummy {
             name: Vec<String>,
