@@ -9,7 +9,6 @@ keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 documentation = "http://docs.rs/openrr-apps"
-readme = "README.md"
 
 [features]
 default = ["gui", "ros"]
