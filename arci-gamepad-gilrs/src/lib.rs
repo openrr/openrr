@@ -250,7 +250,7 @@ mod test {
         );
         let (axis, value) = m.convert_axis(gilrs::Axis::RightStickX, 0.2);
         assert_eq!(axis, arci::gamepad::Axis::RightStickX);
-        assert_approx_eq!(value, 0.2);
+        assert_approx_eq!(value, -0.2);
         let (a, v) = m.convert_axis(gilrs::Axis::RightZ, 0.1);
         assert_eq!(a, arci::gamepad::Axis::RightStickY);
         assert!((v - -0.1).abs() < 0.00001);
