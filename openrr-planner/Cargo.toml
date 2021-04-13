@@ -27,7 +27,7 @@ urdf-rs = "0.6"
 
 [dev-dependencies]
 approx = "0.4.0"
-kiss3d = "0.30"
+kiss3d = "0.31"
 structopt = "0.3"
 tracing-subscriber = "0.2"
 urdf-viz = "0.25"
