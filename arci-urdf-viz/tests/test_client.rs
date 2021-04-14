@@ -179,11 +179,12 @@ async fn test_send_joint_trajectory() {
     let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
             .unwrap();
+    client.run_send_joint_positions_thread();
+
     let trajectory = vec![
         TrajectoryPoint::new(vec![1.0], Duration::from_millis(100)),
         TrajectoryPoint::new(vec![2.0], Duration::from_millis(200)),
     ];
-    client.run_send_joint_positions_thread();
     client
         .send_joint_trajectory(trajectory)
         .unwrap()
@@ -191,4 +192,19 @@ async fn test_send_joint_trajectory() {
         .unwrap();
     let v = client.current_joint_positions().unwrap();
     assert_approx_eq!(v[0], 2.0, TOTAL_COMPLETE_ALLOWABLE_ERROR);
+
+    let trajectory = vec![
+        TrajectoryPoint::new(vec![1.0], Duration::from_millis(1)),
+        TrajectoryPoint::new(vec![2.0], Duration::from_millis(2)),
+        TrajectoryPoint::new(vec![3.0], Duration::from_millis(3)),
+        TrajectoryPoint::new(vec![4.0], Duration::from_millis(4)),
+        TrajectoryPoint::new(vec![5.0], Duration::from_millis(5)),
+    ];
+    client
+        .send_joint_trajectory(trajectory)
+        .unwrap()
+        .await
+        .unwrap();
+    let v = client.current_joint_positions().unwrap();
+    assert_approx_eq!(v[0], 5.0, TOTAL_COMPLETE_ALLOWABLE_ERROR);
 }
