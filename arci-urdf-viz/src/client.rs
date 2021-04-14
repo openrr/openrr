@@ -3,7 +3,6 @@ use arci::{
     BaseVelocity, CompleteCondition, JointTrajectoryClient, JointVelocityLimiter, Localization,
     MoveBase, Navigation, SetCompleteCondition, TotalJointDiffCondition, WaitFuture,
 };
-use futures::stream::FuturesOrdered;
 use nalgebra as na;
 use openrr_sleep::ScopedSleep;
 use serde::{Deserialize, Serialize};
@@ -249,14 +248,25 @@ impl JointTrajectoryClient for UrdfVizWebClient {
         &self,
         trajectory: Vec<arci::TrajectoryPoint>,
     ) -> Result<WaitFuture, arci::Error> {
+        if trajectory.is_empty() {
+            return Ok(WaitFuture::ready());
+        }
+
         let mut last_time = Duration::default();
-        let mut waits = FuturesOrdered::new();
+        let last_traj = trajectory.last().unwrap().clone();
         for traj in trajectory {
-            waits
-                .push(self.send_joint_positions(traj.positions, traj.time_from_start - last_time)?);
+            let _ = self.send_joint_positions(traj.positions, traj.time_from_start - last_time)?;
             last_time = traj.time_from_start;
         }
-        Ok(WaitFuture::from_stream(waits))
+        Ok(WaitFuture::new(async move {
+            self.complete_condition
+                .wait(
+                    self,
+                    &last_traj.positions,
+                    last_traj.time_from_start.as_secs_f64(),
+                )
+                .await
+        }))
     }
 }
 
