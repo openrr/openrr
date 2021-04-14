@@ -6,6 +6,8 @@ use thiserror::Error;
 pub enum Error {
     #[error("openrr-apps: No ConfigPath is specified.")]
     NoConfigPath,
+    #[error("openrr-apps: No command is specified.")]
+    NoCommand,
     #[error("openrr-apps: Failed to parse {:?} as toml ({}).", .0, .1)]
     TomlParseFailure(PathBuf, #[source] toml::de::Error),
     #[error("openrr-apps: No File {:?} is found ({}).", .0, .1)]

@@ -14,8 +14,12 @@ use tracing::info;
     about = "An openrr teleoperation tool."
 )]
 pub struct RobotTeleopArgs {
+    /// Path to the setting file.
     #[structopt(short, long, parse(from_os_str))]
-    config_path: PathBuf,
+    config_path: Option<PathBuf>,
+    /// Prints the default setting as TOML.
+    #[structopt(long)]
+    show_default_config: bool,
 }
 
 #[tokio::main]
@@ -23,7 +27,16 @@ async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt::init();
     let args = RobotTeleopArgs::from_args();
 
-    let teleop_config = RobotTeleopConfig::try_new(args.config_path)?;
+    if args.show_default_config {
+        print!(
+            "{}",
+            toml::to_string(&RobotTeleopConfig::default()).unwrap()
+        );
+        return Ok(());
+    }
+
+    let config_path = args.config_path.ok_or(Error::NoConfigPath)?;
+    let teleop_config = RobotTeleopConfig::try_new(config_path)?;
     let robot_config =
         RobotConfig::try_new(teleop_config.robot_config_full_path().as_ref().unwrap())?;
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &robot_config);
@@ -79,4 +92,24 @@ async fn main() -> Result<(), Error> {
         .await;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_args() {
+        let bin = env!("CARGO_BIN_NAME");
+        assert!(RobotTeleopArgs::from_iter_safe(&[bin]).is_ok());
+        assert!(RobotTeleopArgs::from_iter_safe(&[bin, "--show-default-config"]).is_ok());
+        assert!(RobotTeleopArgs::from_iter_safe(&[bin, "--config-path", "path"]).is_ok());
+        assert!(RobotTeleopArgs::from_iter_safe(&[
+            bin,
+            "--show-default-config",
+            "--config-path",
+            "path"
+        ])
+        .is_ok());
+    }
 }
