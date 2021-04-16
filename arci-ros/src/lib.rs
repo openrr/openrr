@@ -1,3 +1,5 @@
+//! [`arci`] implementation using ROS1.
+
 mod cmd_vel_move_base;
 mod error;
 mod joy_gamepad;

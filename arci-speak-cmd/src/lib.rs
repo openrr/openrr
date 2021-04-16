@@ -1,3 +1,5 @@
+//! [`arci::Speaker`] implementation using local command.
+
 use arci::{Speaker, WaitFuture};
 use std::{io, process::Command};
 

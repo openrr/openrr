@@ -1,3 +1,5 @@
+//! [`arci::Gamepad`] implementation using [gilrs](https://gitlab.com/gilrs-project/gilrs).
+
 use arci::gamepad::*;
 use arci::*;
 use serde::{Deserialize, Serialize};
