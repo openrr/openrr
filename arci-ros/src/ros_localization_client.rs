@@ -57,14 +57,14 @@ impl RosLocalizationClientBuilder {
     ///
     /// ```
     /// // true means enable (default: false)
-    /// let builder = arci_ros::RosNavClientBuilder::new().request_final_nomotion_update_hack(true);
+    /// let builder = arci_ros::RosLocalizationClientBuilder::new().request_final_nomotion_update_hack(true);
     /// ```
     pub fn request_final_nomotion_update_hack(mut self, val: bool) -> Self {
         self.request_final_nomotion_update_hack = val;
         self
     }
 
-    /// Convert builder into RosNavClient finally.
+    /// Convert builder into RosLocalizationClient finally.
     ///
     /// # Examples
     ///
