@@ -26,13 +26,39 @@ pub trait SetCompleteCondition {
 
 #[auto_impl(Box, Arc)]
 pub trait JointTrajectoryClient: Send + Sync {
+    /// Returns names of joints that this client handles.
     fn joint_names(&self) -> &[String];
+
+    /// Returns the current joint positions.
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error>;
+
+    /// Send the specified joint positions and returns a future that waits until
+    /// complete the move joints.
+    ///
+    /// # Implementation
+    ///
+    /// The returned future is expected to behave similarly to
+    /// [`std::thread::JoinHandle`] and [`tokio::task::JoinHandle`]:
+    ///
+    /// - Can wait for the operation to complete by `.await`.
+    /// - The operation does not end even if it is dropped.
+    ///
+    /// If the operation may block the current thread for an extended period of
+    /// time, consider [spawning a thread to running blocking
+    /// operations](https://docs.rs/tokio/1/tokio/index.html#cpu-bound-tasks-and-blocking-code).
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         duration: std::time::Duration,
     ) -> Result<WaitFuture, Error>;
+
+    /// Send the specified joint trajectory and returns a future that waits until
+    /// complete the move joints.
+    ///
+    /// # Implementation
+    ///
+    /// See the "Implementation" section of the
+    /// [`send_joint_positions`](Self::send_joint_positions) method.
     fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error>;
 }
 
