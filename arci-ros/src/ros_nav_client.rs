@@ -155,7 +155,11 @@ impl RosNavClient {
         Ok(())
     }
 
-    fn wait_until_reach(&self, goal_id: &str, timeout: std::time::Duration) {
+    fn wait_until_reach(
+        &self,
+        goal_id: &str,
+        timeout: std::time::Duration,
+    ) -> Result<(), crate::Error> {
         match self.action_client.wait_for_result(goal_id, timeout) {
             Ok(_) => {
                 rosrust::ros_info!("Action succeeds");
@@ -163,18 +167,19 @@ impl RosNavClient {
                     client.req(&std_srvs::EmptyReq {}).unwrap().unwrap();
                     rosrust::ros_info!("Called {}", NO_MOTION_UPDATE_SERVICE);
                 }
+                Ok(())
             }
-            Err(e) => {
-                match e {
-                    crate::Error::ActionResultPreempted(_) => {
-                        rosrust::ros_warn!("Action is cancelled");
-                    }
-                    _ => {
-                        rosrust::ros_err!("Action does not succeed {:?}", e);
-                    }
-                };
-            }
-        };
+            Err(e) => match e {
+                crate::Error::ActionResultPreempted(_) => {
+                    rosrust::ros_warn!("Action is cancelled");
+                    Ok(())
+                }
+                _ => {
+                    rosrust::ros_err!("Action does not succeed {:?}", e);
+                    Err(e)
+                }
+            },
+        }
     }
 }
 
@@ -205,11 +210,10 @@ impl Navigation for RosNavClient {
         // using only `tokio::task::spawn_blocking` because it doesn't spawn threads
         // if the WaitFuture is ignored.
         let wait = WaitFuture::new(async move {
-            tokio::task::spawn_blocking(move || {
-                self_clone.wait_until_reach(&goal_id, timeout);
-            })
-            .await
-            .map_err(|e| arci::Error::Other(e.into()))
+            tokio::task::spawn_blocking(move || self_clone.wait_until_reach(&goal_id, timeout))
+                .await
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .map_err(|e| arci::Error::Other(e.into()))
         });
 
         Ok(wait)
