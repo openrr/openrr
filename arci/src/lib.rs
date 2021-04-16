@@ -1,3 +1,5 @@
+//! Abstract Robot Control Interface.
+
 mod clients;
 mod error;
 mod traits;

@@ -1,3 +1,5 @@
+//! [`arci::Speaker`] implementation for playing audio files.
+
 use arci::{Speaker, WaitFuture};
 use std::{collections::HashMap, fs::File, io, path::Path, path::PathBuf};
 use tracing::error;

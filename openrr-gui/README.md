@@ -1,5 +1,7 @@
 # OpenRR GUI
 
+[![crates.io](https://img.shields.io/crates/v/openrr-gui.svg)](https://crates.io/crates/openrr-gui) [![docs](https://docs.rs/openrr-gui/badge.svg)](https://docs.rs/openrr-gui)
+
 ## Troubleshooting
 
 - Q. Fails to compile.

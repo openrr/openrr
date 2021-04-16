@@ -1,5 +1,7 @@
 # OpenRR applications
 
+[![crates.io](https://img.shields.io/crates/v/openrr-apps.svg)](https://crates.io/crates/openrr-apps) [![docs](https://docs.rs/openrr-apps/badge.svg)](https://docs.rs/openrr-apps)
+
 ## Preprare
 
 ### Install urdf-viz

@@ -1,5 +1,7 @@
 # OpenRR Planner
 
+[![crates.io](https://img.shields.io/crates/v/openrr-planner.svg)](https://crates.io/crates/openrr-planner) [![docs](https://docs.rs/openrr-planner/badge.svg)](https://docs.rs/openrr-planner)
+
 Collision Avoidance Path Planning for robotics in Rust-lang.
 This starts as a copy of [`gear`](https://github.com/openrr/gear) crate.
 
