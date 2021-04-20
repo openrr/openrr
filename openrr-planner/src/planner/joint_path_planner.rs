@@ -13,14 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-use crate::collision::CollisionChecker;
-use crate::errors::*;
-use crate::funcs::*;
+use std::path::Path;
+
 use k::nalgebra as na;
 use na::RealField;
 use ncollide3d::shape::Compound;
-use std::path::Path;
 use tracing::*;
+
+use crate::{collision::CollisionChecker, errors::*, funcs::*};
 
 /// Collision Avoidance Path Planner
 pub struct JointPathPlanner<N>
@@ -67,6 +67,7 @@ where
             self_collision_pairs: vec![],
         }
     }
+
     /// Check if the joint_positions are OK
     pub fn is_feasible(
         &self,
@@ -82,6 +83,7 @@ where
             }
         }
     }
+
     /// Check if there are any colliding links
     pub fn has_any_colliding(&self, objects: &Compound<N>) -> bool {
         for shape in objects.shapes() {
@@ -96,6 +98,7 @@ where
         }
         false
     }
+
     /// Get the names of colliding links
     pub fn colliding_link_names(&self, objects: &Compound<N>) -> Vec<String> {
         let mut ret = Vec::new();
@@ -119,6 +122,7 @@ where
             }
         }
     }
+
     /// Check if there are any colliding links
     pub fn has_any_colliding_with_self(&self) -> bool {
         self.collision_checker
@@ -126,6 +130,7 @@ where
             .next()
             .is_some()
     }
+
     /// Get the names of colliding links
     pub fn colliding_link_names_with_self(&self) -> Vec<(String, String)> {
         self.collision_checker
@@ -188,6 +193,7 @@ where
         );
         Ok(path)
     }
+
     /// Plan the sequence of joint angles of `using_joints` to avoid self collision.
     ///
     /// # Arguments
@@ -241,6 +247,7 @@ where
         );
         Ok(path)
     }
+
     /// Calculate the transforms of all of the links
     pub fn update_transforms(&self) -> Vec<na::Isometry3<N>> {
         self.collision_check_robot.update_transforms()
@@ -291,26 +298,32 @@ where
             self_collision_pairs: vec![],
         }
     }
+
     pub fn collision_check_margin(mut self, length: N) -> Self {
         self.collision_check_margin = Some(length);
         self
     }
+
     pub fn step_length(mut self, step_length: N) -> Self {
         self.step_length = step_length;
         self
     }
+
     pub fn max_try(mut self, max_try: usize) -> Self {
         self.max_try = max_try;
         self
     }
+
     pub fn num_smoothing(mut self, num_smoothing: usize) -> Self {
         self.num_smoothing = num_smoothing;
         self
     }
+
     pub fn self_collision_pairs(mut self, self_collision_pairs: Vec<(String, String)>) -> Self {
         self.self_collision_pairs = self_collision_pairs;
         self
     }
+
     pub fn finalize(mut self) -> JointPathPlanner<N> {
         if let Some(margin) = self.collision_check_margin {
             self.collision_checker.prediction = margin;
@@ -349,6 +362,7 @@ where
             collision_checker,
         ))
     }
+
     /// Try to create `JointPathPlannerBuilder` instance from `urdf_rs::Robot` instance
     pub fn from_urdf_robot<P>(robot: urdf_rs::Robot) -> JointPathPlannerBuilder<N> {
         let default_margin = na::convert(0.0);
@@ -369,9 +383,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use na::{Isometry3, Vector3};
     use ncollide3d::shape::Cuboid;
+
+    use super::*;
 
     #[test]
     fn collision_check() {

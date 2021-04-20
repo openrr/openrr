@@ -1,5 +1,7 @@
-use std::sync::mpsc::{Receiver, Sender};
-use std::sync::{Arc, Mutex};
+use std::sync::{
+    mpsc::{Receiver, Sender},
+    Arc, Mutex,
+};
 
 type MessageBuffer<T> = Arc<Mutex<Option<T>>>;
 
@@ -38,6 +40,7 @@ where
             _subscriber,
         }
     }
+
     pub fn take(&self) -> Result<Option<T>, arci::Error> {
         Ok(self
             .buffer
@@ -45,6 +48,7 @@ where
             .map_err(|e| anyhow::anyhow!("Failed to lock buffer for {} : {}", self.topic, e))?
             .take())
     }
+
     pub fn get(&self) -> Result<Option<T>, arci::Error> {
         Ok(self
             .buffer
@@ -52,6 +56,7 @@ where
             .map_err(|e| anyhow::anyhow!("Failed to lock buffer for {} : {}", self.topic, e))?
             .clone())
     }
+
     pub fn wait_message(&self, loop_millis: u64) {
         while rosrust::is_ok() && self.get().unwrap().is_none() {
             rosrust::ros_info!("Waiting {}", self.topic);
@@ -128,6 +133,7 @@ where
             _server,
         }
     }
+
     pub fn get_request(&self, timeout_millis: u32) -> Option<(rosrust::Time, T::Request)> {
         self.request_receiver
             .lock()
@@ -135,6 +141,7 @@ where
             .recv_timeout(std::time::Duration::from_millis(timeout_millis as u64))
             .ok()
     }
+
     pub fn set_response(&self, time: rosrust::Time, res: T::Response) {
         self.response_sender
             .lock()

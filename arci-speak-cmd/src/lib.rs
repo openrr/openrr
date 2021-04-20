@@ -1,7 +1,8 @@
 //! [`arci::Speaker`] implementation using local command.
 
-use arci::{Speaker, WaitFuture};
 use std::{io, process::Command};
+
+use arci::{Speaker, WaitFuture};
 
 /// A [`Speaker`] implementation using a local command.
 ///

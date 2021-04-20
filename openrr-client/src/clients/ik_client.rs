@@ -1,8 +1,8 @@
-use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
-use k::Isometry3;
-use k::{nalgebra as na, Constraints};
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+
+use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
+use k::{nalgebra as na, Constraints, Isometry3};
+use serde::{Deserialize, Serialize};
 
 pub fn isometry(x: f64, y: f64, z: f64, roll: f64, pitch: f64, yaw: f64) -> k::Isometry3<f64> {
     k::Isometry3::from_parts(
@@ -46,9 +46,11 @@ impl IkSolverWithChain {
     pub fn end_transform(&self) -> k::Isometry3<f64> {
         self.ik_arm.end_transform()
     }
+
     pub fn joint_positions(&self) -> Vec<f64> {
         self.ik_arm.joint_positions()
     }
+
     pub fn solve_with_constraints(
         &self,
         target_pose: &k::Isometry3<f64>,
@@ -58,12 +60,15 @@ impl IkSolverWithChain {
             .solve_with_constraints(&self.ik_arm, &target_pose, constraints)
             .map_err(|e| Error::Other(e.into()))
     }
+
     pub fn solve(&self, target_pose: &k::Isometry3<f64>) -> Result<(), Error> {
         self.solve_with_constraints(target_pose, &self.constraints)
     }
+
     pub fn set_joint_positions_clamped(&self, positions: &[f64]) {
         self.ik_arm.set_joint_positions_clamped(positions)
     }
+
     pub fn new(
         arm: k::SerialChain<f64>,
         ik_solver: Arc<dyn k::InverseKinematicsSolver<f64> + Send + Sync>,
@@ -75,9 +80,11 @@ impl IkSolverWithChain {
             constraints,
         }
     }
+
     pub fn constraints(&self) -> &Constraints {
         &self.constraints
     }
+
     pub fn generate_trajectory_with_interpolation(
         &self,
         current_pose: &Isometry3<f64>,
@@ -95,6 +102,7 @@ impl IkSolverWithChain {
             min_number_of_points,
         )
     }
+
     pub fn generate_trajectory_with_interpolation_and_constraints(
         &self,
         current_pose: &Isometry3<f64>,
@@ -243,6 +251,7 @@ where
     pub fn transform(&self, relative_pose: &k::Isometry3<f64>) -> Result<k::Isometry3<f64>, Error> {
         Ok(self.current_end_transform()? * relative_pose)
     }
+
     // Reset the kinematic model for IK calculation like Jacobian method
     pub fn set_zero_pose_for_kinematics(&self) -> Result<(), Error> {
         let zero_angles = vec![0.0; self.ik_solver_with_chain.ik_arm.dof()];
@@ -256,6 +265,7 @@ where
     pub fn constraints(&self) -> &Constraints {
         &self.ik_solver_with_chain.constraints()
     }
+
     pub fn set_joint_positions_clamped(&self, positions: &[f64]) {
         self.ik_solver_with_chain
             .set_joint_positions_clamped(positions)
@@ -269,9 +279,11 @@ where
     fn joint_names(&self) -> &[String] {
         self.client.joint_names()
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         self.client.current_joint_positions()
     }
+
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
@@ -279,6 +291,7 @@ where
     ) -> Result<WaitFuture, Error> {
         self.client.send_joint_positions(positions, duration)
     }
+
     fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
         self.client.send_joint_trajectory(trajectory)
     }

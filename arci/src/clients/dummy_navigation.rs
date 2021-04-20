@@ -1,7 +1,8 @@
-use crate::traits::Navigation;
-use crate::{error::Error, WaitFuture};
-use nalgebra::{Isometry2, Vector2};
 use std::sync::Mutex;
+
+use nalgebra::{Isometry2, Vector2};
+
+use crate::{error::Error, traits::Navigation, WaitFuture};
 
 #[derive(Debug)]
 pub struct DummyNavigation {
@@ -44,8 +45,9 @@ impl Navigation for DummyNavigation {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use assert_approx_eq::assert_approx_eq;
+
+    use super::*;
 
     #[tokio::test]
     async fn test_set() {

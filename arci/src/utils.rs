@@ -1,7 +1,9 @@
-use crate::{Error, JointTrajectoryClient, TrajectoryPoint};
 use std::time::Duration;
+
 use tokio::time::interval as AsyncInterval;
 use tracing::{debug, info};
+
+use crate::{Error, JointTrajectoryClient, TrajectoryPoint};
 
 pub fn get_joint_index<J>(joint_trajectory_client: &J, joint_name: &str) -> Result<usize, Error>
 where

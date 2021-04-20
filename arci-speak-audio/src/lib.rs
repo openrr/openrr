@@ -1,10 +1,15 @@
 //! [`arci::Speaker`] implementation for playing audio files.
 
-use arci::{Speaker, WaitFuture};
-use std::{collections::HashMap, fs::File, io, path::Path, path::PathBuf};
-use tracing::error;
+use std::{
+    collections::HashMap,
+    fs::File,
+    io,
+    path::{Path, PathBuf},
+};
 
+use arci::{Speaker, WaitFuture};
 use thiserror::Error;
+use tracing::error;
 
 #[derive(Error, Debug)]
 #[non_exhaustive]

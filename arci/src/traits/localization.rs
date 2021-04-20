@@ -1,6 +1,7 @@
-use crate::error::Error;
 use auto_impl::auto_impl;
 use nalgebra::Isometry2;
+
+use crate::error::Error;
 
 #[auto_impl(Box, Arc)]
 pub trait Localization: Send + Sync {

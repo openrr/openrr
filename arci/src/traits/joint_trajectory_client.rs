@@ -1,6 +1,9 @@
-use crate::error::Error;
-use crate::waits::{CompleteCondition, WaitFuture};
 use auto_impl::auto_impl;
+
+use crate::{
+    error::Error,
+    waits::{CompleteCondition, WaitFuture},
+};
 
 #[derive(Clone, Debug)]
 pub struct TrajectoryPoint {
@@ -64,8 +67,9 @@ pub trait JointTrajectoryClient: Send + Sync {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use assert_approx_eq::assert_approx_eq;
+
+    use super::*;
 
     #[test]
     fn test_trajectory_point() {

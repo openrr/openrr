@@ -1,7 +1,10 @@
-use super::control_node::ControlNode;
-use arci::gamepad::{Axis, Button, GamepadEvent};
-use arci::{BaseVelocity, MoveBase};
+use arci::{
+    gamepad::{Axis, Button, GamepadEvent},
+    BaseVelocity, MoveBase,
+};
 use async_trait::async_trait;
+
+use super::control_node::ControlNode;
 
 const BASE_LINEAR_VEL_AXIS_GAIN: f64 = 0.5;
 const BASE_ANGULAR_VEL_AXIS_GAIN: f64 = 1.5;
@@ -67,6 +70,7 @@ where
             _ => {}
         }
     }
+
     async fn proc(&self) {
         if self.is_enabled {
             if self.is_turbo {
@@ -77,9 +81,11 @@ where
             }
         }
     }
+
     fn mode(&self) -> &str {
         &self.mode
     }
+
     fn submode(&self) -> &str {
         &self.submode
     }

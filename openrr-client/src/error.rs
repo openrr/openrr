@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+
 use thiserror::Error;
 use urdf_rs::UrdfError;
 

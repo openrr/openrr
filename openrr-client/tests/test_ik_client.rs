@@ -1,6 +1,6 @@
-use assert_approx_eq::assert_approx_eq;
 use std::sync::Arc;
 
+use assert_approx_eq::assert_approx_eq;
 use openrr_client::*;
 
 #[test]

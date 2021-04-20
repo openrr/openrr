@@ -1,9 +1,10 @@
+use std::time::Duration;
+
 use arci::{
     utils::{get_joint_index, move_joint_until_stop},
     DummyJointTrajectoryClient, Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture,
 };
 use assert_approx_eq::assert_approx_eq;
-use std::time::Duration;
 
 struct TestJointTrajectoryClient {
     joint_names: Vec<String>,
@@ -21,9 +22,11 @@ impl JointTrajectoryClient for TestJointTrajectoryClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         Ok(vec![1.0, 1.0])
     }
+
     fn send_joint_positions(
         &self,
         _: Vec<f64>,
@@ -31,6 +34,7 @@ impl JointTrajectoryClient for TestJointTrajectoryClient {
     ) -> Result<WaitFuture, Error> {
         Ok(WaitFuture::ready())
     }
+
     fn send_joint_trajectory(&self, _: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
         Ok(WaitFuture::ready())
     }

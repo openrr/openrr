@@ -1,12 +1,14 @@
 mod web_server;
 
-use assert_approx_eq::assert_approx_eq;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-use url::Url;
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use arci::{JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint};
 use arci_urdf_viz::{UrdfVizWebClient, UrdfVizWebClientConfig};
+use assert_approx_eq::assert_approx_eq;
+use url::Url;
 use web_server::*;
 
 // TotalJointDiffCondition allows error of 0.02, so WaitFuture may complete

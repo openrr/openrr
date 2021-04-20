@@ -1,11 +1,14 @@
-use super::mesh::load_mesh;
-use k::nalgebra as na;
-use k::{RealField, Vector3};
-use ncollide3d::procedural::IndexBuffer::{Split, Unified};
-use ncollide3d::shape::{Ball, Cuboid, Cylinder, ShapeHandle, TriMesh};
-use ncollide3d::transformation::ToTriMesh;
 use std::path::Path;
+
+use k::{nalgebra as na, RealField, Vector3};
+use ncollide3d::{
+    procedural::IndexBuffer::{Split, Unified},
+    shape::{Ball, Cuboid, Cylinder, ShapeHandle, TriMesh},
+    transformation::ToTriMesh,
+};
 use tracing::*;
+
+use super::mesh::load_mesh;
 
 pub(crate) fn urdf_geometry_to_shape_handle<T>(
     collision_geometry: &urdf_rs::Geometry,

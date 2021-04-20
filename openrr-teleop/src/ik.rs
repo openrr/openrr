@@ -1,11 +1,15 @@
-use super::control_node::ControlNode;
-use arci::gamepad::{Axis, Button, GamepadEvent};
-use arci::{JointTrajectoryClient, Speaker};
+use std::{sync::Arc, time::Duration};
+
+use arci::{
+    gamepad::{Axis, Button, GamepadEvent},
+    JointTrajectoryClient, Speaker,
+};
 use async_trait::async_trait;
 use k::{Translation3, Vector3};
 use openrr_client::IkSolverWithChain;
 use serde::{Deserialize, Serialize};
-use std::{sync::Arc, time::Duration};
+
+use super::control_node::ControlNode;
 
 const IK_POSITION_TURBO_GAIN: f64 = 2.0;
 
@@ -57,6 +61,7 @@ where
             is_sending: false,
         }
     }
+
     pub fn new_from_config(
         config: IkNodeConfig,
         joint_trajectory_client: J,
@@ -150,6 +155,7 @@ where
             _ => {}
         }
     }
+
     async fn proc(&self) {
         if self.is_sending {
             let current_positions = self
@@ -186,9 +192,11 @@ where
             }
         }
     }
+
     fn mode(&self) -> &str {
         &self.mode
     }
+
     fn submode(&self) -> &str {
         &self.submode
     }

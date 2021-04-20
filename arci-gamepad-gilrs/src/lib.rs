@@ -1,9 +1,5 @@
 //! [`arci::Gamepad`] implementation using [gilrs](https://gitlab.com/gilrs-project/gilrs).
 
-use arci::gamepad::*;
-use arci::*;
-use serde::{Deserialize, Serialize};
-use serde_with::serde_as;
 use std::{
     collections::HashMap,
     sync::{
@@ -12,6 +8,10 @@ use std::{
     },
     time::Duration,
 };
+
+use arci::{gamepad::*, *};
+use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 #[cfg(not(target_os = "macos"))]
 use tracing::info;
 use tracing::{debug, error};
@@ -204,6 +204,7 @@ impl GilGamepad {
             is_running,
         }
     }
+
     pub fn new_from_config(config: GilGamepadConfig) -> Self {
         Self::new(config.device_id, config.map)
     }
@@ -228,6 +229,7 @@ impl Gamepad for GilGamepad {
             }
         }
     }
+
     fn stop(&self) {
         self.is_running.store(false, Ordering::Relaxed);
     }
@@ -235,9 +237,11 @@ impl Gamepad for GilGamepad {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use assert_approx_eq::assert_approx_eq;
     use std::collections::HashMap;
+
+    use assert_approx_eq::assert_approx_eq;
+
+    use super::*;
 
     #[test]
     fn test_playstation_map() {

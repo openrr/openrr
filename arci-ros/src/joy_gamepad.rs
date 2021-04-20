@@ -1,8 +1,11 @@
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
+
+use arci::{gamepad::*, *};
+
 use crate::msg::sensor_msgs::Joy;
-use arci::gamepad::*;
-use arci::*;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
 pub struct JoyGamepad {
     _last_joy_msg: Arc<Mutex<Joy>>,
@@ -89,5 +92,6 @@ impl Gamepad for JoyGamepad {
             GamepadEvent::Unknown
         }
     }
+
     fn stop(&self) {}
 }

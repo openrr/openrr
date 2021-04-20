@@ -1,6 +1,8 @@
-use crate::error::Error;
-use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
-use crate::waits::WaitFuture;
+use crate::{
+    error::Error,
+    traits::{JointTrajectoryClient, TrajectoryPoint},
+    waits::WaitFuture,
+};
 
 pub struct PartialJointTrajectoryClient<C>
 where
@@ -45,6 +47,7 @@ where
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         let mut result = vec![0.0; self.joint_names.len()];
         copy_joint_positions(
@@ -55,6 +58,7 @@ where
         );
         Ok(result)
     }
+
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
@@ -70,6 +74,7 @@ where
         self.shared_client
             .send_joint_positions(full_positions, duration)
     }
+
     fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
         let full_positions_base = self.shared_client.current_joint_positions()?;
         let mut full_trajectory = vec![];

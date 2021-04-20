@@ -1,15 +1,14 @@
+use arci::{
+    CompleteCondition, JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition,
+    TrajectoryPoint, WaitFuture,
+};
+use msg::control_msgs::JointTrajectoryControllerState;
+
 use crate::{
     create_joint_trajectory_message_for_send_joint_positions,
     create_joint_trajectory_message_for_send_joint_trajectory, define_action_client_internal,
     error::Error, extract_current_joint_positions_from_message, msg, rosrust_utils::*,
 };
-
-use arci::{
-    CompleteCondition, JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition,
-    TrajectoryPoint, WaitFuture,
-};
-
-use msg::control_msgs::JointTrajectoryControllerState;
 
 define_action_client_internal!(SimpleActionClient, msg::control_msgs, FollowJointTrajectory);
 
@@ -38,6 +37,7 @@ impl RosControlActionClient {
             complete_condition: Box::new(TotalJointDiffCondition::default()),
         }
     }
+
     pub fn get_joint_state(&self) -> Result<JointTrajectoryControllerState, arci::Error> {
         self.joint_state_subscriber_handler
             .get()?
@@ -49,6 +49,7 @@ impl JointTrajectoryClient for RosControlActionClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
         Ok(extract_current_joint_positions_from_message(
             self,
@@ -90,6 +91,7 @@ impl JointTrajectoryClient for RosControlActionClient {
         ))
         */
     }
+
     fn send_joint_trajectory(
         &self,
         trajectory: Vec<TrajectoryPoint>,

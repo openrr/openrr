@@ -91,8 +91,9 @@ fn to_nalgebra(q: &[f64; 4]) -> nalgebra::UnitQuaternion<f64> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use assert_approx_eq::assert_approx_eq;
+
+    use super::*;
     #[test]
     fn test_euler_quaternion() {
         const R: f64 = 0.5;

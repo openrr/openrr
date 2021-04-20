@@ -1,6 +1,6 @@
-use crate::error::Error;
-use crate::{Isometry2, WaitFuture};
 use auto_impl::auto_impl;
+
+use crate::{error::Error, Isometry2, WaitFuture};
 
 #[auto_impl(Box, Arc)]
 pub trait Navigation: Send + Sync {

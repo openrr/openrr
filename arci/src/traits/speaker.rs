@@ -1,6 +1,6 @@
-use crate::error::Error;
-use crate::waits::WaitFuture;
 use auto_impl::auto_impl;
+
+use crate::{error::Error, waits::WaitFuture};
 
 #[auto_impl(Box, Arc)]
 pub trait Speaker: Send + Sync {

@@ -2,11 +2,10 @@ use std::{collections::HashMap, f64, path::Path, sync::Arc, time::Duration, usiz
 
 use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation};
 use iced::{
-    button, scrollable, slider, window, Application, Button, Clipboard, Column, Command, Container,
-    Element, HorizontalAlignment, Length, PickList, Row, Scrollable, Settings, Slider, Text,
-    TextInput,
+    button, pick_list, scrollable, slider, text_input, window, Application, Button, Clipboard,
+    Column, Command, Container, Element, HorizontalAlignment, Length, PickList, Row, Scrollable,
+    Settings, Slider, Text, TextInput,
 };
-use iced::{pick_list, text_input};
 use openrr_client::RobotClient;
 use rand::Rng;
 use tracing::{debug, debug_span, error, warn};
@@ -260,9 +259,9 @@ where
     N: Navigation + 'static,
 {
     type Executor = iced::executor::Default;
-    type Message = Message;
     // wrap in option due to Self doesn't impl Deffault.
     type Flags = Option<Self>;
+    type Message = Message;
 
     fn new(flags: Self::Flags) -> (Self, Command<Message>) {
         (flags.unwrap(), Command::none())
