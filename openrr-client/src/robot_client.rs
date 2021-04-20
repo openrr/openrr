@@ -77,7 +77,7 @@ where
             ik_clients,
             self_collision_checkers,
             ik_solvers,
-        ) = if let Some(urdf_full_path) = config.urdf_full_path().as_ref() {
+        ) = if let Some(urdf_full_path) = config.urdf_full_path() {
             debug!("Loading {:?}", urdf_full_path);
             let full_chain_for_collision_checker =
                 Arc::new(Chain::from_urdf_file(&urdf_full_path)?);
@@ -467,8 +467,8 @@ impl OpenrrClientsConfig {
         }
         Ok(())
     }
-    pub fn urdf_full_path(&self) -> &Option<PathBuf> {
-        &self.urdf_full_path
+    pub fn urdf_full_path(&self) -> Option<&Path> {
+        self.urdf_full_path.as_deref()
     }
 }
 
