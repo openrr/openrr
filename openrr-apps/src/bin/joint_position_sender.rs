@@ -1,7 +1,8 @@
+use std::path::PathBuf;
+
 use openrr_apps::RobotConfig;
 use openrr_client::BoxRobotClient;
 use openrr_gui::joint_position_sender;
-use std::path::PathBuf;
 use structopt::StructOpt;
 use tracing::debug;
 

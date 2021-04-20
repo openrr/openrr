@@ -1,15 +1,22 @@
-use crate::{
-    create_collision_check_client, create_ik_solver_with_chain, CollisionCheckClient, Error,
-    IkClient, IkSolverConfig, IkSolverWithChain, SelfCollisionChecker, SelfCollisionCheckerConfig,
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+    sync::Arc,
+    time::Duration,
 };
+
 use arci::{
     BaseVelocity, Error as ArciError, JointTrajectoryClient, JointTrajectoryClientsContainer,
     Localization, MoveBase, Navigation, Speaker, WaitFuture,
 };
 use k::{nalgebra::Isometry2, Chain, Isometry3};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, path::Path, path::PathBuf, sync::Arc, time::Duration};
 use tracing::debug;
+
+use crate::{
+    create_collision_check_client, create_ik_solver_with_chain, CollisionCheckClient, Error,
+    IkClient, IkSolverConfig, IkSolverWithChain, SelfCollisionChecker, SelfCollisionCheckerConfig,
+};
 
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
 pub type ArcRobotClient =
@@ -158,6 +165,7 @@ where
             joints_poses,
         })
     }
+
     pub fn set_raw_clients_joint_positions_to_full_chain_for_collision_checker(
         &self,
     ) -> Result<(), Error> {
@@ -190,12 +198,15 @@ where
     pub fn is_raw_joint_trajectory_client(&self, name: &str) -> bool {
         self.raw_joint_trajectory_clients.contains_key(name)
     }
+
     pub fn is_joint_trajectory_client(&self, name: &str) -> bool {
         self.all_joint_trajectory_clients.contains_key(name)
     }
+
     pub fn is_collision_check_client(&self, name: &str) -> bool {
         self.collision_check_clients.contains_key(name)
     }
+
     pub fn is_ik_client(&self, name: &str) -> bool {
         self.ik_clients.contains_key(name)
     }
@@ -210,6 +221,7 @@ where
             Err(Error::NoJointTrajectoryClient(name.to_owned()))
         }
     }
+
     fn ik_client(&self, name: &str) -> Result<&ArcIkClient, Error> {
         if self.is_ik_client(name) {
             Ok(&self.ik_clients[name])
@@ -217,12 +229,15 @@ where
             Err(Error::NoIkClient(name.to_owned()))
         }
     }
+
     pub fn joint_trajectory_clients(&self) -> &HashMap<String, Arc<dyn JointTrajectoryClient>> {
         &self.all_joint_trajectory_clients
     }
+
     pub fn self_collision_checkers(&self) -> &HashMap<String, Arc<SelfCollisionChecker>> {
         &self.self_collision_checkers
     }
+
     pub fn ik_solvers(&self) -> &HashMap<String, Arc<IkSolverWithChain>> {
         &self.ik_solvers
     }
@@ -230,6 +245,7 @@ where
     pub fn ik_clients(&self) -> &HashMap<String, ArcIkClient> {
         &self.ik_clients
     }
+
     pub fn send_joint_positions(
         &self,
         name: &str,
@@ -249,6 +265,7 @@ where
             )?)
         }
     }
+
     pub fn current_joint_positions(&self, name: &str) -> Result<Vec<f64>, Error> {
         if self.is_ik_client(name) {
             self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
@@ -259,6 +276,7 @@ where
                 .current_joint_positions()?)
         }
     }
+
     pub fn send_joints_pose(
         &self,
         name: &str,
@@ -275,14 +293,17 @@ where
             Err(Error::NoJointsPose(name.to_owned(), pose_name.to_owned()))
         }
     }
+
     pub fn current_end_transform(&self, name: &str) -> Result<Isometry3<f64>, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         Ok(self.ik_client(name)?.current_end_transform()?)
     }
+
     pub fn transform(&self, name: &str, pose: &Isometry3<f64>) -> Result<Isometry3<f64>, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         Ok(self.ik_client(name)?.transform(pose)?)
     }
+
     pub fn move_ik(
         &self,
         name: &str,
@@ -292,6 +313,7 @@ where
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         Ok(self.ik_client(name)?.move_ik(target_pose, duration_sec)?)
     }
+
     pub fn move_ik_with_interpolation(
         &self,
         name: &str,
@@ -303,6 +325,7 @@ where
             .ik_client(name)?
             .move_ik_with_interpolation(target_pose, duration_sec)?)
     }
+
     pub fn send_joint_positions_with_pose_interpolation(
         &self,
         name: &str,
@@ -324,24 +347,28 @@ where
             .map(|k| k.to_owned())
             .collect::<Vec<String>>()
     }
+
     pub fn joint_trajectory_clients_names(&self) -> Vec<String> {
         self.all_joint_trajectory_clients
             .keys()
             .map(|k| k.to_owned())
             .collect::<Vec<String>>()
     }
+
     pub fn collision_check_clients_names(&self) -> Vec<String> {
         self.collision_check_clients
             .keys()
             .map(|k| k.to_owned())
             .collect::<Vec<String>>()
     }
+
     pub fn ik_clients_names(&self) -> Vec<String> {
         self.ik_clients
             .keys()
             .map(|k| k.to_owned())
             .collect::<Vec<String>>()
     }
+
     pub fn full_chain_for_collision_checker(&self) -> &Option<Arc<Chain<f64>>> {
         &self.full_chain_for_collision_checker
     }
@@ -349,6 +376,7 @@ where
     pub fn speakers(&self) -> &HashMap<String, Arc<dyn Speaker>> {
         &self.speakers
     }
+
     pub fn speak(&self, name: &str, message: &str) -> Result<WaitFuture, Error> {
         match self.speakers.get(&name.to_string()) {
             Some(speaker) => Ok(speaker.speak(message)?),
@@ -400,6 +428,7 @@ where
     fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), ArciError> {
         self.move_base.as_ref().unwrap().send_velocity(velocity)
     }
+
     fn current_velocity(&self) -> Result<BaseVelocity, ArciError> {
         self.move_base.as_ref().unwrap().current_velocity()
     }
@@ -467,6 +496,7 @@ impl OpenrrClientsConfig {
         }
         Ok(())
     }
+
     pub fn urdf_full_path(&self) -> Option<&Path> {
         self.urdf_full_path.as_deref()
     }

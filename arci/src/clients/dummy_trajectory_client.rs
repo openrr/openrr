@@ -1,7 +1,10 @@
-use crate::error::Error;
-use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
-use crate::waits::WaitFuture;
 use std::sync::{Arc, Mutex};
+
+use crate::{
+    error::Error,
+    traits::{JointTrajectoryClient, TrajectoryPoint},
+    waits::WaitFuture,
+};
 
 /// Dummy JointTrajectoryClient for Debug or Tests
 pub struct DummyJointTrajectoryClient {
@@ -26,9 +29,11 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         Ok(self.positions.lock().unwrap().clone())
     }
+
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
@@ -37,6 +42,7 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
         *self.positions.lock().unwrap() = positions;
         Ok(WaitFuture::ready())
     }
+
     fn send_joint_trajectory(
         &self,
         full_trajectory: Vec<TrajectoryPoint>,
@@ -51,8 +57,9 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use assert_approx_eq::assert_approx_eq;
+
+    use super::*;
 
     #[tokio::test]
     async fn send_and_get() {

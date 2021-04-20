@@ -13,11 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+use std::path::{Path, PathBuf};
+
 use k::nalgebra as na;
 use kiss3d::event::{Action, Key, Modifiers, WindowEvent};
 use ncollide3d::shape::Compound;
 use openrr_planner::FromUrdf;
-use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 struct CollisionAvoidApp {
@@ -88,6 +89,7 @@ impl CollisionAvoidApp {
             self_collision_pairs,
         }
     }
+
     fn update_robot(&mut self) {
         // this is hack to handle invalid mimic joints
         let ja = self
@@ -103,16 +105,19 @@ impl CollisionAvoidApp {
         self.viewer
             .update(&self.planner.path_planner.collision_check_robot);
     }
+
     fn update_ik_target(&mut self) {
         if let Some(obj) = self.viewer.scene_node_mut("ik_target") {
             obj.set_local_transformation(na::convert(self.ik_target_pose));
         }
     }
+
     fn reset_colliding_link_colors(&mut self) {
         for link in &self.colliding_link_names {
             self.viewer.reset_temporal_color(link);
         }
     }
+
     fn run(&mut self) {
         let mut is_collide_show = false;
 

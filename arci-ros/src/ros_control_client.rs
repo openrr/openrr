@@ -1,18 +1,17 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
-use crate::msg;
-use crate::{error::Error, SubscriberHandler};
 use arci::{
     copy_joint_positions, CompleteCondition, EachJointDiffCondition, JointTrajectoryClient,
     JointVelocityLimiter, SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint,
     WaitFuture,
 };
+use msg::{
+    control_msgs::JointTrajectoryControllerState,
+    trajectory_msgs::{JointTrajectory, JointTrajectoryPoint},
+};
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 
-use msg::control_msgs::JointTrajectoryControllerState;
-use msg::trajectory_msgs::JointTrajectory;
-use msg::trajectory_msgs::JointTrajectoryPoint;
+use crate::{error::Error, msg, SubscriberHandler};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RosControlClientConfig {
@@ -236,6 +235,7 @@ impl RosControlClient {
             complete_condition: Box::new(TotalJointDiffCondition::default()),
         }
     }
+
     pub fn new(
         joint_names: Vec<String>,
         controller_name: &str,
@@ -251,9 +251,11 @@ impl RosControlClient {
             joint_state_subscriber_handler,
         )
     }
+
     pub fn state_topic_name(controller_name: &str) -> String {
         format!("{}/state", controller_name)
     }
+
     pub fn new_with_state_topic_name(
         joint_names: Vec<String>,
         controller_name: &str,
@@ -269,11 +271,13 @@ impl RosControlClient {
             joint_state_subscriber_handler,
         )
     }
+
     pub fn get_joint_state(&self) -> Result<JointTrajectoryControllerState, arci::Error> {
         self.joint_state_subscriber_handler
             .get()?
             .ok_or_else(|| arci::Error::Other(Error::NoJointStateAvailable.into()))
     }
+
     pub fn joint_state_subscriber_handler(&self) -> &Arc<StateSubscriber> {
         &self.joint_state_subscriber_handler
     }
@@ -283,6 +287,7 @@ impl JointTrajectoryClient for RosControlClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
         Ok(extract_current_joint_positions_from_message(
             self,
@@ -322,6 +327,7 @@ impl JointTrajectoryClient for RosControlClient {
                 .await
         }))
     }
+
     fn send_joint_trajectory(
         &self,
         trajectory: Vec<TrajectoryPoint>,

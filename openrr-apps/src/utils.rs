@@ -1,7 +1,9 @@
-use crate::RobotConfig;
-use rand::prelude::*;
 use std::path::PathBuf;
+
+use rand::prelude::*;
 use tracing::{debug, warn};
+
+use crate::RobotConfig;
 
 const OPENRR_APPS_CONFIG_ENV_NAME: &str = "OPENRR_APPS_ROBOT_CONFIG_PATH";
 

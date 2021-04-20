@@ -1,10 +1,11 @@
+#[cfg(feature = "ros")]
+use std::thread;
+use std::{path::PathBuf, sync::Arc};
+
 use arci_gamepad_gilrs::GilGamepad;
 use openrr_apps::{Error, RobotConfig, RobotTeleopConfig};
 use openrr_client::ArcRobotClient;
 use openrr_teleop::ControlNodeSwitcher;
-#[cfg(feature = "ros")]
-use std::thread;
-use std::{path::PathBuf, sync::Arc};
 use structopt::StructOpt;
 use tracing::info;
 

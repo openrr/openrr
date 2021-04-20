@@ -1,13 +1,19 @@
-use super::control_node::ControlNode;
-use arci::gamepad::{Button, Gamepad, GamepadEvent};
-use arci::Speaker;
-use std::sync::{
-    atomic::{AtomicBool, AtomicUsize, Ordering},
-    Arc,
+use std::{
+    sync::{
+        atomic::{AtomicBool, AtomicUsize, Ordering},
+        Arc,
+    },
+    time::Duration,
 };
-use std::time::Duration;
+
+use arci::{
+    gamepad::{Button, Gamepad, GamepadEvent},
+    Speaker,
+};
 use tokio::sync::Mutex as TokioMutex;
 use tracing::{debug, warn};
+
+use super::control_node::ControlNode;
 
 pub struct ControlNodeSwitcher<N, S>
 where
@@ -34,6 +40,7 @@ where
             is_running: Arc::new(AtomicBool::new(false)),
         }
     }
+
     pub async fn increment_mode(&self) -> Result<(), arci::Error> {
         let len = self.control_nodes.lock().await.len();
         self.current_index.fetch_add(1, Ordering::Relaxed);
@@ -41,6 +48,7 @@ where
         self.current_index.store(next, Ordering::Relaxed);
         self.speak_current_mode().await
     }
+
     pub async fn speak_current_mode(&self) -> Result<(), arci::Error> {
         let nodes = self.control_nodes.lock().await;
         let i = self.current_index();
@@ -48,15 +56,19 @@ where
         let submode = nodes[i].submode();
         self.speaker.speak(&format!("{}{}", mode, submode))?.await
     }
+
     fn current_index(&self) -> usize {
         self.current_index.load(Ordering::Relaxed)
     }
+
     fn is_running(&self) -> bool {
         self.is_running.load(Ordering::Relaxed)
     }
+
     pub fn stop(&self) {
         self.is_running.store(false, Ordering::Relaxed);
     }
+
     pub async fn main<G>(&self, gamepad: G)
     where
         G: 'static + Gamepad,

@@ -1,4 +1,9 @@
-use crate::Error;
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
+
 use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker};
 #[cfg(feature = "ros")]
 use arci_ros::{
@@ -6,18 +11,14 @@ use arci_ros::{
     RosEspeakClientConfig, RosLocalizationClient, RosLocalizationClientConfig, RosNavClient,
     RosNavClientConfig,
 };
-use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWebClientConfig};
-
 use arci_speak_audio::AudioSpeaker;
 use arci_speak_cmd::LocalCommand;
+use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWebClientConfig};
 use openrr_client::{OpenrrClientsConfig, PrintSpeaker, RobotClient};
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashMap,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
 use tracing::debug;
+
+use crate::Error;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "args")]
@@ -133,6 +134,7 @@ fn default_true() -> bool {
 
 impl RobotConfig {
     const DEFAULT_SPEAKER_NAME: &'static str = "Default";
+
     #[cfg(feature = "ros")]
     pub fn has_ros_clients(&self) -> bool {
         let mut has_ros_espeak = false;
@@ -166,6 +168,7 @@ impl RobotConfig {
             self.create_navigation().map(|n| n.into()),
         )?)
     }
+
     fn create_localization_without_ros(&self) -> Option<Box<dyn Localization>> {
         if self.use_localization_urdf_viz_web_client {
             let urdf_viz_client = Box::new(UrdfVizWebClient::default());
@@ -174,6 +177,7 @@ impl RobotConfig {
             None
         }
     }
+
     #[cfg(feature = "ros")]
     fn create_localization_with_ros(&self) -> Option<Box<dyn Localization>> {
         if let Some(ros_localization_client_config) = &self.ros_localization_client_config {
@@ -184,6 +188,7 @@ impl RobotConfig {
             self.create_localization_without_ros()
         }
     }
+
     fn create_localization(&self) -> Option<Box<dyn Localization>> {
         #[cfg(not(feature = "ros"))]
         {
@@ -194,6 +199,7 @@ impl RobotConfig {
             self.create_localization_with_ros()
         }
     }
+
     fn create_navigation_without_ros(&self) -> Option<Box<dyn Navigation>> {
         if self.use_navigation_urdf_viz_web_client {
             let urdf_viz_client = Box::new(UrdfVizWebClient::default());
@@ -202,6 +208,7 @@ impl RobotConfig {
             None
         }
     }
+
     #[cfg(feature = "ros")]
     fn create_navigation_with_ros(&self) -> Option<Box<dyn Navigation>> {
         if let Some(ros_navigation_client_config) = &self.ros_navigation_client_config {
@@ -212,6 +219,7 @@ impl RobotConfig {
             self.create_navigation_without_ros()
         }
     }
+
     fn create_navigation(&self) -> Option<Box<dyn Navigation>> {
         #[cfg(not(feature = "ros"))]
         {
@@ -222,6 +230,7 @@ impl RobotConfig {
             self.create_navigation_with_ros()
         }
     }
+
     fn create_move_base_without_ros(&self) -> Option<Box<dyn MoveBase>> {
         if self.use_move_base_urdf_viz_web_client {
             let urdf_viz_client = Box::new(UrdfVizWebClient::default());
@@ -231,6 +240,7 @@ impl RobotConfig {
             None
         }
     }
+
     #[cfg(feature = "ros")]
     fn create_move_base_with_ros(&self) -> Option<Box<dyn MoveBase>> {
         if let Some(ros_cmd_vel_move_base_client_config) = &self.ros_cmd_vel_move_base_client_config
@@ -242,6 +252,7 @@ impl RobotConfig {
             self.create_move_base_without_ros()
         }
     }
+
     fn create_move_base(&self) -> Option<Box<dyn MoveBase>> {
         #[cfg(not(feature = "ros"))]
         {
@@ -252,19 +263,24 @@ impl RobotConfig {
             self.create_move_base_with_ros()
         }
     }
+
     fn create_print_speaker(&self) -> Box<dyn Speaker> {
         Box::new(PrintSpeaker::new())
     }
+
     fn create_local_command_speaker(&self) -> Box<dyn Speaker> {
         Box::new(LocalCommand::new())
     }
+
     fn create_audio_speaker(&self, hash_map: HashMap<String, PathBuf>) -> Box<dyn Speaker> {
         Box::new(AudioSpeaker::new(hash_map))
     }
+
     #[cfg(feature = "ros")]
     fn create_ros_espeak_client(&self, topic: &str) -> Box<dyn Speaker> {
         Box::new(RosEspeakClient::new(topic))
     }
+
     fn create_speakers(&self) -> HashMap<String, Box<dyn Speaker>> {
         let mut speakers = HashMap::new();
         for (name, speak_config) in &self.speak_configs {
@@ -291,6 +307,7 @@ impl RobotConfig {
         }
         speakers
     }
+
     fn create_raw_joint_trajectory_clients(
         &self,
     ) -> HashMap<String, Arc<dyn JointTrajectoryClient>> {

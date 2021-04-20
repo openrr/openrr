@@ -1,4 +1,5 @@
-use crate::ControlNode;
+use std::{collections::HashMap, time::Duration};
+
 use arci::{
     gamepad::{Button, GamepadEvent},
     JointTrajectoryClient, Speaker,
@@ -6,7 +7,8 @@ use arci::{
 use async_trait::async_trait;
 use openrr_client::JointsPose;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, time::Duration};
+
+use crate::ControlNode;
 
 pub struct JointsPoseSender<S, J>
 where
@@ -51,6 +53,7 @@ where
             duration,
         }
     }
+
     pub fn new_from_config(
         config: JointsPoseSenderConfig,
         joints_poses: Vec<JointsPose>,
@@ -101,6 +104,7 @@ where
             _ => {}
         }
     }
+
     async fn proc(&self) {
         let joints_pose = &self.joints_poses[self.pose_index];
         let client = self
@@ -117,9 +121,11 @@ where
                 .unwrap();
         }
     }
+
     fn mode(&self) -> &str {
         &self.mode
     }
+
     fn submode(&self) -> &str {
         &self.submode
     }

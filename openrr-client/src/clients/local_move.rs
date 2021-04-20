@@ -89,10 +89,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use arci::{DummyMoveBase, DummyNavigation};
     use assert_approx_eq::assert_approx_eq;
     use na::Vector2;
+
+    use super::*;
 
     #[test]
     fn test_config() {

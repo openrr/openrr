@@ -1,9 +1,12 @@
+use std::{
+    env,
+    process::{Command, Output},
+    str::from_utf8,
+    thread::sleep,
+    time::Duration,
+};
+
 pub use child_process_terminator::ChildProcessTerminator;
-use std::env;
-use std::process::{Command, Output};
-use std::str::from_utf8;
-use std::thread::sleep;
-use std::time::Duration;
 
 mod child_process_terminator;
 

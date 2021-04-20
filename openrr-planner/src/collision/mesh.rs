@@ -1,9 +1,11 @@
-use crate::errors::*;
+use std::path::Path;
+
 #[cfg(feature = "assimp")]
 use k::nalgebra as na;
 use k::RealField;
 use ncollide3d::shape::TriMesh;
-use std::path::Path;
+
+use crate::errors::*;
 
 #[cfg(feature = "assimp")]
 pub(crate) fn load_mesh<P, T>(filename: P, scale: &[f64]) -> Result<TriMesh<T>>

@@ -1,10 +1,10 @@
-use crate::msg;
+use std::{sync::Arc, time};
+
 use arci::*;
 use nalgebra as na;
 use serde::{Deserialize, Serialize};
-use std::{sync::Arc, time};
 
-use crate::define_action_client_internal;
+use crate::{define_action_client_internal, msg};
 define_action_client_internal!(SimpleActionClient, msg::move_base_msgs, MoveBase);
 
 rosrust::rosmsg_include! {
@@ -62,6 +62,7 @@ impl RosNavClientBuilder {
             clear_costmap_before_start: false,
         }
     }
+
     /// Enable/Disable request_final_nomotion_update_hack
     ///
     /// # Examples
@@ -74,6 +75,7 @@ impl RosNavClientBuilder {
         self.request_final_nomotion_update_hack = val;
         self
     }
+
     /// Enable/Disable clear_costmap_before_start
     ///
     /// # Examples
@@ -87,6 +89,7 @@ impl RosNavClientBuilder {
         self.clear_costmap_before_start = val;
         self
     }
+
     /// Convert builder into RosNavClient finally.
     ///
     /// # Examples
@@ -134,11 +137,13 @@ impl RosNavClient {
             nomotion_update_client,
         }
     }
+
     pub fn new_from_config(config: RosNavClientConfig) -> Self {
         let mut s = Self::new(config.request_final_nomotion_update_hack);
         s.clear_costmap_before_start = config.clear_costmap_before_start;
         s
     }
+
     pub fn clear_costmap(&self) -> Result<(), Error> {
         // Wait ten seconds for the service to appear
         rosrust::wait_for_service(CLEAR_COSTMAP_SERVICE, Some(time::Duration::from_secs(10)))

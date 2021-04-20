@@ -1,6 +1,9 @@
-use nix::sys::signal::{kill, Signal};
-use nix::unistd::Pid;
 use std::process::{Child, Command, Stdio};
+
+use nix::{
+    sys::signal::{kill, Signal},
+    unistd::Pid,
+};
 
 #[must_use]
 pub struct ChildProcessTerminator(pub Child);

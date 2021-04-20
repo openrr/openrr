@@ -15,10 +15,10 @@ limitations under the License.
 */
 #![allow(clippy::trivially_copy_pass_by_ref)]
 
-use crate::funcs::*;
-use k::nalgebra as na;
-use k::{InverseKinematicsSolver, SubsetOf};
+use k::{nalgebra as na, InverseKinematicsSolver, SubsetOf};
 use na::RealField;
+
+use crate::funcs::*;
 
 /// Randomize initial joint angles before solving
 #[derive(Debug)]

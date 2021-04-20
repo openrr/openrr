@@ -15,12 +15,13 @@ limitations under the License.
 */
 #![allow(clippy::trivially_copy_pass_by_ref, clippy::ptr_arg)]
 
-use crate::errors::*;
-use k::nalgebra as na;
-use k::nalgebra::RealField;
-use num_traits::Float;
 use std::f64::consts::PI;
+
+use k::{nalgebra as na, nalgebra::RealField};
+use num_traits::Float;
 use trajectory::{CubicSpline, Trajectory};
+
+use crate::errors::*;
 
 type Limits<T> = Vec<Option<k::joint::Range<T>>>;
 

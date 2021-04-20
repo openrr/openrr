@@ -1,11 +1,3 @@
-use crate::utils::*;
-use arci::{
-    BaseVelocity, CompleteCondition, JointTrajectoryClient, JointVelocityLimiter, Localization,
-    MoveBase, Navigation, SetCompleteCondition, TotalJointDiffCondition, WaitFuture,
-};
-use nalgebra as na;
-use openrr_sleep::ScopedSleep;
-use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     mem,
@@ -16,8 +8,18 @@ use std::{
     thread::{sleep, JoinHandle},
     time::Duration,
 };
+
+use arci::{
+    BaseVelocity, CompleteCondition, JointTrajectoryClient, JointVelocityLimiter, Localization,
+    MoveBase, Navigation, SetCompleteCondition, TotalJointDiffCondition, WaitFuture,
+};
+use nalgebra as na;
+use openrr_sleep::ScopedSleep;
+use serde::{Deserialize, Serialize};
 use tracing::debug;
 use url::Url;
+
+use crate::utils::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UrdfVizWebClientConfig {
@@ -100,6 +102,7 @@ impl UrdfVizWebClient {
             is_dropping: Arc::new(AtomicBool::new(false)),
         })
     }
+
     pub fn run_thread(&self) {
         let velocity_arc_mutex = self.velocity.clone();
         let base_url = self.base_url.clone();
@@ -117,6 +120,7 @@ impl UrdfVizWebClient {
             send_robot_origin(&base_url, pose).unwrap();
         });
     }
+
     pub fn run_send_joint_positions_thread(&mut self) {
         if self.send_joint_positions_thread.is_some() {
             panic!("send_joint_positions_thread is running.");
@@ -217,6 +221,7 @@ impl JointTrajectoryClient for UrdfVizWebClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
         Ok(get_joint_positions(&self.base_url)
             .map_err(|e| arci::Error::Connection {
@@ -224,6 +229,7 @@ impl JointTrajectoryClient for UrdfVizWebClient {
             })?
             .positions)
     }
+
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,

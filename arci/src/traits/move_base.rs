@@ -1,5 +1,6 @@
-use crate::error::Error;
 use auto_impl::auto_impl;
+
+use crate::error::Error;
 
 #[derive(Clone, Debug, Default, Copy)]
 pub struct BaseVelocity {

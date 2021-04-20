@@ -1,6 +1,6 @@
-use crate::error::Error;
-use crate::traits::Localization;
 use nalgebra::{Isometry2, Vector2};
+
+use crate::{error::Error, traits::Localization};
 
 #[derive(Debug)]
 pub struct DummyLocalization {

@@ -1,8 +1,3 @@
-use crate::Error as OpenrrCommandError;
-use arci::{BaseVelocity, Localization, MoveBase, Navigation};
-use async_recursion::async_recursion;
-use k::nalgebra::{Isometry2, Vector2};
-use openrr_client::{isometry, BoxRobotClient};
 use std::{
     error::Error,
     fs::File,
@@ -12,8 +7,15 @@ use std::{
     thread::sleep,
     time::{Duration, Instant},
 };
+
+use arci::{BaseVelocity, Localization, MoveBase, Navigation};
+use async_recursion::async_recursion;
+use k::nalgebra::{Isometry2, Vector2};
+use openrr_client::{isometry, BoxRobotClient};
 use structopt::StructOpt;
 use tracing::{error, info};
+
+use crate::Error as OpenrrCommandError;
 
 fn parse_joints<T, U>(s: &str) -> Result<(T, U), Box<dyn Error>>
 where

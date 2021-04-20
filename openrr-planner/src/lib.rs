@@ -31,7 +31,6 @@ mod ik;
 pub use ik::*;
 
 mod planner;
-pub use planner::*;
-
 // re-export k::IK modules
 pub use k::{InverseKinematicsSolver, JacobianIkSolver};
+pub use planner::*;

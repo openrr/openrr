@@ -13,20 +13,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-use super::urdf::urdf_geometry_to_shape_handle;
-use crate::errors::*;
+use std::{
+    collections::HashMap,
+    path::Path,
+    time::{Duration, Instant},
+};
+
 use k::nalgebra as na;
 use na::RealField;
 use ncollide3d::{
     query,
     shape::{Compound, Shape, ShapeHandle},
 };
-use std::{
-    collections::HashMap,
-    path::Path,
-    time::{Duration, Instant},
-};
 use tracing::{debug, warn};
+
+use super::urdf::urdf_geometry_to_shape_handle;
+use crate::errors::*;
 
 type NameShapeMap<T> = HashMap<String, Vec<(ShapeHandle<T>, na::Isometry3<T>)>>;
 
@@ -69,6 +71,7 @@ where
     T: RealField + k::SubsetOf<f64>,
 {
     type Item = String;
+
     fn next(&mut self) -> Option<String> {
         if self.joints.len() <= self.index {
             return None;
@@ -131,6 +134,7 @@ where
             used_duration: HashMap::new(),
         }
     }
+
     /// Get the information about which part is the most heaviest.
     pub fn used_duration(&self) -> &HashMap<String, Duration> {
         &self.used_duration
@@ -142,6 +146,7 @@ where
     T: RealField + k::SubsetOf<f64>,
 {
     type Item = (String, String);
+
     fn next(&mut self) -> Option<(String, String)> {
         if self.self_collision_pairs.len() <= self.index {
             return None;
@@ -229,6 +234,7 @@ where
     pub fn from_urdf_robot(urdf_robot: &urdf_rs::Robot, prediction: T) -> Self {
         Self::from_urdf_robot_with_base_dir(urdf_robot, None, prediction)
     }
+
     /// Create CollisionChecker from urdf_rs::Robot with base_dir support
     ///
     /// base_dir: mesh files are loaded from this dir if the path does not start with "package://"
@@ -261,6 +267,7 @@ where
             self_collision_pairs: Vec::new(),
         }
     }
+
     /// Check collision between environmental object and returns the names of the link(joint) names
     ///
     /// robot: robot model

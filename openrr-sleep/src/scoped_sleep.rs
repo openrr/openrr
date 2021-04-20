@@ -22,6 +22,7 @@ impl ScopedSleep {
             target_time: std::time::Instant::now() + sleep_duration,
         }
     }
+
     /// Create sleep from float secs value
     ///
     /// # Example

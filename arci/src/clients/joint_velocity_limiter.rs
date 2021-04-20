@@ -1,7 +1,10 @@
-use crate::error::Error;
-use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
-use crate::waits::WaitFuture;
 use tracing::debug;
+
+use crate::{
+    error::Error,
+    traits::{JointTrajectoryClient, TrajectoryPoint},
+    waits::WaitFuture,
+};
 
 /// JointVelocityLimiter limits the duration to make all joints velocities lower than the given
 /// velocities limits at each TrajectoryPoint.
@@ -118,11 +121,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::DummyJointTrajectoryClient;
-    use assert_approx_eq::assert_approx_eq;
     use std::sync::Arc;
 
+    use assert_approx_eq::assert_approx_eq;
+
     use super::*;
+    use crate::DummyJointTrajectoryClient;
     #[test]
     #[should_panic]
     fn mismatch_size() {

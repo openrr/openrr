@@ -1,6 +1,7 @@
+use std::{collections::HashMap, path::PathBuf};
+
 use arci::Speaker;
 use arci_speak_audio::AudioSpeaker;
-use std::{collections::HashMap, path::PathBuf};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]

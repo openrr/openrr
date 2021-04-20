@@ -1,6 +1,7 @@
+use std::path::PathBuf;
+
 use openrr_apps::{Error, RobotConfig};
 use openrr_command::{RobotCommand, RobotCommandExecutor};
-use std::path::PathBuf;
 use structopt::StructOpt;
 use tracing::info;
 

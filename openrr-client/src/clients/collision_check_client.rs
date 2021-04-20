@@ -1,8 +1,8 @@
+use std::{path::Path, sync::Arc, time::Duration};
+
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
 use openrr_planner::{collision::parse_colon_separated_pairs, CollisionChecker};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use std::{path::Path, time::Duration};
 use tracing::debug;
 
 use crate::utils::find_nodes;
@@ -38,6 +38,7 @@ impl SelfCollisionChecker {
             time_interpolate_rate,
         }
     }
+
     pub fn check_joint_positions(
         &self,
         current: &[f64],
@@ -74,6 +75,7 @@ impl SelfCollisionChecker {
             )),
         }
     }
+
     pub fn check_joint_trajectory(&self, trajectory: &[TrajectoryPoint]) -> Result<(), Error> {
         for v in trajectory {
             self.using_joints
@@ -117,9 +119,11 @@ where
     fn joint_names(&self) -> &[String] {
         self.client.joint_names()
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         self.client.current_joint_positions()
     }
+
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
@@ -132,6 +136,7 @@ where
         )?;
         self.client.send_joint_positions(positions, duration)
     }
+
     fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
         self.collision_checker.check_joint_trajectory(&trajectory)?;
         self.client.send_joint_trajectory(trajectory)

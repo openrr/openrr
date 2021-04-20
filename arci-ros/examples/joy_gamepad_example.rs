@@ -1,7 +1,8 @@
+use std::collections::HashMap;
+
 use anyhow::Error;
 use arci::Gamepad;
 use arci_ros::JoyGamepad;
-use std::collections::HashMap;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {

@@ -1,6 +1,8 @@
-use crate::msg;
-use arci::*;
 use std::sync::{Arc, Mutex};
+
+use arci::*;
+
+use crate::msg;
 
 pub struct RosRobotClient {
     joint_names: Vec<String>,
@@ -71,6 +73,7 @@ impl JointTrajectoryClient for RosRobotClient {
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         let message = self.joint_state_message.lock().unwrap();
         Ok(message.position.clone())
@@ -108,6 +111,7 @@ impl JointTrajectoryClient for RosRobotClient {
             Ok(WaitFuture::ready())
         }
     }
+
     fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
         if let Some(ref publisher) = self.trajectory_publisher {
             let traj = msg::trajectory_msgs::JointTrajectory {

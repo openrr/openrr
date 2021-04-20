@@ -1,10 +1,10 @@
 use std::borrow::Borrow;
 
-use crate::msg;
-use crate::rosrust_utils::*;
 use arci::*;
 use nalgebra as na;
 use serde::{Deserialize, Serialize};
+
+use crate::{msg, rosrust_utils::*};
 
 rosrust::rosmsg_include! {
     std_srvs / Empty
@@ -51,6 +51,7 @@ impl RosLocalizationClientBuilder {
             request_final_nomotion_update_hack: false,
         }
     }
+
     /// Enable/Disable request_final_nomotion_update_hack
     ///
     /// # Examples
@@ -105,6 +106,7 @@ impl RosLocalizationClient {
             nomotion_update_client,
         }
     }
+
     pub fn new_from_config(config: RosLocalizationClientConfig) -> Self {
         Self::new(config.request_final_nomotion_update_hack)
     }

@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #![allow(clippy::trivially_copy_pass_by_ref)]
-use super::joint_path_planner::JointPathPlanner;
-use crate::errors::*;
 use k::nalgebra as na;
 use na::RealField;
 use ncollide3d::shape::Compound;
+
+use super::joint_path_planner::JointPathPlanner;
+use crate::errors::*;
 
 /// Joint path planner which supports inverse kinematics
 pub struct JointPathPlannerWithIk<T, I>
@@ -61,6 +62,7 @@ where
             ik_solver,
         }
     }
+
     pub fn urdf_robot(&self) -> &Option<urdf_rs::Robot> {
         &self.path_planner.urdf_robot
     }
@@ -73,6 +75,7 @@ where
     ) -> Result<()> {
         Ok(self.ik_solver.solve(arm, target_pose)?)
     }
+
     /// Just solve IK with constraints and do not plan
     pub fn solve_ik_with_constraints(
         &mut self,
@@ -134,6 +137,7 @@ where
         self.path_planner
             .plan(use_joints, start_angles, goal_angles, objects)
     }
+
     /// Calculate the transforms of all of the links
     pub fn update_transforms(&self) -> Vec<na::Isometry3<T>> {
         self.path_planner.update_transforms()

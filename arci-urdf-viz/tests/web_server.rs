@@ -5,12 +5,13 @@
 // because of wayland-client.
 // That flag is needed to get the test coverage.
 
-use actix_web::*;
-use serde::{Deserialize, Serialize};
 use std::{
     io,
     sync::{Arc, Mutex},
 };
+
+use actix_web::*;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub struct JointNamesAndPositions {

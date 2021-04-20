@@ -1,6 +1,8 @@
-use crate::utils::find_nodes;
-use arci::{JointTrajectoryClient, WaitFuture};
 use std::sync::Arc;
+
+use arci::{JointTrajectoryClient, WaitFuture};
+
+use crate::utils::find_nodes;
 
 pub struct ChainWrapper {
     joint_names: Vec<String>,

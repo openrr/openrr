@@ -54,9 +54,11 @@ where
     fn joint_names(&self) -> &[String] {
         self.client.joint_names()
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         self.client.current_joint_positions()
     }
+
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
@@ -72,6 +74,7 @@ where
         self.client
             .send_joint_trajectory(trajectory_from_positions(&traj, duration))
     }
+
     fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
         if trajectory.is_empty() {
             return Ok(WaitFuture::ready());

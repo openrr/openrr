@@ -1,6 +1,9 @@
-use crate::error::Error;
-use crate::traits::{BaseVelocity, MoveBase};
 use std::sync::Mutex;
+
+use crate::{
+    error::Error,
+    traits::{BaseVelocity, MoveBase},
+};
 
 #[derive(Debug, Default)]
 pub struct DummyMoveBase {
@@ -20,6 +23,7 @@ impl MoveBase for DummyMoveBase {
         *self.current_velocity.lock().unwrap() = *velocity;
         Ok(())
     }
+
     fn current_velocity(&self) -> Result<BaseVelocity, Error> {
         Ok(self.current_velocity.lock().unwrap().to_owned())
     }
@@ -27,8 +31,9 @@ impl MoveBase for DummyMoveBase {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use assert_approx_eq::assert_approx_eq;
+
+    use super::*;
     #[test]
     fn test_set_get() {
         let base = DummyMoveBase::new();

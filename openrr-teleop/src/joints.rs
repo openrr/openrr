@@ -1,9 +1,13 @@
-use super::control_node::ControlNode;
-use arci::gamepad::{Axis, Button, GamepadEvent};
-use arci::{JointTrajectoryClient, Speaker};
+use std::time::Duration;
+
+use arci::{
+    gamepad::{Axis, Button, GamepadEvent},
+    JointTrajectoryClient, Speaker,
+};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+
+use super::control_node::ControlNode;
 
 const AXIS_GAIN: f64 = 2.0;
 const JOINT_POSITION_TURBO_GAIN: f64 = 2.0;
@@ -53,6 +57,7 @@ where
             is_sending: false,
         }
     }
+
     pub fn new_from_config(
         config: JoyJointTeleopNodeConfig,
         joint_trajectory_client: J,
@@ -116,6 +121,7 @@ where
             _ => {}
         }
     }
+
     async fn proc(&self) {
         if self.is_sending {
             let mut pos = self
@@ -135,9 +141,11 @@ where
                 .unwrap();
         }
     }
+
     fn mode(&self) -> &str {
         &self.mode
     }
+
     fn submode(&self) -> &str {
         &self.submode
     }
