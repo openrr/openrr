@@ -17,9 +17,10 @@ auto_impl = "0.4"
 futures = "0.3"
 nalgebra = "0.26"
 serde = { version = "1.0", features = ["derive"] }
-tokio = { version = "1.0", features = ["time"] }
 thiserror = "1.0"
+tokio = { version = "1.0", features = ["time"] }
 tracing = { version = "0.1", features = ["log"] }
+urdf-rs = "0.6"
 
 [dev-dependencies]
 assert_approx_eq = "1.1"
