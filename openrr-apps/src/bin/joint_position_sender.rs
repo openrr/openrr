@@ -24,11 +24,7 @@ fn main() -> anyhow::Result<()> {
     let client: BoxRobotClient = config.create_robot_client()?;
     joint_position_sender(
         client,
-        config
-            .openrr_clients_config
-            .urdf_full_path()
-            .as_ref()
-            .unwrap(),
+        config.openrr_clients_config.urdf_full_path().unwrap(),
     )?;
     Ok(())
 }
