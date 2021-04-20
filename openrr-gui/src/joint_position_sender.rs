@@ -31,32 +31,27 @@ impl JointState {
     }
 }
 
-struct Robot {
-    joints: HashMap<String, urdf_rs::Joint>,
-}
-
-impl From<urdf_rs::Robot> for Robot {
-    fn from(mut robot: urdf_rs::Robot) -> Self {
-        for joint in &mut robot.joints {
-            // If limit is not specified, urdf-rs assigns f64::default.
-            if JointType::Continuous == joint.joint_type {
-                joint.limit.lower = -f64::consts::PI;
-                joint.limit.upper = f64::consts::PI;
-            }
-        }
-
-        Self {
-            joints: robot
-                .joints
-                .into_iter()
-                .map(|joint| (joint.name.clone(), joint))
-                .collect(),
+fn joint_map(mut robot: urdf_rs::Robot) -> HashMap<String, urdf_rs::Joint> {
+    for joint in &mut robot.joints {
+        // If limit is not specified, urdf-rs assigns f64::default.
+        if JointType::Continuous == joint.joint_type {
+            joint.limit.lower = -f64::consts::PI;
+            joint.limit.upper = f64::consts::PI;
         }
     }
+
+    robot
+        .joints
+        .into_iter()
+        .map(|joint| (joint.name.clone(), joint))
+        .collect()
 }
 
-/// Returns an error if the joint names returned by joint trajectory clients do not exist in `urdf`.
-fn validate_urdf<L, M, N>(urdf: &Robot, client: &RobotClient<L, M, N>) -> Result<(), Error>
+/// Returns an error if the joint names returned by joint trajectory clients do not exist in `joints`.
+fn validate_joints<L, M, N>(
+    joints: &HashMap<String, urdf_rs::Joint>,
+    client: &RobotClient<L, M, N>,
+) -> Result<(), Error>
 where
     L: Localization + 'static,
     M: MoveBase + 'static,
@@ -64,7 +59,7 @@ where
 {
     for client in client.joint_trajectory_clients().values() {
         for joint_name in client.joint_names() {
-            if !urdf.joints.contains_key(joint_name) {
+            if !joints.contains_key(joint_name) {
                 return Err(Error::Other(format!(
                     "Joint '{}' not found in URDF",
                     joint_name
@@ -85,14 +80,14 @@ where
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
-    let robot: Robot = robot.into();
-    validate_urdf(&robot, &robot_client)?;
+    let joints = joint_map(robot);
+    validate_joints(&joints, &robot_client)?;
 
     let mut joint_trajectory_client_names = robot_client.joint_trajectory_clients_names();
     joint_trajectory_client_names.sort_unstable();
     debug!("{:?}", joint_trajectory_client_names);
 
-    let mut gui = JointPositionSender::new(robot_client, robot, joint_trajectory_client_names);
+    let mut gui = JointPositionSender::new(robot_client, joints, joint_trajectory_client_names);
 
     let joint_trajectory_client = gui.current_joint_trajectory_client();
     for (index, position) in joint_trajectory_client
@@ -127,7 +122,7 @@ where
     N: Navigation + 'static,
 {
     robot_client: RobotClient<L, M, N>,
-    robot: Robot,
+    joints: HashMap<String, urdf_rs::Joint>,
 
     joint_trajectory_client_names: Vec<String>,
     // pick list for joint_trajectory_clients
@@ -206,7 +201,7 @@ where
 {
     fn new(
         robot_client: RobotClient<L, M, N>,
-        robot: Robot,
+        joints: HashMap<String, urdf_rs::Joint>,
         joint_trajectory_client_names: Vec<String>,
     ) -> Self {
         let joint_states = joint_trajectory_client_names
@@ -229,7 +224,7 @@ where
 
         Self {
             robot_client,
-            robot,
+            joints,
             current_joint_trajectory_client: joint_trajectory_client_names[0].clone(),
             joint_trajectory_client_names,
             pick_list: Default::default(),
@@ -333,7 +328,7 @@ where
                     .get_mut(&self.current_joint_trajectory_client)
                     .unwrap()
                 {
-                    let limit = &self.robot.joints[&joint_state.name].limit;
+                    let limit = &self.joints[&joint_state.name].limit;
                     joint_state
                         .update_position(rand::thread_rng().gen_range(limit.lower..=limit.upper));
                 }
@@ -362,7 +357,7 @@ where
                     .get_mut(&self.current_joint_trajectory_client)
                     .unwrap()[index];
 
-                let limit = &self.robot.joints[&joint_state.name].limit;
+                let limit = &self.joints[&joint_state.name].limit;
 
                 // The position specified by the slider is guaranteed to be in range,
                 // but it may actually be out of range because the value is rounded.
@@ -390,7 +385,7 @@ where
                         // We don't round the input for now. If we do that, we also need to update
                         // the text input that we show to the user.
 
-                        let limit = &self.robot.joints[&joint_state.name].limit;
+                        let limit = &self.joints[&joint_state.name].limit;
                         if (limit.lower..=limit.upper).contains(&position) {
                             self.errors.joint_states = None;
 
@@ -519,7 +514,7 @@ where
             .iter_mut()
             .enumerate()
         {
-            let limit = &self.robot.joints[&joint_state.name].limit;
+            let limit = &self.joints[&joint_state.name].limit;
             let slider = Slider::new(
                 &mut joint_state.slider,
                 limit.lower..=limit.upper,
@@ -529,7 +524,7 @@ where
             .style(THEME)
             .step(0.01);
 
-            let joint_name = Text::new(&self.robot.joints[&joint_state.name].name)
+            let joint_name = Text::new(&self.joints[&joint_state.name].name)
                 .horizontal_alignment(HorizontalAlignment::Left)
                 .width(Length::Fill);
 
