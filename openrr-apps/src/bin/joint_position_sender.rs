@@ -23,9 +23,7 @@ fn main() -> anyhow::Result<()> {
     let config = RobotConfig::try_new(&config_path)?;
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &config);
     let client: BoxRobotClient = config.create_robot_client()?;
-    joint_position_sender(
-        client,
-        config.openrr_clients_config.urdf_full_path().unwrap(),
-    )?;
+    let robot = urdf_rs::read_file(config.openrr_clients_config.urdf_full_path().unwrap())?;
+    joint_position_sender(client, robot)?;
     Ok(())
 }

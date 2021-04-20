@@ -1,4 +1,4 @@
-use std::{collections::HashMap, f64, path::Path, sync::Arc, time::Duration, usize};
+use std::{collections::HashMap, f64, sync::Arc, time::Duration, usize};
 
 use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation};
 use iced::{
@@ -36,7 +36,15 @@ struct Robot {
 }
 
 impl From<urdf_rs::Robot> for Robot {
-    fn from(robot: urdf_rs::Robot) -> Self {
+    fn from(mut robot: urdf_rs::Robot) -> Self {
+        for joint in &mut robot.joints {
+            // If limit is not specified, urdf-rs assigns f64::default.
+            if JointType::Continuous == joint.joint_type {
+                joint.limit.lower = -f64::consts::PI;
+                joint.limit.upper = f64::consts::PI;
+            }
+        }
+
         Self {
             joints: robot
                 .joints
@@ -47,32 +55,38 @@ impl From<urdf_rs::Robot> for Robot {
     }
 }
 
-fn read_urdf(path: impl AsRef<Path>) -> Result<Robot, Error> {
-    let mut robot = urdf_rs::read_file(path)?;
-
-    for joint in &mut robot.joints {
-        // If limit is not specified, urdf-rs assigns f64::default.
-        if JointType::Continuous == joint.joint_type {
-            joint.limit.lower = -f64::consts::PI;
-            joint.limit.upper = f64::consts::PI;
+/// Returns an error if the joint names returned by joint trajectory clients do not exist in `urdf`.
+fn validate_urdf<L, M, N>(urdf: &Robot, client: &RobotClient<L, M, N>) -> Result<(), Error>
+where
+    L: Localization + 'static,
+    M: MoveBase + 'static,
+    N: Navigation + 'static,
+{
+    for client in client.joint_trajectory_clients().values() {
+        for joint_name in client.joint_names() {
+            if !urdf.joints.contains_key(joint_name) {
+                return Err(Error::Other(format!(
+                    "Joint '{}' not found in URDF",
+                    joint_name
+                )));
+            }
         }
     }
-
-    Ok(robot.into())
+    Ok(())
 }
 
 /// Launches GUI that send joint positions from GUI to the given `robot_client`.
 pub fn joint_position_sender<L, M, N>(
     robot_client: RobotClient<L, M, N>,
-    urdf_path: impl AsRef<Path>,
+    robot: urdf_rs::Robot,
 ) -> Result<(), Error>
 where
     L: Localization + 'static,
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
-    // TODO: If the urdf file read by `robot_client` and this urdf file are different, we should emit an error.
-    let robot = read_urdf(&urdf_path)?;
+    let robot: Robot = robot.into();
+    validate_urdf(&robot, &robot_client)?;
 
     let mut joint_trajectory_client_names = robot_client.joint_trajectory_clients_names();
     joint_trajectory_client_names.sort_unstable();
