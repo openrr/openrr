@@ -1,9 +1,9 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use arci::{
-    copy_joint_positions, CompleteCondition, EachJointDiffCondition, JointTrajectoryClient,
-    JointVelocityLimiter, SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint,
-    WaitFuture,
+    copy_joint_positions, CompleteCondition, EachJointDiffCondition, JointPositionLimiter,
+    JointTrajectoryClient, JointVelocityLimiter, SetCompleteCondition, TotalJointDiffCondition,
+    TrajectoryPoint, WaitFuture,
 };
 use msg::{
     control_msgs::JointTrajectoryControllerState,
@@ -39,7 +39,8 @@ type StateSubscriber = SubscriberHandler<JointTrajectoryControllerState>;
 
 pub fn create_joint_trajectory_clients(
     configs: Vec<RosControlClientConfig>,
-) -> HashMap<String, Arc<dyn JointTrajectoryClient>> {
+    urdf_robot: Option<&urdf_rs::Robot>,
+) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
     let mut clients = HashMap::new();
     let mut state_topic_name_to_subscriber: HashMap<String, Arc<StateSubscriber>> = HashMap::new();
     for config in configs {
@@ -77,16 +78,25 @@ pub fn create_joint_trajectory_clients(
             config.complete_timeout_sec,
         )));
         let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
-            Arc::new(JointVelocityLimiter::new(
-                client,
-                config.joint_velocity_limits,
-            ))
+            if let Some(urdf_robot) = urdf_robot {
+                Arc::new(JointPositionLimiter::from_urdf(
+                    JointVelocityLimiter::new(client, config.joint_velocity_limits),
+                    &urdf_robot.joints,
+                )?)
+            } else {
+                Arc::new(JointVelocityLimiter::new(
+                    client,
+                    config.joint_velocity_limits,
+                ))
+            }
+        } else if let Some(urdf_robot) = urdf_robot {
+            Arc::new(JointPositionLimiter::from_urdf(client, &urdf_robot.joints)?)
         } else {
             Arc::new(client)
         };
         clients.insert(config.name, client);
     }
-    clients
+    Ok(clients)
 }
 
 pub fn create_joint_trajectory_message_for_send_joint_positions(

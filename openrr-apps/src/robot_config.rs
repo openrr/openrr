@@ -338,8 +338,11 @@ impl RobotConfig {
                 )?
             };
             clients.extend(
-                arci_ros::create_joint_trajectory_clients(self.ros_clients_configs.clone())
-                    .into_iter(),
+                arci_ros::create_joint_trajectory_clients(
+                    self.ros_clients_configs.clone(),
+                    urdf_robot.as_ref(),
+                )?
+                .into_iter(),
             );
             clients
         };
