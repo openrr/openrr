@@ -1,3 +1,5 @@
+use std::ops::RangeInclusive;
+
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -39,6 +41,17 @@ pub enum Error {
     Connection { message: String },
     #[error("arci: Canceled : {}", message)]
     Canceled { message: String },
+    #[error(
+        "arci: Out of limit: joint={}, position={}, limit={:?}",
+        name,
+        position,
+        limit
+    )]
+    OutOfLimit {
+        name: String,
+        position: f64,
+        limit: RangeInclusive<f64>,
+    },
     #[error("arci: Other: {:?}", .0)]
     Other(#[from] anyhow::Error),
 }
