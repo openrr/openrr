@@ -161,7 +161,7 @@ impl RobotConfig {
 
         Ok(RobotClient::try_new(
             self.openrr_clients_config.clone(),
-            self.create_raw_joint_trajectory_clients(),
+            self.create_raw_joint_trajectory_clients()?,
             speakers,
             self.create_localization().map(|l| l.into()),
             self.create_move_base().map(|m| m.into()),
@@ -310,13 +310,21 @@ impl RobotConfig {
 
     fn create_raw_joint_trajectory_clients(
         &self,
-    ) -> HashMap<String, Arc<dyn JointTrajectoryClient>> {
+    ) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, Error> {
+        let urdf_robot = if let Some(urdf_path) = self.openrr_clients_config.urdf_full_path() {
+            let urdf_robot = urdf_rs::utils::read_urdf_or_xacro(urdf_path)?;
+            Some(urdf_robot)
+        } else {
+            None
+        };
+
         #[cfg(not(feature = "ros"))]
         let raw_joint_trajectory_clients = create_joint_trajectory_clients(
             self.urdf_viz_clients_configs.clone(),
             self.urdf_viz_clients_total_complete_allowable_error,
             self.urdf_viz_clients_complete_timeout_sec,
-        );
+            urdf_robot.as_ref(),
+        )?;
         #[cfg(feature = "ros")]
         let raw_joint_trajectory_clients = {
             let mut clients = if self.urdf_viz_clients_configs.is_empty() {
@@ -326,7 +334,8 @@ impl RobotConfig {
                     self.urdf_viz_clients_configs.clone(),
                     self.urdf_viz_clients_total_complete_allowable_error,
                     self.urdf_viz_clients_complete_timeout_sec,
-                )
+                    urdf_robot.as_ref(),
+                )?
             };
             clients.extend(
                 arci_ros::create_joint_trajectory_clients(self.ros_clients_configs.clone())
@@ -334,7 +343,7 @@ impl RobotConfig {
             );
             clients
         };
-        raw_joint_trajectory_clients
+        Ok(raw_joint_trajectory_clients)
     }
 }
 

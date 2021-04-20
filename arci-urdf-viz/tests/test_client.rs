@@ -93,7 +93,7 @@ fn test_create_joint_trajectory_clients() {
             joint_velocity_limits: vec![],
         },
     ];
-    let _clients = arci_urdf_viz::create_joint_trajectory_clients(configs, 0.1, 0.1);
+    let _clients = arci_urdf_viz::create_joint_trajectory_clients(configs, 0.1, 0.1, None).unwrap();
 }
 
 #[test]
