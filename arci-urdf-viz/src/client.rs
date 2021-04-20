@@ -10,8 +10,9 @@ use std::{
 };
 
 use arci::{
-    BaseVelocity, CompleteCondition, JointTrajectoryClient, JointVelocityLimiter, Localization,
-    MoveBase, Navigation, SetCompleteCondition, TotalJointDiffCondition, WaitFuture,
+    BaseVelocity, CompleteCondition, JointPositionLimiter, JointTrajectoryClient,
+    JointVelocityLimiter, Localization, MoveBase, Navigation, SetCompleteCondition,
+    TotalJointDiffCondition, WaitFuture,
 };
 use nalgebra as na;
 use openrr_sleep::ScopedSleep;
@@ -35,7 +36,8 @@ pub fn create_joint_trajectory_clients(
     configs: Vec<UrdfVizWebClientConfig>,
     total_complete_allowable_error: f64,
     complete_timeout_sec: f64,
-) -> HashMap<String, Arc<dyn JointTrajectoryClient>> {
+    urdf_robot: Option<&urdf_rs::Robot>,
+) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
     let mut clients = HashMap::new();
     let mut all_client = UrdfVizWebClient::default();
     all_client.set_complete_condition(Box::new(TotalJointDiffCondition::new(
@@ -48,16 +50,25 @@ pub fn create_joint_trajectory_clients(
         let client =
             arci::PartialJointTrajectoryClient::new(config.joint_names, all_client.clone());
         let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
-            Arc::new(JointVelocityLimiter::new(
-                client,
-                config.joint_velocity_limits,
-            ))
+            if let Some(urdf_robot) = urdf_robot {
+                Arc::new(JointPositionLimiter::from_urdf(
+                    JointVelocityLimiter::new(client, config.joint_velocity_limits),
+                    &urdf_robot.joints,
+                )?)
+            } else {
+                Arc::new(JointVelocityLimiter::new(
+                    client,
+                    config.joint_velocity_limits,
+                ))
+            }
+        } else if let Some(urdf_robot) = urdf_robot {
+            Arc::new(JointPositionLimiter::from_urdf(client, &urdf_robot.joints)?)
         } else {
             Arc::new(client)
         };
         clients.insert(config.name, client);
     }
-    clients
+    Ok(clients)
 }
 
 struct SendJointPositionsTarget {

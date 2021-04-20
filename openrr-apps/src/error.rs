@@ -19,6 +19,10 @@ pub enum Error {
     NoSpecifiedNode(String),
     #[error("openrr-apps: Config {:?} requires ros feature.", .0)]
     ConfigRequireRos(String),
+    #[error("openrr-apps: arci: {:?}", .0)]
+    Urdf(#[from] urdf_rs::UrdfError),
+    #[error("openrr-apps: arci: {:?}", .0)]
+    Arci(#[from] arci::Error),
     #[error("openrr-apps: openrr-client: {:?}", .0)]
     OpenrrClient(#[from] openrr_client::Error),
     #[error("openrr-apps: openrr-command: {:?}", .0)]
