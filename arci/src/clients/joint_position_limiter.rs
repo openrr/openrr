@@ -89,7 +89,7 @@ where
                         limit: limit.clone(),
                     });
                 }
-                JointPositionLimiterStrategy::Round => {
+                JointPositionLimiterStrategy::Clamp => {
                     debug!(
                         "Out of limit: joint={}, position={}, limit={:?}",
                         self.client.joint_names()[i],
@@ -140,14 +140,14 @@ where
 #[non_exhaustive]
 pub enum JointPositionLimiterStrategy {
     /// If the position is out of the limit, handle it as the same value as the limit.
-    Round,
+    Clamp,
     /// If the position is out of the limit, return an error.
     Error,
 }
 
 impl Default for JointPositionLimiterStrategy {
     fn default() -> Self {
-        Self::Round
+        Self::Clamp
     }
 }
 
@@ -185,7 +185,7 @@ mod tests {
         let mut client = JointPositionLimiter::new(client, vec![1.0..=2.0]);
 
         for &strategy in &[
-            JointPositionLimiterStrategy::Round,
+            JointPositionLimiterStrategy::Clamp,
             JointPositionLimiterStrategy::Error,
         ] {
             client.set_strategy(strategy);
@@ -254,7 +254,7 @@ mod tests {
         let mut client = JointPositionLimiter::new(client, vec![1.0..=2.0]);
 
         for &strategy in &[
-            JointPositionLimiterStrategy::Round,
+            JointPositionLimiterStrategy::Clamp,
             JointPositionLimiterStrategy::Error,
         ] {
             client.set_strategy(strategy);
