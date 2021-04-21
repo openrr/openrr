@@ -113,7 +113,9 @@ where
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
-        self.client.current_joint_positions()
+        let mut positions = self.client.current_joint_positions()?;
+        self.check_joint_position(&mut positions)?;
+        Ok(positions)
     }
 
     fn send_joint_positions(
