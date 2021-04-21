@@ -22,3 +22,16 @@ pub enum Error {
     #[error("arci_ros: Other: {:?}", .0)]
     Other(#[from] anyhow::Error),
 }
+
+impl From<Error> for arci::Error {
+    fn from(e: Error) -> Self {
+        match e {
+            Error::Arci(e) => e,
+            e @ Error::ActionResultPreempted(_) => arci::Error::Canceled {
+                message: e.to_string(),
+            },
+            // TODO
+            e => arci::Error::Other(e.into()),
+        }
+    }
+}
