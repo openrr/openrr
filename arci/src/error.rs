@@ -37,6 +37,8 @@ pub enum Error {
     Uninitialized { message: String },
     #[error("arci: Connection error : {}", message)]
     Connection { message: String },
+    #[error("arci: Canceled : {}", message)]
+    Canceled { message: String },
     #[error("arci: Other: {:?}", .0)]
     Other(#[from] anyhow::Error),
 }

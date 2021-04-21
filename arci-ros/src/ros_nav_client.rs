@@ -172,7 +172,7 @@ impl RosNavClient {
             Err(e) => match e {
                 crate::Error::ActionResultPreempted(_) => {
                     rosrust::ros_warn!("Action is cancelled");
-                    Ok(())
+                    Err(e)
                 }
                 _ => {
                     rosrust::ros_err!("Action does not succeed {:?}", e);
@@ -212,8 +212,8 @@ impl Navigation for RosNavClient {
         let wait = WaitFuture::new(async move {
             tokio::task::spawn_blocking(move || self_clone.wait_until_reach(&goal_id, timeout))
                 .await
-                .map_err(|e| arci::Error::Other(e.into()))?
-                .map_err(|e| arci::Error::Other(e.into()))
+                .map_err(|e| arci::Error::Other(e.into()))??;
+            Ok(())
         });
 
         Ok(wait)
