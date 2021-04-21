@@ -16,7 +16,7 @@ where
         .ok_or_else(|| Error::NoJoint(joint_name.to_owned()))
 }
 
-#[allow(clippy::clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 pub async fn move_joint_until_stop<J>(
     joint_trajectory_client: &J,
     joint_name: &str,
