@@ -1,5 +1,6 @@
 use std::{f64, ops::RangeInclusive};
 
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tracing::debug;
 use urdf_rs::JointType;
 
@@ -14,7 +15,7 @@ where
     C: JointTrajectoryClient,
 {
     client: C,
-    limits: Vec<RangeInclusive<f64>>,
+    limits: Vec<JointPositionLimit>,
     strategy: JointPositionLimiterStrategy,
 }
 
@@ -22,13 +23,13 @@ impl<C> JointPositionLimiter<C>
 where
     C: JointTrajectoryClient,
 {
-    pub fn new(client: C, limits: Vec<RangeInclusive<f64>>) -> Self {
+    pub fn new(client: C, limits: Vec<JointPositionLimit>) -> Self {
         Self::new_with_strategy(client, limits, Default::default())
     }
 
     pub fn new_with_strategy(
         client: C,
-        limits: Vec<RangeInclusive<f64>>,
+        limits: Vec<JointPositionLimit>,
         strategy: JointPositionLimiterStrategy,
     ) -> Self {
         assert!(client.joint_names().len() == limits.len());
@@ -53,10 +54,10 @@ where
             if let Some(i) = joints.iter().position(|j| j.name == *joint_name) {
                 let joint = &joints[i];
                 let limit = if JointType::Continuous == joint.joint_type {
-                    // If limit is not specified, urdf-rs assigns f64::default.
-                    -f64::consts::PI..=f64::consts::PI
+                    // Continuous joint has no limit.
+                    JointPositionLimit::none()
                 } else {
-                    joint.limit.lower..=joint.limit.upper
+                    (joint.limit.lower..=joint.limit.upper).into()
                 };
                 limits.push(limit);
             } else {
@@ -77,7 +78,13 @@ where
 
     fn check_joint_position(&self, positions: &mut Vec<f64>) -> Result<(), Error> {
         assert_eq!(positions.len(), self.limits.len());
-        for (i, (limit, position)) in self.limits.iter().zip(positions).enumerate() {
+        for (i, limit, position) in self
+            .limits
+            .iter()
+            .zip(positions)
+            .enumerate()
+            .filter_map(|(i, (l, p))| l.range().map(|l| (i, l, p)))
+        {
             if limit.contains(&position) {
                 continue;
             }
@@ -86,7 +93,7 @@ where
                     return Err(Error::OutOfLimit {
                         name: self.client.joint_names()[i].clone(),
                         position: *position,
-                        limit: limit.clone(),
+                        limit,
                     });
                 }
                 JointPositionLimiterStrategy::Clamp => {
@@ -138,6 +145,91 @@ where
     }
 }
 
+#[derive(Debug, Clone, Copy, Default)]
+pub struct JointPositionLimit(Option<JointPositionLimitInner>);
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct JointPositionLimitInner {
+    lower: f64,
+    upper: f64,
+}
+
+impl JointPositionLimit {
+    pub fn new(lower: f64, upper: f64) -> Self {
+        Self(Some(JointPositionLimitInner { lower, upper }))
+    }
+
+    pub fn none() -> Self {
+        Self::default()
+    }
+
+    pub fn is_none(&self) -> bool {
+        self.0.is_none()
+    }
+
+    pub fn range(&self) -> Option<RangeInclusive<f64>> {
+        self.0.map(|l| l.lower..=l.upper)
+    }
+
+    pub fn lower(&self) -> Option<f64> {
+        self.0.map(|l| l.lower)
+    }
+
+    pub fn upper(&self) -> Option<f64> {
+        self.0.map(|l| l.upper)
+    }
+}
+
+impl From<RangeInclusive<f64>> for JointPositionLimit {
+    fn from(r: RangeInclusive<f64>) -> Self {
+        Self::new(*r.start(), *r.end())
+    }
+}
+
+impl From<urdf_rs::JointLimit> for JointPositionLimit {
+    fn from(l: urdf_rs::JointLimit) -> Self {
+        Self::new(l.lower, l.upper)
+    }
+}
+
+impl<'de> Deserialize<'de> for JointPositionLimit {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged, deny_unknown_fields)]
+        enum De {
+            Limit(JointPositionLimitInner),
+            Empty {},
+        }
+        Ok(match De::deserialize(deserializer)? {
+            De::Empty {} => Self::none(),
+            De::Limit(l) => Self(Some(l)),
+        })
+    }
+}
+
+impl Serialize for JointPositionLimit {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        #[derive(Serialize)]
+        #[serde(untagged)]
+        enum Ser {
+            Limit(JointPositionLimitInner),
+            Empty {},
+        }
+
+        match self.0 {
+            None => Ser::Empty {}.serialize(serializer),
+            Some(l) => Ser::Limit(l).serialize(serializer),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum JointPositionLimiterStrategy {
@@ -168,13 +260,14 @@ mod tests {
     #[should_panic]
     fn mismatch_size() {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
-        JointPositionLimiter::new(client, vec![1.0..=2.0, 2.0..=3.0]);
+        JointPositionLimiter::new(client, vec![(1.0..=2.0).into(), (2.0..=3.0).into()]);
     }
 
     #[test]
     fn joint_names() {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned(), "b".to_owned()]);
-        let limiter = JointPositionLimiter::new(client, vec![1.0..=2.0, 2.0..=3.0]);
+        let limiter =
+            JointPositionLimiter::new(client, vec![(1.0..=2.0).into(), (2.0..=3.0).into()]);
         let joint_names = limiter.joint_names();
         assert_eq!(joint_names.len(), 2);
         assert_eq!(joint_names[0], "a");
@@ -184,7 +277,7 @@ mod tests {
     #[tokio::test]
     async fn send_joint_positions_none_limited() {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
-        let mut client = JointPositionLimiter::new(client, vec![1.0..=2.0]);
+        let mut client = JointPositionLimiter::new(client, vec![(1.0..=2.0).into()]);
 
         for &strategy in &[
             JointPositionLimiterStrategy::Clamp,
@@ -211,7 +304,7 @@ mod tests {
     #[tokio::test]
     async fn send_joint_positions_limited_rounded() {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
-        let client = JointPositionLimiter::new(client, vec![1.0..=2.0]);
+        let client = JointPositionLimiter::new(client, vec![(1.0..=2.0).into()]);
 
         client
             .send_joint_positions(vec![0.0], SECOND)
@@ -233,7 +326,7 @@ mod tests {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
         let client = JointPositionLimiter::new_with_strategy(
             client,
-            vec![1.0..=2.0],
+            vec![(1.0..=2.0).into()],
             JointPositionLimiterStrategy::Error,
         );
 
@@ -253,7 +346,7 @@ mod tests {
     #[tokio::test]
     async fn send_joint_trajectory_none_limited() {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
-        let mut client = JointPositionLimiter::new(client, vec![1.0..=2.0]);
+        let mut client = JointPositionLimiter::new(client, vec![(1.0..=2.0).into()]);
 
         for &strategy in &[
             JointPositionLimiterStrategy::Clamp,
@@ -286,7 +379,7 @@ mod tests {
     #[tokio::test]
     async fn send_joint_trajectory_limited_rounded() {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
-        let client = JointPositionLimiter::new(client, vec![1.0..=2.0]);
+        let client = JointPositionLimiter::new(client, vec![(1.0..=2.0).into()]);
 
         client
             .send_joint_trajectory(vec![
@@ -314,7 +407,7 @@ mod tests {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
         let client = JointPositionLimiter::new_with_strategy(
             client,
-            vec![1.0..=2.0],
+            vec![(1.0..=2.0).into()],
             JointPositionLimiterStrategy::Error,
         );
 
@@ -360,5 +453,49 @@ mod tests {
             Error::OutOfLimit { position: p, .. } => assert_approx_eq!(p, position),
             _ => panic!("{:?}", e),
         }
+    }
+
+    #[test]
+    fn serde_joint_position_limit() {
+        #[derive(Serialize, Deserialize)]
+        struct T {
+            limits: Vec<JointPositionLimit>,
+        }
+
+        let l: T = toml::from_str("limits = [{ lower = 0.0, upper = 1.0 }]").unwrap();
+        assert_approx_eq!(l.limits[0].lower().unwrap(), 0.0);
+        assert_approx_eq!(l.limits[0].upper().unwrap(), 1.0);
+
+        let l: T = toml::from_str("limits = [{}]").unwrap();
+        assert!(l.limits[0].is_none());
+
+        let l: T = toml::from_str(
+            "limits = [\
+                { lower = 0.0, upper = 1.0 },\
+                {},\
+                { lower = 1.0, upper = 2.0 }\
+            ]",
+        )
+        .unwrap();
+        assert_approx_eq!(l.limits[0].lower().unwrap(), 0.0);
+        assert_approx_eq!(l.limits[0].upper().unwrap(), 1.0);
+        assert!(l.limits[1].is_none());
+        assert_approx_eq!(l.limits[2].lower().unwrap(), 1.0);
+        assert_approx_eq!(l.limits[2].upper().unwrap(), 2.0);
+
+        // TODO: We want to serialize to inline table: https://github.com/alexcrichton/toml-rs/issues/265
+        assert_eq!(
+            toml::to_string(&l).unwrap(),
+            "[[limits]]\n\
+             lower = 0.0\n\
+             upper = 1.0\n\
+             \n\
+             [[limits]]\n\
+             \n\
+             [[limits]]\n\
+             lower = 1.0\n\
+             upper = 2.0\n\
+            "
+        );
     }
 }
