@@ -64,6 +64,14 @@ You can use this GUI not only for ROS but anything if you implement `arci::Joint
 
 General CLI to access `arci` robot clients. It supports not only sending joint trajectory directly but it supports inverse kinematics with self-collision check, and navigation.
 
+## Format
+
+To format use nightly rustfmt,
+
+```rust
+cargo +nightly fmt
+```
+
 ## License
 
 Apache2
