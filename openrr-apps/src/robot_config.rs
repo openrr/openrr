@@ -52,6 +52,9 @@ impl Default for SpeakConfig {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[non_exhaustive] // The fields will increase depending on the feature flag.
 pub struct RobotConfig {
+    // TOML format has a restriction that if a table itself contains tables,
+    // all keys with non-table values must be emitted first.
+    // Therefore, these fields must be located at the start of the struct.
     #[serde(default = "default_urdf_viz_clients_total_complete_allowable_error")]
     pub urdf_viz_clients_total_complete_allowable_error: f64,
     #[serde(default = "default_urdf_viz_clients_complete_timeout_sec")]

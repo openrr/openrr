@@ -1,7 +1,24 @@
 [[urdf_viz_clients_configs]]
 name = "arm"
-joint_names = ["l_shoulder_yaw", "l_shoulder_pitch", "l_shoulder_roll", "l_elbow_pitch", "l_wrist_yaw", "l_wrist_pitch"]
+joint_names = [
+    "l_shoulder_yaw",
+    "l_shoulder_pitch",
+    "l_shoulder_roll",
+    "l_elbow_pitch",
+    "l_wrist_yaw",
+    "l_wrist_pitch",
+]
 wrap_with_joint_position_limiter = true
+# If joint_position_limits is not specified, limits will be got from URDF.
+# The following values are the same as if getting limits from URDF.
+joint_position_limits = [
+    { lower = -3, upper = 3 },
+    { lower = -2, upper = 1.5 },
+    { lower = -1.5, upper = 2 },
+    { lower = -2, upper = 1.5 },
+    { lower = -3, upper = 3 },
+    { lower = -2, upper = 2 },
+]
 
 [openrr_clients_config]
 urdf_path = "../../openrr-planner/sample.urdf"
