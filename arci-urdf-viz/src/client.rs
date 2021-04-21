@@ -9,6 +9,7 @@ use std::{
     time::Duration,
 };
 
+use anyhow::format_err;
 use arci::{
     BaseVelocity, CompleteCondition, JointPositionLimiter, JointTrajectoryClient,
     JointVelocityLimiter, Localization, MoveBase, Navigation, SetCompleteCondition,
@@ -26,6 +27,8 @@ use crate::utils::*;
 pub struct UrdfVizWebClientConfig {
     pub name: String,
     pub joint_names: Vec<String>,
+    #[serde(default)]
+    pub wrap_with_joint_position_limiter: bool,
     #[serde(default)]
     pub wrap_with_joint_velocity_limiter: bool,
     #[serde(default)]
@@ -47,13 +50,21 @@ pub fn create_joint_trajectory_clients(
     all_client.run_send_joint_positions_thread();
     let all_client = Arc::new(all_client);
     for config in configs {
+        if config.wrap_with_joint_position_limiter && urdf_robot.is_none() {
+            return Err(format_err!(
+                "wrap_with_joint_position_limiter is true in config `{}`, \
+                but urdf is not specified",
+                config.name
+            )
+            .into());
+        }
         let client =
             arci::PartialJointTrajectoryClient::new(config.joint_names, all_client.clone());
         let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
-            if let Some(urdf_robot) = urdf_robot {
+            if config.wrap_with_joint_position_limiter {
                 Arc::new(JointPositionLimiter::from_urdf(
                     JointVelocityLimiter::new(client, config.joint_velocity_limits),
-                    &urdf_robot.joints,
+                    &urdf_robot.unwrap().joints,
                 )?)
             } else {
                 Arc::new(JointVelocityLimiter::new(
@@ -61,8 +72,11 @@ pub fn create_joint_trajectory_clients(
                     config.joint_velocity_limits,
                 ))
             }
-        } else if let Some(urdf_robot) = urdf_robot {
-            Arc::new(JointPositionLimiter::from_urdf(client, &urdf_robot.joints)?)
+        } else if config.wrap_with_joint_position_limiter {
+            Arc::new(JointPositionLimiter::from_urdf(
+                client,
+                &urdf_robot.unwrap().joints,
+            )?)
         } else {
             Arc::new(client)
         };
