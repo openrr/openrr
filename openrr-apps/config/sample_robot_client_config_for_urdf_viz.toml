@@ -1,6 +1,7 @@
 [[urdf_viz_clients_configs]]
 name = "arm"
 joint_names = ["l_shoulder_yaw", "l_shoulder_pitch", "l_shoulder_roll", "l_elbow_pitch", "l_wrist_yaw", "l_wrist_pitch"]
+wrap_with_joint_position_limiter = true
 
 [openrr_clients_config]
 urdf_path = "../../openrr-planner/sample.urdf"
