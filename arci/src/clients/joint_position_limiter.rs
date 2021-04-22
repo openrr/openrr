@@ -23,6 +23,11 @@ impl<C> JointPositionLimiter<C>
 where
     C: JointTrajectoryClient,
 {
+    /// Creates a new `JointPositionLimiter` with the given position limits.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the lengths of `limits` and joints that `client` handles are different.
     pub fn new(client: C, limits: Vec<JointPositionLimit>) -> Self {
         Self::new_with_strategy(client, limits, Default::default())
     }
@@ -40,6 +45,7 @@ where
         }
     }
 
+    /// Creates a new `JointPositionLimiter` with the position limits defined in URDF.
     pub fn from_urdf(client: C, joints: &[urdf_rs::Joint]) -> Result<Self, Error> {
         Self::from_urdf_with_strategy(client, joints, Default::default())
     }
@@ -453,6 +459,34 @@ mod tests {
             Error::OutOfLimit { position: p, .. } => assert_approx_eq!(p, position),
             _ => panic!("{:?}", e),
         }
+    }
+
+    #[test]
+    fn from_urdf() {
+        let s = r##"
+            <robot name="robo">
+                <joint name="a" type="revolute">
+                    <origin xyz="0.0 0.0 0.0" />
+                    <parent link="b" />
+                    <child link="c" />
+                    <axis xyz="0 1 0" />
+                    <limit lower="-2" upper="1.0" effort="0" velocity="1.0"/>
+                </joint>
+            </robot>
+        "##;
+        let urdf_robot = urdf_rs::read_from_string(s).unwrap();
+        let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
+        let limiter = JointPositionLimiter::from_urdf(client, &urdf_robot.joints).unwrap();
+        assert_approx_eq!(limiter.limits[0].lower().unwrap(), -2.0);
+        assert_approx_eq!(limiter.limits[0].upper().unwrap(), 1.0);
+
+        // joint name mismatch
+        let urdf_robot = urdf_rs::read_from_string(s).unwrap();
+        let client = DummyJointTrajectoryClient::new(vec!["unknown".to_owned()]);
+        let e = JointPositionLimiter::from_urdf(client, &urdf_robot.joints)
+            .err()
+            .unwrap();
+        assert!(matches!(e, Error::NoJoint(..)));
     }
 
     #[test]

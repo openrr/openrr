@@ -24,7 +24,7 @@ fn test_urdf_viz_web_client_config_accessor() {
         wrap_with_joint_position_limiter: true,
         joint_position_limits: None,
         wrap_with_joint_velocity_limiter: true,
-        joint_velocity_limits: vec![1.0, 2.0],
+        joint_velocity_limits: Some(vec![1.0, 2.0]),
     };
     assert_eq!(config.name, "test");
     assert_eq!(config.joint_names[0], "j1");
@@ -32,22 +32,22 @@ fn test_urdf_viz_web_client_config_accessor() {
     assert_eq!(config.wrap_with_joint_position_limiter, true);
     assert!(config.joint_position_limits.is_none());
     assert_eq!(config.wrap_with_joint_velocity_limiter, true);
-    assert_approx_eq!(config.joint_velocity_limits[0], 1.0);
-    assert_approx_eq!(config.joint_velocity_limits[1], 2.0);
+    assert_approx_eq!(config.joint_velocity_limits.as_ref().unwrap()[0], 1.0);
+    assert_approx_eq!(config.joint_velocity_limits.unwrap()[1], 2.0);
     config.name = "arm".to_owned();
     config.joint_names = vec!["shoulder_pan_joint".to_owned(), "elbow_joint".to_owned()];
     config.wrap_with_joint_position_limiter = false;
     config.joint_position_limits = Some(vec![]);
     config.wrap_with_joint_velocity_limiter = false;
-    config.joint_velocity_limits = vec![0.0, 0.0];
+    config.joint_velocity_limits = Some(vec![0.0, 0.0]);
     assert_eq!(config.name, "arm");
     assert_eq!(config.joint_names[0], "shoulder_pan_joint");
     assert_eq!(config.joint_names[1], "elbow_joint");
     assert_eq!(config.wrap_with_joint_position_limiter, false);
     assert!(config.joint_position_limits.unwrap().is_empty());
     assert_eq!(config.wrap_with_joint_velocity_limiter, false);
-    assert_approx_eq!(config.joint_velocity_limits[0], 0.0);
-    assert_approx_eq!(config.joint_velocity_limits[1], 0.0);
+    assert_approx_eq!(config.joint_velocity_limits.as_ref().unwrap()[0], 0.0);
+    assert_approx_eq!(config.joint_velocity_limits.unwrap()[1], 0.0);
 }
 
 #[test]
@@ -58,7 +58,7 @@ fn test_urdf_viz_web_client_config_debug() {
         wrap_with_joint_position_limiter: true,
         joint_position_limits: None,
         wrap_with_joint_velocity_limiter: true,
-        joint_velocity_limits: vec![1.0, 2.0],
+        joint_velocity_limits: Some(vec![1.0, 2.0]),
     };
     assert_eq!(
         format!("{:?}", config),
@@ -66,7 +66,7 @@ fn test_urdf_viz_web_client_config_debug() {
             joint_names: [\"j1\", \"j2\"], \
             wrap_with_joint_position_limiter: true, \
             wrap_with_joint_velocity_limiter: true, \
-            joint_velocity_limits: [1.0, 2.0], \
+            joint_velocity_limits: Some([1.0, 2.0]), \
             joint_position_limits: None \
         }"
     )
@@ -81,7 +81,7 @@ fn test_urdf_viz_web_client_config_clone() {
         wrap_with_joint_position_limiter: true,
         joint_position_limits: None,
         wrap_with_joint_velocity_limiter: true,
-        joint_velocity_limits: vec![1.0, 2.0],
+        joint_velocity_limits: Some(vec![1.0, 2.0]),
     };
     let config2 = config1.clone();
     assert_eq!(config2.name, "test");
@@ -90,8 +90,8 @@ fn test_urdf_viz_web_client_config_clone() {
     assert_eq!(config2.wrap_with_joint_position_limiter, true);
     assert!(config2.joint_position_limits.is_none());
     assert_eq!(config2.wrap_with_joint_velocity_limiter, true);
-    assert_approx_eq!(config2.joint_velocity_limits[0], 1.0);
-    assert_approx_eq!(config2.joint_velocity_limits[1], 2.0);
+    assert_approx_eq!(config2.joint_velocity_limits.as_ref().unwrap()[0], 1.0);
+    assert_approx_eq!(config2.joint_velocity_limits.unwrap()[1], 2.0);
 }
 
 #[test]
@@ -106,7 +106,7 @@ fn test_create_joint_trajectory_clients() {
             wrap_with_joint_position_limiter: false,
             joint_position_limits: None,
             wrap_with_joint_velocity_limiter: true,
-            joint_velocity_limits: vec![1.0, 1.0],
+            joint_velocity_limits: Some(vec![1.0, 1.0]),
         },
         UrdfVizWebClientConfig {
             name: "c2".to_owned(),
@@ -114,7 +114,7 @@ fn test_create_joint_trajectory_clients() {
             wrap_with_joint_position_limiter: false,
             joint_position_limits: None,
             wrap_with_joint_velocity_limiter: false,
-            joint_velocity_limits: vec![],
+            joint_velocity_limits: None,
         },
     ];
     let _clients = arci_urdf_viz::create_joint_trajectory_clients(configs, 0.1, 0.1, None).unwrap();
