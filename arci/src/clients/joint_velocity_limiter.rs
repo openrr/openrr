@@ -30,12 +30,35 @@ impl<C> JointVelocityLimiter<C>
 where
     C: JointTrajectoryClient,
 {
+    /// Creates a new `JointVelocityLimiter` with the given velocity limits.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the lengths of `velocity_limits` and joints that `client` handles are different.
     pub fn new(client: C, velocity_limits: Vec<f64>) -> Self {
         assert!(client.joint_names().len() == velocity_limits.len());
         Self {
             client,
             velocity_limits,
         }
+    }
+
+    /// Creates a new `JointVelocityLimiter` with the velocity limits defined in URDF.
+    pub fn from_urdf(client: C, joints: &[urdf_rs::Joint]) -> Result<Self, Error> {
+        let mut velocity_limits = Vec::new();
+        for joint_name in client.joint_names() {
+            if let Some(i) = joints.iter().position(|j| j.name == *joint_name) {
+                let limit = joints[i].limit.velocity;
+                velocity_limits.push(limit);
+            } else {
+                return Err(Error::NoJoint(joint_name.into()));
+            }
+        }
+
+        Ok(Self {
+            client,
+            velocity_limits,
+        })
     }
 }
 
@@ -261,5 +284,32 @@ mod tests {
         test_send_joint_trajectory(vec![0.3, 2.0], [4.0, 4.0 + 2.0 / 0.3]);
         // joint1 / point1 is over limit
         test_send_joint_trajectory(vec![1.0, 0.8], [4.0, 4.0 + 4.0 / 0.8]);
+    }
+
+    #[test]
+    fn from_urdf() {
+        let s = r##"
+            <robot name="robo">
+                <joint name="a" type="revolute">
+                    <origin xyz="0.0 0.0 0.0" />
+                    <parent link="b" />
+                    <child link="c" />
+                    <axis xyz="0 1 0" />
+                    <limit lower="-2" upper="1.0" effort="0" velocity="1.0"/>
+                </joint>
+            </robot>
+        "##;
+        let urdf_robot = urdf_rs::read_from_string(s).unwrap();
+        let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
+        let limiter = JointVelocityLimiter::from_urdf(client, &urdf_robot.joints).unwrap();
+        assert_approx_eq!(limiter.velocity_limits[0], 1.0);
+
+        // joint name mismatch
+        let urdf_robot = urdf_rs::read_from_string(s).unwrap();
+        let client = DummyJointTrajectoryClient::new(vec!["unknown".to_owned()]);
+        let e = JointVelocityLimiter::from_urdf(client, &urdf_robot.joints)
+            .err()
+            .unwrap();
+        assert!(matches!(e, Error::NoJoint(..)));
     }
 }

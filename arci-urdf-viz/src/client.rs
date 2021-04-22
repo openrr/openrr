@@ -31,8 +31,7 @@ pub struct UrdfVizWebClientConfig {
     pub wrap_with_joint_position_limiter: bool,
     #[serde(default)]
     pub wrap_with_joint_velocity_limiter: bool,
-    #[serde(default)]
-    pub joint_velocity_limits: Vec<f64>,
+    pub joint_velocity_limits: Option<Vec<f64>>,
 
     // TOML format has a restriction that if a table itself contains tables,
     // all keys with non-table values must be emitted first.
@@ -69,38 +68,58 @@ pub fn create_joint_trajectory_clients(
             arci::PartialJointTrajectoryClient::new(config.joint_names, all_client.clone());
         let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
             if config.wrap_with_joint_position_limiter {
-                if let Some(limits) = config.joint_position_limits {
-                    Arc::new(JointPositionLimiter::new(
-                        JointVelocityLimiter::new(client, config.joint_velocity_limits),
-                        limits,
-                    ))
-                } else {
-                    Arc::new(JointPositionLimiter::from_urdf(
-                        JointVelocityLimiter::new(client, config.joint_velocity_limits),
-                        &urdf_robot.unwrap().joints,
-                    )?)
-                }
+                Arc::new(new_joint_position_limiter(
+                    new_joint_velocity_limiter(client, config.joint_velocity_limits, urdf_robot)?,
+                    config.joint_position_limits,
+                    urdf_robot,
+                )?)
             } else {
-                Arc::new(JointVelocityLimiter::new(
+                Arc::new(new_joint_velocity_limiter(
                     client,
                     config.joint_velocity_limits,
-                ))
-            }
-        } else if config.wrap_with_joint_position_limiter {
-            if let Some(limits) = config.joint_position_limits {
-                Arc::new(JointPositionLimiter::new(client, limits))
-            } else {
-                Arc::new(JointPositionLimiter::from_urdf(
-                    client,
-                    &urdf_robot.unwrap().joints,
+                    urdf_robot,
                 )?)
             }
+        } else if config.wrap_with_joint_position_limiter {
+            Arc::new(new_joint_position_limiter(
+                client,
+                config.joint_position_limits,
+                urdf_robot,
+            )?)
         } else {
             Arc::new(client)
         };
         clients.insert(config.name, client);
     }
     Ok(clients)
+}
+
+fn new_joint_position_limiter<C>(
+    client: C,
+    position_limits: Option<Vec<JointPositionLimit>>,
+    urdf_robot: Option<&urdf_rs::Robot>,
+) -> Result<JointPositionLimiter<C>, arci::Error>
+where
+    C: JointTrajectoryClient,
+{
+    match position_limits {
+        Some(position_limits) => Ok(JointPositionLimiter::new(client, position_limits)),
+        None => JointPositionLimiter::from_urdf(client, &urdf_robot.unwrap().joints),
+    }
+}
+
+fn new_joint_velocity_limiter<C>(
+    client: C,
+    velocity_limits: Option<Vec<f64>>,
+    urdf_robot: Option<&urdf_rs::Robot>,
+) -> Result<JointVelocityLimiter<C>, arci::Error>
+where
+    C: JointTrajectoryClient,
+{
+    match velocity_limits {
+        Some(velocity_limits) => Ok(JointVelocityLimiter::new(client, velocity_limits)),
+        None => JointVelocityLimiter::from_urdf(client, &urdf_robot.unwrap().joints),
+    }
 }
 
 struct SendJointPositionsTarget {
