@@ -1,5 +1,4 @@
-#[macro_use]
-extern crate approx;
+use assert_approx_eq::assert_approx_eq;
 
 use openrr_planner::*;
 
@@ -24,14 +23,13 @@ fn test_funcs() {
 
     let angles1 = vec![100.0, -2.0, 0.5];
     let clamped = generate_clamped_joint_positions_from_limits(&angles1, &limits).unwrap();
-    const TORELANCE: f64 = 0.00001;
-    assert!((clamped[0] - 100.0).abs() < TORELANCE);
-    assert!((clamped[1] - (-1.0)).abs() < TORELANCE);
-    assert!((clamped[2] - 0.1).abs() < TORELANCE);
+    assert_approx_eq!(clamped[0], 100.0);
+    assert_approx_eq!(clamped[1], -1.0);
+    assert_approx_eq!(clamped[2], 0.1);
 }
 
 #[test]
-fn test_interpolate() {
+fn test_interpolate_values() {
     use trajectory::{CubicSpline, Trajectory};
 
     // parameters for test
@@ -76,21 +74,21 @@ fn test_interpolate() {
             .iter()
             .zip(spline.position(t).unwrap())
             .for_each(|(t_point, correct)| {
-                assert_relative_eq!(*t_point, correct, max_relative = 1.0)
+                assert_approx_eq!(*t_point, correct);
             });
         t_point
             .velocity
             .iter()
             .zip(spline.velocity(t).unwrap())
             .for_each(|(t_point, correct)| {
-                assert_relative_eq!(*t_point, correct, max_relative = 1.0)
+                assert_approx_eq!(*t_point, correct);
             });
         t_point
             .acceleration
             .iter()
             .zip(spline.acceleration(t).unwrap())
             .for_each(|(t_point, correct)| {
-                assert_relative_eq!(*t_point, correct, max_relative = 1.0)
+                assert_approx_eq!(*t_point, correct);
             });
     }
 }
