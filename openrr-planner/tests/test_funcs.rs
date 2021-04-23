@@ -96,19 +96,19 @@ fn test_interpolate_values() {
 fn test_interpolation_ok() {
     let points = interpolate(&[vec![0.0, 1.0], vec![2.0, 0.0]], 1.0, 0.1).unwrap();
     assert_eq!(points.len(), 12);
-    assert_eq!(points[0].position[0], 0.0);
-    assert_eq!(points[0].position[1], 1.0);
-    assert_eq!(points[1].position[0], 0.2);
-    assert_eq!(points[1].position[1], 0.9);
+    assert_approx_eq!(points[0].position[0], 0.0f64);
+    assert_approx_eq!(points[0].position[1], 1.0f64);
+    assert_approx_eq!(points[1].position[0], 0.2f64);
+    assert_approx_eq!(points[1].position[1], 0.9f64);
 }
 
 #[test]
 fn test_interpolation_with_same_values() {
     let points = interpolate(&[vec![0.0, 1.0], vec![0.0, 1.0]], 1.0, 0.1).unwrap();
     assert_eq!(points.len(), 12);
-    for i in 0..points.len() {
-        assert_approx_eq!(points[i].position[0], 0.0f64);
-        assert_approx_eq!(points[i].position[1], 1.0f64);
+    for p in points {
+        assert_approx_eq!(p.position[0], 0.0f64);
+        assert_approx_eq!(p.position[1], 1.0f64);
     }
 }
 
