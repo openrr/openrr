@@ -34,7 +34,7 @@ fn test_funcs() {
 fn test_interpolate() {
     use trajectory::{CubicSpline, Trajectory};
 
-    // parametor for test
+    // parameters for test
     let total_duration = 4.0_f64;
     let unit_duration = 0.01_f64;
     let points = vec![
