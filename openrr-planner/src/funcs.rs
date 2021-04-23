@@ -141,6 +141,17 @@ impl<T> TrajectoryPoint<T> {
 /// Interpolate position vectors
 ///
 /// returns vector of (position, velocity, acceleration)
+///
+/// # Example
+///
+/// ```
+/// let points = openrr_planner::interpolate(&[vec![0.0, 1.0], vec![2.0, 0.0]], 1.0, 0.1).unwrap();
+/// assert_eq!(points.len(), 12);
+/// assert_eq!(points[0].position[0], 0.0);
+/// assert_eq!(points[0].position[1], 1.0);
+/// assert_eq!(points[1].position[0], 0.2);
+/// assert_eq!(points[1].position[1], 0.9);
+/// ```
 pub fn interpolate<T>(
     points: &[Vec<T>],
     total_duration: T,
