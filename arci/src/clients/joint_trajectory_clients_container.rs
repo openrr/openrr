@@ -1,7 +1,10 @@
-use crate::error::Error;
-use crate::traits::{JointTrajectoryClient, TrajectoryPoint};
-use crate::waits::WaitFuture;
 use futures::stream::FuturesOrdered;
+
+use crate::{
+    error::Error,
+    traits::{JointTrajectoryClient, TrajectoryPoint},
+    waits::WaitFuture,
+};
 
 pub struct JointTrajectoryClientsContainer<T: JointTrajectoryClient> {
     joint_names: Vec<String>,
@@ -31,6 +34,7 @@ where
     fn joint_names(&self) -> &[String] {
         &self.joint_names
     }
+
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
         let mut ret = vec![];
         for c in &self.clients {
@@ -39,6 +43,7 @@ where
         }
         Ok(ret)
     }
+
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
@@ -58,6 +63,7 @@ where
         }
         Ok(WaitFuture::from_stream(waits))
     }
+
     fn send_joint_trajectory(
         &self,
         full_trajectory: Vec<TrajectoryPoint>,
@@ -103,8 +109,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::sync::{Arc, Mutex};
+
+    use super::*;
     #[derive(Debug, Clone)]
     struct DummyFull {
         name: Vec<String>,
@@ -115,9 +122,11 @@ mod tests {
         fn joint_names(&self) -> &[String] {
             &self.name
         }
+
         fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
             Ok(self.pos.lock().unwrap().clone())
         }
+
         fn send_joint_positions(
             &self,
             positions: Vec<f64>,
@@ -126,6 +135,7 @@ mod tests {
             *self.pos.lock().unwrap() = positions;
             Ok(WaitFuture::ready())
         }
+
         fn send_joint_trajectory(
             &self,
             full_trajectory: Vec<TrajectoryPoint>,
@@ -148,9 +158,11 @@ mod tests {
             fn joint_names(&self) -> &[String] {
                 &self.name
             }
+
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
                 unimplemented!();
             }
+
             fn send_joint_positions(
                 &self,
                 _positions: Vec<f64>,
@@ -158,6 +170,7 @@ mod tests {
             ) -> Result<WaitFuture, Error> {
                 unimplemented!();
             }
+
             fn send_joint_trajectory(
                 &self,
                 _trajectory: Vec<TrajectoryPoint>,
@@ -200,9 +213,11 @@ mod tests {
             fn joint_names(&self) -> &[String] {
                 &self.name
             }
+
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
                 unimplemented!();
             }
+
             fn send_joint_positions(
                 &self,
                 _positions: Vec<f64>,
@@ -210,6 +225,7 @@ mod tests {
             ) -> Result<WaitFuture, Error> {
                 unimplemented!();
             }
+
             fn send_joint_trajectory(
                 &self,
                 _trajectory: Vec<TrajectoryPoint>,
@@ -280,11 +296,13 @@ mod tests {
             fn joint_names(&self) -> &[String] {
                 &self.name
             }
+
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
                 Err(Error::Uninitialized {
                     message: String::from("current pos is not exist."),
                 })
             }
+
             fn send_joint_positions(
                 &self,
                 _positions: Vec<f64>,
@@ -292,6 +310,7 @@ mod tests {
             ) -> Result<WaitFuture, Error> {
                 unimplemented!();
             }
+
             fn send_joint_trajectory(
                 &self,
                 _trajectory: Vec<TrajectoryPoint>,
@@ -358,9 +377,11 @@ mod tests {
             fn joint_names(&self) -> &[String] {
                 &self.name
             }
+
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
                 Ok(self.pos.clone())
             }
+
             fn send_joint_positions(
                 &self,
                 _positions: Vec<f64>,
@@ -370,6 +391,7 @@ mod tests {
                     message: String::from("error pattern."),
                 })
             }
+
             fn send_joint_trajectory(
                 &self,
                 _trajectory: Vec<TrajectoryPoint>,
@@ -447,9 +469,11 @@ mod tests {
             fn joint_names(&self) -> &[String] {
                 &self.name
             }
+
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
                 Ok(self.pos.clone())
             }
+
             fn send_joint_positions(
                 &self,
                 _positions: Vec<f64>,
@@ -457,6 +481,7 @@ mod tests {
             ) -> Result<WaitFuture, Error> {
                 Ok(WaitFuture::ready())
             }
+
             fn send_joint_trajectory(
                 &self,
                 _trajectory: Vec<TrajectoryPoint>,
