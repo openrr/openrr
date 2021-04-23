@@ -1,5 +1,4 @@
 use assert_approx_eq::assert_approx_eq;
-
 use openrr_planner::*;
 
 #[test]
