@@ -154,7 +154,6 @@ fn default_axis_value_map() -> HashMap<Axis, f64> {
 
 pub struct GilGamepad {
     rx: flume::Receiver<GamepadEvent>,
-    _handle: std::thread::JoinHandle<()>,
     is_running: Arc<AtomicBool>,
 }
 
@@ -163,7 +162,7 @@ impl GilGamepad {
         let (tx, rx) = flume::unbounded();
         let is_running = Arc::new(AtomicBool::new(true));
         let is_running_cloned = is_running.clone();
-        let _handle = std::thread::spawn(move || {
+        std::thread::spawn(move || {
             let mut gil = gilrs::Gilrs::new().unwrap();
             // TODO: On MacOS `gamepads()` does not works.
             #[cfg(not(target_os = "macos"))]
@@ -198,11 +197,7 @@ impl GilGamepad {
             }
         });
 
-        Self {
-            rx,
-            _handle,
-            is_running,
-        }
+        Self { rx, is_running }
     }
 
     pub fn new_from_config(config: GilGamepadConfig) -> Self {
@@ -232,6 +227,12 @@ impl Gamepad for GilGamepad {
 
     fn stop(&self) {
         self.is_running.store(false, Ordering::Relaxed);
+    }
+}
+
+impl Drop for GilGamepad {
+    fn drop(&mut self) {
+        self.stop();
     }
 }
 
