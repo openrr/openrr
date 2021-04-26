@@ -4,6 +4,7 @@ members = [
     "arci",
     "arci-gamepad-gilrs",
     "arci-ros",
+    "arci-ros2",
     "arci-speak-cmd",
     "arci-speak-audio",
     "arci-urdf-viz",
@@ -24,6 +25,7 @@ arci-speak-audio = { path = "arci-speak-audio" }
 arci = { path = "arci" }
 arci-gamepad-gilrs = { path = "arci-gamepad-gilrs" }
 arci-ros = { path = "arci-ros" }
+arci-ros2 = { path = "arci-ros2" }
 arci-urdf-viz = { path = "arci-urdf-viz" }
 openrr = { path = "openrr" }
 openrr-apps = { path = "openrr-apps" }
