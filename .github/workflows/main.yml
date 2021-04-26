@@ -93,7 +93,7 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-      - run: rustup component add rustfmt
+          components: rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
@@ -109,8 +109,8 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+          components: clippy
       - run: ci/ubuntu-install-dependencies.sh
-      - run: rustup component add clippy
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
