@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           apt-get update
-          apt-get -y install curl
+          apt-get -y install curl libclang-dev
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
