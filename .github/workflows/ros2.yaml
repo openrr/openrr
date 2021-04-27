@@ -1,0 +1,38 @@
+name: ros2
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ros2_arci_ros2:
+    runs-on: ubuntu-20.04
+    container:
+      image: docker://ros:foxy
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          apt-get update
+          apt-get -y install curl
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: cargo build
+        shell: bash -ieo pipefail {0}
+        working-directory: arci-ros2
+        run: |
+          source /opt/ros/foxy/setup.bash
+          cargo build --examples
+      - name: cargo test
+        shell: bash -ieo pipefail {0}
+        working-directory: arci-ros2
+        run: |
+          source /opt/ros/foxy/setup.bash
+          cargo test
+
