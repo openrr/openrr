@@ -6,4 +6,6 @@ ROS2 implementation for arci.
 
 ## Dependencies
 
+* ROS2 Foxy
 * [r2r](https://github.com/sequenceplanner/r2r)
+  * libclang-dev
