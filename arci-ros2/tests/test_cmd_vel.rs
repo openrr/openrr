@@ -1,8 +1,9 @@
+use std::sync::mpsc;
+
 use arci::{BaseVelocity, MoveBase};
 use arci_ros2::{r2r, Ros2CmdVelMoveBase};
 use assert_approx_eq::assert_approx_eq;
 use r2r::geometry_msgs::msg::Twist;
-use std::sync::mpsc;
 
 #[tokio::test]
 async fn test_pub() {
