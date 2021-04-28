@@ -1,9 +1,11 @@
 use anyhow::Error;
-use arci::{BaseVelocity, MoveBase};
-use arci_ros2::{r2r, Ros2CmdVelMoveBase};
 
+#[cfg(feature = "ros2")]
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    use arci::{BaseVelocity, MoveBase};
+    use arci_ros2::{r2r, Ros2CmdVelMoveBase};
+
     let ctx = r2r::Context::create().unwrap();
     let mut node = r2r::Node::create(ctx, "example_cmd_vel_node", "").unwrap();
     let c = Ros2CmdVelMoveBase::new(&mut node, "/cmd_vel");
@@ -23,5 +25,10 @@ async fn main() -> Result<(), Error> {
         count -= 1;
         println!("{}, {:?}", count, vel);
     }
+    Ok(())
+}
+
+#[cfg(not(feature = "ros2"))]
+fn main() -> Result<(), Error> {
     Ok(())
 }

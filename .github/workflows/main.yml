@@ -74,11 +74,11 @@ jobs:
           toolchain: stable
           override: true
       - run: ci/ubuntu-install-dependencies.sh
-      # testing arci-ros is done in ros1.yaml
+      # testing arci-ros/arci-ros2 is done in ros1.yaml, ros2.yaml
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --exclude arci-ros
+          args: --workspace --exclude arci-ros --exclude arci-ros2
       - name: cargo test (openrr-apps without ros)
         working-directory: openrr-apps
         run: cargo test --no-default-features --features gui,assimp
