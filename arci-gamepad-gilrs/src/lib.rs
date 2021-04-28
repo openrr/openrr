@@ -170,7 +170,7 @@ impl GilGamepad {
                 let mut is_found = false;
                 for (connected_id, gamepad) in gil.gamepads() {
                     info!("{} is {:?}", gamepad.name(), gamepad.power_info());
-                    if id == connected_id.into() {
+                    if id == Into::<usize>::into(connected_id) {
                         is_found = true;
                     }
                 }
@@ -184,7 +184,7 @@ impl GilGamepad {
                     Some(gilrs::Event {
                         id: recv_id, event, ..
                     }) => {
-                        if id == recv_id.into() {
+                        if id == Into::<usize>::into(recv_id) {
                             if let Some(e) = map.convert_event(event) {
                                 tx.send(e).unwrap();
                             }
