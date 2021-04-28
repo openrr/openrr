@@ -19,18 +19,22 @@ limitations under the License.
 //! collision between the robot and the environment.
 //!
 mod errors;
-pub use errors::Error;
 
 pub mod collision;
-pub use collision::{CollisionChecker, FromUrdf};
 
 mod funcs;
-pub use funcs::*;
 
 mod ik;
-pub use ik::*;
 
 mod planner;
+
 // re-export k::IK modules
 pub use k::{InverseKinematicsSolver, JacobianIkSolver};
-pub use planner::*;
+
+pub use crate::{
+    collision::{CollisionChecker, FromUrdf},
+    errors::Error,
+    funcs::*,
+    ik::*,
+    planner::*,
+};

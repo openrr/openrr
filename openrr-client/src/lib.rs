@@ -4,6 +4,4 @@ mod robot_client;
 
 pub mod utils;
 
-pub use clients::*;
-pub use error::*;
-pub use robot_client::*;
+pub use crate::{clients::*, error::*, robot_client::*};
