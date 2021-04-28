@@ -19,5 +19,6 @@ r2r = { git = "https://github.com/sequenceplanner/r2r" }
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }
+assert_approx_eq = "1.1"
 
 [workspace]
