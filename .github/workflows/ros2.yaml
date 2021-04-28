@@ -28,11 +28,10 @@ jobs:
         working-directory: arci-ros2
         run: |
           source /opt/ros/foxy/setup.bash
-          cargo build --examples
+          cargo build --features ros2 --examples
       - name: cargo test
         shell: bash -ieo pipefail {0}
         working-directory: arci-ros2
         run: |
           source /opt/ros/foxy/setup.bash
-          cargo test
-
+          cargo test --features ros2

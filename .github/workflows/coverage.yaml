@@ -17,7 +17,7 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     container:
-      image: docker://openrr/openrr-coverage-ci:0
+      image: docker://openrr/openrr-coverage-ci:ros2
       options: --security-opt seccomp=unconfined
     env:
       HOME: /root
@@ -27,7 +27,9 @@ jobs:
       - name: Generate code coverage
         run: |
           # for test of arci-ros (roscore, rostopic)
-          source /opt/ros/melodic/setup.bash
+          source /opt/ros/noetic/setup.bash
+          # for test of arci-ros2
+          source /opt/ros/foxy/setup.bash
           cargo +nightly-2021-03-04 tarpaulin --verbose --all-features --workspace --out Xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1

@@ -15,10 +15,11 @@ anyhow = "1.0"
 arci = "0.0.5"
 async-trait = "0.1"
 thiserror = "1.0"
-r2r = { git = "https://github.com/sequenceplanner/r2r" }
+r2r = { git = "https://github.com/sequenceplanner/r2r", optional = true}
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }
 assert_approx_eq = "1.1"
 
-[workspace]
+[features]
+ros2 = ["r2r"]
