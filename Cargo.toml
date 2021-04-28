@@ -4,6 +4,7 @@ members = [
     "arci",
     "arci-gamepad-gilrs",
     "arci-ros",
+    "arci-ros2",
     "arci-speak-cmd",
     "arci-speak-audio",
     "arci-urdf-viz",
