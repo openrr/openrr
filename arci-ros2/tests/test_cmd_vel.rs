@@ -1,11 +1,12 @@
 #[cfg(feature = "ros2")]
 #[tokio::test]
 async fn test_pub() {
+    use std::sync::mpsc;
+
     use arci::{BaseVelocity, MoveBase};
     use arci_ros2::{r2r, Ros2CmdVelMoveBase};
     use assert_approx_eq::assert_approx_eq;
     use r2r::geometry_msgs::msg::Twist;
-    use std::sync::mpsc;
 
     let ctx = r2r::Context::create().unwrap();
     let mut node = r2r::Node::create(ctx, "example_cmd_vel_node", "").unwrap();
