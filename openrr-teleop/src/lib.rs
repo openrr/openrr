@@ -6,10 +6,7 @@ mod joints_pose_sender;
 mod move_base;
 mod switcher;
 
-pub use control_node::*;
-pub use control_nodes_config::*;
-pub use ik::*;
-pub use joints::*;
-pub use joints_pose_sender::*;
-pub use move_base::*;
-pub use switcher::*;
+pub use crate::{
+    control_node::*, control_nodes_config::*, ik::*, joints::*, joints_pose_sender::*,
+    move_base::*, switcher::*,
+};
