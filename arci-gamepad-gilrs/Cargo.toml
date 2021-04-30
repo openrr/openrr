@@ -8,7 +8,7 @@ description = "arci::Gamepad implementation using gilrs"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "http://docs.rs/arci-gamepad-gilrs"
+documentation = "https://docs.rs/arci-gamepad-gilrs"
 
 [dependencies]
 arci = "0.0.5"

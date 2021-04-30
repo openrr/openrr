@@ -8,7 +8,7 @@ description = "openrr command line tool library"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "http://docs.rs/openrr-command"
+documentation = "https://docs.rs/openrr-command"
 
 [dependencies]
 arci = "0.0.5"

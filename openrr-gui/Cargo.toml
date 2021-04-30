@@ -8,7 +8,7 @@ description = "openrr GUI library"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics", "gui"]
 repository = "https://github.com/openrr/openrr"
-documentation = "http://docs.rs/openrr-gui"
+documentation = "https://docs.rs/openrr-gui"
 
 [features]
 # Enables the `iced_glow` renderer on GUI.
