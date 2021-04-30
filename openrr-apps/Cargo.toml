@@ -32,7 +32,9 @@ openrr-client = "0.0.5"
 openrr-command = "0.0.5"
 openrr-teleop = "0.0.5"
 rand = "0.8.0"
+schemars = "0.8.3"
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
 structopt = "0.3.21"
 thiserror = "1.0"
 tokio = { version = "1.0", features = ["full"] }
@@ -58,3 +60,7 @@ path = "src/bin/robot_teleop.rs"
 name = "openrr_apps_joint_position_sender"
 path = "src/bin/joint_position_sender.rs"
 required-features = ["gui"]
+
+[[bin]]
+name = "openrr_apps_config"
+path = "src/bin/config.rs"

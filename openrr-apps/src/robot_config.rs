@@ -15,12 +15,13 @@ use arci_speak_audio::AudioSpeaker;
 use arci_speak_cmd::LocalCommand;
 use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWebClientConfig};
 use openrr_client::{OpenrrClientsConfig, PrintSpeaker, RobotClient};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::Error;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(tag = "type", content = "args")]
 #[non_exhaustive] // The variants will increase depending on the feature flag.
 pub enum SpeakConfig {
@@ -36,6 +37,7 @@ pub enum SpeakConfig {
     #[cfg(not(feature = "ros"))]
     #[serde(rename = "RosEspeak")]
     __RosEspeak {
+        #[schemars(schema_with = "unimplemented_schema")]
         config: toml::Value,
     },
     Audio {
@@ -49,7 +51,7 @@ impl Default for SpeakConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[non_exhaustive] // The fields will increase depending on the feature flag.
 pub struct RobotConfig {
     // TOML format has a restriction that if a table itself contains tables,
@@ -73,6 +75,7 @@ pub struct RobotConfig {
     pub ros_clients_configs: Vec<RosControlClientConfig>,
     // A dummy field to catch that there is a config that requires the ros feature.
     #[cfg(not(feature = "ros"))]
+    #[schemars(schema_with = "unimplemented_schema")]
     ros_clients_configs: Option<toml::Value>,
     #[serde(default)]
     // https://github.com/alexcrichton/toml-rs/issues/258
@@ -86,18 +89,21 @@ pub struct RobotConfig {
     pub ros_cmd_vel_move_base_client_config: Option<RosCmdVelMoveBaseConfig>,
     // A dummy field to catch that there is a config that requires the ros feature.
     #[cfg(not(feature = "ros"))]
+    #[schemars(schema_with = "unimplemented_schema")]
     ros_cmd_vel_move_base_client_config: Option<toml::Value>,
 
     #[cfg(feature = "ros")]
     pub ros_navigation_client_config: Option<RosNavClientConfig>,
     // A dummy field to catch that there is a config that requires the ros feature.
     #[cfg(not(feature = "ros"))]
+    #[schemars(schema_with = "unimplemented_schema")]
     ros_navigation_client_config: Option<toml::Value>,
 
     #[cfg(feature = "ros")]
     pub ros_localization_client_config: Option<RosLocalizationClientConfig>,
     // A dummy field to catch that there is a config that requires the ros feature.
     #[cfg(not(feature = "ros"))]
+    #[schemars(schema_with = "unimplemented_schema")]
     ros_localization_client_config: Option<toml::Value>,
 
     pub openrr_clients_config: OpenrrClientsConfig,
@@ -133,6 +139,12 @@ fn default_urdf_viz_clients_complete_timeout_sec() -> f64 {
 
 fn default_true() -> bool {
     true
+}
+
+// Creates dummy schema for dummy fields.
+#[cfg(not(feature = "ros"))]
+fn unimplemented_schema(_gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+    unimplemented!()
 }
 
 impl RobotConfig {

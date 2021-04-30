@@ -2,6 +2,7 @@ use std::{path::Path, sync::Arc, time::Duration};
 
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
 use openrr_planner::{collision::parse_colon_separated_pairs, CollisionChecker};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
@@ -143,7 +144,7 @@ where
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct SelfCollisionCheckerConfig {
     #[serde(default = "default_prediction")]
     pub prediction: f64,

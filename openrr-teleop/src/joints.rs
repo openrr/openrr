@@ -5,6 +5,7 @@ use arci::{
     JointTrajectoryClient, Speaker,
 };
 use async_trait::async_trait;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::control_node::ControlNode;
@@ -151,7 +152,7 @@ where
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct JoyJointTeleopNodeConfig {
     pub mode: String,
     #[serde(default = "default_joint_step")]

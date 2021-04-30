@@ -1,5 +1,6 @@
 use std::{f64, ops::RangeInclusive};
 
+use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tracing::debug;
 use urdf_rs::JointType;
@@ -236,6 +237,24 @@ impl Serialize for JointPositionLimit {
     }
 }
 
+impl JsonSchema for JointPositionLimit {
+    fn schema_name() -> String {
+        "JointPositionLimit".into()
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        // As workaround for https://github.com/tamasfe/taplo/issues/57,
+        // use struct with option value instead of enum.
+        #[allow(dead_code)]
+        #[derive(JsonSchema)]
+        struct JointPositionLimitRepr {
+            lower: Option<f64>,
+            upper: Option<f64>,
+        }
+
+        JointPositionLimitRepr::json_schema(gen)
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum JointPositionLimiterStrategy {

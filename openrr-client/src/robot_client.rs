@@ -10,6 +10,7 @@ use arci::{
     Localization, MoveBase, Navigation, Speaker, WaitFuture,
 };
 use k::{nalgebra::Isometry2, Chain, Isometry3};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
@@ -434,13 +435,13 @@ where
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct JointTrajectoryClientsContainerConfig {
     pub name: String,
     pub clients_names: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 pub struct OpenrrClientsConfig {
     pub urdf_path: Option<String>,
     urdf_full_path: Option<PathBuf>,
@@ -502,13 +503,13 @@ impl OpenrrClientsConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct JointsPose {
     pub pose_name: String,
     pub client_name: String,
     pub positions: Vec<f64>,
 }
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct IkClientConfig {
     pub name: String,
     pub client_name: String,
@@ -533,7 +534,7 @@ pub fn create_ik_clients(
     clients
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct CollisionCheckClientConfig {
     pub name: String,
     pub client_name: String,

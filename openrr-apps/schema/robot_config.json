@@ -1,0 +1,594 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RobotConfig",
+  "type": "object",
+  "required": [
+    "openrr_clients_config"
+  ],
+  "properties": {
+    "openrr_clients_config": {
+      "$ref": "#/definitions/OpenrrClientsConfig"
+    },
+    "ros_clients_configs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/RosControlClientConfig"
+      }
+    },
+    "ros_cmd_vel_move_base_client_config": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RosCmdVelMoveBaseConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ros_localization_client_config": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RosLocalizationClientConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ros_navigation_client_config": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RosNavClientConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "speak_configs": {
+      "default": {},
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/SpeakConfig"
+      }
+    },
+    "urdf_viz_clients_complete_timeout_sec": {
+      "default": 3.0,
+      "type": "number",
+      "format": "double"
+    },
+    "urdf_viz_clients_configs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/UrdfVizWebClientConfig"
+      }
+    },
+    "urdf_viz_clients_total_complete_allowable_error": {
+      "default": 0.02,
+      "type": "number",
+      "format": "double"
+    },
+    "use_localization_urdf_viz_web_client": {
+      "default": true,
+      "type": "boolean"
+    },
+    "use_move_base_urdf_viz_web_client": {
+      "default": true,
+      "type": "boolean"
+    },
+    "use_navigation_urdf_viz_web_client": {
+      "default": true,
+      "type": "boolean"
+    }
+  },
+  "definitions": {
+    "CollisionCheckClientConfig": {
+      "type": "object",
+      "required": [
+        "client_name",
+        "name"
+      ],
+      "properties": {
+        "client_name": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "self_collision_checker_config": {
+          "default": {
+            "prediction": 0.001,
+            "time_interpolate_rate": 0.5
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/SelfCollisionCheckerConfig"
+            }
+          ]
+        }
+      }
+    },
+    "IkClientConfig": {
+      "type": "object",
+      "required": [
+        "client_name",
+        "name",
+        "solver_name"
+      ],
+      "properties": {
+        "client_name": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "solver_name": {
+          "type": "string"
+        }
+      }
+    },
+    "IkSolverConfig": {
+      "type": "object",
+      "required": [
+        "ik_target"
+      ],
+      "properties": {
+        "allowable_angle_error_rad": {
+          "default": 0.005,
+          "type": "number",
+          "format": "double"
+        },
+        "allowable_position_error_m": {
+          "default": 0.005,
+          "type": "number",
+          "format": "double"
+        },
+        "constraints": {
+          "description": "A bundle of flags determining which coordinates are constrained for a target",
+          "default": {
+            "position_x": true,
+            "position_y": true,
+            "position_z": true,
+            "rotation_x": true,
+            "rotation_y": true,
+            "rotation_z": true
+          },
+          "type": "object",
+          "properties": {
+            "position_x": {
+              "description": "true means the constraint is used. The coordinates is the world, not the end of the arm.",
+              "default": true,
+              "type": "boolean"
+            },
+            "position_y": {
+              "default": true,
+              "type": "boolean"
+            },
+            "position_z": {
+              "default": true,
+              "type": "boolean"
+            },
+            "rotation_x": {
+              "default": true,
+              "type": "boolean"
+            },
+            "rotation_y": {
+              "default": true,
+              "type": "boolean"
+            },
+            "rotation_z": {
+              "default": true,
+              "type": "boolean"
+            }
+          }
+        },
+        "ik_target": {
+          "type": "string"
+        },
+        "jacobian_multiplier": {
+          "default": 0.1,
+          "type": "number",
+          "format": "double"
+        },
+        "num_max_try": {
+          "default": 300,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "root_node_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "use_random_ik": {
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "JointPositionLimit": {
+      "type": "object",
+      "properties": {
+        "lower": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "upper": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        }
+      }
+    },
+    "JointTrajectoryClientsContainerConfig": {
+      "type": "object",
+      "required": [
+        "clients_names",
+        "name"
+      ],
+      "properties": {
+        "clients_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "JointsPose": {
+      "type": "object",
+      "required": [
+        "client_name",
+        "pose_name",
+        "positions"
+      ],
+      "properties": {
+        "client_name": {
+          "type": "string"
+        },
+        "pose_name": {
+          "type": "string"
+        },
+        "positions": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      }
+    },
+    "OpenrrClientsConfig": {
+      "type": "object",
+      "properties": {
+        "collision_check_clients_configs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CollisionCheckClientConfig"
+          }
+        },
+        "ik_clients_configs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IkClientConfig"
+          }
+        },
+        "ik_solvers_configs": {
+          "default": {},
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/IkSolverConfig"
+          }
+        },
+        "joint_trajectory_clients_container_configs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/JointTrajectoryClientsContainerConfig"
+          }
+        },
+        "joints_poses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/JointsPose"
+          }
+        },
+        "self_collision_check_pairs": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "urdf_full_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "urdf_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "RosCmdVelMoveBaseConfig": {
+      "type": "object",
+      "required": [
+        "topic"
+      ],
+      "properties": {
+        "topic": {
+          "type": "string"
+        }
+      }
+    },
+    "RosControlClientConfig": {
+      "type": "object",
+      "required": [
+        "complete_allowable_errors",
+        "controller_name",
+        "joint_names",
+        "name"
+      ],
+      "properties": {
+        "complete_allowable_errors": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "complete_timeout_sec": {
+          "default": 10.0,
+          "type": "number",
+          "format": "double"
+        },
+        "controller_name": {
+          "type": "string"
+        },
+        "joint_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "joint_position_limits": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/JointPositionLimit"
+          }
+        },
+        "joint_velocity_limits": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "send_partial_joints_goal": {
+          "default": false,
+          "type": "boolean"
+        },
+        "state_topic_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "wrap_with_joint_position_limiter": {
+          "default": false,
+          "type": "boolean"
+        },
+        "wrap_with_joint_velocity_limiter": {
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "RosEspeakClientConfig": {
+      "type": "object",
+      "required": [
+        "topic"
+      ],
+      "properties": {
+        "topic": {
+          "type": "string"
+        }
+      }
+    },
+    "RosLocalizationClientConfig": {
+      "type": "object",
+      "required": [
+        "request_final_nomotion_update_hack"
+      ],
+      "properties": {
+        "request_final_nomotion_update_hack": {
+          "type": "boolean"
+        }
+      }
+    },
+    "RosNavClientConfig": {
+      "type": "object",
+      "required": [
+        "clear_costmap_before_start",
+        "request_final_nomotion_update_hack"
+      ],
+      "properties": {
+        "clear_costmap_before_start": {
+          "type": "boolean"
+        },
+        "request_final_nomotion_update_hack": {
+          "type": "boolean"
+        }
+      }
+    },
+    "SelfCollisionCheckerConfig": {
+      "type": "object",
+      "properties": {
+        "prediction": {
+          "default": 0.001,
+          "type": "number",
+          "format": "double"
+        },
+        "time_interpolate_rate": {
+          "default": 0.5,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "SpeakConfig": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Print"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Command"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "args",
+            "type"
+          ],
+          "properties": {
+            "args": {
+              "type": "object",
+              "required": [
+                "config"
+              ],
+              "properties": {
+                "config": {
+                  "$ref": "#/definitions/RosEspeakClientConfig"
+                }
+              }
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "RosEspeak"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "args",
+            "type"
+          ],
+          "properties": {
+            "args": {
+              "type": "object",
+              "required": [
+                "map"
+              ],
+              "properties": {
+                "map": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "Audio"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "UrdfVizWebClientConfig": {
+      "type": "object",
+      "required": [
+        "joint_names",
+        "name"
+      ],
+      "properties": {
+        "joint_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "joint_position_limits": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/JointPositionLimit"
+          }
+        },
+        "joint_velocity_limits": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "wrap_with_joint_position_limiter": {
+          "default": false,
+          "type": "boolean"
+        },
+        "wrap_with_joint_velocity_limiter": {
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

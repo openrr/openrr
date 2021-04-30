@@ -10,6 +10,7 @@ use std::{
 };
 
 use arci::{gamepad::*, *};
+use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 #[cfg(not(target_os = "macos"))]
@@ -112,6 +113,63 @@ impl Default for Map {
     }
 }
 
+impl JsonSchema for Map {
+    fn schema_name() -> String {
+        "Map".to_string()
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        // https://docs.rs/gilrs/0.8/gilrs/ev/enum.Button.html
+        #[allow(dead_code)]
+        #[derive(JsonSchema)]
+        enum GilrsButton {
+            South,
+            East,
+            North,
+            West,
+            C,
+            Z,
+            LeftTrigger,
+            LeftTrigger2,
+            RightTrigger,
+            RightTrigger2,
+            Select,
+            Start,
+            Mode,
+            LeftThumb,
+            RightThumb,
+            DPadUp,
+            DPadDown,
+            DPadLeft,
+            DPadRight,
+            Unknown,
+        }
+        // https://docs.rs/gilrs/0.8/gilrs/ev/enum.Axis.html
+        #[allow(dead_code)]
+        #[derive(JsonSchema)]
+        enum GilrsAxis {
+            LeftStickX,
+            LeftStickY,
+            LeftZ,
+            RightStickX,
+            RightStickY,
+            RightZ,
+            DPadX,
+            DPadY,
+            Unknown,
+        }
+        #[allow(dead_code)]
+        #[derive(JsonSchema)]
+        struct MapRepr {
+            button_map: Vec<(GilrsButton, Button)>,
+            axis_map: Vec<(GilrsAxis, Axis)>,
+            axis_value_map: Vec<(Axis, f64)>,
+        }
+
+        MapRepr::json_schema(gen)
+    }
+}
+
 fn default_button_map() -> HashMap<gilrs::Button, Button> {
     let mut button_map = HashMap::new();
     button_map.insert(gilrs::Button::South, Button::South);
@@ -170,7 +228,7 @@ impl GilGamepad {
                 let mut is_found = false;
                 for (connected_id, gamepad) in gil.gamepads() {
                     info!("{} is {:?}", gamepad.name(), gamepad.power_info());
-                    if id == connected_id.into() {
+                    if id == Into::<usize>::into(connected_id) {
                         is_found = true;
                     }
                 }
@@ -184,7 +242,7 @@ impl GilGamepad {
                     Some(gilrs::Event {
                         id: recv_id, event, ..
                     }) => {
-                        if id == recv_id.into() {
+                        if id == Into::<usize>::into(recv_id) {
                             if let Some(e) = map.convert_event(event) {
                                 tx.send(e).unwrap();
                             }
@@ -205,7 +263,7 @@ impl GilGamepad {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 pub struct GilGamepadConfig {
     #[serde(default)]
     device_id: usize,

@@ -1,4 +1,5 @@
 use arci::WaitFuture;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 mod msg {
@@ -9,7 +10,7 @@ pub struct RosEspeakClient {
     publisher: rosrust::Publisher<msg::std_msgs::String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct RosEspeakClientConfig {
     pub topic: String,
 }

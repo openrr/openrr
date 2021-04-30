@@ -19,17 +19,17 @@ members = [
 
 [patch.crates-io]
 
-"arci-speak-cmd" = {path = "arci-speak-cmd"}
-"arci-speak-audio" = {path = "arci-speak-audio"}
-"arci" = {path = "arci"}
-"arci-gamepad-gilrs" = {path = "arci-gamepad-gilrs"}
-"arci-ros" = {path = "arci-ros"}
-"arci-urdf-viz" = {path = "arci-urdf-viz"}
-"openrr" = {path = "openrr"}
-"openrr-apps" = {path = "openrr-apps"}
-"openrr-client" = {path = "openrr-client"}
-"openrr-command" = {path = "openrr-command"}
-"openrr-gui" = {path = "openrr-gui"}
-"openrr-planner" = {path = "openrr-planner"}
-"openrr-sleep" = {path = "openrr-sleep"}
-"openrr-teleop" = {path = "openrr-teleop"}
+arci-speak-cmd = { path = "arci-speak-cmd" }
+arci-speak-audio = { path = "arci-speak-audio" }
+arci = { path = "arci" }
+arci-gamepad-gilrs = { path = "arci-gamepad-gilrs" }
+arci-ros = { path = "arci-ros" }
+arci-urdf-viz = { path = "arci-urdf-viz" }
+openrr = { path = "openrr" }
+openrr-apps = { path = "openrr-apps" }
+openrr-client = { path = "openrr-client" }
+openrr-command = { path = "openrr-command" }
+openrr-gui = { path = "openrr-gui" }
+openrr-planner = { path = "openrr-planner" }
+openrr-sleep = { path = "openrr-sleep" }
+openrr-teleop = { path = "openrr-teleop" }

@@ -1,8 +1,9 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 pub enum Button {
     South,
     East,
@@ -24,7 +25,7 @@ pub enum Button {
     Unknown,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 pub enum Axis {
     LeftStickX,
     LeftStickY,

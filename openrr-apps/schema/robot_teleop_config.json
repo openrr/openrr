@@ -1,0 +1,558 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RobotTeleopConfig",
+  "type": "object",
+  "required": [
+    "control_nodes_config",
+    "robot_config_path"
+  ],
+  "properties": {
+    "control_nodes_config": {
+      "$ref": "#/definitions/ControlNodesConfig"
+    },
+    "gil_gamepad_config": {
+      "default": {
+        "device_id": 0,
+        "map": {
+          "axis_map": [
+            [
+              "RightStickY",
+              "RightStickY"
+            ],
+            [
+              "DPadX",
+              "DPadX"
+            ],
+            [
+              "DPadY",
+              "DPadY"
+            ],
+            [
+              "RightStickX",
+              "RightStickX"
+            ],
+            [
+              "LeftStickX",
+              "LeftStickX"
+            ],
+            [
+              "LeftStickY",
+              "LeftStickY"
+            ]
+          ],
+          "axis_value_map": [
+            [
+              "LeftStickX",
+              -1.0
+            ],
+            [
+              "RightStickX",
+              -1.0
+            ]
+          ],
+          "button_map": [
+            [
+              "LeftTrigger2",
+              "LeftTrigger2"
+            ],
+            [
+              "Start",
+              "Start"
+            ],
+            [
+              "West",
+              "West"
+            ],
+            [
+              "RightTrigger2",
+              "RightTrigger2"
+            ],
+            [
+              "DPadRight",
+              "DPadRight"
+            ],
+            [
+              "Mode",
+              "Mode"
+            ],
+            [
+              "East",
+              "East"
+            ],
+            [
+              "Select",
+              "Select"
+            ],
+            [
+              "DPadLeft",
+              "DPadLeft"
+            ],
+            [
+              "RightTrigger",
+              "RightTrigger"
+            ],
+            [
+              "North",
+              "North"
+            ],
+            [
+              "LeftThumb",
+              "LeftThumb"
+            ],
+            [
+              "RightThumb",
+              "RightThumb"
+            ],
+            [
+              "DPadUp",
+              "DPadUp"
+            ],
+            [
+              "LeftTrigger",
+              "LeftTrigger"
+            ],
+            [
+              "South",
+              "South"
+            ],
+            [
+              "DPadDown",
+              "DPadDown"
+            ]
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/GilGamepadConfig"
+        }
+      ]
+    },
+    "initial_mode": {
+      "default": "",
+      "type": "string"
+    },
+    "robot_config_full_path": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "robot_config_path": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "Axis": {
+      "type": "string",
+      "enum": [
+        "LeftStickX",
+        "LeftStickY",
+        "LeftTrigger",
+        "RightStickX",
+        "RightStickY",
+        "RightTrigger",
+        "DPadX",
+        "DPadY",
+        "Unknown"
+      ]
+    },
+    "Button": {
+      "type": "string",
+      "enum": [
+        "South",
+        "East",
+        "North",
+        "West",
+        "LeftTrigger",
+        "LeftTrigger2",
+        "RightTrigger",
+        "RightTrigger2",
+        "Select",
+        "Start",
+        "Mode",
+        "LeftThumb",
+        "RightThumb",
+        "DPadUp",
+        "DPadDown",
+        "DPadLeft",
+        "DPadRight",
+        "Unknown"
+      ]
+    },
+    "ControlNodesConfig": {
+      "type": "object",
+      "required": [
+        "ik_node_teleop_configs",
+        "joy_joint_teleop_configs"
+      ],
+      "properties": {
+        "ik_node_teleop_configs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IkNodeTeleopConfig"
+          }
+        },
+        "joints_pose_sender_config": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/JointsPoseSenderConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "joy_joint_teleop_configs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/JoyJointTeleopConfig"
+          }
+        },
+        "move_base_mode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "GilGamepadConfig": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "map": {
+          "default": {
+            "axis_map": [
+              [
+                "LeftStickX",
+                "LeftStickX"
+              ],
+              [
+                "RightStickY",
+                "RightStickY"
+              ],
+              [
+                "DPadX",
+                "DPadX"
+              ],
+              [
+                "DPadY",
+                "DPadY"
+              ],
+              [
+                "LeftStickY",
+                "LeftStickY"
+              ],
+              [
+                "RightStickX",
+                "RightStickX"
+              ]
+            ],
+            "axis_value_map": [
+              [
+                "LeftStickX",
+                -1.0
+              ],
+              [
+                "RightStickX",
+                -1.0
+              ]
+            ],
+            "button_map": [
+              [
+                "DPadDown",
+                "DPadDown"
+              ],
+              [
+                "West",
+                "West"
+              ],
+              [
+                "LeftTrigger",
+                "LeftTrigger"
+              ],
+              [
+                "LeftTrigger2",
+                "LeftTrigger2"
+              ],
+              [
+                "North",
+                "North"
+              ],
+              [
+                "RightThumb",
+                "RightThumb"
+              ],
+              [
+                "Mode",
+                "Mode"
+              ],
+              [
+                "RightTrigger",
+                "RightTrigger"
+              ],
+              [
+                "DPadLeft",
+                "DPadLeft"
+              ],
+              [
+                "DPadUp",
+                "DPadUp"
+              ],
+              [
+                "South",
+                "South"
+              ],
+              [
+                "LeftThumb",
+                "LeftThumb"
+              ],
+              [
+                "Select",
+                "Select"
+              ],
+              [
+                "Start",
+                "Start"
+              ],
+              [
+                "DPadRight",
+                "DPadRight"
+              ],
+              [
+                "RightTrigger2",
+                "RightTrigger2"
+              ],
+              [
+                "East",
+                "East"
+              ]
+            ]
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/Map"
+            }
+          ]
+        }
+      }
+    },
+    "GilrsAxis": {
+      "type": "string",
+      "enum": [
+        "LeftStickX",
+        "LeftStickY",
+        "LeftZ",
+        "RightStickX",
+        "RightStickY",
+        "RightZ",
+        "DPadX",
+        "DPadY",
+        "Unknown"
+      ]
+    },
+    "GilrsButton": {
+      "type": "string",
+      "enum": [
+        "South",
+        "East",
+        "North",
+        "West",
+        "C",
+        "Z",
+        "LeftTrigger",
+        "LeftTrigger2",
+        "RightTrigger",
+        "RightTrigger2",
+        "Select",
+        "Start",
+        "Mode",
+        "LeftThumb",
+        "RightThumb",
+        "DPadUp",
+        "DPadDown",
+        "DPadLeft",
+        "DPadRight",
+        "Unknown"
+      ]
+    },
+    "IkNodeConfig": {
+      "type": "object",
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string"
+        },
+        "move_step_angular": {
+          "default": [
+            0.05,
+            0.05,
+            0.17
+          ],
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "move_step_linear": {
+          "default": [
+            0.01,
+            0.01,
+            0.01
+          ],
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "step_duration_secs": {
+          "default": 0.1,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "IkNodeTeleopConfig": {
+      "type": "object",
+      "required": [
+        "config",
+        "joint_trajectory_client_name",
+        "solver_name"
+      ],
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/IkNodeConfig"
+        },
+        "joint_trajectory_client_name": {
+          "type": "string"
+        },
+        "solver_name": {
+          "type": "string"
+        }
+      }
+    },
+    "JointsPoseSenderConfig": {
+      "type": "object",
+      "properties": {
+        "duration_secs": {
+          "default": 2.0,
+          "type": "number",
+          "format": "double"
+        },
+        "mode": {
+          "default": "pose",
+          "type": "string"
+        }
+      }
+    },
+    "JoyJointTeleopConfig": {
+      "type": "object",
+      "required": [
+        "client_name",
+        "config"
+      ],
+      "properties": {
+        "client_name": {
+          "type": "string"
+        },
+        "config": {
+          "$ref": "#/definitions/JoyJointTeleopNodeConfig"
+        }
+      }
+    },
+    "JoyJointTeleopNodeConfig": {
+      "type": "object",
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "joint_step": {
+          "default": 0.02,
+          "type": "number",
+          "format": "double"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "step_duration_secs": {
+          "default": 0.1,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "Map": {
+      "type": "object",
+      "required": [
+        "axis_map",
+        "axis_value_map",
+        "button_map"
+      ],
+      "properties": {
+        "axis_map": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/GilrsAxis"
+              },
+              {
+                "$ref": "#/definitions/Axis"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        },
+        "axis_value_map": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/Axis"
+              },
+              {
+                "type": "number",
+                "format": "double"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        },
+        "button_map": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/GilrsButton"
+              },
+              {
+                "$ref": "#/definitions/Button"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      }
+    }
+  }
+}

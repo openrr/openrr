@@ -2,6 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use arci::{JointTrajectoryClient, MoveBase, Speaker};
 use openrr_client::{IkSolverWithChain, JointsPose};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -9,20 +10,20 @@ use crate::{
     JoyJointTeleopNode, JoyJointTeleopNodeConfig, MoveBaseNode,
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct JoyJointTeleopConfig {
     pub client_name: String,
     pub config: JoyJointTeleopNodeConfig,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct IkNodeTeleopConfig {
     pub solver_name: String,
     pub joint_trajectory_client_name: String,
     pub config: IkNodeConfig,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 pub struct ControlNodesConfig {
     pub move_base_mode: Option<String>,
     pub joy_joint_teleop_configs: Vec<JoyJointTeleopConfig>,

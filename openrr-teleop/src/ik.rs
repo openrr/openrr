@@ -7,6 +7,7 @@ use arci::{
 use async_trait::async_trait;
 use k::{Translation3, Vector3};
 use openrr_client::IkSolverWithChain;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::control_node::ControlNode;
@@ -202,7 +203,7 @@ where
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct IkNodeConfig {
     pub mode: String,
     #[serde(default = "default_move_step_angular")]

@@ -12,12 +12,12 @@ wrap_with_joint_position_limiter = true
 # If joint_position_limits is not specified, limits will be got from URDF.
 # The following values are the same as if getting limits from URDF.
 joint_position_limits = [
-    { lower = -3, upper = 3 },
-    { lower = -2, upper = 1.5 },
-    { lower = -1.5, upper = 2 },
-    { lower = -2, upper = 1.5 },
-    { lower = -3, upper = 3 },
-    { lower = -2, upper = 2 },
+    { lower = -3.0, upper = 3.0 },
+    { lower = -2.0, upper = 1.5 },
+    { lower = -1.5, upper = 2.0 },
+    { lower = -2.0, upper = 1.5 },
+    { lower = -3.0, upper = 3.0 },
+    { lower = -2.0, upper = 2.0 },
 ]
 
 [openrr_clients_config]

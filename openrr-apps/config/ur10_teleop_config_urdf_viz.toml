@@ -17,5 +17,3 @@ client_name = "arm_collision_checked"
 
 [control_nodes_config.joy_joint_teleop_configs.config]
 mode = "arm"
-
-
