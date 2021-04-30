@@ -2,6 +2,7 @@ use std::borrow::Borrow;
 
 use arci::*;
 use nalgebra as na;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{msg, rosrust_utils::*};
@@ -13,7 +14,7 @@ rosrust::rosmsg_include! {
 const AMCL_POSE_TOPIC: &str = "/amcl_pose";
 const NO_MOTION_UPDATE_SERVICE: &str = "request_nomotion_update";
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct RosLocalizationClientConfig {
     pub request_final_nomotion_update_hack: bool,
 }

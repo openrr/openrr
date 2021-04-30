@@ -3,7 +3,14 @@ use_navigation_urdf_viz_web_client = false
 
 [[ros_clients_configs]]
 name = "arm"
-joint_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
+joint_names = [
+    "shoulder_pan_joint",
+    "shoulder_lift_joint",
+    "elbow_joint",
+    "wrist_1_joint",
+    "wrist_2_joint",
+    "wrist_3_joint",
+]
 complete_allowable_errors = [0.02, 0.02, 0.02, 0.02, 0.02, 0.02]
 controller_name = "arm_controller"
 

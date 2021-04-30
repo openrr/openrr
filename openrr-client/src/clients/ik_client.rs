@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
 use k::{nalgebra as na, Constraints, Isometry3};
+use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
 use serde::{Deserialize, Serialize};
 
 pub fn isometry(x: f64, y: f64, z: f64, roll: f64, pitch: f64, yaw: f64) -> k::Isometry3<f64> {
@@ -297,7 +298,7 @@ where
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct IkSolverConfig {
     pub root_node_name: Option<String>,
     pub ik_target: String,
@@ -312,6 +313,7 @@ pub struct IkSolverConfig {
     #[serde(default = "default_num_max_try")]
     pub num_max_try: usize,
     #[serde(default)]
+    #[schemars(schema_with = "constraints_schema")]
     pub constraints: Constraints,
 }
 
@@ -326,6 +328,46 @@ fn default_jacobian_multiplier() -> f64 {
 }
 fn default_num_max_try() -> usize {
     300
+}
+
+fn constraints_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn default_true() -> bool {
+        true
+    }
+    // https://docs.rs/k/0.24/k/struct.Constraints.html
+    /// A bundle of flags determining which coordinates are constrained for a target
+    #[allow(dead_code)]
+    #[derive(Serialize, JsonSchema)]
+    struct ConstraintsSchema {
+        /// true means the constraint is used.
+        ///  The coordinates is the world, not the end of the arm.
+        #[serde(default = "default_true")]
+        position_x: bool,
+        #[serde(default = "default_true")]
+        position_y: bool,
+        #[serde(default = "default_true")]
+        position_z: bool,
+        #[serde(default = "default_true")]
+        rotation_x: bool,
+        #[serde(default = "default_true")]
+        rotation_y: bool,
+        #[serde(default = "default_true")]
+        rotation_z: bool,
+    }
+    impl Default for ConstraintsSchema {
+        fn default() -> Self {
+            Self {
+                position_x: default_true(),
+                position_y: default_true(),
+                position_z: default_true(),
+                rotation_x: default_true(),
+                rotation_y: default_true(),
+                rotation_z: default_true(),
+            }
+        }
+    }
+
+    ConstraintsSchema::json_schema(gen)
 }
 
 pub fn create_ik_solver_with_chain(

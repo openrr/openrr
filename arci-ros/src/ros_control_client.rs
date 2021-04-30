@@ -10,11 +10,12 @@ use msg::{
     control_msgs::JointTrajectoryControllerState,
     trajectory_msgs::{JointTrajectory, JointTrajectoryPoint},
 };
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{error::Error, msg, SubscriberHandler};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct RosControlClientConfig {
     pub name: String,
     pub joint_names: Vec<String>,

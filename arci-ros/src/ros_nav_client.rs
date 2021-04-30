@@ -2,6 +2,7 @@ use std::{sync::Arc, time};
 
 use arci::*;
 use nalgebra as na;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{define_action_client_internal, msg};
@@ -227,7 +228,7 @@ impl Navigation for RosNavClient {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct RosNavClientConfig {
     pub request_final_nomotion_update_hack: bool,
     pub clear_costmap_before_start: bool,

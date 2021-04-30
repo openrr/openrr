@@ -83,6 +83,18 @@ jobs:
         working-directory: openrr-apps
         run: cargo test --no-default-features --features gui
 
+  # TODO(taiki-e): Some configs use HashMap and the order of the default values
+  #                will change every time because HashMap order is not stable.
+  #                So we cannot enable this check until the uses of HashMap in
+  #                configs are removed.
+  # # When this job failed, run tools/update-schema.sh and commit result changes.
+  # schema:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - run: tools/update-schema.sh
+  #     - run: git diff --exit-code
+
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest

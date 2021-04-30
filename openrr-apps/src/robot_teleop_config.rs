@@ -3,11 +3,12 @@ use std::path::PathBuf;
 use arci_gamepad_gilrs::GilGamepadConfig;
 use openrr_client::resolve_relative_path;
 use openrr_teleop::ControlNodesConfig;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::Error;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 pub struct RobotTeleopConfig {
     pub robot_config_path: String,
     robot_config_full_path: Option<PathBuf>,

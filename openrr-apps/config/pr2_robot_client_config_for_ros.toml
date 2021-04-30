@@ -4,14 +4,30 @@ ros_cmd_vel_move_base_client_config.topic = "/base_controller/command"
 
 [[ros_clients_configs]]
 name = "l_arm"
-joint_names = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]
+joint_names = [
+    "l_shoulder_pan_joint",
+    "l_shoulder_lift_joint",
+    "l_upper_arm_roll_joint",
+    "l_elbow_flex_joint",
+    "l_forearm_roll_joint",
+    "l_wrist_flex_joint",
+    "l_wrist_roll_joint",
+]
 complete_allowable_errors = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
 controller_name = "l_arm_controller"
 state_topic_name = "l_arm_controller/openrr/state"
 
 [[ros_clients_configs]]
 name = "r_arm"
-joint_names = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
+joint_names = [
+    "r_shoulder_pan_joint",
+    "r_shoulder_lift_joint",
+    "r_upper_arm_roll_joint",
+    "r_elbow_flex_joint",
+    "r_forearm_roll_joint",
+    "r_wrist_flex_joint",
+    "r_wrist_roll_joint",
+]
 complete_allowable_errors = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
 controller_name = "r_arm_controller"
 state_topic_name = "r_arm_controller/openrr/state"

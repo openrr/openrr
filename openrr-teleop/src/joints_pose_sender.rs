@@ -6,6 +6,7 @@ use arci::{
 };
 use async_trait::async_trait;
 use openrr_client::JointsPose;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::ControlNode;
@@ -131,7 +132,7 @@ where
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct JointsPoseSenderConfig {
     #[serde(default = "default_mode")]
     pub mode: String,

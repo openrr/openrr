@@ -1,4 +1,5 @@
 use arci::*;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{msg, rosrust_utils::wait_subscriber};
@@ -33,7 +34,7 @@ impl MoveBase for RosCmdVelMoveBase {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct RosCmdVelMoveBaseConfig {
     pub topic: String,
 }
