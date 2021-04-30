@@ -8,7 +8,7 @@ description = "openrr useful client libraries"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "http://docs.rs/openrr-client"
+documentation = "https://docs.rs/openrr-client"
 
 [dependencies]
 anyhow = "1.0"

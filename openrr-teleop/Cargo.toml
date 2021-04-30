@@ -8,7 +8,7 @@ description = "openrr teleoperation library"
 keywords = ["robotics", "robot"]
 categories = ["algorithms", "science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "http://docs.rs/openrr-teleop"
+documentation = "https://docs.rs/openrr-teleop"
 
 [dependencies]
 arci = "0.0.5"
