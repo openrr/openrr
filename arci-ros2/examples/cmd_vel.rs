@@ -1,7 +1,6 @@
 #[cfg(feature = "ros2")]
 #[tokio::main]
-async fn main() -> Result<(), Error> {
-    use anyhow::Error;
+async fn main() -> Result<(), anyhow::Error> {
     use arci::{BaseVelocity, MoveBase};
     use arci_ros2::{r2r, Ros2CmdVelMoveBase};
 
