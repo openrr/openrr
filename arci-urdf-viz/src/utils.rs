@@ -33,15 +33,21 @@ pub(crate) struct RpcResult {
     pub reason: String,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+type ConnectionError = ureq::Error;
+#[cfg(target_arch = "wasm32")]
+type ConnectionError = reqwest::Error;
+
 fn try_connect<T>(
     base_url: &Url,
-    f: impl FnOnce() -> Result<T, ureq::Error>,
+    f: impl FnOnce() -> Result<T, ConnectionError>,
 ) -> Result<T, arci::Error> {
     f().map_err(|e| arci::Error::Connection {
-        message: format!("base_url:{}: {:?}", base_url, e),
+        message: format!("base_url:{}: {}", base_url, e),
     })
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn get_joint_positions(base_url: &Url) -> Result<JointState, arci::Error> {
     try_connect(base_url, || {
         let re = ureq::get(base_url.join("get_joint_positions").unwrap().as_str())
@@ -50,7 +56,17 @@ pub(crate) fn get_joint_positions(base_url: &Url) -> Result<JointState, arci::Er
         Ok(re)
     })
 }
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn get_joint_positions(base_url: &Url) -> Result<JointState, reqwest::Error> {
+    crate::wasm::run(async move {
+        reqwest::get(base_url.join("get_joint_positions").unwrap())
+            .await?
+            .json::<JointState>()
+            .await
+    })
+}
 
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn send_joint_positions(
     base_url: &Url,
     joint_state: JointState,
@@ -68,7 +84,23 @@ pub(crate) fn send_joint_positions(
     }
     Ok(())
 }
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn send_joint_positions(
+    base_url: &Url,
+    joint_state: JointState,
+) -> Result<RpcResult, reqwest::Error> {
+    crate::wasm::run(async move {
+        reqwest::Client::new()
+            .post(base_url.join("set_joint_positions").unwrap())
+            .json(&joint_state)
+            .send()
+            .await?
+            .json()
+            .await
+    })
+}
 
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn get_robot_origin(base_url: &Url) -> Result<BasePose, arci::Error> {
     try_connect(base_url, || {
         let re = ureq::get(base_url.join("get_robot_origin").unwrap().as_str())
@@ -77,7 +109,17 @@ pub(crate) fn get_robot_origin(base_url: &Url) -> Result<BasePose, arci::Error> 
         Ok(re)
     })
 }
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn get_robot_origin(base_url: &Url) -> Result<BasePose, reqwest::Error> {
+    crate::wasm::run(async move {
+        reqwest::get(base_url.join("get_robot_origin").unwrap())
+            .await?
+            .json::<BasePose>()
+            .await
+    })
+}
 
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn send_robot_origin(base_url: &Url, base_pose: BasePose) -> Result<(), arci::Error> {
     let res: RpcResult = try_connect(base_url, || {
         let re = ureq::post(base_url.join("set_robot_origin").unwrap().as_str())
@@ -91,6 +133,21 @@ pub(crate) fn send_robot_origin(base_url: &Url, base_pose: BasePose) -> Result<(
         });
     }
     Ok(())
+}
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn send_robot_origin(
+    base_url: &Url,
+    base_pose: BasePose,
+) -> Result<RpcResult, reqwest::Error> {
+    crate::wasm::run(async move {
+        reqwest::Client::new()
+            .post(base_url.join("set_robot_origin").unwrap())
+            .json(&base_pose)
+            .send()
+            .await?
+            .json()
+            .await
+    })
 }
 
 pub(crate) fn euler_angles_from_quaternion(q: &[f64; 4]) -> (f64, f64, f64) {

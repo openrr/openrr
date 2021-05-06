@@ -2,6 +2,32 @@
 
 [![crates.io](https://img.shields.io/crates/v/openrr-gui.svg)](https://crates.io/crates/openrr-gui) [![docs](https://docs.rs/openrr-gui/badge.svg)](https://docs.rs/openrr-gui)
 
+
+## Wasm example
+
+```bash
+cd openrr-gui
+# cargo build --target wasm32-unknown-unknown --no-default-features --example joint_position_sender --release
+cargo build --target wasm32-unknown-unknown --no-default-features --example joint_position_sender
+# wasm-bindgen target/wasm32-unknown-unknown/release/openrr_apps_joint_position_sender.wasm --out-dir openrr_apps_joint_position_sender --web
+wasm-bindgen ../target/wasm32-unknown-unknown/debug/examples/joint_position_sender.wasm --out-dir joint_position_sender --web
+echo '<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Urdf Viz</title>
+  </head>
+  <body>
+    <script type="module">
+      import init from "./joint_position_sender/joint_position_sender.js";
+      init("./joint_position_sender/joint_position_sender.wasm");
+    </script>
+  </body>
+</html>' > index.html
+cargo run -p openrr-gui --example server
+```
+
 ## Troubleshooting
 
 - Q. Fails to compile.

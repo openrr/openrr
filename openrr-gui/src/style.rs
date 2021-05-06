@@ -4,9 +4,10 @@
 // Based on https://github.com/hecrj/iced/blob/d1c4239ac7ffdf299e4f9fae36406361cfef9267/examples/styling/src/main.rs#L269-L535
 
 use iced::{
-    button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider,
-    text_input, Color,
+    button, checkbox, container, progress_bar, radio, scrollable, slider, text_input, Color,
 };
+#[cfg(not(target_arch = "wasm32"))]
+use iced::{pick_list, rule};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Theme;
@@ -59,12 +60,14 @@ impl From<Theme> for Box<dyn checkbox::StyleSheet> {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl From<Theme> for Box<dyn rule::StyleSheet> {
     fn from(_: Theme) -> Self {
         Rule.into()
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl From<Theme> for Box<dyn pick_list::StyleSheet> {
     fn from(_: Theme) -> Self {
         PickList.into()
@@ -363,8 +366,10 @@ impl checkbox::StyleSheet for Checkbox {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub struct Rule;
 
+#[cfg(not(target_arch = "wasm32"))]
 impl rule::StyleSheet for Rule {
     fn style(&self) -> rule::Style {
         rule::Style {
@@ -376,8 +381,10 @@ impl rule::StyleSheet for Rule {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub struct PickList;
 
+#[cfg(not(target_arch = "wasm32"))]
 impl pick_list::StyleSheet for PickList {
     fn menu(&self) -> pick_list::Menu {
         pick_list::Menu {

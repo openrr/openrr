@@ -2,10 +2,12 @@ use std::{collections::HashMap, f64, sync::Arc, time::Duration, usize};
 
 use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation};
 use iced::{
-    button, pick_list, scrollable, slider, text_input, window, Application, Button, Clipboard,
-    Column, Command, Container, Element, HorizontalAlignment, Length, PickList, Row, Scrollable,
-    Settings, Slider, Text, TextInput,
+    button, scrollable, slider, text_input, window, Application, Button, Clipboard, Column,
+    Command, Container, Element, HorizontalAlignment, Length, Row, Scrollable, Settings, Slider,
+    Text, TextInput,
 };
+#[cfg(not(target_arch = "wasm32"))]
+use iced::{pick_list, PickList};
 use openrr_client::RobotClient;
 use rand::Rng;
 use tracing::{debug, debug_span, error, warn};
@@ -110,6 +112,7 @@ where
 
     joint_trajectory_client_names: Vec<String>,
     // pick list for joint_trajectory_clients
+    #[cfg(not(target_arch = "wasm32"))]
     pick_list: pick_list::State<String>,
     current_joint_trajectory_client: String,
 
@@ -214,6 +217,7 @@ where
             joints,
             current_joint_trajectory_client: joint_trajectory_client_names[0].clone(),
             joint_trajectory_client_names,
+            #[cfg(not(target_arch = "wasm32"))]
             pick_list: Default::default(),
             scroll: Default::default(),
             randomize_button: Default::default(),
@@ -468,6 +472,7 @@ where
     }
 
     fn view(&mut self) -> Element<Message> {
+        #[cfg(not(target_arch = "wasm32"))]
         let pick_list = if self.joint_trajectory_client_names.len() > 1 {
             let pick_list = PickList::new(
                 &mut self.pick_list,
@@ -570,6 +575,7 @@ where
             .padding(20)
             .max_width(400)
             .height(Length::Fill);
+        #[cfg(not(target_arch = "wasm32"))]
         if let Some(pick_list) = pick_list {
             content = content.push(pick_list);
         }
