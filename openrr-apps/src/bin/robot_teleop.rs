@@ -9,11 +9,9 @@ use openrr_teleop::ControlNodeSwitcher;
 use structopt::StructOpt;
 use tracing::info;
 
+/// An openrr teleoperation tool.
 #[derive(StructOpt, Debug)]
-#[structopt(
-    name = env!("CARGO_BIN_NAME"),
-    about = "An openrr teleoperation tool."
-)]
+#[structopt(name = env!("CARGO_BIN_NAME"))]
 pub struct RobotTeleopArgs {
     /// Path to the setting file.
     #[structopt(short, long, parse(from_os_str))]

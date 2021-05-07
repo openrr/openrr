@@ -5,11 +5,9 @@ use openrr_command::{RobotCommand, RobotCommandExecutor};
 use structopt::StructOpt;
 use tracing::info;
 
+/// An openrr command line tool.
 #[derive(StructOpt, Debug)]
-#[structopt(
-    name = env!("CARGO_BIN_NAME"),
-    about = "An openrr command line tool."
-)]
+#[structopt(name = env!("CARGO_BIN_NAME"))]
 struct RobotCommandArgs {
     /// Path to the setting file.
     #[structopt(short, long, parse(from_os_str))]
