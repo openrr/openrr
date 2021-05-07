@@ -32,7 +32,7 @@ jobs:
         with:
           command: build
           # rosrust is not supported on Windows
-          args: --manifest-path openrr-apps/Cargo.toml --no-default-features --features gui
+          args: --manifest-path openrr-apps/Cargo.toml --no-default-features --features gui,assimp
 
   macos:
     name: Build on MacOS
@@ -81,7 +81,7 @@ jobs:
           args: --workspace --exclude arci-ros
       - name: cargo test (openrr-apps without ros)
         working-directory: openrr-apps
-        run: cargo test --no-default-features --features gui
+        run: cargo test --no-default-features --features gui,assimp
 
   # TODO(taiki-e): Some configs use HashMap and the order of the default values
   #                will change every time because HashMap order is not stable.
@@ -94,6 +94,16 @@ jobs:
   #     - uses: actions/checkout@v2
   #     - run: tools/update-schema.sh
   #     - run: git diff --exit-code
+
+  # Check all feature combinations work properly.
+  features:
+    name: Check features
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ci/ubuntu-install-dependencies.sh
+      - run: cargo install cargo-hack
+      - run: cargo hack check --all --feature-powerset --optional-deps
 
   fmt:
     name: Rustfmt

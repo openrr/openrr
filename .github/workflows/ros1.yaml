@@ -54,4 +54,4 @@ jobs:
         shell: bash -ieo pipefail {0}
         working-directory: openrr-apps
         run: |
-          cargo test --no-default-features --features ros
+          cargo test --no-default-features --features ros,assimp
