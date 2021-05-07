@@ -40,8 +40,8 @@ where
     ) -> Self {
         Self {
             client,
-            collision_check_robot,
             using_joints,
+            collision_check_robot,
             planner,
         }
     }

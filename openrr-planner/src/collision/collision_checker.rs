@@ -365,14 +365,12 @@ impl FromUrdf for Compound<f64> {
                 l.collision
                     .iter()
                     .map(|collision| {
-                        match urdf_geometry_to_shape_handle(&collision.geometry, None) {
-                            Some(col) => Some((k::urdf::isometry_from(&collision.origin), col)),
-                            None => None,
-                        }
+                        urdf_geometry_to_shape_handle(&collision.geometry, None)
+                            .map(|col| (k::urdf::isometry_from(&collision.origin), col))
                     })
                     .collect::<Vec<_>>()
             })
-            .filter_map(|col_tuple| col_tuple)
+            .flatten()
             .collect::<Vec<_>>();
         Compound::new(compound_data)
     }

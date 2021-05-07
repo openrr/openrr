@@ -32,8 +32,8 @@ impl SelfCollisionChecker {
         let using_joints =
             k::Chain::<f64>::from_nodes(find_nodes(&joint_names, &collision_check_robot).unwrap());
         Self {
-            collision_check_robot,
             using_joints,
+            collision_check_robot,
             collision_checker,
             collision_pairs,
             time_interpolate_rate,
