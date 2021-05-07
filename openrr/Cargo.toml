@@ -14,15 +14,21 @@ readme = "../README.md"
 
 [features]
 default = ["assimp"]
-assimp = ["openrr-planner/assimp"]
+assimp = [
+    "openrr-client/assimp",
+    "openrr-command/assimp",
+    "openrr-planner/assimp",
+    "openrr-teleop/assimp",
+    "openrr-apps/assimp",
+]
 ros = ["openrr-apps/ros"]
 
 [dependencies]
-openrr-client = "0.0.5"
-openrr-command = "0.0.5"
-openrr-planner = "0.0.5"
+openrr-client = { version = "0.0.5", default-features = false }
+openrr-command = { version = "0.0.5", default-features = false }
+openrr-planner = { version = "0.0.5", default-features = false }
 openrr-sleep = "0.0.5"
-openrr-teleop = "0.0.5"
+openrr-teleop = { version = "0.0.5", default-features = false }
 
 [dependencies.openrr-apps]
 version = "0.0.5"

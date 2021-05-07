@@ -10,11 +10,15 @@ categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 documentation = "https://docs.rs/openrr-client"
 
+[features]
+default = ["assimp"]
+assimp = ["openrr-planner/assimp"]
+
 [dependencies]
 anyhow = "1.0"
 arci = "0.0.5"
 k = { version = "0.24", features = ["serde-serialize"] }
-openrr-planner = "0.0.5"
+openrr-planner = { version = "0.0.5", default-features = false }
 schemars = "0.8.3"
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"

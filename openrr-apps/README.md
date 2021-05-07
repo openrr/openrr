@@ -20,7 +20,7 @@ If you are Windows user, ROS is not supported.
 So remove it.
 
 ```bash
-cargo install openrr-apps --no-default-features --features gui
+cargo install openrr-apps --no-default-features --features gui,assimp
 ```
 
 ### Option: For UR10 sample

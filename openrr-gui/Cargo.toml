@@ -11,6 +11,8 @@ repository = "https://github.com/openrr/openrr"
 documentation = "https://docs.rs/openrr-gui"
 
 [features]
+default = ["assimp"]
+assimp = ["openrr-client/assimp"]
 # Enables the `iced_glow` renderer on GUI.
 # This might be useful if the default renderer doesn't work.
 glow = ["iced/glow"]
@@ -18,7 +20,7 @@ glow = ["iced/glow"]
 [dependencies]
 arci = "0.0.5"
 iced = "0.3"
-openrr-client = "0.0.5"
+openrr-client = { version = "0.0.5", default-features = false }
 rand = "0.8"
 thiserror = "1"
 tracing = { version = "0.1", features = ["log"] }

@@ -10,11 +10,15 @@ categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 documentation = "https://docs.rs/openrr-command"
 
+[features]
+default = ["assimp"]
+assimp = ["openrr-client/assimp"]
+
 [dependencies]
 arci = "0.0.5"
 async-recursion = "0.3"
 k = "0.24"
-openrr-client = "0.0.5"
+openrr-client = { version = "0.0.5", default-features = false }
 structopt = "0.3.21"
 thiserror = "1.0"
 tracing = { version = "0.1", features = ["log"] }
