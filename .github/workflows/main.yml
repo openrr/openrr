@@ -103,7 +103,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: ci/ubuntu-install-dependencies.sh
       - run: cargo install cargo-hack
-      - run: cargo hack check --all --feature-powerset --optional-deps
+      - run: cargo hack check --all --feature-powerset --optional-deps --exclude arci-ros2
 
   fmt:
     name: Rustfmt
