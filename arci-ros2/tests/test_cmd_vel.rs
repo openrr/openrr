@@ -1,4 +1,5 @@
-#[cfg(feature = "ros2")]
+#![cfg(feature = "ros2")]
+
 #[tokio::test]
 async fn test_pub() {
     use std::sync::mpsc;
