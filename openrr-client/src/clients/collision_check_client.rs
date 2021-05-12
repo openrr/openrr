@@ -117,7 +117,7 @@ impl<T> JointTrajectoryClient for CollisionCheckClient<T>
 where
     T: JointTrajectoryClient,
 {
-    fn joint_names(&self) -> &[String] {
+    fn joint_names(&self) -> Vec<String> {
         self.client.joint_names()
     }
 
@@ -175,7 +175,7 @@ pub fn create_collision_check_client<P: AsRef<Path>>(
     client: Arc<dyn JointTrajectoryClient>,
     full_chain: Arc<k::Chain<f64>>,
 ) -> CollisionCheckClient<Arc<dyn JointTrajectoryClient>> {
-    let joint_names = client.joint_names().to_owned();
+    let joint_names = client.joint_names();
     CollisionCheckClient::new(
         client,
         Arc::new(create_self_collision_checker(

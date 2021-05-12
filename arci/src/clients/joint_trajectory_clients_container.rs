@@ -31,8 +31,8 @@ impl<T> JointTrajectoryClient for JointTrajectoryClientsContainer<T>
 where
     T: JointTrajectoryClient + Sync,
 {
-    fn joint_names(&self) -> &[String] {
-        &self.joint_names
+    fn joint_names(&self) -> Vec<String> {
+        self.joint_names.clone()
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
@@ -119,8 +119,8 @@ mod tests {
         last_trajectory: Arc<Mutex<Vec<TrajectoryPoint>>>,
     }
     impl JointTrajectoryClient for DummyFull {
-        fn joint_names(&self) -> &[String] {
-            &self.name
+        fn joint_names(&self) -> Vec<String> {
+            self.name.clone()
         }
 
         fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
@@ -155,8 +155,8 @@ mod tests {
             name: Vec<String>,
         }
         impl JointTrajectoryClient for Dummy {
-            fn joint_names(&self) -> &[String] {
-                &self.name
+            fn joint_names(&self) -> Vec<String> {
+                self.name.clone()
             }
 
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
@@ -210,8 +210,8 @@ mod tests {
             name: Vec<String>,
         }
         impl JointTrajectoryClient for Dummy {
-            fn joint_names(&self) -> &[String] {
-                &self.name
+            fn joint_names(&self) -> Vec<String> {
+                self.name.clone()
             }
 
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
@@ -293,8 +293,8 @@ mod tests {
             pos: Vec<f64>,
         }
         impl JointTrajectoryClient for Dummy {
-            fn joint_names(&self) -> &[String] {
-                &self.name
+            fn joint_names(&self) -> Vec<String> {
+                self.name.clone()
             }
 
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
@@ -374,8 +374,8 @@ mod tests {
             pos: Vec<f64>,
         }
         impl JointTrajectoryClient for Dummy {
-            fn joint_names(&self) -> &[String] {
-                &self.name
+            fn joint_names(&self) -> Vec<String> {
+                self.name.clone()
             }
 
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
@@ -466,8 +466,8 @@ mod tests {
             pos: Vec<f64>,
         }
         impl JointTrajectoryClient for Dummy {
-            fn joint_names(&self) -> &[String] {
-                &self.name
+            fn joint_names(&self) -> Vec<String> {
+                self.name.clone()
             }
 
             fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {

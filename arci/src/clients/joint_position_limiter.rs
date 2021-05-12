@@ -68,7 +68,7 @@ where
                 };
                 limits.push(limit);
             } else {
-                return Err(Error::NoJoint(joint_name.into()));
+                return Err(Error::NoJoint(joint_name));
             }
         }
 
@@ -122,7 +122,7 @@ impl<C> JointTrajectoryClient for JointPositionLimiter<C>
 where
     C: JointTrajectoryClient,
 {
-    fn joint_names(&self) -> &[String] {
+    fn joint_names(&self) -> Vec<String> {
         self.client.joint_names()
     }
 

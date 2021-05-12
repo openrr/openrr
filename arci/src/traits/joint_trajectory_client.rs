@@ -30,7 +30,7 @@ pub trait SetCompleteCondition {
 #[auto_impl(Box, Arc)]
 pub trait JointTrajectoryClient: Send + Sync {
     /// Returns names of joints that this client handles.
-    fn joint_names(&self) -> &[String];
+    fn joint_names(&self) -> Vec<String>;
 
     /// Returns the current joint positions.
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error>;

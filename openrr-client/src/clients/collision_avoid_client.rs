@@ -51,7 +51,7 @@ impl<'a, T> JointTrajectoryClient for CollisionAvoidClient<'a, T>
 where
     T: JointTrajectoryClient,
 {
-    fn joint_names(&self) -> &[String] {
+    fn joint_names(&self) -> Vec<String> {
         self.client.joint_names()
     }
 

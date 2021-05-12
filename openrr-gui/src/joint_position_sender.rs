@@ -59,7 +59,7 @@ where
 {
     for client in client.joint_trajectory_clients().values() {
         for joint_name in client.joint_names() {
-            if !joints.contains_key(joint_name) {
+            if !joints.contains_key(&joint_name) {
                 return Err(Error::Other(format!(
                     "Joint '{}' not found in URDF",
                     joint_name

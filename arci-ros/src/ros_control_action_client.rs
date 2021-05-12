@@ -52,8 +52,8 @@ impl RosControlActionClient {
 }
 
 impl JointTrajectoryClient for RosControlActionClient {
-    fn joint_names(&self) -> &[String] {
-        &self.0.joint_names
+    fn joint_names(&self) -> Vec<String> {
+        self.0.joint_names.clone()
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {

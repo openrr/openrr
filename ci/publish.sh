@@ -10,6 +10,9 @@ MEMBERS=(
     "openrr-sleep"
     "openrr-planner"
 
+    # depend on arci
+    "openrr-plugin"
+
     # depend on arci and openrr-planner
     "openrr-client"
 
