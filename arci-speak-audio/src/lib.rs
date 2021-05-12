@@ -58,7 +58,7 @@ fn play_audio_file(path: &Path) -> Result<WaitFuture, Error> {
 
     // Creates a WaitFuture that waits until the sound ends only if the future
     // is polled. This future is a bit tricky, but it's more efficient than
-    // using only `tokio::task::spawn_blocking` because it doesn't spawn threads
+    // using only `tokio::task::spawn_blocking` because it doesn't spawn a thread
     // if the WaitFuture is ignored.
     let wait = WaitFuture::new(async move {
         tokio::task::spawn_blocking(move || {

@@ -1,0 +1,14 @@
+[package]
+name = "openrr-plugin-example"
+version = "0.1.0"
+authors = ["Taiki Endo <te316e89@gmail.com>"]
+edition = "2018"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+arci = "0.0.5"
+openrr-plugin = "0.0.5"
+abi_stable = "0.9.3"

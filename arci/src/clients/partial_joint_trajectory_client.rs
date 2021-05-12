@@ -44,8 +44,8 @@ impl<C> JointTrajectoryClient for PartialJointTrajectoryClient<C>
 where
     C: JointTrajectoryClient,
 {
-    fn joint_names(&self) -> &[String] {
-        &self.joint_names
+    fn joint_names(&self) -> Vec<String> {
+        self.joint_names.clone()
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
@@ -53,7 +53,7 @@ where
         copy_joint_positions(
             &self.full_joint_names,
             &self.shared_client.current_joint_positions()?,
-            self.joint_names(),
+            &self.joint_names(),
             &mut result,
         );
         Ok(result)
@@ -66,7 +66,7 @@ where
     ) -> Result<WaitFuture, Error> {
         let mut full_positions = self.shared_client.current_joint_positions()?;
         copy_joint_positions(
-            self.joint_names(),
+            &self.joint_names(),
             &positions,
             &self.full_joint_names,
             &mut full_positions,
@@ -82,7 +82,7 @@ where
         for point in trajectory {
             let mut full_positions = full_positions_base.clone();
             copy_joint_positions(
-                self.joint_names(),
+                &self.joint_names(),
                 &point.positions,
                 &self.full_joint_names,
                 &mut full_positions,
@@ -91,7 +91,7 @@ where
             if let Some(partial_velocities) = &point.velocities {
                 let mut full_velocities = vec![0.0; full_dof];
                 copy_joint_positions(
-                    self.joint_names(),
+                    &self.joint_names(),
                     &partial_velocities,
                     &self.full_joint_names,
                     &mut full_velocities,

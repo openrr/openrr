@@ -14,8 +14,10 @@ members = [
     "openrr-command",
     "openrr-gui",
     "openrr-planner",
+    "openrr-plugin",
     "openrr-sleep",
     "openrr-teleop",
+    "openrr-plugin/examples/plugin",
 ]
 
 [patch.crates-io]
@@ -33,5 +35,6 @@ openrr-client = { path = "openrr-client" }
 openrr-command = { path = "openrr-command" }
 openrr-gui = { path = "openrr-gui" }
 openrr-planner = { path = "openrr-planner" }
+openrr-plugin = { path = "openrr-plugin" }
 openrr-sleep = { path = "openrr-sleep" }
 openrr-teleop = { path = "openrr-teleop" }

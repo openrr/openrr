@@ -1,0 +1,21 @@
+[package]
+name = "openrr-plugin"
+version = "0.0.5"
+authors = ["Taiki Endo <te316e89@gmail.com>"]
+edition = "2018"
+license = "Apache-2.0"
+description = "Experimental plugin support for arci"
+keywords = ["robotics", "robot"]
+categories = ["science::robotics"]
+repository = "https://github.com/openrr/openrr"
+documentation = "https://docs.rs/openrr-plugin"
+
+[dependencies]
+abi_stable = { version = "0.9.3", features = ["channels"] }
+anyhow = "1"
+arci = "0.0.5"
+num-traits = "0.2"
+tokio = { version = "1", features = ["sync", "rt"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

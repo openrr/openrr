@@ -22,8 +22,8 @@ impl ChainWrapper {
 }
 
 impl JointTrajectoryClient for ChainWrapper {
-    fn joint_names(&self) -> &[String] {
-        &self.joint_names
+    fn joint_names(&self) -> Vec<String> {
+        self.joint_names.clone()
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
