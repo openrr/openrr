@@ -2,6 +2,8 @@
 
 #![warn(rust_2018_idioms)]
 
+mod proxy;
+
 use std::{fmt, path::Path, sync::Arc, time::Duration};
 
 use abi_stable::{
@@ -10,14 +12,18 @@ use abi_stable::{
     library::{lib_header_from_path, RootModule},
     package_version_strings, sabi_trait,
     sabi_types::VersionStrings,
-    std_types::{RBox, RBoxError, RDuration, RErr, ROk, ROption, RStr, RString, RVec},
+    std_types::{RBox, RBoxError, ROption, RString, RVec},
     StableAbi,
 };
 use anyhow::{format_err, Result};
 pub use arci;
-use arci::WaitFuture;
-use nalgebra::{Isometry2, Translation2, UnitComplex};
-use num_traits::Float;
+use arci::{async_trait, Isometry2, WaitFuture};
+
+use crate::proxy::{
+    AbiStableGamepadTraitObj, AbiStableJointTrajectoryClientTraitObj,
+    AbiStableLocalizationTraitObj, AbiStableMoveBaseTraitObj, AbiStableNavigationTraitObj,
+    AbiStableSpeakerTraitObj,
+};
 
 pub type RResult<T, E = RError> = abi_stable::std_types::RResult<T, E>;
 
@@ -110,7 +116,7 @@ impl RPlugin {
     where
         P: Plugin,
     {
-        Self(RBoxPluginTrait::from_ptr(RBox::new(plugin), TU_Opaque))
+        Self(RBoxPluginTrait::from_value(plugin, TU_Opaque))
     }
 
     pub fn name(&self) -> String {
@@ -136,6 +142,10 @@ impl RPlugin {
     pub fn localization(&self) -> Option<RLocalization> {
         self.0.localization().into_option()
     }
+
+    pub fn gamepad(&self) -> Option<RGamepad> {
+        self.0.gamepad().into_option()
+    }
 }
 
 pub trait Plugin: 'static {
@@ -156,6 +166,9 @@ pub trait Plugin: 'static {
     fn localization(&self) -> Option<Arc<dyn arci::Localization>> {
         None
     }
+    fn gamepad(&self) -> Option<Arc<dyn arci::Gamepad>> {
+        None
+    }
 }
 
 /// FFI-safe equivalent of [`Plugin`] trait.
@@ -167,6 +180,7 @@ trait RPluginTrait: 'static {
     fn move_base(&self) -> ROption<RMoveBase>;
     fn navigation(&self) -> ROption<RNavigation>;
     fn localization(&self) -> ROption<RLocalization>;
+    fn gamepad(&self) -> ROption<RGamepad>;
 }
 
 type RBoxPluginTrait = RPluginTrait_TO<RBox<()>>;
@@ -200,7 +214,14 @@ where
     fn localization(&self) -> ROption<RLocalization> {
         Plugin::localization(self).map(RLocalization::new).into()
     }
+
+    fn gamepad(&self) -> ROption<RGamepad> {
+        Plugin::gamepad(self).map(RGamepad::new).into()
+    }
 }
+
+// =============================================================================
+// Error
 
 /// FFI-safe equivalent of [`arci::Error`].
 #[repr(C)]
@@ -244,24 +265,17 @@ impl std::error::Error for RError {}
 
 /// FFI-safe equivalent of [`Arc<dyn arci::JointTrajectoryClient>`](arci::JointTrajectoryClient).
 #[repr(C)]
-#[derive(StableAbi)]
-pub struct RJointTrajectoryClient(RBoxJointTrajectoryClientTrait);
+#[derive(StableAbi, Clone)]
+pub struct RJointTrajectoryClient(AbiStableJointTrajectoryClientTraitObj);
 
 impl RJointTrajectoryClient {
-    pub fn new<C>(c: Arc<C>) -> Self
+    pub fn new<T>(client: Arc<T>) -> Self
     where
-        C: ?Sized + StaticJointTrajectoryClient,
+        T: ?Sized + StaticJointTrajectoryClient,
     {
-        Self(RBoxJointTrajectoryClientTrait::from_ptr(
-            RBox::new(c),
-            TU_Opaque,
+        Self(AbiStableJointTrajectoryClientTraitObj::from_value(
+            client, TU_Opaque,
         ))
-    }
-}
-
-impl Clone for RJointTrajectoryClient {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
     }
 }
 
@@ -288,7 +302,7 @@ impl StaticJointTrajectoryClient for RJointTrajectoryClient {
         Ok(self
             .0
             .send_joint_positions(
-                positions.into_iter().map(Rf64::from).collect(),
+                positions.into_iter().map(Into::into).collect(),
                 duration.into(),
             )
             .into_result()?
@@ -301,7 +315,7 @@ impl StaticJointTrajectoryClient for RJointTrajectoryClient {
     ) -> Result<WaitFuture<'static>, arci::Error> {
         Ok(self
             .0
-            .send_joint_trajectory(trajectory.into_iter().map(RTrajectoryPoint::from).collect())
+            .send_joint_trajectory(trajectory.into_iter().map(Into::into).collect())
             .into_result()?
             .into())
     }
@@ -348,217 +362,20 @@ pub trait StaticJointTrajectoryClient: Send + Sync + 'static {
     ) -> Result<WaitFuture<'static>, arci::Error>;
 }
 
-/// FFI-safe equivalent of [`StaticJointTrajectoryClient`] trait.
-#[sabi_trait]
-trait RJointTrajectoryClientTrait: Send + Sync + Clone + 'static {
-    fn joint_names(&self) -> RVec<RString>;
-    fn current_joint_positions(&self) -> RResult<RVec<Rf64>>;
-    fn send_joint_positions(
-        &self,
-        positions: RVec<Rf64>,
-        duration: RDuration,
-    ) -> RResult<RBlockingWait>;
-    fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait>;
-}
-
-type RBoxJointTrajectoryClientTrait = RJointTrajectoryClientTrait_TO<RBox<()>>;
-
-impl<C> RJointTrajectoryClientTrait for Arc<C>
-where
-    C: ?Sized + StaticJointTrajectoryClient,
-{
-    fn joint_names(&self) -> RVec<RString> {
-        StaticJointTrajectoryClient::joint_names(&**self)
-            .into_iter()
-            .map(|s| s.into())
-            .collect()
-    }
-
-    fn current_joint_positions(&self) -> RResult<RVec<Rf64>> {
-        match StaticJointTrajectoryClient::current_joint_positions(&**self) {
-            Ok(p) => ROk(p.into_iter().map(Rf64::from).collect()),
-            Err(e) => RErr(e.into()),
-        }
-    }
-
-    fn send_joint_positions(
-        &self,
-        positions: RVec<Rf64>,
-        duration: RDuration,
-    ) -> RResult<RBlockingWait> {
-        match StaticJointTrajectoryClient::send_joint_positions(
-            &**self,
-            positions.into_iter().map(f64::from).collect(),
-            duration.into(),
-        ) {
-            Ok(wait) => ROk(wait.into()),
-            Err(e) => RErr(e.into()),
-        }
-    }
-
-    fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait> {
-        match StaticJointTrajectoryClient::send_joint_trajectory(
-            &**self,
-            trajectory
-                .into_iter()
-                .map(arci::TrajectoryPoint::from)
-                .collect(),
-        ) {
-            Ok(wait) => ROk(wait.into()),
-            Err(e) => RErr(e.into()),
-        }
-    }
-}
-
-#[repr(C)]
-#[derive(StableAbi)]
-#[must_use]
-struct RBlockingWait(RBoxWait);
-
-impl RBlockingWait {
-    fn from_fn(f: impl FnOnce() -> RResult<()> + Send + 'static) -> Self {
-        Self(RBoxWait::from_value(
-            f,
-            abi_stable::type_level::unerasability::TU_Opaque,
-        ))
-    }
-}
-
-impl From<WaitFuture<'static>> for RBlockingWait {
-    fn from(wait: WaitFuture<'static>) -> Self {
-        Self::from_fn(move || {
-            // TODO: use new_multi_thread?
-            tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .unwrap()
-                .block_on(async move { wait.await.map_err(RError::from).into() })
-        })
-    }
-}
-
-impl From<RBlockingWait> for WaitFuture<'static> {
-    fn from(wait: RBlockingWait) -> Self {
-        // Creates a WaitFuture that waits until Wait::wait done only if the future
-        // is polled. This future is a bit tricky, but it's more efficient than
-        // using only `tokio::task::spawn_blocking` because it doesn't spawn a thread
-        // if the WaitFuture is ignored.
-        WaitFuture::new(async move {
-            tokio::task::spawn_blocking(move || wait.0.wait())
-                .await
-                .map_err(|e| arci::Error::Other(e.into()))?
-                .into_result()?;
-            Ok(())
-        })
-    }
-}
-
-#[sabi_trait]
-trait RWaitTrait: Send + 'static {
-    fn wait(self) -> RResult<()>;
-}
-
-type RBoxWait = RWaitTrait_TO<RBox<()>>;
-
-impl<F> RWaitTrait for F
-where
-    F: FnOnce() -> RResult<()> + Send + 'static,
-{
-    fn wait(self) -> RResult<()> {
-        self()
-    }
-}
-
-/// FFI-safe equivalent of [`f64`].
-#[repr(C)]
-#[derive(Debug, Clone, Copy, StableAbi)]
-struct Rf64 {
-    mantissa: u64,
-    exponent: i16,
-    sign: i8,
-}
-
-impl From<f64> for Rf64 {
-    fn from(val: f64) -> Self {
-        let (mantissa, exponent, sign) = Float::integer_decode(val);
-        Self {
-            mantissa,
-            exponent,
-            sign,
-        }
-    }
-}
-
-impl From<Rf64> for f64 {
-    fn from(val: Rf64) -> Self {
-        // https://docs.rs/num-traits/0.2/num_traits/float/trait.Float.html#tymethod.integer_decode
-        let Rf64 {
-            mantissa,
-            exponent,
-            sign,
-        } = val;
-        let sign_f = sign as f64;
-        let mantissa_f = mantissa as f64;
-        let exponent_f = 2.0.powf(exponent as f64);
-        sign_f * mantissa_f * exponent_f
-    }
-}
-
-/// FFI-safe equivalent of [`arci::TrajectoryPoint`].
-#[repr(C)]
-#[derive(StableAbi, Clone, Debug)]
-struct RTrajectoryPoint {
-    positions: RVec<Rf64>,
-    velocities: ROption<RVec<Rf64>>,
-    time_from_start: RDuration,
-}
-
-impl From<arci::TrajectoryPoint> for RTrajectoryPoint {
-    fn from(val: arci::TrajectoryPoint) -> Self {
-        Self {
-            positions: val.positions.into_iter().map(Rf64::from).collect(),
-            velocities: val
-                .velocities
-                .map(|v| v.into_iter().map(Rf64::from).collect())
-                .into(),
-            time_from_start: val.time_from_start.into(),
-        }
-    }
-}
-
-impl From<RTrajectoryPoint> for arci::TrajectoryPoint {
-    fn from(val: RTrajectoryPoint) -> Self {
-        Self {
-            positions: val.positions.into_iter().map(f64::from).collect(),
-            velocities: val
-                .velocities
-                .into_option()
-                .map(|v| v.into_iter().map(f64::from).collect()),
-            time_from_start: val.time_from_start.into(),
-        }
-    }
-}
-
 // =============================================================================
-// Speaker
+// arci::Speaker
 
 /// FFI-safe equivalent of [`Arc<dyn arci::Speaker>`](arci::Speaker).
 #[repr(C)]
-#[derive(StableAbi)]
-pub struct RSpeaker(RBoxSpeakerTrait);
+#[derive(StableAbi, Clone)]
+pub struct RSpeaker(AbiStableSpeakerTraitObj);
 
 impl RSpeaker {
     pub fn new<T>(speaker: Arc<T>) -> Self
     where
         T: ?Sized + arci::Speaker + 'static,
     {
-        Self(RBoxSpeakerTrait::from_ptr(RBox::new(speaker), TU_Opaque))
-    }
-}
-
-impl Clone for RSpeaker {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self(AbiStableSpeakerTraitObj::from_value(speaker, TU_Opaque))
     }
 }
 
@@ -568,54 +385,26 @@ impl arci::Speaker for RSpeaker {
     }
 }
 
-/// FFI-safe equivalent of [`arci::Speaker`] trait.
-#[sabi_trait]
-trait RSpeakerTrait: Send + Sync + Clone + 'static {
-    fn speak(&self, message: RStr<'_>) -> RResult<RBlockingWait>;
-}
-
-type RBoxSpeakerTrait = RSpeakerTrait_TO<RBox<()>>;
-
-impl<T> RSpeakerTrait for Arc<T>
-where
-    T: ?Sized + arci::Speaker + 'static,
-{
-    fn speak(&self, message: RStr<'_>) -> RResult<RBlockingWait> {
-        match arci::Speaker::speak(&**self, message.into()) {
-            Ok(wait) => ROk(wait.into()),
-            Err(e) => RErr(e.into()),
-        }
-    }
-}
-
 // =============================================================================
-// MoveBase
+// arci::MoveBase
 
 /// FFI-safe equivalent of [`Arc<dyn arci::MoveBase>`](arci::MoveBase).
 #[repr(C)]
-#[derive(StableAbi)]
-pub struct RMoveBase(RBoxMoveBaseTrait);
+#[derive(StableAbi, Clone)]
+pub struct RMoveBase(AbiStableMoveBaseTraitObj);
 
 impl RMoveBase {
     pub fn new<T>(base: Arc<T>) -> Self
     where
         T: ?Sized + arci::MoveBase + 'static,
     {
-        Self(RBoxMoveBaseTrait::from_ptr(RBox::new(base), TU_Opaque))
-    }
-}
-
-impl Clone for RMoveBase {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self(AbiStableMoveBaseTraitObj::from_value(base, TU_Opaque))
     }
 }
 
 impl arci::MoveBase for RMoveBase {
     fn send_velocity(&self, velocity: &arci::BaseVelocity) -> Result<(), arci::Error> {
-        self.0
-            .send_velocity(&RBaseVelocity::from(*velocity))
-            .into_result()?;
+        self.0.send_velocity(&(*velocity).into()).into_result()?;
         Ok(())
     }
 
@@ -624,83 +413,20 @@ impl arci::MoveBase for RMoveBase {
     }
 }
 
-/// FFI-safe equivalent of [`arci::MoveBase`] trait.
-#[sabi_trait]
-trait RMoveBaseTrait: Send + Sync + Clone + 'static {
-    fn send_velocity(&self, velocity: &RBaseVelocity) -> RResult<()>;
-    fn current_velocity(&self) -> RResult<RBaseVelocity>;
-}
-
-type RBoxMoveBaseTrait = RMoveBaseTrait_TO<RBox<()>>;
-
-impl<T> RMoveBaseTrait for Arc<T>
-where
-    T: ?Sized + arci::MoveBase + 'static,
-{
-    fn send_velocity(&self, velocity: &RBaseVelocity) -> RResult<()> {
-        match arci::MoveBase::send_velocity(&**self, &arci::BaseVelocity::from(*velocity)) {
-            Ok(()) => ROk(()),
-            Err(e) => RErr(e.into()),
-        }
-    }
-
-    fn current_velocity(&self) -> RResult<RBaseVelocity> {
-        match arci::MoveBase::current_velocity(&**self) {
-            Ok(v) => ROk(v.into()),
-            Err(e) => RErr(e.into()),
-        }
-    }
-}
-
-/// FFI-safe equivalent of [`arci::BaseVelocity`].
-#[repr(C)]
-#[derive(StableAbi, Clone, Copy, Debug)]
-struct RBaseVelocity {
-    x: Rf64,
-    y: Rf64,
-    theta: Rf64,
-}
-
-impl From<arci::BaseVelocity> for RBaseVelocity {
-    fn from(val: arci::BaseVelocity) -> Self {
-        Self {
-            x: val.x.into(),
-            y: val.y.into(),
-            theta: val.theta.into(),
-        }
-    }
-}
-
-impl From<RBaseVelocity> for arci::BaseVelocity {
-    fn from(val: RBaseVelocity) -> Self {
-        Self {
-            x: val.x.into(),
-            y: val.y.into(),
-            theta: val.theta.into(),
-        }
-    }
-}
-
 // =============================================================================
-// Navigation
+// arci::Navigation
 
 /// FFI-safe equivalent of [`Arc<dyn arci::Navigation>`](arci::Navigation).
 #[repr(C)]
-#[derive(StableAbi)]
-pub struct RNavigation(RBoxNavigationTrait);
+#[derive(StableAbi, Clone)]
+pub struct RNavigation(AbiStableNavigationTraitObj);
 
 impl RNavigation {
     pub fn new<T>(nav: Arc<T>) -> Self
     where
         T: ?Sized + arci::Navigation + 'static,
     {
-        Self(RBoxNavigationTrait::from_ptr(RBox::new(nav), TU_Opaque))
-    }
-}
-
-impl Clone for RNavigation {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self(AbiStableNavigationTraitObj::from_value(nav, TU_Opaque))
     }
 }
 
@@ -724,141 +450,20 @@ impl arci::Navigation for RNavigation {
     }
 }
 
-/// FFI-safe equivalent of [`arci::Navigation`] trait.
-#[sabi_trait]
-trait RNavigationTrait: Send + Sync + Clone + 'static {
-    fn send_goal_pose(
-        &self,
-        goal: RIsometry2F64,
-        frame_id: RStr<'_>,
-        timeout: RDuration,
-    ) -> RResult<RBlockingWait>;
-
-    fn cancel(&self) -> RResult<()>;
-}
-
-type RBoxNavigationTrait = RNavigationTrait_TO<RBox<()>>;
-
-impl<T> RNavigationTrait for Arc<T>
-where
-    T: ?Sized + arci::Navigation + 'static,
-{
-    fn send_goal_pose(
-        &self,
-        goal: RIsometry2F64,
-        frame_id: RStr<'_>,
-        timeout: RDuration,
-    ) -> RResult<RBlockingWait> {
-        match arci::Navigation::send_goal_pose(
-            &**self,
-            goal.into(),
-            frame_id.into(),
-            timeout.into(),
-        ) {
-            Ok(wait) => ROk(wait.into()),
-            Err(e) => RErr(e.into()),
-        }
-    }
-
-    fn cancel(&self) -> RResult<()> {
-        match arci::Navigation::cancel(&**self) {
-            Ok(()) => ROk(()),
-            Err(e) => RErr(e.into()),
-        }
-    }
-}
-
-/// FFI-safe equivalent of [`nalgebra::Isometry2<f64>`](nalgebra::Isometry2).
-#[repr(C)]
-#[derive(StableAbi, Clone, Copy, Debug)]
-struct RIsometry2F64 {
-    rotation: RUnitComplexF64,
-    translation: RTranslation2F64,
-}
-
-impl From<Isometry2<f64>> for RIsometry2F64 {
-    fn from(val: Isometry2<f64>) -> Self {
-        Self {
-            rotation: val.rotation.into(),
-            translation: val.translation.into(),
-        }
-    }
-}
-
-impl From<RIsometry2F64> for Isometry2<f64> {
-    fn from(val: RIsometry2F64) -> Self {
-        Self::from_parts(val.translation.into(), val.rotation.into())
-    }
-}
-
-/// FFI-safe equivalent of [`nalgebra::UnitComplex<f64>`](nalgebra::UnitComplex).
-#[repr(C)]
-#[derive(StableAbi, Clone, Copy, Debug)]
-struct RUnitComplexF64 {
-    value: [Rf64; 2],
-}
-
-impl From<UnitComplex<f64>> for RUnitComplexF64 {
-    fn from(val: UnitComplex<f64>) -> Self {
-        let value = val.into_inner();
-        Self {
-            value: [value.re.into(), value.im.into()],
-        }
-    }
-}
-
-impl From<RUnitComplexF64> for UnitComplex<f64> {
-    fn from(val: RUnitComplexF64) -> Self {
-        Self::from_complex(nalgebra::Complex {
-            re: val.value[0].into(),
-            im: val.value[1].into(),
-        })
-    }
-}
-
-/// FFI-safe equivalent of [`nalgebra::Translation2<f64>`](nalgebra::Translation2).
-#[repr(C)]
-#[derive(StableAbi, Clone, Copy, Debug)]
-struct RTranslation2F64 {
-    x: Rf64,
-    y: Rf64,
-}
-
-impl From<Translation2<f64>> for RTranslation2F64 {
-    fn from(val: Translation2<f64>) -> Self {
-        Self {
-            x: val.vector.x.into(),
-            y: val.vector.y.into(),
-        }
-    }
-}
-
-impl From<RTranslation2F64> for Translation2<f64> {
-    fn from(val: RTranslation2F64) -> Self {
-        Self::new(val.x.into(), val.y.into())
-    }
-}
-
 // =============================================================================
-// Localization
+// arci::Localization
 
 /// FFI-safe equivalent of [`Arc<dyn arci::Localization>`](arci::Localization).
 #[repr(C)]
-#[derive(StableAbi)]
-pub struct RLocalization(RBoxLocalizationTrait);
+#[derive(StableAbi, Clone)]
+pub struct RLocalization(AbiStableLocalizationTraitObj);
 
 impl RLocalization {
     pub fn new<T>(loc: Arc<T>) -> Self
     where
         T: ?Sized + arci::Localization + 'static,
     {
-        Self(RBoxLocalizationTrait::from_ptr(RBox::new(loc), TU_Opaque))
-    }
-}
-
-impl Clone for RLocalization {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self(AbiStableLocalizationTraitObj::from_value(loc, TU_Opaque))
     }
 }
 
@@ -868,22 +473,67 @@ impl arci::Localization for RLocalization {
     }
 }
 
-/// FFI-safe equivalent of [`arci::Localization`] trait.
-#[sabi_trait]
-trait RLocalizationTrait: Send + Sync + Clone + 'static {
-    fn current_pose(&self, frame_id: RStr<'_>) -> RResult<RIsometry2F64>;
+/* TODO: We need a FFI-safe equivalent of SystemTime.
+// =============================================================================
+// arci::TransformResolver
+
+/// FFI-safe equivalent of [`Arc<dyn arci::TransformResolver>`](arci::TransformResolver).
+#[repr(C)]
+#[derive(StableAbi, Clone)]
+pub struct RTransformResolver(AbiStableTransformResolverTraitObj);
+
+impl RTransformResolver {
+    pub fn new<T>(resolver: Arc<T>) -> Self
+    where
+        T: ?Sized + arci::TransformResolver + 'static,
+    {
+        Self(AbiStableTransformResolverTraitObj::from_value(resolver, TU_Opaque))
+    }
 }
 
-type RBoxLocalizationTrait = RLocalizationTrait_TO<RBox<()>>;
+impl arci::TransformResolver for RTransformResolver {
+    fn resolve_transformation(
+        &self,
+        from: &str,
+        to: &str,
+        time: SystemTime,
+    ) -> Result<Isometry3<f64>, arci::Error> {
+        Ok(self
+            .0
+            .resolve_transformation(from.into(), to.into(), time.into())
+            .into_result()?
+            .into())
+    }
+}
+*/
 
-impl<T> RLocalizationTrait for Arc<T>
-where
-    T: ?Sized + arci::Localization + 'static,
-{
-    fn current_pose(&self, frame_id: RStr<'_>) -> RResult<RIsometry2F64> {
-        match arci::Localization::current_pose(&**self, frame_id.into()) {
-            Ok(pose) => ROk(pose.into()),
-            Err(e) => RErr(e.into()),
-        }
+// =============================================================================
+// arci::Gamepad
+
+/// FFI-safe equivalent of [`Arc<dyn arci::Gamepad>`](arci::Gamepad).
+#[repr(C)]
+#[derive(StableAbi, Clone)]
+pub struct RGamepad(AbiStableGamepadTraitObj);
+
+impl RGamepad {
+    pub fn new<T>(loc: Arc<T>) -> Self
+    where
+        T: ?Sized + arci::Gamepad + 'static,
+    {
+        Self(AbiStableGamepadTraitObj::from_value(loc, TU_Opaque))
+    }
+}
+
+#[async_trait]
+impl arci::Gamepad for RGamepad {
+    async fn next_event(&self) -> arci::gamepad::GamepadEvent {
+        let this = self.clone();
+        tokio::task::spawn_blocking(move || this.0.next_event().into())
+            .await
+            .unwrap_or(arci::gamepad::GamepadEvent::Unknown)
+    }
+
+    fn stop(&self) {
+        self.0.stop();
     }
 }
