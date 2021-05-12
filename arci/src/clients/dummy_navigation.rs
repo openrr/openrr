@@ -34,7 +34,7 @@ impl Navigation for DummyNavigation {
         goal: Isometry2<f64>,
         _frame_id: &str,
         _timeout: std::time::Duration,
-    ) -> Result<WaitFuture, Error> {
+    ) -> Result<WaitFuture<'static>, Error> {
         *self.goal_pose.lock().unwrap() = goal;
         Ok(WaitFuture::ready())
     }

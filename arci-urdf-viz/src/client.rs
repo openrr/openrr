@@ -368,7 +368,7 @@ impl Navigation for UrdfVizWebClient {
         goal: na::Isometry2<f64>,
         _frame_id: &str,
         _timeout: Duration,
-    ) -> Result<WaitFuture, arci::Error> {
+    ) -> Result<WaitFuture<'static>, arci::Error> {
         // JUMP!
         let re = send_robot_origin(&self.0.base_url, goal.into()).map_err(|e| {
             arci::Error::Connection {

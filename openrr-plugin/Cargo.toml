@@ -14,8 +14,11 @@ documentation = "https://docs.rs/openrr-plugin"
 abi_stable = { version = "0.9.3", features = ["channels"] }
 anyhow = "1"
 arci = "0.0.5"
+nalgebra = "0.26"
 num-traits = "0.2"
 tokio = { version = "1", features = ["sync", "rt"] }
 
 [dev-dependencies]
+assert_approx_eq = "1"
+openrr-client = "0.0.5"
 tokio = { version = "1", features = ["full"] }
