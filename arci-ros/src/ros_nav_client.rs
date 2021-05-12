@@ -190,7 +190,7 @@ impl Navigation for RosNavClient {
         goal: na::Isometry2<f64>,
         frame_id: &str,
         timeout: std::time::Duration,
-    ) -> Result<WaitFuture, Error> {
+    ) -> Result<WaitFuture<'static>, Error> {
         if self.clear_costmap_before_start {
             self.clear_costmap()?;
         }

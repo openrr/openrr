@@ -3,10 +3,9 @@ use std::{
     time::Duration,
 };
 
-use arci::{Error, TrajectoryPoint, WaitFuture};
-use arci_speak_cmd::LocalCommand;
+use openrr_client::PrintSpeaker;
 use openrr_plugin::{
-    arci::{self, DummyMoveBase},
+    arci::{self, DummyMoveBase, DummyNavigation, Error, TrajectoryPoint, WaitFuture},
     Plugin, StaticJointTrajectoryClient,
 };
 
@@ -14,8 +13,9 @@ openrr_plugin::export_plugin!(MyPlugin::new);
 
 pub struct MyPlugin {
     joint_trajectory_client: Arc<MyJointTrajectoryClient>,
-    speaker: Arc<LocalCommand>,
+    speaker: Arc<PrintSpeaker>,
     move_base: Arc<DummyMoveBase>,
+    navigation: Arc<DummyNavigation>,
 }
 
 impl MyPlugin {
@@ -25,8 +25,9 @@ impl MyPlugin {
                 joint_names: vec!["a".to_string(), "b".to_string()],
                 joint_positions: Mutex::new(vec![0.0, 0.0]),
             }),
-            speaker: Arc::new(LocalCommand::default()),
+            speaker: Arc::new(PrintSpeaker::default()),
             move_base: Arc::new(DummyMoveBase::default()),
+            navigation: Arc::new(DummyNavigation::default()),
         })
     }
 }
@@ -46,6 +47,10 @@ impl Plugin for MyPlugin {
 
     fn move_base(&self) -> Option<Arc<dyn arci::MoveBase>> {
         Some(self.move_base.clone())
+    }
+
+    fn navigation(&self) -> Option<Arc<dyn arci::Navigation>> {
+        Some(self.navigation.clone())
     }
 }
 
