@@ -20,7 +20,7 @@ jobs:
       - run: |
           apt-get update
           apt-get -y install curl
-      - uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           profile: minimal
           toolchain: stable
@@ -44,7 +44,7 @@ jobs:
       - run: |
           apt-get update
           apt-get -y install curl
-      - uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           profile: minimal
           toolchain: stable
