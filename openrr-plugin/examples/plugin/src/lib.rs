@@ -3,13 +3,15 @@ use std::{
     time::Duration,
 };
 
-use arci::{Error, TrajectoryPoint, WaitFuture};
-use openrr_plugin::{Plugin, StaticJointTrajectoryClient};
+use arci::{Error, Speaker, TrajectoryPoint, WaitFuture};
+use arci_speak_cmd::LocalCommand;
+use openrr_plugin::{arci, Plugin, StaticJointTrajectoryClient};
 
 openrr_plugin::export_plugin!(MyPlugin::new);
 
 pub struct MyPlugin {
     joint_trajectory_client: Arc<MyJointTrajectoryClient>,
+    speaker: Arc<LocalCommand>,
 }
 
 impl MyPlugin {
@@ -19,6 +21,7 @@ impl MyPlugin {
                 joint_names: vec!["a".to_string(), "b".to_string()],
                 joint_positions: Mutex::new(vec![0.0, 0.0]),
             }),
+            speaker: Arc::new(LocalCommand::default()),
         })
     }
 }
@@ -30,6 +33,10 @@ impl Plugin for MyPlugin {
 
     fn joint_trajectory_client(&self) -> Option<Arc<dyn StaticJointTrajectoryClient>> {
         Some(self.joint_trajectory_client.clone())
+    }
+
+    fn speaker(&self) -> Option<Arc<dyn arci::Speaker>> {
+        Some(self.speaker.clone())
     }
 }
 
@@ -61,5 +68,11 @@ impl StaticJointTrajectoryClient for MyJointTrajectoryClient {
         _trajectory: Vec<TrajectoryPoint>,
     ) -> Result<WaitFuture<'static>, Error> {
         std::process::abort()
+    }
+}
+
+impl Speaker for MyPlugin {
+    fn speak(&self, message: &str) -> Result<WaitFuture<'static>, Error> {
+        self.speaker.speak(message)
     }
 }

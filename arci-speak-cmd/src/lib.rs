@@ -27,7 +27,7 @@ impl LocalCommand {
 }
 
 impl Speaker for LocalCommand {
-    fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
+    fn speak(&self, message: &str) -> Result<WaitFuture<'static>, arci::Error> {
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let message = message.to_string();
 

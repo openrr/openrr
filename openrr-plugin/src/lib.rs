@@ -2,7 +2,7 @@
 
 #![warn(rust_2018_idioms)]
 
-use std::{fmt, future::Future, path::Path, sync::Arc, time::Duration};
+use std::{fmt, path::Path, sync::Arc, time::Duration};
 
 use abi_stable::{
     declare_root_module_statics,
@@ -10,12 +10,12 @@ use abi_stable::{
     library::{lib_header_from_path, RootModule},
     package_version_strings, sabi_trait,
     sabi_types::VersionStrings,
-    std_types::{RBox, RBoxError, RDuration, RErr, ROk, ROption, RResult, RString, RVec},
+    std_types::{RBox, RBoxError, RDuration, RErr, ROk, ROption, RResult, RStr, RString, RVec},
     StableAbi,
 };
 use anyhow::{format_err, Result};
-#[doc(no_inline)]
-pub use arci::{Error, TrajectoryPoint, WaitFuture};
+pub use arci;
+use arci::{TrajectoryPoint, WaitFuture};
 use num_traits::Float;
 
 #[macro_export]
@@ -97,7 +97,7 @@ impl RootModule for PluginMod_Ref {
     declare_root_module_statics!(PluginMod_Ref);
 }
 
-/// Ffi-safe equivalent of [`Box<dyn Plugin>`](Plugin).
+/// FFI-safe equivalent of [`Box<dyn Plugin>`](Plugin).
 #[repr(C)]
 #[derive(StableAbi)]
 pub struct RPlugin(RBoxPluginTrait);
@@ -117,6 +117,10 @@ impl RPlugin {
     pub fn joint_trajectory_client(&self) -> Option<RJointTrajectoryClient> {
         self.0.joint_trajectory_client().into_option()
     }
+
+    pub fn speaker(&self) -> Option<RSpeaker> {
+        self.0.speaker().into_option()
+    }
 }
 
 pub trait Plugin: 'static {
@@ -124,13 +128,17 @@ pub trait Plugin: 'static {
     fn joint_trajectory_client(&self) -> Option<Arc<dyn StaticJointTrajectoryClient>> {
         None
     }
+    fn speaker(&self) -> Option<Arc<dyn arci::Speaker>> {
+        None
+    }
 }
 
-/// Ffi-safe equivalent of [`Plugin`] trait.
+/// FFI-safe equivalent of [`Plugin`] trait.
 #[sabi_trait]
 trait RPluginTrait: 'static {
     fn name(&self) -> RString;
     fn joint_trajectory_client(&self) -> ROption<RJointTrajectoryClient>;
+    fn speaker(&self) -> ROption<RSpeaker>;
 }
 
 type RBoxPluginTrait = RPluginTrait_TO<RBox<()>>;
@@ -148,17 +156,21 @@ where
             .map(RJointTrajectoryClient::new)
             .into()
     }
+
+    fn speaker(&self) -> ROption<RSpeaker> {
+        Plugin::speaker(self).map(RSpeaker::new).into()
+    }
 }
 
-/// Ffi-safe equivalent of [`arci::Error`].
+/// FFI-safe equivalent of [`arci::Error`].
 #[repr(C)]
 #[derive(StableAbi)]
 pub struct RError {
     repr: RBoxError,
 }
 
-impl From<Error> for RError {
-    fn from(e: Error) -> Self {
+impl From<arci::Error> for RError {
+    fn from(e: arci::Error) -> Self {
         Self {
             // TODO: propagate error kind.
             repr: RBoxError::from_box(Box::new(e)),
@@ -166,7 +178,7 @@ impl From<Error> for RError {
     }
 }
 
-impl From<RError> for Error {
+impl From<RError> for arci::Error {
     fn from(e: RError) -> Self {
         // TODO: propagate error kind.
         Self::Other(format_err!("{}", e.repr))
@@ -187,7 +199,7 @@ impl fmt::Display for RError {
 
 impl std::error::Error for RError {}
 
-/// Ffi-safe equivalent of [`Arc<dyn arci::JointTrajectoryClient>`](arci::JointTrajectoryClient).
+/// FFI-safe equivalent of [`Arc<dyn arci::JointTrajectoryClient>`](arci::JointTrajectoryClient).
 #[repr(C)]
 #[derive(StableAbi)]
 pub struct RJointTrajectoryClient(RBoxJointTrajectoryClientTrait);
@@ -283,7 +295,7 @@ pub trait StaticJointTrajectoryClient: Send + Sync + 'static {
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
-        duration: std::time::Duration,
+        duration: Duration,
     ) -> Result<WaitFuture<'static>, arci::Error>;
     fn send_joint_trajectory(
         &self,
@@ -291,20 +303,20 @@ pub trait StaticJointTrajectoryClient: Send + Sync + 'static {
     ) -> Result<WaitFuture<'static>, arci::Error>;
 }
 
-/// Ffi-safe equivalent of [`StaticJointTrajectoryClient`] trait.
+/// FFI-safe equivalent of [`StaticJointTrajectoryClient`] trait.
 #[sabi_trait]
 trait RJointTrajectoryClientTrait: Send + Sync + Clone + 'static {
     fn joint_names(&self) -> RVec<RString>;
-    fn current_joint_positions(&self) -> RResult<RVec<Rf64>, RBoxError>;
+    fn current_joint_positions(&self) -> RResult<RVec<Rf64>, RError>;
     fn send_joint_positions(
         &self,
         positions: RVec<Rf64>,
         duration: RDuration,
-    ) -> RResult<RBlockingWait, RBoxError>;
+    ) -> RResult<RBlockingWait, RError>;
     fn send_joint_trajectory(
         &self,
         trajectory: RVec<RTrajectoryPoint>,
-    ) -> RResult<RBlockingWait, RBoxError>;
+    ) -> RResult<RBlockingWait, RError>;
 }
 
 type RBoxJointTrajectoryClientTrait = RJointTrajectoryClientTrait_TO<RBox<()>>;
@@ -320,10 +332,10 @@ where
             .collect()
     }
 
-    fn current_joint_positions(&self) -> RResult<RVec<Rf64>, RBoxError> {
+    fn current_joint_positions(&self) -> RResult<RVec<Rf64>, RError> {
         match StaticJointTrajectoryClient::current_joint_positions(&**self) {
             Ok(p) => ROk(p.into_iter().map(Rf64::from).collect()),
-            Err(e) => RErr(RBoxError::from_box(e.into())),
+            Err(e) => RErr(e.into()),
         }
     }
 
@@ -331,31 +343,27 @@ where
         &self,
         positions: RVec<Rf64>,
         duration: RDuration,
-    ) -> RResult<RBlockingWait, RBoxError> {
+    ) -> RResult<RBlockingWait, RError> {
         match StaticJointTrajectoryClient::send_joint_positions(
             &**self,
             positions.into_iter().map(f64::from).collect(),
             duration.into(),
         ) {
-            Ok(wait) => ROk(RBlockingWait::from_async(async move {
-                wait.await.map_err(|e| RBoxError::from_box(e.into())).into()
-            })),
-            Err(e) => RErr(RBoxError::from_box(e.into())),
+            Ok(wait) => ROk(wait.into()),
+            Err(e) => RErr(e.into()),
         }
     }
 
     fn send_joint_trajectory(
         &self,
         trajectory: RVec<RTrajectoryPoint>,
-    ) -> RResult<RBlockingWait, RBoxError> {
+    ) -> RResult<RBlockingWait, RError> {
         match StaticJointTrajectoryClient::send_joint_trajectory(
             &**self,
             trajectory.into_iter().map(TrajectoryPoint::from).collect(),
         ) {
-            Ok(wait) => ROk(RBlockingWait::from_async(async move {
-                wait.await.map_err(|e| RBoxError::from_box(e.into())).into()
-            })),
-            Err(e) => RErr(RBoxError::from_box(e.into())),
+            Ok(wait) => ROk(wait.into()),
+            Err(e) => RErr(e.into()),
         }
     }
 }
@@ -364,6 +372,28 @@ where
 #[derive(StableAbi)]
 #[must_use]
 struct RBlockingWait(RBoxWait);
+
+impl RBlockingWait {
+    fn from_fn(f: impl FnOnce() -> RResult<(), RError> + Send + 'static) -> Self {
+        Self(RBoxWait::from_value(
+            f,
+            abi_stable::type_level::unerasability::TU_Opaque,
+        ))
+    }
+}
+
+impl From<WaitFuture<'static>> for RBlockingWait {
+    fn from(wait: WaitFuture<'static>) -> Self {
+        Self::from_fn(move || {
+            // TODO: use new_multi_thread?
+            tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(async move { wait.await.map_err(RError::from).into() })
+        })
+    }
+}
 
 impl From<RBlockingWait> for WaitFuture<'static> {
     fn from(wait: RBlockingWait) -> Self {
@@ -382,43 +412,23 @@ impl From<RBlockingWait> for WaitFuture<'static> {
     }
 }
 
-impl RBlockingWait {
-    fn from_fn(f: impl FnOnce() -> RResult<(), RBoxError> + Send + 'static) -> Self {
-        Self(RBoxWait::from_value(
-            f,
-            abi_stable::type_level::unerasability::TU_Opaque,
-        ))
-    }
-
-    fn from_async(f: impl Future<Output = RResult<(), RBoxError>> + Send + 'static) -> Self {
-        Self::from_fn(move || {
-            // TODO: use new_multi_thread?
-            tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .unwrap()
-                .block_on(f)
-        })
-    }
+#[sabi_trait]
+trait RWaitTrait: Send + 'static {
+    fn wait(self) -> RResult<(), RError>;
 }
 
 type RBoxWait = RWaitTrait_TO<RBox<()>>;
 
-#[sabi_trait]
-trait RWaitTrait: Send + 'static {
-    fn wait(self) -> RResult<(), RBoxError>;
-}
-
 impl<F> RWaitTrait for F
 where
-    F: FnOnce() -> RResult<(), RBoxError> + Send + 'static,
+    F: FnOnce() -> RResult<(), RError> + Send + 'static,
 {
-    fn wait(self) -> RResult<(), RBoxError> {
+    fn wait(self) -> RResult<(), RError> {
         self()
     }
 }
 
-/// Ffi-safe equivalent of [`f64`].
+/// FFI-safe equivalent of [`f64`].
 #[repr(C)]
 #[derive(Debug, Clone, Copy, StableAbi)]
 struct Rf64 {
@@ -453,7 +463,7 @@ impl From<Rf64> for f64 {
     }
 }
 
-/// Ffi-safe equivalent of [`arci::TrajectoryPoint`].
+/// FFI-safe equivalent of [`arci::TrajectoryPoint`].
 #[repr(C)]
 #[derive(StableAbi, Clone, Debug)]
 struct RTrajectoryPoint {
@@ -484,6 +494,55 @@ impl From<RTrajectoryPoint> for arci::TrajectoryPoint {
                 .into_option()
                 .map(|v| v.into_iter().map(f64::from).collect()),
             time_from_start: val.time_from_start.into(),
+        }
+    }
+}
+
+/// FFI-safe equivalent of [`Arc<dyn arci::Speaker>`](arci::Speaker).
+#[repr(C)]
+#[derive(StableAbi)]
+pub struct RSpeaker(RBoxSpeakerTrait);
+
+impl RSpeaker {
+    pub fn new<T>(c: Arc<T>) -> Self
+    where
+        T: ?Sized + arci::Speaker + 'static,
+    {
+        Self(RBoxSpeakerTrait::from_ptr(RBox::new(c), TU_Opaque))
+    }
+}
+
+impl Clone for RSpeaker {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl arci::Speaker for RSpeaker {
+    fn speak(&self, message: &str) -> Result<WaitFuture<'static>, arci::Error> {
+        match self.0.speak(message.into()) {
+            ROk(wait) => Ok(wait.into()),
+            RErr(e) => Err(e.into()),
+        }
+    }
+}
+
+/// FFI-safe equivalent of [`StaticJointTrajectoryClient`] trait.
+#[sabi_trait]
+trait RSpeakerTrait: Send + Sync + Clone + 'static {
+    fn speak(&self, message: RStr<'_>) -> RResult<RBlockingWait, RError>;
+}
+
+type RBoxSpeakerTrait = RSpeakerTrait_TO<RBox<()>>;
+
+impl<T> RSpeakerTrait for Arc<T>
+where
+    T: ?Sized + arci::Speaker + 'static,
+{
+    fn speak(&self, message: RStr<'_>) -> RResult<RBlockingWait, RError> {
+        match arci::Speaker::speak(&**self, message.into()) {
+            Ok(wait) => ROk(wait.into()),
+            Err(e) => RErr(e.into()),
         }
     }
 }
