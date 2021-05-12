@@ -23,12 +23,12 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1.0.3
         with:
           command: build
           # rosrust is not supported on Windows
           args: --workspace --exclude arci-ros --exclude openrr-apps --exclude openrr
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1.0.3
         with:
           command: build
           # rosrust is not supported on Windows
@@ -44,7 +44,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1.0.3
         with:
           command: build
 
@@ -59,7 +59,7 @@ jobs:
           toolchain: stable
           override: true
       - run: ci/ubuntu-install-dependencies.sh
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1.0.3
         with:
           command: build
 
@@ -75,7 +75,7 @@ jobs:
           override: true
       - run: ci/ubuntu-install-dependencies.sh
       # testing arci-ros is done in ros1.yaml
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1.0.3
         with:
           command: test
           args: --workspace --exclude arci-ros
@@ -116,7 +116,7 @@ jobs:
           toolchain: nightly
           override: true
           components: rustfmt
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1.0.3
         with:
           command: fmt
           args: --all -- --check
@@ -133,7 +133,7 @@ jobs:
           override: true
           components: clippy
       - run: ci/ubuntu-install-dependencies.sh
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1.0.3
         with:
           command: clippy
           args: --all-targets -- -D warnings
