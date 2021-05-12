@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use arci::{JointTrajectoryClient, Speaker};
+use arci::{BaseVelocity, JointTrajectoryClient, MoveBase, Speaker};
 use openrr_plugin::PluginManager;
 
 #[tokio::main]
@@ -16,7 +16,7 @@ async fn main() -> Result<()> {
             println!("joint_names: {:?}", joint_trajectory_client.joint_names());
             println!(
                 "current_joint_positions: {:?}",
-                joint_trajectory_client.current_joint_positions()
+                joint_trajectory_client.current_joint_positions()?
             );
             println!("setting joint positions to [1.0, -1.0]");
             joint_trajectory_client
@@ -24,11 +24,22 @@ async fn main() -> Result<()> {
                 .await?;
             println!(
                 "current_joint_positions: {:?}",
-                joint_trajectory_client.current_joint_positions()
+                joint_trajectory_client.current_joint_positions()?
             );
         }
         if let Some(speaker) = plugin.speaker() {
             speaker.speak("hi!")?.await?;
+        }
+        if let Some(move_base) = plugin.move_base() {
+            println!("current_velocity: {:?}", move_base.current_velocity()?);
+            let new = BaseVelocity {
+                x: 2.0,
+                y: 1.0,
+                theta: 0.5,
+            };
+            println!("setting velocity {:?}", new);
+            move_base.send_velocity(&new)?;
+            println!("current_velocity: {:?}", move_base.current_velocity()?);
         }
     }
 

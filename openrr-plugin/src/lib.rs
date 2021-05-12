@@ -15,7 +15,7 @@ use abi_stable::{
 };
 use anyhow::{format_err, Result};
 pub use arci;
-use arci::{TrajectoryPoint, WaitFuture};
+use arci::WaitFuture;
 use num_traits::Float;
 
 #[macro_export]
@@ -121,14 +121,22 @@ impl RPlugin {
     pub fn speaker(&self) -> Option<RSpeaker> {
         self.0.speaker().into_option()
     }
+
+    pub fn move_base(&self) -> Option<RMoveBase> {
+        self.0.move_base().into_option()
+    }
 }
 
 pub trait Plugin: 'static {
     fn name(&self) -> String;
+    // TODO: multiple JointTrajectoryClient?
     fn joint_trajectory_client(&self) -> Option<Arc<dyn StaticJointTrajectoryClient>> {
         None
     }
     fn speaker(&self) -> Option<Arc<dyn arci::Speaker>> {
+        None
+    }
+    fn move_base(&self) -> Option<Arc<dyn arci::MoveBase>> {
         None
     }
 }
@@ -139,6 +147,7 @@ trait RPluginTrait: 'static {
     fn name(&self) -> RString;
     fn joint_trajectory_client(&self) -> ROption<RJointTrajectoryClient>;
     fn speaker(&self) -> ROption<RSpeaker>;
+    fn move_base(&self) -> ROption<RMoveBase>;
 }
 
 type RBoxPluginTrait = RPluginTrait_TO<RBox<()>>;
@@ -159,6 +168,10 @@ where
 
     fn speaker(&self) -> ROption<RSpeaker> {
         Plugin::speaker(self).map(RSpeaker::new).into()
+    }
+
+    fn move_base(&self) -> ROption<RMoveBase> {
+        Plugin::move_base(self).map(RMoveBase::new).into()
     }
 }
 
@@ -250,7 +263,7 @@ impl StaticJointTrajectoryClient for RJointTrajectoryClient {
 
     fn send_joint_trajectory(
         &self,
-        trajectory: Vec<TrajectoryPoint>,
+        trajectory: Vec<arci::TrajectoryPoint>,
     ) -> Result<WaitFuture<'static>, arci::Error> {
         match self
             .0
@@ -281,7 +294,7 @@ impl arci::JointTrajectoryClient for RJointTrajectoryClient {
 
     fn send_joint_trajectory(
         &self,
-        trajectory: Vec<TrajectoryPoint>,
+        trajectory: Vec<arci::TrajectoryPoint>,
     ) -> Result<WaitFuture<'static>, arci::Error> {
         StaticJointTrajectoryClient::send_joint_trajectory(self, trajectory)
     }
@@ -299,7 +312,7 @@ pub trait StaticJointTrajectoryClient: Send + Sync + 'static {
     ) -> Result<WaitFuture<'static>, arci::Error>;
     fn send_joint_trajectory(
         &self,
-        trajectory: Vec<TrajectoryPoint>,
+        trajectory: Vec<arci::TrajectoryPoint>,
     ) -> Result<WaitFuture<'static>, arci::Error>;
 }
 
@@ -360,7 +373,10 @@ where
     ) -> RResult<RBlockingWait, RError> {
         match StaticJointTrajectoryClient::send_joint_trajectory(
             &**self,
-            trajectory.into_iter().map(TrajectoryPoint::from).collect(),
+            trajectory
+                .into_iter()
+                .map(arci::TrajectoryPoint::from)
+                .collect(),
         ) {
             Ok(wait) => ROk(wait.into()),
             Err(e) => RErr(e.into()),
@@ -473,21 +489,21 @@ struct RTrajectoryPoint {
 }
 
 impl From<arci::TrajectoryPoint> for RTrajectoryPoint {
-    fn from(p: arci::TrajectoryPoint) -> Self {
+    fn from(val: arci::TrajectoryPoint) -> Self {
         Self {
-            positions: p.positions.into_iter().map(Rf64::from).collect(),
-            velocities: p
+            positions: val.positions.into_iter().map(Rf64::from).collect(),
+            velocities: val
                 .velocities
                 .map(|v| v.into_iter().map(Rf64::from).collect())
                 .into(),
-            time_from_start: p.time_from_start.into(),
+            time_from_start: val.time_from_start.into(),
         }
     }
 }
 
 impl From<RTrajectoryPoint> for arci::TrajectoryPoint {
     fn from(val: RTrajectoryPoint) -> Self {
-        arci::TrajectoryPoint {
+        Self {
             positions: val.positions.into_iter().map(f64::from).collect(),
             velocities: val
                 .velocities
@@ -527,7 +543,7 @@ impl arci::Speaker for RSpeaker {
     }
 }
 
-/// FFI-safe equivalent of [`StaticJointTrajectoryClient`] trait.
+/// FFI-safe equivalent of [`arci::Speaker`] trait.
 #[sabi_trait]
 trait RSpeakerTrait: Send + Sync + Clone + 'static {
     fn speak(&self, message: RStr<'_>) -> RResult<RBlockingWait, RError>;
@@ -543,6 +559,99 @@ where
         match arci::Speaker::speak(&**self, message.into()) {
             Ok(wait) => ROk(wait.into()),
             Err(e) => RErr(e.into()),
+        }
+    }
+}
+
+/// FFI-safe equivalent of [`Arc<dyn arci::MoveBase>`](arci::MoveBase).
+#[repr(C)]
+#[derive(StableAbi)]
+pub struct RMoveBase(RBoxMoveBaseTrait);
+
+impl RMoveBase {
+    pub fn new<T>(c: Arc<T>) -> Self
+    where
+        T: ?Sized + arci::MoveBase + 'static,
+    {
+        Self(RBoxMoveBaseTrait::from_ptr(RBox::new(c), TU_Opaque))
+    }
+}
+
+impl Clone for RMoveBase {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl arci::MoveBase for RMoveBase {
+    fn send_velocity(&self, velocity: &arci::BaseVelocity) -> Result<(), arci::Error> {
+        match self.0.send_velocity(&RBaseVelocity::from(*velocity)) {
+            ROk(()) => Ok(()),
+            RErr(e) => Err(e.into()),
+        }
+    }
+
+    fn current_velocity(&self) -> Result<arci::BaseVelocity, arci::Error> {
+        match self.0.current_velocity() {
+            ROk(v) => Ok(v.into()),
+            RErr(e) => Err(e.into()),
+        }
+    }
+}
+
+/// FFI-safe equivalent of [`arci::MoveBase`] trait.
+#[sabi_trait]
+trait RMoveBaseTrait: Send + Sync + Clone + 'static {
+    fn send_velocity(&self, velocity: &RBaseVelocity) -> RResult<(), RError>;
+    fn current_velocity(&self) -> RResult<RBaseVelocity, RError>;
+}
+
+type RBoxMoveBaseTrait = RMoveBaseTrait_TO<RBox<()>>;
+
+impl<T> RMoveBaseTrait for Arc<T>
+where
+    T: ?Sized + arci::MoveBase + 'static,
+{
+    fn send_velocity(&self, velocity: &RBaseVelocity) -> RResult<(), RError> {
+        match arci::MoveBase::send_velocity(&**self, &arci::BaseVelocity::from(*velocity)) {
+            Ok(()) => ROk(()),
+            Err(e) => RErr(e.into()),
+        }
+    }
+
+    fn current_velocity(&self) -> RResult<RBaseVelocity, RError> {
+        match arci::MoveBase::current_velocity(&**self) {
+            Ok(v) => ROk(v.into()),
+            Err(e) => RErr(e.into()),
+        }
+    }
+}
+
+/// FFI-safe equivalent of [`arci::BaseVelocity`].
+#[repr(C)]
+#[derive(StableAbi, Clone, Copy, Debug)]
+struct RBaseVelocity {
+    x: Rf64,
+    y: Rf64,
+    theta: Rf64,
+}
+
+impl From<arci::BaseVelocity> for RBaseVelocity {
+    fn from(val: arci::BaseVelocity) -> Self {
+        Self {
+            x: val.x.into(),
+            y: val.y.into(),
+            theta: val.theta.into(),
+        }
+    }
+}
+
+impl From<RBaseVelocity> for arci::BaseVelocity {
+    fn from(val: RBaseVelocity) -> Self {
+        Self {
+            x: val.x.into(),
+            y: val.y.into(),
+            theta: val.theta.into(),
         }
     }
 }
