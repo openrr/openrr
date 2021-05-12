@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use arci::JointTrajectoryClient;
+use arci::{JointTrajectoryClient, Speaker};
 use openrr_plugin::PluginManager;
 
 #[tokio::main]
@@ -26,6 +26,9 @@ async fn main() -> Result<()> {
                 "current_joint_positions: {:?}",
                 joint_trajectory_client.current_joint_positions()
             );
+        }
+        if let Some(speaker) = plugin.speaker() {
+            speaker.speak("hi!")?.await?;
         }
     }
 

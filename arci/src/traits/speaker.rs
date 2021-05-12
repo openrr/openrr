@@ -17,5 +17,5 @@ pub trait Speaker: Send + Sync {
     /// If the operation may block the current thread for an extended period of
     /// time, consider [spawning a thread to running blocking
     /// operations](https://docs.rs/tokio/1/tokio/index.html#cpu-bound-tasks-and-blocking-code).
-    fn speak(&self, message: &str) -> Result<WaitFuture, Error>;
+    fn speak(&self, message: &str) -> Result<WaitFuture<'static>, Error>;
 }

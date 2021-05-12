@@ -9,6 +9,6 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-arci = "0.0.5"
+arci-speak-cmd = "0.0.5"
 openrr-plugin = "0.0.5"
-abi_stable = "0.9.3"
+abi_stable = "0.9"
