@@ -96,3 +96,15 @@ async fn localization() {
     let pose = proxy.current_pose("").unwrap();
     assert_eq!(pose, pose.inverse()); // only identity mapping satisfies this
 }
+
+#[tokio::test]
+#[ignore]
+async fn transform_resolver() {
+    todo!()
+}
+
+#[tokio::test]
+#[ignore]
+async fn gamepad() {
+    todo!()
+}
