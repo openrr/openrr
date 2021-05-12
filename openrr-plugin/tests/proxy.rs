@@ -4,12 +4,12 @@ use std::{
 };
 
 use arci::{
-    BaseVelocity, DummyMoveBase, DummyNavigation, Isometry2, MoveBase, Navigation, Speaker,
-    WaitFuture,
+    BaseVelocity, DummyLocalization, DummyMoveBase, DummyNavigation, Isometry2, Localization,
+    MoveBase, Navigation, Speaker, WaitFuture,
 };
 use assert_approx_eq::assert_approx_eq;
 use nalgebra::Vector2;
-use openrr_plugin::{RMoveBase, RNavigation, RSpeaker};
+use openrr_plugin::{RLocalization, RMoveBase, RNavigation, RSpeaker};
 
 // TODO: move to arci?
 #[derive(Debug, Default)]
@@ -86,4 +86,13 @@ async fn navigation() {
     assert_approx_eq!(goal_pose2.translation.x, 1.0);
     assert_approx_eq!(goal_pose2.translation.y, 2.0);
     assert_approx_eq!(goal_pose2.rotation.angle(), 3.0);
+}
+
+#[tokio::test]
+async fn localization() {
+    let loc = Arc::new(DummyLocalization::new());
+    let proxy = RLocalization::new(loc);
+
+    let pose = proxy.current_pose("").unwrap();
+    assert_eq!(pose, pose.inverse()); // only identity mapping satisfies this
 }
