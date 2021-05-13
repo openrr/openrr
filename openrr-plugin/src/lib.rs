@@ -4,7 +4,13 @@
 
 mod proxy;
 
-use std::{fmt, path::Path, sync::Arc, time::Duration};
+use std::{
+    convert::TryInto,
+    fmt,
+    path::Path,
+    sync::Arc,
+    time::{Duration, SystemTime},
+};
 
 use abi_stable::{
     declare_root_module_statics,
@@ -17,12 +23,12 @@ use abi_stable::{
 };
 use anyhow::{format_err, Result};
 pub use arci;
-use arci::{async_trait, Isometry2, WaitFuture};
+use arci::{async_trait, Isometry2, Isometry3, WaitFuture};
 
 use crate::proxy::{
     AbiStableGamepadTraitObj, AbiStableJointTrajectoryClientTraitObj,
     AbiStableLocalizationTraitObj, AbiStableMoveBaseTraitObj, AbiStableNavigationTraitObj,
-    AbiStableSpeakerTraitObj,
+    AbiStableSpeakerTraitObj, AbiStableTransformResolverTraitObj,
 };
 
 pub type RResult<T, E = RError> = abi_stable::std_types::RResult<T, E>;
@@ -143,6 +149,10 @@ impl RPlugin {
         self.0.localization().into_option()
     }
 
+    pub fn transform_resolver(&self) -> Option<RTransformResolver> {
+        self.0.transform_resolver().into_option()
+    }
+
     pub fn gamepad(&self) -> Option<RGamepad> {
         self.0.gamepad().into_option()
     }
@@ -166,6 +176,9 @@ pub trait Plugin: 'static {
     fn localization(&self) -> Option<Arc<dyn arci::Localization>> {
         None
     }
+    fn transform_resolver(&self) -> Option<Arc<dyn arci::TransformResolver>> {
+        None
+    }
     fn gamepad(&self) -> Option<Arc<dyn arci::Gamepad>> {
         None
     }
@@ -180,6 +193,7 @@ trait RPluginTrait: 'static {
     fn move_base(&self) -> ROption<RMoveBase>;
     fn navigation(&self) -> ROption<RNavigation>;
     fn localization(&self) -> ROption<RLocalization>;
+    fn transform_resolver(&self) -> ROption<RTransformResolver>;
     fn gamepad(&self) -> ROption<RGamepad>;
 }
 
@@ -215,6 +229,12 @@ where
         Plugin::localization(self).map(RLocalization::new).into()
     }
 
+    fn transform_resolver(&self) -> ROption<RTransformResolver> {
+        Plugin::transform_resolver(self)
+            .map(RTransformResolver::new)
+            .into()
+    }
+
     fn gamepad(&self) -> ROption<RGamepad> {
         Plugin::gamepad(self).map(RGamepad::new).into()
     }
@@ -234,7 +254,16 @@ impl From<arci::Error> for RError {
     fn from(e: arci::Error) -> Self {
         Self {
             // TODO: propagate error kind.
-            repr: RBoxError::from_box(Box::new(e)),
+            repr: RBoxError::from_box(e.into()),
+        }
+    }
+}
+
+impl From<anyhow::Error> for RError {
+    fn from(e: anyhow::Error) -> Self {
+        Self {
+            // TODO: propagate error kind.
+            repr: RBoxError::from_box(e.into()),
         }
     }
 }
@@ -473,7 +502,6 @@ impl arci::Localization for RLocalization {
     }
 }
 
-/* TODO: We need a FFI-safe equivalent of SystemTime.
 // =============================================================================
 // arci::TransformResolver
 
@@ -487,7 +515,9 @@ impl RTransformResolver {
     where
         T: ?Sized + arci::TransformResolver + 'static,
     {
-        Self(AbiStableTransformResolverTraitObj::from_value(resolver, TU_Opaque))
+        Self(AbiStableTransformResolverTraitObj::from_value(
+            resolver, TU_Opaque,
+        ))
     }
 }
 
@@ -500,12 +530,11 @@ impl arci::TransformResolver for RTransformResolver {
     ) -> Result<Isometry3<f64>, arci::Error> {
         Ok(self
             .0
-            .resolve_transformation(from.into(), to.into(), time.into())
+            .resolve_transformation(from.into(), to.into(), time.try_into()?)
             .into_result()?
             .into())
     }
 }
-*/
 
 // =============================================================================
 // arci::Gamepad
