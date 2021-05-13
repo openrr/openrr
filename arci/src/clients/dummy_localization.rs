@@ -2,6 +2,7 @@ use nalgebra::{Isometry2, Vector2};
 
 use crate::{error::Error, traits::Localization};
 
+/// Dummy Localization for debug or tests.
 #[derive(Debug)]
 pub struct DummyLocalization {
     pub current_pose: Isometry2<f64>,

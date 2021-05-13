@@ -4,6 +4,7 @@ use nalgebra::{Isometry2, Vector2};
 
 use crate::{error::Error, traits::Navigation, WaitFuture};
 
+/// Dummy Navigation for debug or tests.
 #[derive(Debug)]
 pub struct DummyNavigation {
     pub goal_pose: Mutex<Isometry2<f64>>,

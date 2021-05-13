@@ -5,6 +5,7 @@ use crate::{
     traits::{BaseVelocity, MoveBase},
 };
 
+/// Dummy MoveBase for debug or tests.
 #[derive(Debug, Default)]
 pub struct DummyMoveBase {
     pub current_velocity: Mutex<BaseVelocity>,

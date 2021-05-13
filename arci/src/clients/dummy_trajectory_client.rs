@@ -6,7 +6,7 @@ use crate::{
     waits::WaitFuture,
 };
 
-/// Dummy JointTrajectoryClient for Debug or Tests
+/// Dummy JointTrajectoryClient for debug or tests.
 pub struct DummyJointTrajectoryClient {
     pub joint_names: Vec<String>,
     pub positions: Arc<Mutex<Vec<f64>>>,
