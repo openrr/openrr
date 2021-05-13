@@ -1,60 +1,50 @@
-use std::{
-    sync::{Arc, Mutex},
-    time::Duration,
-};
+use std::{sync::Mutex, time::Duration};
 
+use arci::{DummyMoveBase, DummyNavigation, Error, TrajectoryPoint, WaitFuture};
 use openrr_client::PrintSpeaker;
-use openrr_plugin::{
-    arci::{self, DummyMoveBase, DummyNavigation, Error, TrajectoryPoint, WaitFuture},
-    Plugin, StaticJointTrajectoryClient,
-};
+use openrr_plugin::{Plugin, StaticJointTrajectoryClient};
+use serde::Deserialize;
 
-openrr_plugin::export_plugin!(MyPlugin::new);
+openrr_plugin::export_plugin!(MyPlugin);
 
-pub struct MyPlugin {
-    joint_trajectory_client: Arc<MyJointTrajectoryClient>,
-    speaker: Arc<PrintSpeaker>,
-    move_base: Arc<DummyMoveBase>,
-    navigation: Arc<DummyNavigation>,
-}
-
-impl MyPlugin {
-    fn new(_args: Vec<String>) -> Result<Self, Error> {
-        Ok(MyPlugin {
-            joint_trajectory_client: Arc::new(MyJointTrajectoryClient {
-                joint_names: vec!["a".to_string(), "b".to_string()],
-                joint_positions: Mutex::new(vec![0.0, 0.0]),
-            }),
-            speaker: Arc::new(PrintSpeaker::default()),
-            move_base: Arc::new(DummyMoveBase::default()),
-            navigation: Arc::new(DummyNavigation::default()),
-        })
-    }
-}
+pub struct MyPlugin;
 
 impl Plugin for MyPlugin {
     fn name(&self) -> String {
         "Example".to_string()
     }
 
-    fn joint_trajectory_client(&self) -> Option<Arc<dyn StaticJointTrajectoryClient>> {
-        Some(self.joint_trajectory_client.clone())
+    fn new_joint_trajectory_client(
+        &self,
+        args: String,
+    ) -> Option<Box<dyn StaticJointTrajectoryClient>> {
+        let config: MyClientConfig = serde_json::from_str(&args).ok()?;
+        let dof = config.joint_names.len();
+        Some(Box::new(MyJointTrajectoryClient {
+            joint_names: config.joint_names,
+            joint_positions: Mutex::new(vec![0.0; dof]),
+        }))
     }
 
-    fn speaker(&self) -> Option<Arc<dyn arci::Speaker>> {
-        Some(self.speaker.clone())
+    fn new_speaker(&self, _args: String) -> Option<Box<dyn arci::Speaker>> {
+        Some(Box::new(PrintSpeaker::default()))
     }
 
-    fn move_base(&self) -> Option<Arc<dyn arci::MoveBase>> {
-        Some(self.move_base.clone())
+    fn new_move_base(&self, _args: String) -> Option<Box<dyn arci::MoveBase>> {
+        Some(Box::new(DummyMoveBase::default()))
     }
 
-    fn navigation(&self) -> Option<Arc<dyn arci::Navigation>> {
-        Some(self.navigation.clone())
+    fn new_navigation(&self, _args: String) -> Option<Box<dyn arci::Navigation>> {
+        Some(Box::new(DummyNavigation::default()))
     }
 }
 
-pub struct MyJointTrajectoryClient {
+#[derive(Deserialize)]
+struct MyClientConfig {
+    joint_names: Vec<String>,
+}
+
+struct MyJointTrajectoryClient {
     joint_names: Vec<String>,
     joint_positions: Mutex<Vec<f64>>,
 }

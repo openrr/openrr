@@ -4,58 +4,136 @@ use std::{
 };
 
 use arci::{
-    BaseVelocity, DummyLocalization, DummyMoveBase, DummyNavigation, Isometry2, Localization,
-    MoveBase, Navigation, Speaker, WaitFuture,
+    BaseVelocity, DummyLocalization, DummyMoveBase, DummyNavigation, DummySpeaker, Isometry2,
+    Localization, MoveBase, Navigation, Speaker, TrajectoryPoint, WaitFuture,
 };
 use assert_approx_eq::assert_approx_eq;
 use nalgebra::Vector2;
-use openrr_plugin::{RLocalization, RMoveBase, RNavigation, RSpeaker};
+use openrr_plugin::{
+    JointTrajectoryClientProxy, LocalizationProxy, MoveBaseProxy, NavigationProxy, SpeakerProxy,
+    StaticJointTrajectoryClient,
+};
 
-// TODO: move to arci?
-#[derive(Debug, Default)]
-struct DummySpeaker {
-    message: Mutex<String>,
+/// Dummy StaticJointTrajectoryClient for debug or tests.
+#[derive(Debug)]
+struct DummyStaticJointTrajectoryClient {
+    joint_names: Vec<String>,
+    positions: Arc<Mutex<Vec<f64>>>,
+    last_trajectory: Arc<Mutex<Vec<TrajectoryPoint>>>,
 }
 
-impl DummySpeaker {
-    fn new() -> Self {
-        Self::default()
-    }
-
-    fn last_message(&self) -> String {
-        self.message.lock().unwrap().clone()
+impl DummyStaticJointTrajectoryClient {
+    fn new(joint_names: Vec<String>) -> Self {
+        let dof = joint_names.len();
+        let positions = Arc::new(Mutex::new(vec![0.0; dof]));
+        Self {
+            joint_names,
+            positions,
+            last_trajectory: Arc::new(Mutex::new(Vec::new())),
+        }
     }
 }
 
-impl Speaker for DummySpeaker {
-    fn speak(&self, message: &str) -> Result<WaitFuture<'static>, arci::Error> {
-        *self.message.lock().unwrap() = message.to_string();
+impl StaticJointTrajectoryClient for DummyStaticJointTrajectoryClient {
+    fn joint_names(&self) -> Vec<String> {
+        self.joint_names.clone()
+    }
+
+    fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
+        Ok(self.positions.lock().unwrap().clone())
+    }
+
+    fn send_joint_positions(
+        &self,
+        positions: Vec<f64>,
+        _duration: std::time::Duration,
+    ) -> Result<WaitFuture<'static>, arci::Error> {
+        *self.positions.lock().unwrap() = positions;
+        Ok(WaitFuture::ready())
+    }
+
+    fn send_joint_trajectory(
+        &self,
+        full_trajectory: Vec<TrajectoryPoint>,
+    ) -> Result<WaitFuture<'static>, arci::Error> {
+        if let Some(last_point) = full_trajectory.last() {
+            *self.positions.lock().unwrap() = last_point.positions.to_owned();
+        }
+        *self.last_trajectory.lock().unwrap() = full_trajectory;
         Ok(WaitFuture::ready())
     }
 }
 
 #[tokio::test]
-#[ignore]
 async fn joint_trajectory_client() {
-    todo!()
+    let client = Arc::new(DummyStaticJointTrajectoryClient::new(vec![
+        "a".to_owned(),
+        "b".to_owned(),
+    ]));
+    let proxy = JointTrajectoryClientProxy::new(client.clone());
+
+    assert_eq!(proxy.joint_names(), vec!["a", "b"]);
+    let pos = client.current_joint_positions().unwrap();
+    assert_eq!(pos.len(), 2);
+    assert_approx_eq!(pos[0], 0.0);
+    assert_approx_eq!(pos[1], 0.0);
+    let pos = proxy.current_joint_positions().unwrap();
+    assert_eq!(pos.len(), 2);
+    assert_approx_eq!(pos[0], 0.0);
+    assert_approx_eq!(pos[1], 0.0);
+    proxy
+        .send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs(1))
+        .unwrap()
+        .await
+        .unwrap();
+    let pos2 = client.current_joint_positions().unwrap();
+    assert_eq!(pos2.len(), 2);
+    assert_approx_eq!(pos2[0], 1.0);
+    assert_approx_eq!(pos2[1], 2.0);
+    let pos2 = proxy.current_joint_positions().unwrap();
+    assert_eq!(pos2.len(), 2);
+    assert_approx_eq!(pos2[0], 1.0);
+    assert_approx_eq!(pos2[1], 2.0);
+
+    proxy
+        .send_joint_trajectory(vec![
+            TrajectoryPoint::new(vec![1.0, -1.0], std::time::Duration::from_secs(1)),
+            TrajectoryPoint::new(vec![2.0, -3.0], std::time::Duration::from_secs(2)),
+        ])
+        .unwrap()
+        .await
+        .unwrap();
+    assert_eq!(client.last_trajectory.lock().unwrap().len(), 2);
+    let pos = client.current_joint_positions().unwrap();
+    assert_eq!(pos.len(), 2);
+    assert_approx_eq!(pos[0], 2.0);
+    assert_approx_eq!(pos[1], -3.0);
+    let pos = proxy.current_joint_positions().unwrap();
+    assert_eq!(pos.len(), 2);
+    assert_approx_eq!(pos[0], 2.0);
+    assert_approx_eq!(pos[1], -3.0);
 }
 
 #[tokio::test]
 async fn speaker() {
     let speaker = Arc::new(DummySpeaker::new());
-    let proxy = RSpeaker::new(speaker.clone());
+    let proxy = SpeakerProxy::new(speaker.clone());
 
-    assert_eq!(speaker.last_message(), "");
+    assert_eq!(speaker.current_message(), "");
     proxy.speak("abc").unwrap().await.unwrap();
-    assert_eq!(speaker.last_message(), "abc");
+    assert_eq!(speaker.current_message(), "abc");
 }
 
 #[tokio::test]
 async fn move_base() {
     let base = Arc::new(DummyMoveBase::new());
-    let proxy = RMoveBase::new(base.clone());
+    let proxy = MoveBaseProxy::new(base.clone());
 
     let vel1 = base.current_velocity().unwrap();
+    assert_approx_eq!(vel1.x, 0.0);
+    assert_approx_eq!(vel1.y, 0.0);
+    assert_approx_eq!(vel1.theta, 0.0);
+    let vel1 = proxy.current_velocity().unwrap();
     assert_approx_eq!(vel1.x, 0.0);
     assert_approx_eq!(vel1.y, 0.0);
     assert_approx_eq!(vel1.theta, 0.0);
@@ -66,12 +144,16 @@ async fn move_base() {
     assert_approx_eq!(vel2.x, 0.1);
     assert_approx_eq!(vel2.y, 0.2);
     assert_approx_eq!(vel2.theta, -3.0);
+    let vel2 = proxy.current_velocity().unwrap();
+    assert_approx_eq!(vel2.x, 0.1);
+    assert_approx_eq!(vel2.y, 0.2);
+    assert_approx_eq!(vel2.theta, -3.0);
 }
 
 #[tokio::test]
 async fn navigation() {
     let nav = Arc::new(DummyNavigation::new());
-    let proxy = RNavigation::new(nav.clone());
+    let proxy = NavigationProxy::new(nav.clone());
 
     proxy
         .send_goal_pose(
@@ -91,7 +173,7 @@ async fn navigation() {
 #[tokio::test]
 async fn localization() {
     let loc = Arc::new(DummyLocalization::new());
-    let proxy = RLocalization::new(loc);
+    let proxy = LocalizationProxy::new(loc);
 
     let pose = proxy.current_pose("").unwrap();
     assert_eq!(pose, pose.inverse()); // only identity mapping satisfies this
