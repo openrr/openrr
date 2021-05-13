@@ -1,6 +1,6 @@
 //! Experimental plugin support for [`arci`].
 
-#![warn(rust_2018_idioms)]
+#![warn(missing_docs, rust_2018_idioms)]
 
 mod proxy;
 
@@ -12,27 +12,37 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-use abi_stable::{
-    declare_root_module_statics,
-    erased_types::TU_Opaque,
-    library::{lib_header_from_path, RootModule},
-    package_version_strings, sabi_trait,
-    sabi_types::VersionStrings,
-    std_types::{RBox, RBoxError, ROption, RString, RVec},
-    StableAbi,
-};
-use anyhow::{format_err, Result};
-pub use arci;
+use abi_stable::{erased_types::TU_Opaque, library::lib_header_from_path, StableAbi};
+use anyhow::Result;
 use arci::{async_trait, Isometry2, Isometry3, WaitFuture};
+use auto_impl::auto_impl;
 
+// This is not a public API. Use export_plugin! macro for plugin exporting.
+#[doc(hidden)]
+pub use crate::proxy::PluginMod_Ref;
 use crate::proxy::{
-    AbiStableGamepadTraitObj, AbiStableJointTrajectoryClientTraitObj,
-    AbiStableLocalizationTraitObj, AbiStableMoveBaseTraitObj, AbiStableNavigationTraitObj,
-    AbiStableSpeakerTraitObj, AbiStableTransformResolverTraitObj,
+    GamepadTraitObject, JointTrajectoryClientTraitObject, LocalizationTraitObject,
+    MoveBaseTraitObject, NavigationTraitObject, PluginTraitObject, SpeakerTraitObject,
+    TransformResolverTraitObject,
 };
 
-pub type RResult<T, E = RError> = abi_stable::std_types::RResult<T, E>;
-
+/// Exports the plugin that will instantiated with the specified expression.
+///
+/// # Examples
+///
+/// ```
+/// use openrr_plugin::Plugin;
+///
+/// openrr_plugin::export_plugin!(MyPlugin);
+///
+/// pub struct MyPlugin;
+///
+/// impl Plugin for MyPlugin {
+///     fn name(&self) -> String {
+///         "MyPlugin".into()
+///     }
+/// }
+/// ```
 #[macro_export]
 macro_rules! export_plugin {
     ($plugin_constructor:expr $(,)?) => {
@@ -41,274 +51,190 @@ macro_rules! export_plugin {
         /// This code isn't run until the layout of the type it returns is checked.
         #[::abi_stable::export_root_module]
         pub fn instantiate_root_module() -> $crate::PluginMod_Ref {
-            ::abi_stable::prefix_type::PrefixTypeTrait::leak_into_prefix($crate::PluginMod { new })
+            $crate::PluginMod_Ref::new(plugin_constructor)
         }
 
         /// Instantiates the plugin.
         #[::abi_stable::sabi_extern_fn]
-        pub fn new(
-            __args: ::abi_stable::std_types::RVec<::abi_stable::std_types::RString>,
-        ) -> $crate::RResult<$crate::RPlugin> {
-            match ($plugin_constructor)(
-                __args
-                    .into_iter()
-                    .map(::std::convert::Into::into)
-                    .collect::<::std::vec::Vec<::std::string::String>>(),
-            ) {
-                ::std::result::Result::Ok(plugin) => {
-                    ::abi_stable::std_types::RResult::ROk($crate::RPlugin::new(plugin))
-                }
-                ::std::result::Result::Err(e) => {
-                    ::abi_stable::std_types::RResult::RErr($crate::RError::from(e))
-                }
-            }
+        pub fn plugin_constructor() -> $crate::PluginProxy {
+            $crate::PluginProxy::new($plugin_constructor)
         }
     };
 }
 
-#[derive(Default)]
+/// The plugin manager.
+#[derive(Debug, Default)]
 pub struct PluginManager {
-    plugins: Vec<RPlugin>,
+    plugins: Vec<PluginProxy>,
 }
 
 impl PluginManager {
+    /// Creates a new `PluginManager`.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Loads a plugin from the specified path.
     pub fn load(&mut self, path: impl AsRef<Path>) -> Result<()> {
         let path = path.as_ref();
 
         let header = lib_header_from_path(&path)?;
         let root_module = header.init_root_module::<PluginMod_Ref>()?;
 
-        let plugin_constructor = root_module.new();
-        let plugin = plugin_constructor(RVec::new()).into_result()?;
+        let plugin_constructor = root_module.plugin_constructor();
+        let plugin = plugin_constructor();
 
         self.plugins.push(plugin);
         Ok(())
     }
 
-    pub fn plugins(&self) -> &[RPlugin] {
+    /// Returns the list of all plugins managed by this plugin manager.
+    pub fn plugins(&self) -> &[PluginProxy] {
         &self.plugins
     }
 }
 
-#[doc(hidden)]
-#[repr(C)]
-#[derive(StableAbi)]
-#[sabi(kind(Prefix))]
-#[sabi(missing_field(panic))]
-pub struct PluginMod {
-    #[sabi(last_prefix_field)]
-    pub new: extern "C" fn(RVec<RString>) -> RResult<RPlugin>,
-}
+/// The plugin trait.
+pub trait Plugin: 'static {
+    /// Returns the name of this plugin.
+    ///
+    /// NOTE: This is *not* a unique identifier.
+    fn name(&self) -> String;
 
-impl RootModule for PluginMod_Ref {
-    const BASE_NAME: &'static str = "plugin";
-    const NAME: &'static str = "plugin";
-    const VERSION_STRINGS: VersionStrings = package_version_strings!();
+    /// Creates a new instance of [`arci::JointTrajectoryClient`] with the specified arguments.
+    fn new_joint_trajectory_client(
+        &self,
+        args: String,
+    ) -> Option<Box<dyn StaticJointTrajectoryClient>> {
+        drop(args);
+        None
+    }
 
-    declare_root_module_statics!(PluginMod_Ref);
+    /// Creates a new instance of [`arci::Speaker`] with the specified arguments.
+    fn new_speaker(&self, args: String) -> Option<Box<dyn arci::Speaker>> {
+        drop(args);
+        None
+    }
+
+    /// Creates a new instance of [`arci::MoveBase`] with the specified arguments.
+    fn new_move_base(&self, args: String) -> Option<Box<dyn arci::MoveBase>> {
+        drop(args);
+        None
+    }
+
+    /// Creates a new instance of [`arci::Navigation`] with the specified arguments.
+    fn new_navigation(&self, args: String) -> Option<Box<dyn arci::Navigation>> {
+        drop(args);
+        None
+    }
+
+    /// Creates a new instance of [`arci::Localization`] with the specified arguments.
+    fn new_localization(&self, args: String) -> Option<Box<dyn arci::Localization>> {
+        drop(args);
+        None
+    }
+
+    /// Creates a new instance of [`arci::TransformResolver`] with the specified arguments.
+    fn new_transform_resolver(&self, args: String) -> Option<Box<dyn arci::TransformResolver>> {
+        drop(args);
+        None
+    }
+
+    /// Creates a new instance of [`arci::Gamepad`] with the specified arguments.
+    fn new_gamepad(&self, args: String) -> Option<Box<dyn arci::Gamepad>> {
+        drop(args);
+        None
+    }
 }
 
 /// FFI-safe equivalent of [`Box<dyn Plugin>`](Plugin).
 #[repr(C)]
 #[derive(StableAbi)]
-pub struct RPlugin(RBoxPluginTrait);
+pub struct PluginProxy(PluginTraitObject);
 
-impl RPlugin {
+impl PluginProxy {
+    /// Creates a new `PluginProxy`.
     pub fn new<P>(plugin: P) -> Self
     where
         P: Plugin,
     {
-        Self(RBoxPluginTrait::from_value(plugin, TU_Opaque))
+        Self(PluginTraitObject::from_value(plugin, TU_Opaque))
     }
 
+    /// Returns the name of this plugin.
+    ///
+    /// NOTE: This is *not* a unique identifier.
     pub fn name(&self) -> String {
         self.0.name().into()
     }
 
-    pub fn joint_trajectory_client(&self) -> Option<RJointTrajectoryClient> {
-        self.0.joint_trajectory_client().into_option()
+    /// Creates a new instance of [`arci::JointTrajectoryClient`] with the specified arguments.
+    pub fn new_joint_trajectory_client(&self, args: String) -> Option<JointTrajectoryClientProxy> {
+        self.0
+            .new_joint_trajectory_client(args.into())
+            .into_option()
     }
 
-    pub fn speaker(&self) -> Option<RSpeaker> {
-        self.0.speaker().into_option()
+    /// Creates a new instance of [`arci::Speaker`] with the specified arguments.
+    pub fn new_speaker(&self, args: String) -> Option<SpeakerProxy> {
+        self.0.new_speaker(args.into()).into_option()
     }
 
-    pub fn move_base(&self) -> Option<RMoveBase> {
-        self.0.move_base().into_option()
+    /// Creates a new instance of [`arci::MoveBase`] with the specified arguments.
+    pub fn new_move_base(&self, args: String) -> Option<MoveBaseProxy> {
+        self.0.new_move_base(args.into()).into_option()
     }
 
-    pub fn navigation(&self) -> Option<RNavigation> {
-        self.0.navigation().into_option()
+    /// Creates a new instance of [`arci::Navigation`] with the specified arguments.
+    pub fn new_navigation(&self, args: String) -> Option<NavigationProxy> {
+        self.0.new_navigation(args.into()).into_option()
     }
 
-    pub fn localization(&self) -> Option<RLocalization> {
-        self.0.localization().into_option()
+    /// Creates a new instance of [`arci::Localization`] with the specified arguments.
+    pub fn new_localization(&self, args: String) -> Option<LocalizationProxy> {
+        self.0.new_localization(args.into()).into_option()
     }
 
-    pub fn transform_resolver(&self) -> Option<RTransformResolver> {
-        self.0.transform_resolver().into_option()
+    /// Creates a new instance of [`arci::TransformResolver`] with the specified arguments.
+    pub fn new_transform_resolver(&self, args: String) -> Option<TransformResolverProxy> {
+        self.0.new_transform_resolver(args.into()).into_option()
     }
 
-    pub fn gamepad(&self) -> Option<RGamepad> {
-        self.0.gamepad().into_option()
+    /// Creates a new instance of [`arci::Gamepad`] with the specified arguments.
+    pub fn new_gamepad(&self, args: String) -> Option<GamepadProxy> {
+        self.0.new_gamepad(args.into()).into_option()
     }
 }
 
-pub trait Plugin: 'static {
-    fn name(&self) -> String;
-    // TODO: multiple JointTrajectoryClient?
-    fn joint_trajectory_client(&self) -> Option<Arc<dyn StaticJointTrajectoryClient>> {
-        None
-    }
-    fn speaker(&self) -> Option<Arc<dyn arci::Speaker>> {
-        None
-    }
-    fn move_base(&self) -> Option<Arc<dyn arci::MoveBase>> {
-        None
-    }
-    fn navigation(&self) -> Option<Arc<dyn arci::Navigation>> {
-        None
-    }
-    fn localization(&self) -> Option<Arc<dyn arci::Localization>> {
-        None
-    }
-    fn transform_resolver(&self) -> Option<Arc<dyn arci::TransformResolver>> {
-        None
-    }
-    fn gamepad(&self) -> Option<Arc<dyn arci::Gamepad>> {
-        None
-    }
-}
-
-/// FFI-safe equivalent of [`Plugin`] trait.
-#[sabi_trait]
-trait RPluginTrait: 'static {
-    fn name(&self) -> RString;
-    fn joint_trajectory_client(&self) -> ROption<RJointTrajectoryClient>;
-    fn speaker(&self) -> ROption<RSpeaker>;
-    fn move_base(&self) -> ROption<RMoveBase>;
-    fn navigation(&self) -> ROption<RNavigation>;
-    fn localization(&self) -> ROption<RLocalization>;
-    fn transform_resolver(&self) -> ROption<RTransformResolver>;
-    fn gamepad(&self) -> ROption<RGamepad>;
-}
-
-type RBoxPluginTrait = RPluginTrait_TO<RBox<()>>;
-
-impl<P> RPluginTrait for P
-where
-    P: ?Sized + Plugin,
-{
-    fn name(&self) -> RString {
-        Plugin::name(self).into()
-    }
-
-    fn joint_trajectory_client(&self) -> ROption<RJointTrajectoryClient> {
-        Plugin::joint_trajectory_client(self)
-            .map(RJointTrajectoryClient::new)
-            .into()
-    }
-
-    fn speaker(&self) -> ROption<RSpeaker> {
-        Plugin::speaker(self).map(RSpeaker::new).into()
-    }
-
-    fn move_base(&self) -> ROption<RMoveBase> {
-        Plugin::move_base(self).map(RMoveBase::new).into()
-    }
-
-    fn navigation(&self) -> ROption<RNavigation> {
-        Plugin::navigation(self).map(RNavigation::new).into()
-    }
-
-    fn localization(&self) -> ROption<RLocalization> {
-        Plugin::localization(self).map(RLocalization::new).into()
-    }
-
-    fn transform_resolver(&self) -> ROption<RTransformResolver> {
-        Plugin::transform_resolver(self)
-            .map(RTransformResolver::new)
-            .into()
-    }
-
-    fn gamepad(&self) -> ROption<RGamepad> {
-        Plugin::gamepad(self).map(RGamepad::new).into()
-    }
-}
-
-// =============================================================================
-// Error
-
-/// FFI-safe equivalent of [`arci::Error`].
-#[repr(C)]
-#[derive(StableAbi)]
-pub struct RError {
-    repr: RBoxError,
-}
-
-impl From<arci::Error> for RError {
-    fn from(e: arci::Error) -> Self {
-        Self {
-            // TODO: propagate error kind.
-            repr: RBoxError::from_box(e.into()),
-        }
-    }
-}
-
-impl From<anyhow::Error> for RError {
-    fn from(e: anyhow::Error) -> Self {
-        Self {
-            // TODO: propagate error kind.
-            repr: RBoxError::from_box(e.into()),
-        }
-    }
-}
-
-impl From<RError> for arci::Error {
-    fn from(e: RError) -> Self {
-        // TODO: propagate error kind.
-        Self::Other(format_err!("{}", e.repr))
-    }
-}
-
-impl fmt::Debug for RError {
+impl fmt::Debug for PluginProxy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Debug::fmt(&self.repr, f)
+        f.debug_struct("PluginProxy")
+            .field("name", &self.name())
+            .finish()
     }
 }
-
-impl fmt::Display for RError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.repr, f)
-    }
-}
-
-impl std::error::Error for RError {}
 
 // =============================================================================
 // JointTrajectoryClient
 
-/// FFI-safe equivalent of [`Arc<dyn arci::JointTrajectoryClient>`](arci::JointTrajectoryClient).
+/// FFI-safe equivalent of [`Box<dyn arci::JointTrajectoryClient>`](arci::JointTrajectoryClient).
 #[repr(C)]
-#[derive(StableAbi, Clone)]
-pub struct RJointTrajectoryClient(AbiStableJointTrajectoryClientTraitObj);
+#[derive(StableAbi)]
+pub struct JointTrajectoryClientProxy(JointTrajectoryClientTraitObject);
 
-impl RJointTrajectoryClient {
-    pub fn new<T>(client: Arc<T>) -> Self
+impl JointTrajectoryClientProxy {
+    /// Creates a new `JointTrajectoryClientProxy`.
+    pub fn new<T>(client: T) -> Self
     where
-        T: ?Sized + StaticJointTrajectoryClient,
+        T: StaticJointTrajectoryClient,
     {
-        Self(AbiStableJointTrajectoryClientTraitObj::from_value(
+        Self(JointTrajectoryClientTraitObject::from_value(
             client, TU_Opaque,
         ))
     }
 }
 
-impl StaticJointTrajectoryClient for RJointTrajectoryClient {
+impl StaticJointTrajectoryClient for JointTrajectoryClientProxy {
     fn joint_names(&self) -> Vec<String> {
         self.0.joint_names().into_iter().map(|s| s.into()).collect()
     }
@@ -350,7 +276,7 @@ impl StaticJointTrajectoryClient for RJointTrajectoryClient {
     }
 }
 
-impl arci::JointTrajectoryClient for RJointTrajectoryClient {
+impl arci::JointTrajectoryClient for JointTrajectoryClientProxy {
     fn joint_names(&self) -> Vec<String> {
         StaticJointTrajectoryClient::joint_names(self)
     }
@@ -376,15 +302,33 @@ impl arci::JointTrajectoryClient for RJointTrajectoryClient {
 }
 
 /// Almost equivalent to [`arci::JointTrajectoryClient`], but is `'static` and
-/// returns `WaitFuture<'static>`.
+/// returns `WaitFuture<'static>` instead of `WaitFuture<'_>`.
+#[auto_impl(Box, Arc)]
 pub trait StaticJointTrajectoryClient: Send + Sync + 'static {
+    /// Returns names of joints that this client handles.
+    ///
+    /// See [`arci::JointTrajectoryClient::joint_names`] for more.
     fn joint_names(&self) -> Vec<String>;
+
+    /// Returns the current joint positions.
+    ///
+    /// See [`arci::JointTrajectoryClient::current_joint_positions`] for more.
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error>;
+
+    /// Send the specified joint positions and returns a future that waits until
+    /// complete the move joints.
+    ///
+    /// See [`arci::JointTrajectoryClient::send_joint_positions`] for more.
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
         duration: Duration,
     ) -> Result<WaitFuture<'static>, arci::Error>;
+
+    /// Send the specified joint trajectory and returns a future that waits until
+    /// complete the move joints.
+    ///
+    /// See [`arci::JointTrajectoryClient::send_joint_trajectory`] for more.
     fn send_joint_trajectory(
         &self,
         trajectory: Vec<arci::TrajectoryPoint>,
@@ -394,21 +338,22 @@ pub trait StaticJointTrajectoryClient: Send + Sync + 'static {
 // =============================================================================
 // arci::Speaker
 
-/// FFI-safe equivalent of [`Arc<dyn arci::Speaker>`](arci::Speaker).
+/// FFI-safe equivalent of [`Box<dyn arci::Speaker>`](arci::Speaker).
 #[repr(C)]
-#[derive(StableAbi, Clone)]
-pub struct RSpeaker(AbiStableSpeakerTraitObj);
+#[derive(StableAbi)]
+pub struct SpeakerProxy(SpeakerTraitObject);
 
-impl RSpeaker {
-    pub fn new<T>(speaker: Arc<T>) -> Self
+impl SpeakerProxy {
+    /// Creates a new `SpeakerProxy`.
+    pub fn new<T>(speaker: T) -> Self
     where
-        T: ?Sized + arci::Speaker + 'static,
+        T: arci::Speaker + 'static,
     {
-        Self(AbiStableSpeakerTraitObj::from_value(speaker, TU_Opaque))
+        Self(SpeakerTraitObject::from_value(speaker, TU_Opaque))
     }
 }
 
-impl arci::Speaker for RSpeaker {
+impl arci::Speaker for SpeakerProxy {
     fn speak(&self, message: &str) -> Result<WaitFuture<'static>, arci::Error> {
         Ok(self.0.speak(message.into()).into_result()?.into())
     }
@@ -417,23 +362,24 @@ impl arci::Speaker for RSpeaker {
 // =============================================================================
 // arci::MoveBase
 
-/// FFI-safe equivalent of [`Arc<dyn arci::MoveBase>`](arci::MoveBase).
+/// FFI-safe equivalent of [`Box<dyn arci::MoveBase>`](arci::MoveBase).
 #[repr(C)]
-#[derive(StableAbi, Clone)]
-pub struct RMoveBase(AbiStableMoveBaseTraitObj);
+#[derive(StableAbi)]
+pub struct MoveBaseProxy(MoveBaseTraitObject);
 
-impl RMoveBase {
-    pub fn new<T>(base: Arc<T>) -> Self
+impl MoveBaseProxy {
+    /// Creates a new `MoveBaseProxy`.
+    pub fn new<T>(base: T) -> Self
     where
-        T: ?Sized + arci::MoveBase + 'static,
+        T: arci::MoveBase + 'static,
     {
-        Self(AbiStableMoveBaseTraitObj::from_value(base, TU_Opaque))
+        Self(MoveBaseTraitObject::from_value(base, TU_Opaque))
     }
 }
 
-impl arci::MoveBase for RMoveBase {
+impl arci::MoveBase for MoveBaseProxy {
     fn send_velocity(&self, velocity: &arci::BaseVelocity) -> Result<(), arci::Error> {
-        self.0.send_velocity(&(*velocity).into()).into_result()?;
+        self.0.send_velocity((*velocity).into()).into_result()?;
         Ok(())
     }
 
@@ -445,21 +391,22 @@ impl arci::MoveBase for RMoveBase {
 // =============================================================================
 // arci::Navigation
 
-/// FFI-safe equivalent of [`Arc<dyn arci::Navigation>`](arci::Navigation).
+/// FFI-safe equivalent of [`Box<dyn arci::Navigation>`](arci::Navigation).
 #[repr(C)]
-#[derive(StableAbi, Clone)]
-pub struct RNavigation(AbiStableNavigationTraitObj);
+#[derive(StableAbi)]
+pub struct NavigationProxy(NavigationTraitObject);
 
-impl RNavigation {
-    pub fn new<T>(nav: Arc<T>) -> Self
+impl NavigationProxy {
+    /// Creates a new `NavigationProxy`.
+    pub fn new<T>(nav: T) -> Self
     where
-        T: ?Sized + arci::Navigation + 'static,
+        T: arci::Navigation + 'static,
     {
-        Self(AbiStableNavigationTraitObj::from_value(nav, TU_Opaque))
+        Self(NavigationTraitObject::from_value(nav, TU_Opaque))
     }
 }
 
-impl arci::Navigation for RNavigation {
+impl arci::Navigation for NavigationProxy {
     fn send_goal_pose(
         &self,
         goal: Isometry2<f64>,
@@ -482,21 +429,22 @@ impl arci::Navigation for RNavigation {
 // =============================================================================
 // arci::Localization
 
-/// FFI-safe equivalent of [`Arc<dyn arci::Localization>`](arci::Localization).
+/// FFI-safe equivalent of [`Box<dyn arci::Localization>`](arci::Localization).
 #[repr(C)]
-#[derive(StableAbi, Clone)]
-pub struct RLocalization(AbiStableLocalizationTraitObj);
+#[derive(StableAbi)]
+pub struct LocalizationProxy(LocalizationTraitObject);
 
-impl RLocalization {
-    pub fn new<T>(loc: Arc<T>) -> Self
+impl LocalizationProxy {
+    /// Creates a new `LocalizationProxy`.
+    pub fn new<T>(loc: T) -> Self
     where
-        T: ?Sized + arci::Localization + 'static,
+        T: arci::Localization + 'static,
     {
-        Self(AbiStableLocalizationTraitObj::from_value(loc, TU_Opaque))
+        Self(LocalizationTraitObject::from_value(loc, TU_Opaque))
     }
 }
 
-impl arci::Localization for RLocalization {
+impl arci::Localization for LocalizationProxy {
     fn current_pose(&self, frame_id: &str) -> Result<Isometry2<f64>, arci::Error> {
         Ok(self.0.current_pose(frame_id.into()).into_result()?.into())
     }
@@ -505,23 +453,24 @@ impl arci::Localization for RLocalization {
 // =============================================================================
 // arci::TransformResolver
 
-/// FFI-safe equivalent of [`Arc<dyn arci::TransformResolver>`](arci::TransformResolver).
+/// FFI-safe equivalent of [`Box<dyn arci::TransformResolver>`](arci::TransformResolver).
 #[repr(C)]
-#[derive(StableAbi, Clone)]
-pub struct RTransformResolver(AbiStableTransformResolverTraitObj);
+#[derive(StableAbi)]
+pub struct TransformResolverProxy(TransformResolverTraitObject);
 
-impl RTransformResolver {
-    pub fn new<T>(resolver: Arc<T>) -> Self
+impl TransformResolverProxy {
+    /// Creates a new `TransformResolverProxy`.
+    pub fn new<T>(resolver: T) -> Self
     where
-        T: ?Sized + arci::TransformResolver + 'static,
+        T: arci::TransformResolver + 'static,
     {
-        Self(AbiStableTransformResolverTraitObj::from_value(
+        Self(TransformResolverTraitObject::from_value(
             resolver, TU_Opaque,
         ))
     }
 }
 
-impl arci::TransformResolver for RTransformResolver {
+impl arci::TransformResolver for TransformResolverProxy {
     fn resolve_transformation(
         &self,
         from: &str,
@@ -539,24 +488,26 @@ impl arci::TransformResolver for RTransformResolver {
 // =============================================================================
 // arci::Gamepad
 
-/// FFI-safe equivalent of [`Arc<dyn arci::Gamepad>`](arci::Gamepad).
+/// FFI-safe equivalent of [`Box<dyn arci::Gamepad>`](arci::Gamepad).
+// Don't implement Clone -- use of Arc is implementation detail.
 #[repr(C)]
-#[derive(StableAbi, Clone)]
-pub struct RGamepad(AbiStableGamepadTraitObj);
+#[derive(StableAbi)]
+pub struct GamepadProxy(GamepadTraitObject);
 
-impl RGamepad {
-    pub fn new<T>(loc: Arc<T>) -> Self
+impl GamepadProxy {
+    /// Creates a new `GamepadProxy`.
+    pub fn new<T>(gamepad: T) -> Self
     where
-        T: ?Sized + arci::Gamepad + 'static,
+        T: arci::Gamepad + 'static,
     {
-        Self(AbiStableGamepadTraitObj::from_value(loc, TU_Opaque))
+        Self(GamepadTraitObject::from_value(Arc::new(gamepad), TU_Opaque))
     }
 }
 
 #[async_trait]
-impl arci::Gamepad for RGamepad {
+impl arci::Gamepad for GamepadProxy {
     async fn next_event(&self) -> arci::gamepad::GamepadEvent {
-        let this = self.clone();
+        let this = Self(self.0.clone());
         tokio::task::spawn_blocking(move || this.0.next_event().into())
             .await
             .unwrap_or(arci::gamepad::GamepadEvent::Unknown)
