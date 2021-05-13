@@ -1,13 +1,19 @@
 //! This module defines FFI-safe equivalents of the various types and traits used in arci.
 
-use std::{future::Future, sync::Arc};
+use std::{
+    convert::{TryFrom, TryInto},
+    future::Future,
+    sync::Arc,
+    time::SystemTime,
+};
 
 use abi_stable::{
     erased_types::TU_Opaque,
-    sabi_trait,
-    std_types::{RBox, RDuration, RErr, ROk, ROption, RStr, RString, RVec},
+    rtry, sabi_trait,
+    std_types::{RBox, RDuration, ROk, ROption, RStr, RString, RVec},
     StableAbi,
 };
+use anyhow::format_err;
 use num_traits::Float;
 
 use crate::{RError, RResult, StaticJointTrajectoryClient};
@@ -22,6 +28,10 @@ fn block_in_place<T>(f: impl Future<Output = T>) -> T {
 
 // =============================================================================
 // f64
+
+// f64 does not implement StableAbi, so convert it to integers by integer_decode,
+// and recover it on conversion to f64.
+// Refs: https://docs.rs/num-traits/0.2/num_traits/float/trait.Float.html#tymethod.integer_decode
 
 /// FFI-safe equivalent of [`f64`].
 #[repr(C)]
@@ -45,7 +55,6 @@ impl From<f64> for RF64 {
 
 impl From<RF64> for f64 {
     fn from(val: RF64) -> Self {
-        // https://docs.rs/num-traits/0.2/num_traits/float/trait.Float.html#tymethod.integer_decode
         let RF64 {
             mantissa,
             exponent,
@@ -55,6 +64,47 @@ impl From<RF64> for f64 {
         let mantissa_f = mantissa as f64;
         let exponent_f = 2.0.powf(exponent as f64);
         sign_f * mantissa_f * exponent_f
+    }
+}
+
+// =============================================================================
+// std::time::SystemTime
+
+// SystemTime does not implement StableAbi, so convert it to duration since unix epoch,
+// and recover it on conversion to SystemTime.
+// This is inspired by the way serde implements Serialize/Deserialize on SystemTime.
+// Refs:
+// - https://github.com/serde-rs/serde/blob/v1.0.126/serde/src/ser/impls.rs#L610-L625
+// - https://github.com/serde-rs/serde/blob/v1.0.126/serde/src/de/impls.rs#L1993-L2138
+
+/// FFI-safe equivalent of [`SystemTime`].
+#[repr(C)]
+#[derive(Debug, Clone, Copy, StableAbi)]
+pub(crate) struct RSystemTime {
+    duration_since_epoch: RDuration,
+}
+
+impl TryFrom<SystemTime> for RSystemTime {
+    type Error = RError;
+
+    fn try_from(val: SystemTime) -> Result<Self, Self::Error> {
+        let duration_since_epoch = val
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .map_err(|_| format_err!("SystemTime must be later than UNIX_EPOCH"))?;
+        Ok(Self {
+            duration_since_epoch: duration_since_epoch.into(),
+        })
+    }
+}
+
+impl TryFrom<RSystemTime> for SystemTime {
+    type Error = RError;
+
+    fn try_from(val: RSystemTime) -> Result<Self, Self::Error> {
+        let duration_since_epoch = val.duration_since_epoch.into();
+        SystemTime::UNIX_EPOCH
+            .checked_add(duration_since_epoch)
+            .ok_or_else(|| format_err!("overflow deserializing SystemTime").into())
     }
 }
 
@@ -134,7 +184,6 @@ impl From<RTranslation2F64> for nalgebra::Translation2<f64> {
     }
 }
 
-/* used in TransformResolver
 // =============================================================================
 // nalgebra::Isometry3<f64>
 
@@ -219,8 +268,6 @@ impl From<RTranslation3F64> for nalgebra::Translation3<f64> {
     }
 }
 
-*/
-
 // =============================================================================
 // arci::WaitFuture<'static>
 
@@ -303,10 +350,12 @@ where
     }
 
     fn current_joint_positions(&self) -> RResult<RVec<RF64>> {
-        match StaticJointTrajectoryClient::current_joint_positions(&**self) {
-            Ok(p) => ROk(p.into_iter().map(RF64::from).collect()),
-            Err(e) => RErr(e.into()),
-        }
+        ROk(rtry!(StaticJointTrajectoryClient::current_joint_positions(
+            &**self
+        ))
+        .into_iter()
+        .map(RF64::from)
+        .collect())
     }
 
     fn send_joint_positions(
@@ -314,27 +363,23 @@ where
         positions: RVec<RF64>,
         duration: RDuration,
     ) -> RResult<RBlockingWait> {
-        match StaticJointTrajectoryClient::send_joint_positions(
+        ROk(rtry!(StaticJointTrajectoryClient::send_joint_positions(
             &**self,
             positions.into_iter().map(f64::from).collect(),
             duration.into(),
-        ) {
-            Ok(wait) => ROk(wait.into()),
-            Err(e) => RErr(e.into()),
-        }
+        ))
+        .into())
     }
 
     fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait> {
-        match StaticJointTrajectoryClient::send_joint_trajectory(
+        ROk(rtry!(StaticJointTrajectoryClient::send_joint_trajectory(
             &**self,
             trajectory
                 .into_iter()
                 .map(arci::TrajectoryPoint::from)
                 .collect(),
-        ) {
-            Ok(wait) => ROk(wait.into()),
-            Err(e) => RErr(e.into()),
-        }
+        ))
+        .into())
     }
 }
 
@@ -389,10 +434,7 @@ where
     T: ?Sized + arci::Speaker + 'static,
 {
     fn speak(&self, message: RStr<'_>) -> RResult<RBlockingWait> {
-        match arci::Speaker::speak(&**self, message.into()) {
-            Ok(wait) => ROk(wait.into()),
-            Err(e) => RErr(e.into()),
-        }
+        ROk(rtry!(arci::Speaker::speak(&**self, message.into())).into())
     }
 }
 
@@ -413,17 +455,15 @@ where
     T: ?Sized + arci::MoveBase + 'static,
 {
     fn send_velocity(&self, velocity: &RBaseVelocity) -> RResult<()> {
-        match arci::MoveBase::send_velocity(&**self, &arci::BaseVelocity::from(*velocity)) {
-            Ok(()) => ROk(()),
-            Err(e) => RErr(e.into()),
-        }
+        rtry!(arci::MoveBase::send_velocity(
+            &**self,
+            &arci::BaseVelocity::from(*velocity)
+        ));
+        ROk(())
     }
 
     fn current_velocity(&self) -> RResult<RBaseVelocity> {
-        match arci::MoveBase::current_velocity(&**self) {
-            Ok(v) => ROk(v.into()),
-            Err(e) => RErr(e.into()),
-        }
+        ROk(rtry!(arci::MoveBase::current_velocity(&**self)).into())
     }
 }
 
@@ -484,22 +524,18 @@ where
         frame_id: RStr<'_>,
         timeout: RDuration,
     ) -> RResult<RBlockingWait> {
-        match arci::Navigation::send_goal_pose(
+        ROk(rtry!(arci::Navigation::send_goal_pose(
             &**self,
             goal.into(),
             frame_id.into(),
             timeout.into(),
-        ) {
-            Ok(wait) => ROk(wait.into()),
-            Err(e) => RErr(e.into()),
-        }
+        ))
+        .into())
     }
 
     fn cancel(&self) -> RResult<()> {
-        match arci::Navigation::cancel(&**self) {
-            Ok(()) => ROk(()),
-            Err(e) => RErr(e.into()),
-        }
+        rtry!(arci::Navigation::cancel(&**self));
+        ROk(())
     }
 }
 
@@ -519,14 +555,10 @@ where
     T: ?Sized + arci::Localization + 'static,
 {
     fn current_pose(&self, frame_id: RStr<'_>) -> RResult<RIsometry2F64> {
-        match arci::Localization::current_pose(&**self, frame_id.into()) {
-            Ok(pose) => ROk(pose.into()),
-            Err(e) => RErr(e.into()),
-        }
+        ROk(rtry!(arci::Localization::current_pose(&**self, frame_id.into())).into())
     }
 }
 
-/* TODO: We need a FFI-safe equivalent of SystemTime.
 // =============================================================================
 // arci::TransformResolver
 
@@ -553,18 +585,15 @@ where
         to: RStr<'_>,
         time: RSystemTime,
     ) -> RResult<RIsometry3F64> {
-        match arci::TransformResolver::resolve_transformation(
+        ROk(rtry!(arci::TransformResolver::resolve_transformation(
             &**self,
             from.into(),
             to.into(),
-            time.into(),
-        ) {
-            Ok(pose) => ROk(pose.into()),
-            Err(e) => RErr(e.into()),
-        }
+            rtry!(time.try_into()),
+        ))
+        .into())
     }
 }
-*/
 
 // =============================================================================
 // arci::Gamepad
