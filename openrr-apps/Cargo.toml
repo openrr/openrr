@@ -49,6 +49,9 @@ urdf-rs = "0.6"
 arci-ros = { version = "0.0.5", optional = true }
 openrr-gui = { version = "0.0.5", optional = true, default-features = false }
 
+[target.'cfg(unix)'.dependencies]
+arci-gamepad-keyboard = "0.0.5"
+
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }
 
@@ -59,6 +62,10 @@ path = "src/bin/robot_command.rs"
 [[bin]]
 name = "openrr_apps_robot_teleop"
 path = "src/bin/robot_teleop.rs"
+
+[[bin]]
+name = "openrr_apps_robot_teleop_keyboard"
+path = "src/bin/robot_teleop_keyboard.rs"
 
 [[bin]]
 name = "openrr_apps_joint_position_sender"
