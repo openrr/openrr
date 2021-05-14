@@ -11,7 +11,7 @@ pub struct MyPlugin;
 
 impl Plugin for MyPlugin {
     fn name(&self) -> String {
-        "Example".to_string()
+        "Example".into()
     }
 
     fn new_joint_trajectory_client(
