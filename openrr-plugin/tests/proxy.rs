@@ -46,7 +46,7 @@ impl StaticJointTrajectoryClient for DummyStaticJointTrajectoryClient {
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
-        _duration: std::time::Duration,
+        _duration: Duration,
     ) -> Result<WaitFuture<'static>, arci::Error> {
         *self.positions.lock().unwrap() = positions;
         Ok(WaitFuture::ready())
@@ -82,7 +82,7 @@ async fn joint_trajectory_client() {
     assert_approx_eq!(pos[0], 0.0);
     assert_approx_eq!(pos[1], 0.0);
     proxy
-        .send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs(1))
+        .send_joint_positions(vec![1.0, 2.0], Duration::from_secs(1))
         .unwrap()
         .await
         .unwrap();
@@ -97,8 +97,8 @@ async fn joint_trajectory_client() {
 
     proxy
         .send_joint_trajectory(vec![
-            TrajectoryPoint::new(vec![1.0, -1.0], std::time::Duration::from_secs(1)),
-            TrajectoryPoint::new(vec![2.0, -3.0], std::time::Duration::from_secs(2)),
+            TrajectoryPoint::new(vec![1.0, -1.0], Duration::from_secs(1)),
+            TrajectoryPoint::new(vec![2.0, -3.0], Duration::from_secs(2)),
         ])
         .unwrap()
         .await
