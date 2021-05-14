@@ -5,7 +5,7 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc, Mutex,
     },
-    thread::{sleep, JoinHandle},
+    thread::sleep,
     time::Duration,
 };
 
@@ -140,71 +140,76 @@ impl SendJointPositionsTargetState {
     }
 }
 
-pub struct UrdfVizWebClient {
+#[derive(Clone)]
+pub struct UrdfVizWebClient(Arc<UrdfVizWebClientInner>);
+
+struct UrdfVizWebClientInner {
     base_url: Url,
     joint_names: Vec<String>,
-    velocity: Arc<Mutex<BaseVelocity>>,
-    send_joint_positions_target: Arc<Mutex<SendJointPositionsTargetState>>,
-    complete_condition: Box<dyn CompleteCondition>,
-    send_joint_positions_thread: Option<JoinHandle<()>>,
-    is_dropping: Arc<AtomicBool>,
+    velocity: Mutex<BaseVelocity>,
+    send_joint_positions_target: Mutex<SendJointPositionsTargetState>,
+    complete_condition: Mutex<Arc<dyn CompleteCondition>>,
+    has_send_joint_positions_thread: AtomicBool,
+    is_dropping: AtomicBool,
 }
 
 impl UrdfVizWebClient {
     pub fn try_new(base_url: Url) -> Result<Self, anyhow::Error> {
         let joint_state = get_joint_positions(&base_url)?;
-        let velocity = Arc::new(Mutex::new(BaseVelocity::default()));
-        let send_joint_positions_target = Arc::new(Mutex::new(SendJointPositionsTargetState::None));
-        Ok(Self {
+        let velocity = Mutex::new(BaseVelocity::default());
+        let send_joint_positions_target = Mutex::new(SendJointPositionsTargetState::None);
+        Ok(Self(Arc::new(UrdfVizWebClientInner {
             base_url,
             joint_names: joint_state.names,
             velocity,
             send_joint_positions_target,
-            complete_condition: Box::new(TotalJointDiffCondition::default()),
-            send_joint_positions_thread: None,
-            is_dropping: Arc::new(AtomicBool::new(false)),
-        })
+            complete_condition: Mutex::new(Arc::new(TotalJointDiffCondition::default())),
+            has_send_joint_positions_thread: AtomicBool::new(false),
+            is_dropping: AtomicBool::new(false),
+        })))
     }
 
     pub fn run_thread(&self) {
-        let velocity_arc_mutex = self.velocity.clone();
-        let base_url = self.base_url.clone();
-        std::thread::spawn(move || loop {
-            const DT: f64 = 0.02;
-            let _ = ScopedSleep::from_secs(DT);
-            let velocity = velocity_arc_mutex.lock().unwrap();
-            let mut pose = get_robot_origin(&base_url).unwrap();
-            let mut rpy = euler_angles_from_quaternion(&pose.quaternion);
-            let yaw = rpy.2;
-            pose.position[0] += (velocity.x * yaw.cos() - velocity.y * yaw.sin()) * DT;
-            pose.position[1] += (velocity.x * yaw.sin() + velocity.y * yaw.cos()) * DT;
-            rpy.2 += velocity.theta * DT;
-            pose.quaternion = quaternion_from_euler_angles(rpy.0, rpy.1, rpy.2);
-            send_robot_origin(&base_url, pose).unwrap();
+        let inner = self.0.clone();
+        std::thread::spawn(move || {
+            while !inner.is_dropping.load(Ordering::Relaxed) {
+                const DT: f64 = 0.02;
+                let _ = ScopedSleep::from_secs(DT);
+                let velocity = inner.velocity.lock().unwrap();
+                let mut pose = get_robot_origin(&inner.base_url).unwrap();
+                let mut rpy = euler_angles_from_quaternion(&pose.quaternion);
+                let yaw = rpy.2;
+                pose.position[0] += (velocity.x * yaw.cos() - velocity.y * yaw.sin()) * DT;
+                pose.position[1] += (velocity.x * yaw.sin() + velocity.y * yaw.cos()) * DT;
+                rpy.2 += velocity.theta * DT;
+                pose.quaternion = quaternion_from_euler_angles(rpy.0, rpy.1, rpy.2);
+                send_robot_origin(&inner.base_url, pose).unwrap();
+            }
         });
     }
 
     pub fn run_send_joint_positions_thread(&mut self) {
-        if self.send_joint_positions_thread.is_some() {
+        if self
+            .0
+            .has_send_joint_positions_thread
+            .swap(true, Ordering::Relaxed)
+        {
             panic!("send_joint_positions_thread is running.");
         }
-        let send_joint_positions_target_arc_mutex = self.send_joint_positions_target.clone();
-        let base_url = self.base_url.clone();
-        let joint_names = self.joint_names.clone();
-        let is_dropping_arc_mutex = self.is_dropping.clone();
 
-        self.send_joint_positions_thread = Some(std::thread::spawn(move || {
-            while !is_dropping_arc_mutex.load(Ordering::Relaxed) {
+        let inner = self.0.clone();
+        std::thread::spawn(move || {
+            while !inner.is_dropping.load(Ordering::Relaxed) {
                 const UNIT_DURATION: Duration = Duration::from_millis(10);
                 let send_joint_positions_target =
-                    { send_joint_positions_target_arc_mutex.lock().unwrap().take() };
+                    { inner.send_joint_positions_target.lock().unwrap().take() };
                 if let SendJointPositionsTargetState::Some(target) = send_joint_positions_target {
                     if target.duration.as_nanos() == 0 {
                         let target_state = JointState {
-                            names: joint_names.clone(),
+                            names: inner.joint_names.clone(),
                             positions: target.positions.clone(),
                         };
-                        send_joint_positions(&base_url, target_state)
+                        send_joint_positions(&inner.base_url, target_state)
                             .map_err(|e| arci::Error::Connection {
                                 message: format!("{:?}", e),
                             })
@@ -212,7 +217,7 @@ impl UrdfVizWebClient {
                         continue;
                     }
 
-                    let current = get_joint_positions(&base_url)
+                    let current = get_joint_positions(&inner.base_url)
                         .map_err(|e| arci::Error::Connection {
                             message: format!("{:?}", e),
                         })
@@ -230,7 +235,7 @@ impl UrdfVizWebClient {
 
                     for traj in trajectories {
                         if matches!(
-                            *send_joint_positions_target_arc_mutex.lock().unwrap(),
+                            *inner.send_joint_positions_target.lock().unwrap(),
                             SendJointPositionsTargetState::Some(..)
                                 | SendJointPositionsTargetState::Abort
                         ) {
@@ -239,10 +244,10 @@ impl UrdfVizWebClient {
                         }
                         let start_time = std::time::Instant::now();
                         let target_state = JointState {
-                            names: joint_names.clone(),
+                            names: inner.joint_names.clone(),
                             positions: traj.position,
                         };
-                        send_joint_positions(&base_url, target_state)
+                        send_joint_positions(&inner.base_url, target_state)
                             .map_err(|e| arci::Error::Connection {
                                 message: format!("{:?}", e),
                             })
@@ -257,20 +262,17 @@ impl UrdfVizWebClient {
                     sleep(UNIT_DURATION);
                 }
             }
-        }));
+        });
     }
 
     pub fn abort(&self) {
-        *self.send_joint_positions_target.lock().unwrap() = SendJointPositionsTargetState::Abort;
+        *self.0.send_joint_positions_target.lock().unwrap() = SendJointPositionsTargetState::Abort;
     }
 }
 
 impl Drop for UrdfVizWebClient {
     fn drop(&mut self) {
-        if let Some(t) = self.send_joint_positions_thread.take() {
-            self.is_dropping.swap(true, Ordering::Relaxed);
-            t.join().unwrap();
-        }
+        self.0.is_dropping.store(true, Ordering::Relaxed);
     }
 }
 
@@ -282,11 +284,11 @@ impl Default for UrdfVizWebClient {
 
 impl JointTrajectoryClient for UrdfVizWebClient {
     fn joint_names(&self) -> &[String] {
-        &self.joint_names
+        &self.0.joint_names
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        Ok(get_joint_positions(&self.base_url)
+        Ok(get_joint_positions(&self.0.base_url)
             .map_err(|e| arci::Error::Connection {
                 message: format!("{:?}", e),
             })?
@@ -298,16 +300,22 @@ impl JointTrajectoryClient for UrdfVizWebClient {
         positions: Vec<f64>,
         duration: Duration,
     ) -> Result<WaitFuture, arci::Error> {
-        if self.send_joint_positions_thread.is_none() {
+        if !self
+            .0
+            .has_send_joint_positions_thread
+            .load(Ordering::Relaxed)
+        {
             panic!("Call run_joint_positions_thread.");
         }
-        *self.send_joint_positions_target.lock().unwrap() =
+        *self.0.send_joint_positions_target.lock().unwrap() =
             SendJointPositionsTargetState::Some(SendJointPositionsTarget {
                 positions: positions.clone(),
                 duration,
             });
+        // Clone to avoid holding the lock for a long time.
+        let complete_condition = self.0.complete_condition.lock().unwrap().clone();
         Ok(WaitFuture::new(async move {
-            self.complete_condition
+            complete_condition
                 .wait(self, &positions, duration.as_secs_f64())
                 .await
         }))
@@ -327,8 +335,10 @@ impl JointTrajectoryClient for UrdfVizWebClient {
             let _ = self.send_joint_positions(traj.positions, traj.time_from_start - last_time)?;
             last_time = traj.time_from_start;
         }
+        // Clone to avoid holding the lock for a long time.
+        let complete_condition = self.0.complete_condition.lock().unwrap().clone();
         Ok(WaitFuture::new(async move {
-            self.complete_condition
+            complete_condition
                 .wait(
                     self,
                     &last_traj.positions,
@@ -341,8 +351,8 @@ impl JointTrajectoryClient for UrdfVizWebClient {
 
 impl Localization for UrdfVizWebClient {
     fn current_pose(&self, _frame_id: &str) -> Result<na::Isometry2<f64>, arci::Error> {
-        let pose = get_robot_origin(&self.base_url).map_err(|e| arci::Error::Connection {
-            message: format!("base_url:{}: {:?}", self.base_url, e),
+        let pose = get_robot_origin(&self.0.base_url).map_err(|e| arci::Error::Connection {
+            message: format!("base_url:{}: {:?}", self.0.base_url, e),
         })?;
         let yaw = euler_angles_from_quaternion(&pose.quaternion).2;
         Ok(na::Isometry2::new(
@@ -360,9 +370,9 @@ impl Navigation for UrdfVizWebClient {
         _timeout: Duration,
     ) -> Result<WaitFuture, arci::Error> {
         // JUMP!
-        let re = send_robot_origin(&self.base_url, goal.into()).map_err(|e| {
+        let re = send_robot_origin(&self.0.base_url, goal.into()).map_err(|e| {
             arci::Error::Connection {
-                message: format!("base_url:{}: {:?}", self.base_url, e),
+                message: format!("base_url:{}: {:?}", self.0.base_url, e),
             }
         })?;
         if !re.is_ok {
@@ -379,12 +389,13 @@ impl Navigation for UrdfVizWebClient {
 
 impl MoveBase for UrdfVizWebClient {
     fn send_velocity(&self, velocity: &arci::BaseVelocity) -> Result<(), arci::Error> {
-        *self.velocity.lock().expect("failed to lock velocity") = velocity.to_owned();
+        *self.0.velocity.lock().expect("failed to lock velocity") = velocity.to_owned();
         Ok(())
     }
 
     fn current_velocity(&self) -> Result<arci::BaseVelocity, arci::Error> {
         Ok(self
+            .0
             .velocity
             .lock()
             .expect("failed to lock velocity")
@@ -394,6 +405,6 @@ impl MoveBase for UrdfVizWebClient {
 
 impl SetCompleteCondition for UrdfVizWebClient {
     fn set_complete_condition(&mut self, condition: Box<dyn CompleteCondition>) {
-        self.complete_condition = condition;
+        *self.0.complete_condition.lock().unwrap() = condition.into();
     }
 }
