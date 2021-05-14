@@ -20,6 +20,7 @@ MEMBERS=(
 
     # depend on arci and some openrr-* crates
     "arci-gamepad-gilrs"
+    "arci-gamepad-keyboard"
     "arci-ros"
     "arci-speak-audio"
     "arci-speak-cmd"

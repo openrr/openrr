@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "arci",
     "arci-gamepad-gilrs",
+    "arci-gamepad-keyboard",
     "arci-ros",
     "arci-speak-cmd",
     "arci-speak-audio",
@@ -23,6 +24,7 @@ arci-speak-cmd = { path = "arci-speak-cmd" }
 arci-speak-audio = { path = "arci-speak-audio" }
 arci = { path = "arci" }
 arci-gamepad-gilrs = { path = "arci-gamepad-gilrs" }
+arci-gamepad-keyboard = { path = "arci-gamepad-keyboard" }
 arci-ros = { path = "arci-ros" }
 arci-urdf-viz = { path = "arci-urdf-viz" }
 openrr = { path = "openrr" }

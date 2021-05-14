@@ -1,0 +1,24 @@
+[package]
+name = "arci-gamepad-keyboard"
+version = "0.0.5"
+authors = ["Taiki Endo <te316e89@gmail.com>"]
+edition = "2018"
+license = "Apache-2.0"
+description = "arci::Gamepad implementation for keyboard"
+keywords = ["robotics", "robot"]
+categories = ["science::robotics"]
+repository = "https://github.com/openrr/openrr"
+documentation = "http://docs.rs/arci-gamepad-keyboard"
+
+[dependencies]
+arci = "0.0.5"
+flume = "0.10"
+tracing = { version = "0.1", features = ["log"] }
+
+[target.'cfg(unix)'.dependencies]
+termios = "0.3"
+
+[dev-dependencies]
+assert_approx_eq = "1.1"
+tokio = { version = "1.0", features = ["full"] }
+tracing-subscriber = "0.2"
