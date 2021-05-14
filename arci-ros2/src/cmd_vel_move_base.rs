@@ -31,7 +31,7 @@ impl MoveBase for Ros2CmdVelMoveBase {
     }
 
     fn current_velocity(&self) -> Result<BaseVelocity, Error> {
-        panic!("not implemented yet");
+        unimplemented!("Read from /odom in the future?");
     }
 }
 

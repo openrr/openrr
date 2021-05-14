@@ -1,4 +1,4 @@
-//! [`arci`] implementation using ROS1.
+//! [`arci`] implementation using ROS2.
 #[cfg(feature = "ros2")]
 mod cmd_vel_move_base;
 #[cfg(feature = "ros2")]
