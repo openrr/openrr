@@ -1,10 +1,47 @@
 //! [`arci::Gamepad`] implementation for keyboard.
 //!
 //! Currently, this crate only supports Unix-like operating systems.
+//!
+//! # Key mappings
+//!
+//! ```text
+//! LeftStick:
+//!    q    w    e
+//!    a    s    d
+//!    z    x    c
+//!
+//! RightStick:
+//!    u    i    o
+//!    j    k    l
+//!    m    ,    .
+//!
+//! 5 : ^ (DPadUp)
+//! r : < (DPadLeft)
+//! t : > (DPadRight)
+//! f : v (DPadDown)
+//!
+//! y : △ (North)
+//! g : □ (West)
+//! h : ○ (East)
+//! b : x (South)
+//!
+//! 1 : L1 (LeftTrigger)
+//! 2 : L2 (LeftTrigger2)
+//! 3 : L3 (LeftThumb)
+//!
+//! 8 : R1 (RightTrigger)
+//! 9 : R2 (RightTrigger2)
+//! 0 : R3 (RightThumb)
+//!
+//! 6 : Select
+//! 7 : Start
+//! ```
 
 #![cfg(unix)]
+#![warn(missing_docs, rust_2018_idioms)]
 
 use std::{
+    collections::HashMap,
     io::{self, Read, Write},
     sync::{
         atomic::{AtomicBool, Ordering::Relaxed},
@@ -19,236 +56,193 @@ use tracing::{debug, error};
 #[derive(Debug)]
 struct State {
     sender: flume::Sender<GamepadEvent>,
-    enabled: bool,
-    right_stick_x: i8,
-    right_stick_y: i8,
-    left_stick_x: i8,
-    left_stick_y: i8,
+    key_state: HashMap<char, bool>,
+    button_map: HashMap<char, Button>,
 }
+
+#[rustfmt::skip]
+const LEFT_STICK_KEYS: &[char] = &[
+    'q', 'w', 'e',
+    'a', 's', 'd',
+    'z', 'x', 'c',
+];
+#[rustfmt::skip]
+const RIGHT_STICK_KEYS: &[char] = &[
+    'u', 'i', 'o',
+    'j', 'k', 'l',
+    'm', ',', '.',
+];
 
 impl State {
     fn new(sender: flume::Sender<GamepadEvent>) -> Self {
+        let mut key_state = HashMap::new();
+        for ch in ('0'..='9').chain('a'..='z') {
+            key_state.insert(ch, false);
+        }
+        key_state.insert(',', false);
+        key_state.insert('.', false);
+
         Self {
             sender,
-            enabled: false,
-            right_stick_x: 0,
-            right_stick_y: 0,
-            left_stick_x: 0,
-            left_stick_y: 0,
+            key_state,
+            button_map: button_map(),
         }
     }
 
-    fn enable(&mut self) {
-        if !self.enabled {
-            self.enabled = true;
-            self.send(GamepadEvent::ButtonPressed(Button::RightTrigger2));
-        }
+    fn right_stick(&mut self, sign_x: i8, sign_y: i8) {
+        self.send(GamepadEvent::AxisChanged(
+            Axis::RightStickX,
+            sign_x as f64 * 0.3,
+        ));
+        self.send(GamepadEvent::AxisChanged(
+            Axis::RightStickY,
+            sign_y as f64 * 0.3,
+        ));
     }
 
-    fn disable(&mut self) {
-        if self.enabled {
-            self.enabled = false;
-            self.send(GamepadEvent::ButtonReleased(Button::RightTrigger2));
-        }
+    fn left_stick(&mut self, sign_x: i8, sign_y: i8) {
+        self.send(GamepadEvent::AxisChanged(
+            Axis::LeftStickX,
+            sign_x as f64 * 0.3,
+        ));
+        self.send(GamepadEvent::AxisChanged(
+            Axis::LeftStickY,
+            sign_y as f64 * 0.3,
+        ));
     }
 
-    /// joints mode: (none)
-    /// base mode: vel.theta
-    fn right_stick_x(&mut self, v: i8) {
-        if self.right_stick_x != v {
-            self.right_stick_x = v;
-            self.send(GamepadEvent::AxisChanged(Axis::RightStickX, v as f64 * 0.3));
-        }
-    }
-
-    /// joints mode: move joint
-    /// base mode: (none)
-    fn right_stick_y(&mut self, v: i8) {
-        if self.right_stick_y != v {
-            self.right_stick_y = v;
-            self.send(GamepadEvent::AxisChanged(Axis::RightStickY, v as f64 * 0.3));
-        }
-    }
-
-    /// joints mode: (none)
-    /// base mode: vel.y
-    fn left_stick_x(&mut self, v: i8) {
-        if self.left_stick_x != v {
-            self.left_stick_x = v;
-            self.send(GamepadEvent::AxisChanged(Axis::LeftStickX, v as f64 * 0.3));
-        }
-    }
-
-    /// joints mode: (none)
-    /// base mode: vel.x
-    fn left_stick_y(&mut self, v: i8) {
-        if self.left_stick_y != v {
-            self.left_stick_y = v;
-            self.send(GamepadEvent::AxisChanged(Axis::LeftStickY, v as f64 * 0.3));
-        }
-    }
-
-    fn send(&mut self, event: GamepadEvent) {
-        let _ = self.sender.send(event);
-    }
-
-    fn send_event(&mut self, c: char) {
-        match c {
-            // North
-            'w' => {
-                self.disable();
-                self.send(GamepadEvent::ButtonPressed(Button::North));
-            }
-            // East
-            'd' => {
-                self.disable();
-                self.send(GamepadEvent::ButtonPressed(Button::East));
-            }
-            // West
-            'a' => {
-                self.send(GamepadEvent::ButtonPressed(Button::West));
-                self.enable();
-            }
-            // South
-            's' => {
-                self.send(GamepadEvent::ButtonPressed(Button::South));
-                self.enable();
-            }
+    fn send_left_stick(&mut self, ch: char) {
+        match ch {
             'q' => {
-                self.send(GamepadEvent::ButtonPressed(Button::LeftTrigger2));
+                self.left_stick(1, 1);
+            }
+            'w' => {
+                self.left_stick(0, 1);
+            }
+            'e' => {
+                self.left_stick(-1, 1);
+            }
+            'a' => {
+                self.left_stick(1, 0);
+            }
+            's' => {
+                self.left_stick(0, 0);
+            }
+            'd' => {
+                self.left_stick(-1, 0);
             }
             'z' => {
-                self.send(GamepadEvent::ButtonReleased(Button::LeftTrigger2));
+                self.left_stick(1, -1);
             }
-
-            // for joint mode
             'x' => {
-                self.right_stick_y(1);
-                self.enable();
+                self.left_stick(0, -1);
             }
             'c' => {
-                self.right_stick_y(0);
-                self.disable();
+                self.left_stick(-1, -1);
             }
-            'v' => {
-                self.right_stick_y(-1);
-                self.enable();
-            }
+            _ => unreachable!(),
+        }
+    }
 
-            // for base mode
-            // key mapping is based on teleop_twist_keyboard:
-            // http://wiki.ros.org/stdr_simulator/Tutorials/Teleop%20with%20teleop_twist_keyboard
-            'i' | 'I' => {
-                self.left_stick_y(1);
-                self.left_stick_x(0);
-                self.right_stick_x(0);
-                self.enable();
+    fn send_right_stick(&mut self, ch: char) {
+        match ch {
+            'u' => {
+                self.right_stick(1, 1);
+            }
+            'i' => {
+                self.right_stick(0, 1);
             }
             'o' => {
-                self.left_stick_y(1);
-                self.left_stick_x(0);
-                self.right_stick_x(-1);
-                self.enable();
+                self.right_stick(-1, 1);
             }
             'j' => {
-                self.left_stick_y(0);
-                self.left_stick_x(0);
-                self.right_stick_x(1);
-                self.enable();
-            }
-            'l' => {
-                self.left_stick_y(0);
-                self.left_stick_x(0);
-                self.right_stick_x(-1);
-                self.enable();
-            }
-            'u' => {
-                self.left_stick_y(1);
-                self.left_stick_x(0);
-                self.right_stick_x(1);
-                self.enable();
-            }
-            ',' | '<' => {
-                self.left_stick_y(-1);
-                self.left_stick_x(0);
-                self.right_stick_x(0);
-                self.enable();
-            }
-            '.' => {
-                self.left_stick_y(-1);
-                self.left_stick_x(0);
-                self.right_stick_x(1);
-                self.enable();
-            }
-            'm' => {
-                self.left_stick_y(-1);
-                self.left_stick_x(0);
-                self.right_stick_x(-1);
-                self.enable();
-            }
-            'O' => {
-                self.left_stick_y(1);
-                self.left_stick_x(-1);
-                self.right_stick_x(0);
-                self.enable();
-            }
-            'J' => {
-                self.left_stick_y(0);
-                self.left_stick_x(1);
-                self.right_stick_x(0);
-                self.enable();
-            }
-            'L' => {
-                self.left_stick_y(0);
-                self.left_stick_x(-1);
-                self.right_stick_x(0);
-                self.enable();
-            }
-            'U' => {
-                self.left_stick_y(1);
-                self.left_stick_x(1);
-                self.right_stick_x(0);
-                self.enable();
-            }
-            '>' => {
-                self.left_stick_y(-1);
-                self.left_stick_x(-1);
-                self.right_stick_x(0);
-                self.enable();
-            }
-            'M' => {
-                self.left_stick_y(-1);
-                self.left_stick_x(1);
-                self.right_stick_y(0);
-                self.right_stick_x(0);
-                self.enable();
+                self.right_stick(1, 0);
             }
             'k' => {
-                self.disable();
+                self.right_stick(0, 0);
             }
+            'l' => {
+                self.right_stick(-1, 0);
+            }
+            'm' => {
+                self.right_stick(1, -1);
+            }
+            ',' => {
+                self.right_stick(0, -1);
+            }
+            '.' => {
+                self.right_stick(-1, -1);
+            }
+            _ => unreachable!(),
+        }
+    }
 
-            // TODO: support ik mode.
-            _ => {}
+    fn send_button(&mut self, ch: char) {
+        if let Some(&button) = self.button_map.get(&ch) {
+            let active = self.key_state.get_mut(&ch).unwrap();
+            *active = !*active;
+            if *active {
+                self.send(GamepadEvent::ButtonPressed(button));
+            } else {
+                self.send(GamepadEvent::ButtonReleased(button));
+            }
+        }
+    }
+
+    fn send(&self, event: GamepadEvent) {
+        debug!("sending {:?}", event);
+        if let Err(e) = self.sender.send(event) {
+            error!("{}", e);
+        }
+    }
+
+    fn send_event(&mut self, ch: char) {
+        if LEFT_STICK_KEYS.contains(&ch) {
+            self.send_left_stick(ch);
+        } else if RIGHT_STICK_KEYS.contains(&ch) {
+            self.send_right_stick(ch);
+        } else {
+            self.send_button(ch);
         }
     }
 }
 
-/*
+fn button_map() -> HashMap<char, Button> {
+    let mut map = HashMap::new();
+    map.insert('1', Button::LeftTrigger);
+    map.insert('2', Button::LeftTrigger2);
+    map.insert('3', Button::LeftThumb);
 
-fn default_axis_value_map() -> HashMap<Axis, f64> {
-    let mut axis_value_map = HashMap::new();
-    axis_value_map.insert(Axis::RightStickX, -1.0);
-    axis_value_map.insert(Axis::LeftStickX, -1.0);
-    axis_value_map
+    map.insert('6', Button::Select);
+    map.insert('7', Button::Start);
+
+    map.insert('8', Button::RightTrigger);
+    map.insert('9', Button::RightTrigger2);
+    map.insert('0', Button::RightThumb);
+
+    // <^>v
+    map.insert('5', Button::DPadUp);
+    map.insert('r', Button::DPadLeft);
+    map.insert('t', Button::DPadRight);
+    map.insert('f', Button::DPadDown);
+
+    // △○□x
+    map.insert('y', Button::North);
+    map.insert('g', Button::West);
+    map.insert('h', Button::East);
+    map.insert('b', Button::South);
+
+    map
 }
-*/
 
+/// [`arci::Gamepad`] implementation for keyboard.
 pub struct KeyboardGamepad {
     receiver: flume::Receiver<GamepadEvent>,
     is_running: Arc<AtomicBool>,
 }
 
 impl KeyboardGamepad {
+    /// Creates a new `KeyboardGamepad`.
     pub fn new() -> Self {
         let (sender, receiver) = flume::unbounded();
         let is_running = Arc::new(AtomicBool::new(true));
@@ -314,5 +308,63 @@ impl Gamepad for KeyboardGamepad {
 impl Drop for KeyboardGamepad {
     fn drop(&mut self) {
         self.stop();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use super::*;
+
+    const TIMEOUT: Duration = Duration::from_secs(1);
+
+    #[test]
+    fn button() {
+        let (sender, receiver) = flume::unbounded();
+        let mut state = State::new(sender);
+        let button_map = button_map();
+
+        for (&ch, button) in &button_map {
+            state.send_event(ch);
+            assert!(
+                matches!(receiver.recv_timeout(TIMEOUT).unwrap(), GamepadEvent::ButtonPressed(b) if b == *button)
+            );
+        }
+        for (&ch, button) in &button_map {
+            state.send_event(ch);
+            assert!(
+                matches!(receiver.recv_timeout(TIMEOUT).unwrap(), GamepadEvent::ButtonReleased(b) if b == *button)
+            );
+        }
+    }
+
+    #[test]
+    fn axis() {
+        let (sender, receiver) = flume::unbounded();
+        let mut state = State::new(sender);
+
+        for &ch in LEFT_STICK_KEYS {
+            state.send_event(ch);
+            assert!(matches!(
+                receiver.recv_timeout(TIMEOUT).unwrap(),
+                GamepadEvent::AxisChanged(Axis::LeftStickX, _)
+            ));
+            assert!(matches!(
+                receiver.recv_timeout(TIMEOUT).unwrap(),
+                GamepadEvent::AxisChanged(Axis::LeftStickY, _)
+            ));
+        }
+        for &ch in RIGHT_STICK_KEYS {
+            state.send_event(ch);
+            assert!(matches!(
+                receiver.recv_timeout(TIMEOUT).unwrap(),
+                GamepadEvent::AxisChanged(Axis::RightStickX, _)
+            ));
+            assert!(matches!(
+                receiver.recv_timeout(TIMEOUT).unwrap(),
+                GamepadEvent::AxisChanged(Axis::RightStickY, _)
+            ));
+        }
     }
 }
