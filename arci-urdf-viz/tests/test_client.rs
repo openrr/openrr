@@ -1,9 +1,6 @@
 mod web_server;
 
-use std::{
-    sync::{Arc, Mutex},
-    time::Duration,
-};
+use std::time::Duration;
 
 use arci::{JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint};
 use arci_urdf_viz::{UrdfVizWebClient, UrdfVizWebClientConfig};
@@ -123,11 +120,11 @@ fn test_create_joint_trajectory_clients() {
 #[test]
 fn test_current_joint_positions() {
     const PORT: u16 = 7778;
-    let mut web_server = WebServer::new(PORT);
-    web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
+    let web_server = WebServer::new(PORT);
+    web_server.set_current_joint_positions(JointNamesAndPositions {
         names: vec!["j1".to_owned(), "j2".to_owned()],
         positions: vec![1.0, -1.0],
-    }));
+    });
     web_server.start_background();
     let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
         .unwrap();
@@ -151,11 +148,11 @@ fn test_set_complete_condition() {
 #[tokio::test]
 async fn test_send_joint_positions() {
     const PORT: u16 = 7780;
-    let mut web_server = WebServer::new(PORT);
-    web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
+    let web_server = WebServer::new(PORT);
+    web_server.set_current_joint_positions(JointNamesAndPositions {
         names: vec!["j1".to_owned()],
         positions: vec![0.0],
-    }));
+    });
     web_server.start_background();
     let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
@@ -173,11 +170,11 @@ async fn test_send_joint_positions() {
 #[test]
 fn test_send_joint_positions_no_wait() {
     const PORT: u16 = 7781;
-    let mut web_server = WebServer::new(PORT);
-    web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
+    let web_server = WebServer::new(PORT);
+    web_server.set_current_joint_positions(JointNamesAndPositions {
         names: vec!["j1".to_owned()],
         positions: vec![0.0],
-    }));
+    });
     web_server.start_background();
     let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
@@ -196,11 +193,11 @@ fn test_send_joint_positions_no_wait() {
 #[tokio::test]
 async fn test_send_joint_trajectory() {
     const PORT: u16 = 7782;
-    let mut web_server = WebServer::new(PORT);
-    web_server.current_joint_positions = Arc::new(Mutex::new(JointNamesAndPositions {
+    let web_server = WebServer::new(PORT);
+    web_server.set_current_joint_positions(JointNamesAndPositions {
         names: vec!["j1".to_owned()],
         positions: vec![0.0],
-    }));
+    });
     web_server.start_background();
     let mut client =
         UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())

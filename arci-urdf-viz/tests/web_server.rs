@@ -34,31 +34,38 @@ struct ResultResponse {
 #[derive(Debug)]
 pub struct WebServer {
     pub port: u16,
-    pub current_joint_positions: Arc<Mutex<JointNamesAndPositions>>,
-    pub current_robot_origin: Arc<Mutex<RobotOrigin>>,
+    pub data: Arc<Data>,
 }
 
-#[derive(Debug, Clone)]
-struct Data {
-    current_joint_positions: Arc<Mutex<JointNamesAndPositions>>,
-    current_robot_origin: Arc<Mutex<RobotOrigin>>,
+#[derive(Debug)]
+pub struct Data {
+    pub current_joint_positions: Mutex<JointNamesAndPositions>,
+    pub current_robot_origin: Mutex<RobotOrigin>,
 }
 
 impl WebServer {
     pub fn new(port: u16) -> Self {
         Self {
             port,
-            current_joint_positions: Arc::new(Mutex::new(JointNamesAndPositions::default())),
-            current_robot_origin: Arc::new(Mutex::new(RobotOrigin::default())),
+            data: Arc::new(Data {
+                current_joint_positions: Mutex::new(JointNamesAndPositions::default()),
+                current_robot_origin: Mutex::new(RobotOrigin::default()),
+            }),
         }
+    }
+
+    pub fn data(&self) -> Arc<Data> {
+        self.data.clone()
+    }
+
+    #[allow(dead_code)] // called from other test files
+    pub fn set_current_joint_positions(&self, joint_positions: JointNamesAndPositions) {
+        *self.data.current_joint_positions.lock().unwrap() = joint_positions;
     }
 
     #[actix_web::main]
     async fn start(self) -> io::Result<()> {
-        let data = Data {
-            current_joint_positions: self.current_joint_positions,
-            current_robot_origin: self.current_robot_origin,
-        };
+        let data = self.data();
 
         HttpServer::new(move || {
             App::new()
@@ -86,7 +93,7 @@ impl WebServer {
 #[post("set_joint_positions")]
 async fn set_joint_positions(
     json: web::Json<JointNamesAndPositions>,
-    data: web::Data<Data>,
+    data: web::Data<Arc<Data>>,
 ) -> HttpResponse {
     let mut joint_positions = data.current_joint_positions.lock().unwrap();
     *joint_positions = json.into_inner();
@@ -109,7 +116,10 @@ async fn set_joint_positions(
 }
 
 #[post("set_robot_origin")]
-async fn set_robot_origin(json: web::Json<RobotOrigin>, data: web::Data<Data>) -> HttpResponse {
+async fn set_robot_origin(
+    json: web::Json<RobotOrigin>,
+    data: web::Data<Arc<Data>>,
+) -> HttpResponse {
     let mut robot_origin = data.current_robot_origin.lock().unwrap();
     *robot_origin = json.into_inner();
     HttpResponse::Ok().json(&ResultResponse {
@@ -141,13 +151,13 @@ async fn options_set_robot_origin() -> HttpResponse {
 }
 
 #[get("get_joint_positions")]
-async fn get_joint_positions(server: web::Data<Data>) -> HttpResponse {
+async fn get_joint_positions(server: web::Data<Arc<Data>>) -> HttpResponse {
     let json = server.current_joint_positions.lock().unwrap();
     HttpResponse::Ok().json(&*json)
 }
 
 #[get("get_robot_origin")]
-async fn get_robot_origin(server: web::Data<Data>) -> HttpResponse {
+async fn get_robot_origin(server: web::Data<Arc<Data>>) -> HttpResponse {
     let origin = server.current_robot_origin.lock().unwrap();
     HttpResponse::Ok().json(&*origin)
 }
