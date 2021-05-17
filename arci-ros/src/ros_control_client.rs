@@ -1,4 +1,8 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use anyhow::format_err;
 use arci::{
@@ -245,12 +249,15 @@ pub fn extract_current_joint_positions_from_message(
     result
 }
 
-pub struct RosControlClient {
+#[derive(Clone)]
+pub struct RosControlClient(Arc<RosControlClientInner>);
+
+struct RosControlClientInner {
     joint_names: Vec<String>,
     trajectory_publisher: rosrust::Publisher<JointTrajectory>,
     send_partial_joints_goal: bool,
     joint_state_subscriber_handler: Arc<StateSubscriber>,
-    complete_condition: Box<dyn CompleteCondition>,
+    complete_condition: Mutex<Arc<dyn CompleteCondition>>,
 }
 
 impl RosControlClient {
@@ -289,13 +296,13 @@ impl RosControlClient {
             rate.sleep();
         }
 
-        Self {
+        Self(Arc::new(RosControlClientInner {
             joint_names,
             trajectory_publisher,
             send_partial_joints_goal,
             joint_state_subscriber_handler,
-            complete_condition: Box::new(TotalJointDiffCondition::default()),
-        }
+            complete_condition: Mutex::new(Arc::new(TotalJointDiffCondition::default())),
+        }))
     }
 
     pub fn new(
@@ -335,19 +342,20 @@ impl RosControlClient {
     }
 
     pub fn get_joint_state(&self) -> Result<JointTrajectoryControllerState, arci::Error> {
-        self.joint_state_subscriber_handler
+        self.0
+            .joint_state_subscriber_handler
             .get()?
             .ok_or_else(|| arci::Error::Other(Error::NoJointStateAvailable.into()))
     }
 
     pub fn joint_state_subscriber_handler(&self) -> &Arc<StateSubscriber> {
-        &self.joint_state_subscriber_handler
+        &self.0.joint_state_subscriber_handler
     }
 }
 
 impl JointTrajectoryClient for RosControlClient {
     fn joint_names(&self) -> &[String] {
-        &self.joint_names
+        &self.0.joint_names
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
@@ -362,7 +370,7 @@ impl JointTrajectoryClient for RosControlClient {
         positions: Vec<f64>,
         duration: Duration,
     ) -> Result<WaitFuture, arci::Error> {
-        let traj = if self.send_partial_joints_goal {
+        let traj = if self.0.send_partial_joints_goal {
             JointTrajectory {
                 points: vec![JointTrajectoryPoint {
                     positions: positions.clone(),
@@ -382,9 +390,11 @@ impl JointTrajectoryClient for RosControlClient {
                 duration,
             )?
         };
-        self.trajectory_publisher.send(traj).unwrap();
+        self.0.trajectory_publisher.send(traj).unwrap();
+        // Clone to avoid holding the lock for a long time.
+        let complete_condition = self.0.complete_condition.lock().unwrap().clone();
         Ok(WaitFuture::new(async move {
-            self.complete_condition
+            complete_condition
                 .wait(self, &positions, duration.as_secs_f64())
                 .await
         }))
@@ -394,7 +404,7 @@ impl JointTrajectoryClient for RosControlClient {
         &self,
         trajectory: Vec<TrajectoryPoint>,
     ) -> Result<WaitFuture, arci::Error> {
-        let traj = if self.send_partial_joints_goal {
+        let traj = if self.0.send_partial_joints_goal {
             JointTrajectory {
                 points: trajectory
                     .iter()
@@ -419,9 +429,11 @@ impl JointTrajectoryClient for RosControlClient {
                 &trajectory,
             )?
         };
-        self.trajectory_publisher.send(traj).unwrap();
+        self.0.trajectory_publisher.send(traj).unwrap();
+        // Clone to avoid holding the lock for a long time.
+        let complete_condition = self.0.complete_condition.lock().unwrap().clone();
         Ok(WaitFuture::new(async move {
-            self.complete_condition
+            complete_condition
                 .wait(
                     self,
                     &trajectory.last().unwrap().positions,
@@ -434,6 +446,6 @@ impl JointTrajectoryClient for RosControlClient {
 
 impl SetCompleteCondition for RosControlClient {
     fn set_complete_condition(&mut self, condition: Box<dyn CompleteCondition>) {
-        self.complete_condition = condition;
+        *self.0.complete_condition.lock().unwrap() = condition.into();
     }
 }
