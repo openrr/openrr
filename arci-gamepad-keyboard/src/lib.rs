@@ -72,6 +72,7 @@ const RIGHT_STICK_KEYS: &[char] = &[
     'j', 'k', 'l',
     'm', ',', '.',
 ];
+const DEFAULT_AXIS_VALUE: f64 = 0.3;
 
 impl State {
     fn new(sender: flume::Sender<GamepadEvent>) -> Self {
@@ -92,22 +93,22 @@ impl State {
     fn right_stick(&mut self, sign_x: i8, sign_y: i8) {
         self.send(GamepadEvent::AxisChanged(
             Axis::RightStickX,
-            sign_x as f64 * 0.3,
+            sign_x as f64 * DEFAULT_AXIS_VALUE,
         ));
         self.send(GamepadEvent::AxisChanged(
             Axis::RightStickY,
-            sign_y as f64 * 0.3,
+            sign_y as f64 * DEFAULT_AXIS_VALUE,
         ));
     }
 
     fn left_stick(&mut self, sign_x: i8, sign_y: i8) {
         self.send(GamepadEvent::AxisChanged(
             Axis::LeftStickX,
-            sign_x as f64 * 0.3,
+            sign_x as f64 * DEFAULT_AXIS_VALUE,
         ));
         self.send(GamepadEvent::AxisChanged(
             Axis::LeftStickY,
-            sign_y as f64 * 0.3,
+            sign_y as f64 * DEFAULT_AXIS_VALUE,
         ));
     }
 
