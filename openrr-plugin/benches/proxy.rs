@@ -102,78 +102,22 @@ Found 15 outliers among 100 measurements (15.00%)
 
 */
 
-use std::{
-    env,
-    path::PathBuf,
-    process::Command,
-    sync::{Arc, Mutex},
-    time::Duration,
-};
+use std::{env, path::PathBuf, process::Command, time::Duration};
 
 use anyhow::Result;
-use arci::{TrajectoryPoint, WaitFuture};
+use arci::{DummyJointTrajectoryClient, JointTrajectoryClient};
 use criterion::{criterion_group, criterion_main, Criterion};
-use openrr_plugin::{JointTrajectoryClientProxy, PluginManager, StaticJointTrajectoryClient};
-
-/// Dummy StaticJointTrajectoryClient for debug or tests.
-#[derive(Debug)]
-struct DummyStaticJointTrajectoryClient {
-    joint_names: Vec<String>,
-    positions: Arc<Mutex<Vec<f64>>>,
-    last_trajectory: Arc<Mutex<Vec<TrajectoryPoint>>>,
-}
-
-impl DummyStaticJointTrajectoryClient {
-    fn new(joint_names: Vec<String>) -> Self {
-        let dof = joint_names.len();
-        let positions = Arc::new(Mutex::new(vec![0.0; dof]));
-        Self {
-            joint_names,
-            positions,
-            last_trajectory: Arc::new(Mutex::new(Vec::new())),
-        }
-    }
-}
-
-impl StaticJointTrajectoryClient for DummyStaticJointTrajectoryClient {
-    fn joint_names(&self) -> Vec<String> {
-        self.joint_names.clone()
-    }
-
-    fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        Ok(self.positions.lock().unwrap().clone())
-    }
-
-    fn send_joint_positions(
-        &self,
-        positions: Vec<f64>,
-        _duration: Duration,
-    ) -> Result<WaitFuture<'static>, arci::Error> {
-        *self.positions.lock().unwrap() = positions;
-        Ok(WaitFuture::ready())
-    }
-
-    fn send_joint_trajectory(
-        &self,
-        full_trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<WaitFuture<'static>, arci::Error> {
-        if let Some(last_point) = full_trajectory.last() {
-            *self.positions.lock().unwrap() = last_point.positions.to_owned();
-        }
-        *self.last_trajectory.lock().unwrap() = full_trajectory;
-        Ok(WaitFuture::ready())
-    }
-}
+use openrr_plugin::{JointTrajectoryClientProxy, PluginManager};
 
 fn no_proxy_joint_names(c: &mut Criterion) {
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
-    let client = DummyStaticJointTrajectoryClient::new(joint_names);
+    let client = DummyJointTrajectoryClient::new(joint_names);
     c.bench_function("no_proxy_joint_names", |b| b.iter(|| client.joint_names()));
 }
 
 fn no_proxy_current_joint_positions(c: &mut Criterion) {
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
-    let client = DummyStaticJointTrajectoryClient::new(joint_names);
+    let client = DummyJointTrajectoryClient::new(joint_names);
     c.bench_function("no_proxy_current_joint_positions", |b| {
         b.iter(|| client.current_joint_positions().unwrap())
     });
@@ -182,7 +126,7 @@ fn no_proxy_current_joint_positions(c: &mut Criterion) {
 fn no_proxy_send_joint_positions(c: &mut Criterion) {
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
     let positions: Vec<_> = (0..joint_names.len()).map(|n| n as f64).collect();
-    let client = DummyStaticJointTrajectoryClient::new(joint_names);
+    let client = DummyJointTrajectoryClient::new(joint_names);
     c.bench_function("no_proxy_send_joint_positions", |b| {
         b.iter(|| {
             client
@@ -194,7 +138,7 @@ fn no_proxy_send_joint_positions(c: &mut Criterion) {
 
 fn proxy_same_crate_joint_names(c: &mut Criterion) {
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
-    let client = DummyStaticJointTrajectoryClient::new(joint_names);
+    let client = DummyJointTrajectoryClient::new(joint_names);
     let client = JointTrajectoryClientProxy::new(client);
     c.bench_function("proxy_same_crate_joint_names", |b| {
         b.iter(|| client.joint_names())
@@ -203,7 +147,7 @@ fn proxy_same_crate_joint_names(c: &mut Criterion) {
 
 fn proxy_same_crate_current_joint_positions(c: &mut Criterion) {
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
-    let client = DummyStaticJointTrajectoryClient::new(joint_names);
+    let client = DummyJointTrajectoryClient::new(joint_names);
     let client = JointTrajectoryClientProxy::new(client);
     c.bench_function("proxy_same_crate_current_joint_positions", |b| {
         b.iter(|| client.current_joint_positions().unwrap())
@@ -213,7 +157,7 @@ fn proxy_same_crate_current_joint_positions(c: &mut Criterion) {
 fn proxy_same_crate_send_joint_positions(c: &mut Criterion) {
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
     let positions: Vec<_> = (0..joint_names.len()).map(|n| n as f64).collect();
-    let client = DummyStaticJointTrajectoryClient::new(joint_names);
+    let client = DummyJointTrajectoryClient::new(joint_names);
     let client = JointTrajectoryClientProxy::new(client);
     c.bench_function("proxy_same_crate_send_joint_positions", |b| {
         b.iter(|| {
@@ -313,7 +257,7 @@ openrr-plugin = {{ path = "{0}/openrr-plugin" }}
         root_dir.display()
     );
     let lib_rs = r#"
-use std::sync::{Arc, Mutex};
+use arci::DummyJointTrajectoryClient;
 use serde::Deserialize;
 
 openrr_plugin::export_plugin!(TestPlugin);
@@ -328,65 +272,15 @@ impl openrr_plugin::Plugin for TestPlugin {
     fn new_joint_trajectory_client(
         &self,
         args: String,
-    ) -> Option<Box<dyn openrr_plugin::StaticJointTrajectoryClient>> {
+    ) -> Option<Box<dyn arci::JointTrajectoryClient>> {
         let config: TestClientConfig = serde_json::from_str(&args).ok()?;
-        Some(Box::new(DummyStaticJointTrajectoryClient::new(config.joint_names)))
+        Some(Box::new(DummyJointTrajectoryClient::new(config.joint_names)))
     }
 }
 
 #[derive(Deserialize)]
 struct TestClientConfig {
     joint_names: Vec<String>,
-}
-
-/// Dummy StaticJointTrajectoryClient for debug or tests.
-#[derive(Debug)]
-struct DummyStaticJointTrajectoryClient {
-    joint_names: Vec<String>,
-    positions: Arc<Mutex<Vec<f64>>>,
-    last_trajectory: Arc<Mutex<Vec<arci::TrajectoryPoint>>>,
-}
-
-impl DummyStaticJointTrajectoryClient {
-    fn new(joint_names: Vec<String>) -> Self {
-        let dof = joint_names.len();
-        let positions = Arc::new(Mutex::new(vec![0.0; dof]));
-        Self {
-            joint_names,
-            positions,
-            last_trajectory: Arc::new(Mutex::new(Vec::new())),
-        }
-    }
-}
-
-impl openrr_plugin::StaticJointTrajectoryClient for DummyStaticJointTrajectoryClient {
-    fn joint_names(&self) -> Vec<String> {
-        self.joint_names.clone()
-    }
-
-    fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        Ok(self.positions.lock().unwrap().clone())
-    }
-
-    fn send_joint_positions(
-        &self,
-        positions: Vec<f64>,
-        _duration: std::time::Duration,
-    ) -> Result<arci::WaitFuture<'static>, arci::Error> {
-        *self.positions.lock().unwrap() = positions;
-        Ok(arci::WaitFuture::ready())
-    }
-
-    fn send_joint_trajectory(
-        &self,
-        full_trajectory: Vec<arci::TrajectoryPoint>,
-    ) -> Result<arci::WaitFuture<'static>, arci::Error> {
-        if let Some(last_point) = full_trajectory.last() {
-            *self.positions.lock().unwrap() = last_point.positions.to_owned();
-        }
-        *self.last_trajectory.lock().unwrap() = full_trajectory;
-        Ok(arci::WaitFuture::ready())
-    }
 }
     "#;
 

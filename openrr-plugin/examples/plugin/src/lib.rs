@@ -2,7 +2,7 @@ use std::{sync::Mutex, time::Duration};
 
 use arci::{DummyMoveBase, DummyNavigation, Error, TrajectoryPoint, WaitFuture};
 use openrr_client::PrintSpeaker;
-use openrr_plugin::{Plugin, StaticJointTrajectoryClient};
+use openrr_plugin::Plugin;
 use serde::Deserialize;
 
 openrr_plugin::export_plugin!(MyPlugin);
@@ -17,7 +17,7 @@ impl Plugin for MyPlugin {
     fn new_joint_trajectory_client(
         &self,
         args: String,
-    ) -> Option<Box<dyn StaticJointTrajectoryClient>> {
+    ) -> Option<Box<dyn arci::JointTrajectoryClient>> {
         let config: MyClientConfig = serde_json::from_str(&args).ok()?;
         let dof = config.joint_names.len();
         Some(Box::new(MyJointTrajectoryClient {
@@ -49,7 +49,7 @@ struct MyJointTrajectoryClient {
     joint_positions: Mutex<Vec<f64>>,
 }
 
-impl StaticJointTrajectoryClient for MyJointTrajectoryClient {
+impl arci::JointTrajectoryClient for MyJointTrajectoryClient {
     fn joint_names(&self) -> Vec<String> {
         self.joint_names.clone()
     }
@@ -62,7 +62,7 @@ impl StaticJointTrajectoryClient for MyJointTrajectoryClient {
         &self,
         positions: Vec<f64>,
         _duration: Duration,
-    ) -> Result<WaitFuture<'static>, Error> {
+    ) -> Result<WaitFuture, Error> {
         *self.joint_positions.lock().unwrap() = positions;
         Ok(WaitFuture::new(async move { async { Ok(()) }.await }))
     }
@@ -70,7 +70,7 @@ impl StaticJointTrajectoryClient for MyJointTrajectoryClient {
     fn send_joint_trajectory(
         &self,
         _trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<WaitFuture<'static>, Error> {
+    ) -> Result<WaitFuture, Error> {
         std::process::abort()
     }
 }

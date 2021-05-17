@@ -408,7 +408,7 @@ where
         goal: Isometry2<f64>,
         frame_id: &str,
         timeout: std::time::Duration,
-    ) -> Result<WaitFuture<'static>, ArciError> {
+    ) -> Result<WaitFuture, ArciError> {
         self.navigation
             .as_ref()
             .unwrap()

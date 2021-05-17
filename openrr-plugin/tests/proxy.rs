@@ -1,72 +1,19 @@
-use std::{
-    sync::{Arc, Mutex},
-    time::Duration,
-};
+use std::{sync::Arc, time::Duration};
 
 use arci::{
-    BaseVelocity, DummyLocalization, DummyMoveBase, DummyNavigation, DummySpeaker, Isometry2,
-    Localization, MoveBase, Navigation, Speaker, TrajectoryPoint, WaitFuture,
+    BaseVelocity, DummyJointTrajectoryClient, DummyLocalization, DummyMoveBase, DummyNavigation,
+    DummySpeaker, Isometry2, JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker,
+    TrajectoryPoint,
 };
 use assert_approx_eq::assert_approx_eq;
 use nalgebra::Vector2;
 use openrr_plugin::{
     JointTrajectoryClientProxy, LocalizationProxy, MoveBaseProxy, NavigationProxy, SpeakerProxy,
-    StaticJointTrajectoryClient,
 };
-
-/// Dummy StaticJointTrajectoryClient for debug or tests.
-#[derive(Debug)]
-struct DummyStaticJointTrajectoryClient {
-    joint_names: Vec<String>,
-    positions: Arc<Mutex<Vec<f64>>>,
-    last_trajectory: Arc<Mutex<Vec<TrajectoryPoint>>>,
-}
-
-impl DummyStaticJointTrajectoryClient {
-    fn new(joint_names: Vec<String>) -> Self {
-        let dof = joint_names.len();
-        let positions = Arc::new(Mutex::new(vec![0.0; dof]));
-        Self {
-            joint_names,
-            positions,
-            last_trajectory: Arc::new(Mutex::new(Vec::new())),
-        }
-    }
-}
-
-impl StaticJointTrajectoryClient for DummyStaticJointTrajectoryClient {
-    fn joint_names(&self) -> Vec<String> {
-        self.joint_names.clone()
-    }
-
-    fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        Ok(self.positions.lock().unwrap().clone())
-    }
-
-    fn send_joint_positions(
-        &self,
-        positions: Vec<f64>,
-        _duration: Duration,
-    ) -> Result<WaitFuture<'static>, arci::Error> {
-        *self.positions.lock().unwrap() = positions;
-        Ok(WaitFuture::ready())
-    }
-
-    fn send_joint_trajectory(
-        &self,
-        full_trajectory: Vec<TrajectoryPoint>,
-    ) -> Result<WaitFuture<'static>, arci::Error> {
-        if let Some(last_point) = full_trajectory.last() {
-            *self.positions.lock().unwrap() = last_point.positions.to_owned();
-        }
-        *self.last_trajectory.lock().unwrap() = full_trajectory;
-        Ok(WaitFuture::ready())
-    }
-}
 
 #[tokio::test]
 async fn joint_trajectory_client() {
-    let client = Arc::new(DummyStaticJointTrajectoryClient::new(vec![
+    let client = Arc::new(DummyJointTrajectoryClient::new(vec![
         "a".to_owned(),
         "b".to_owned(),
     ]));

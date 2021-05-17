@@ -312,11 +312,12 @@ impl JointTrajectoryClient for UrdfVizWebClient {
                 positions: positions.clone(),
                 duration,
             });
-        // Clone to avoid holding the lock for a long time.
-        let complete_condition = self.0.complete_condition.lock().unwrap().clone();
+        let this = self.clone();
         Ok(WaitFuture::new(async move {
+            // Clone to avoid holding the lock for a long time.
+            let complete_condition = this.0.complete_condition.lock().unwrap().clone();
             complete_condition
-                .wait(self, &positions, duration.as_secs_f64())
+                .wait(&this, &positions, duration.as_secs_f64())
                 .await
         }))
     }
@@ -335,12 +336,13 @@ impl JointTrajectoryClient for UrdfVizWebClient {
             let _ = self.send_joint_positions(traj.positions, traj.time_from_start - last_time)?;
             last_time = traj.time_from_start;
         }
-        // Clone to avoid holding the lock for a long time.
-        let complete_condition = self.0.complete_condition.lock().unwrap().clone();
+        let this = self.clone();
         Ok(WaitFuture::new(async move {
+            // Clone to avoid holding the lock for a long time.
+            let complete_condition = this.0.complete_condition.lock().unwrap().clone();
             complete_condition
                 .wait(
-                    self,
+                    &this,
                     &last_traj.positions,
                     last_traj.time_from_start.as_secs_f64(),
                 )
@@ -368,7 +370,7 @@ impl Navigation for UrdfVizWebClient {
         goal: na::Isometry2<f64>,
         _frame_id: &str,
         _timeout: Duration,
-    ) -> Result<WaitFuture<'static>, arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         // JUMP!
         let re = send_robot_origin(&self.0.base_url, goal.into()).map_err(|e| {
             arci::Error::Connection {
