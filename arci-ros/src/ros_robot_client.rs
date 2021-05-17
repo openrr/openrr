@@ -4,12 +4,15 @@ use arci::*;
 
 use crate::msg;
 
-pub struct RosRobotClient {
+#[derive(Clone)]
+pub struct RosRobotClient(Arc<RosRobotClientInner>);
+
+struct RosRobotClientInner {
     joint_names: Vec<String>,
     trajectory_publisher: Option<rosrust::Publisher<msg::trajectory_msgs::JointTrajectory>>,
     _joint_state_subscriber: rosrust::Subscriber,
     joint_state_message: Arc<Mutex<msg::sensor_msgs::JointState>>,
-    complete_condition: Box<dyn CompleteCondition>,
+    complete_condition: Mutex<Arc<dyn CompleteCondition>>,
 }
 
 impl From<TrajectoryPoint> for msg::trajectory_msgs::JointTrajectoryPoint {
@@ -59,23 +62,23 @@ impl RosRobotClient {
             Some(publisher)
         };
 
-        Self {
+        Self(Arc::new(RosRobotClientInner {
             joint_names,
             trajectory_publisher,
             _joint_state_subscriber,
             joint_state_message,
-            complete_condition: Box::new(TotalJointDiffCondition::default()),
-        }
+            complete_condition: Mutex::new(Arc::new(TotalJointDiffCondition::default())),
+        }))
     }
 }
 
 impl JointTrajectoryClient for RosRobotClient {
     fn joint_names(&self) -> &[String] {
-        &self.joint_names
+        &self.0.joint_names
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
-        let message = self.joint_state_message.lock().unwrap();
+        let message = self.0.joint_state_message.lock().unwrap();
         Ok(message.position.clone())
     }
 
@@ -84,10 +87,10 @@ impl JointTrajectoryClient for RosRobotClient {
         positions: Vec<f64>,
         duration: std::time::Duration,
     ) -> Result<WaitFuture, Error> {
-        if let Some(ref publisher) = self.trajectory_publisher {
-            if self.joint_names.len() != positions.len() {
+        if let Some(ref publisher) = self.0.trajectory_publisher {
+            if self.0.joint_names.len() != positions.len() {
                 return Err(arci::Error::LengthMismatch {
-                    model: self.joint_names.len(),
+                    model: self.0.joint_names.len(),
                     input: positions.len(),
                 });
             }
@@ -97,13 +100,15 @@ impl JointTrajectoryClient for RosRobotClient {
                 ..Default::default()
             };
             let traj = msg::trajectory_msgs::JointTrajectory {
-                joint_names: self.joint_names.clone(),
+                joint_names: self.0.joint_names.clone(),
                 points: vec![point],
                 ..Default::default()
             };
             publisher.send(traj).unwrap();
+            // Clone to avoid holding the lock for a long time.
+            let complete_condition = self.0.complete_condition.lock().unwrap().clone();
             Ok(WaitFuture::new(async move {
-                self.complete_condition
+                complete_condition
                     .wait(self, &positions, duration.as_secs_f64())
                     .await
             }))
@@ -113,15 +118,17 @@ impl JointTrajectoryClient for RosRobotClient {
     }
 
     fn send_joint_trajectory(&self, trajectory: Vec<TrajectoryPoint>) -> Result<WaitFuture, Error> {
-        if let Some(ref publisher) = self.trajectory_publisher {
+        if let Some(ref publisher) = self.0.trajectory_publisher {
             let traj = msg::trajectory_msgs::JointTrajectory {
-                joint_names: self.joint_names.clone(),
+                joint_names: self.0.joint_names.clone(),
                 points: trajectory.iter().map(|t| (*t).clone().into()).collect(),
                 ..Default::default()
             };
             publisher.send(traj).unwrap();
+            // Clone to avoid holding the lock for a long time.
+            let complete_condition = self.0.complete_condition.lock().unwrap().clone();
             Ok(WaitFuture::new(async move {
-                self.complete_condition
+                complete_condition
                     .wait(
                         self,
                         &trajectory.last().unwrap().positions,
@@ -137,6 +144,6 @@ impl JointTrajectoryClient for RosRobotClient {
 
 impl SetCompleteCondition for RosRobotClient {
     fn set_complete_condition(&mut self, condition: Box<dyn CompleteCondition>) {
-        self.complete_condition = condition;
+        *self.0.complete_condition.lock().unwrap() = condition.into();
     }
 }
