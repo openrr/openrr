@@ -15,13 +15,13 @@ use crate::{error::Error, traits::JointTrajectoryClient};
 
 /// Waits until the underlying future is complete.
 #[must_use = "You must explicitly choose whether to wait for the complete or do not wait"]
-pub struct WaitFuture<'a> {
-    future: BoxFuture<'a, Result<(), Error>>,
+pub struct WaitFuture {
+    future: BoxFuture<'static, Result<(), Error>>,
 }
 
-impl<'a> WaitFuture<'a> {
+impl WaitFuture {
     /// Waits until the `future` is complete.
-    pub fn new(future: impl Future<Output = Result<(), Error>> + Send + 'a) -> Self {
+    pub fn new(future: impl Future<Output = Result<(), Error>> + Send + 'static) -> Self {
         Self {
             future: future.boxed(),
         }
@@ -44,7 +44,7 @@ impl<'a> WaitFuture<'a> {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn from_stream(stream: impl Stream<Item = Result<(), Error>> + Send + 'a) -> Self {
+    pub fn from_stream(stream: impl Stream<Item = Result<(), Error>> + Send + 'static) -> Self {
         Self::new(async move {
             futures::pin_mut!(stream);
             while stream.try_next().await?.is_some() {}
@@ -58,7 +58,7 @@ impl<'a> WaitFuture<'a> {
     }
 }
 
-impl Future for WaitFuture<'_> {
+impl Future for WaitFuture {
     type Output = Result<(), Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
@@ -66,8 +66,8 @@ impl Future for WaitFuture<'_> {
     }
 }
 
-impl<'a> From<BoxFuture<'a, Result<(), Error>>> for WaitFuture<'a> {
-    fn from(future: BoxFuture<'a, Result<(), Error>>) -> Self {
+impl From<BoxFuture<'static, Result<(), Error>>> for WaitFuture {
+    fn from(future: BoxFuture<'static, Result<(), Error>>) -> Self {
         Self { future }
     }
 }

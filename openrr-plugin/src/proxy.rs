@@ -25,7 +25,7 @@ use num_traits::Float;
 
 use crate::{
     GamepadProxy, JointTrajectoryClientProxy, LocalizationProxy, MoveBaseProxy, NavigationProxy,
-    Plugin, PluginProxy, SpeakerProxy, StaticJointTrajectoryClient, TransformResolverProxy,
+    Plugin, PluginProxy, SpeakerProxy, TransformResolverProxy,
 };
 
 type RResult<T, E = RError> = abi_stable::std_types::RResult<T, E>;
@@ -318,7 +318,7 @@ impl From<RError> for arci::Error {
 }
 
 // =============================================================================
-// arci::WaitFuture<'static>
+// arci::WaitFuture
 
 #[repr(C)]
 #[derive(StableAbi)]
@@ -331,13 +331,13 @@ impl RBlockingWait {
     }
 }
 
-impl From<arci::WaitFuture<'static>> for RBlockingWait {
-    fn from(wait: arci::WaitFuture<'static>) -> Self {
+impl From<arci::WaitFuture> for RBlockingWait {
+    fn from(wait: arci::WaitFuture) -> Self {
         Self::from_fn(move || block_in_place(wait).map_err(RError::from).into())
     }
 }
 
-impl From<RBlockingWait> for arci::WaitFuture<'static> {
+impl From<RBlockingWait> for arci::WaitFuture {
     fn from(wait: RBlockingWait) -> Self {
         // Creates a WaitFuture that waits until Wait::wait done only if the future
         // is polled. This future is a bit tricky, but it's more efficient than
@@ -389,10 +389,10 @@ pub(crate) trait RJointTrajectoryClientTrait: Send + Sync + 'static {
 
 impl<T> RJointTrajectoryClientTrait for T
 where
-    T: ?Sized + StaticJointTrajectoryClient,
+    T: ?Sized + arci::JointTrajectoryClient,
 {
     fn joint_names(&self) -> RVec<RString> {
-        StaticJointTrajectoryClient::joint_names(self)
+        arci::JointTrajectoryClient::joint_names(self)
             .into_iter()
             .map(|s| s.into())
             .collect()
@@ -400,7 +400,7 @@ where
 
     fn current_joint_positions(&self) -> RResult<RVec<RF64>> {
         ROk(
-            rtry!(StaticJointTrajectoryClient::current_joint_positions(self))
+            rtry!(arci::JointTrajectoryClient::current_joint_positions(self))
                 .into_iter()
                 .map(RF64::from)
                 .collect(),
@@ -412,7 +412,7 @@ where
         positions: RVec<RF64>,
         duration: RDuration,
     ) -> RResult<RBlockingWait> {
-        ROk(rtry!(StaticJointTrajectoryClient::send_joint_positions(
+        ROk(rtry!(arci::JointTrajectoryClient::send_joint_positions(
             self,
             positions.into_iter().map(f64::from).collect(),
             duration.into(),
@@ -421,7 +421,7 @@ where
     }
 
     fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait> {
-        ROk(rtry!(StaticJointTrajectoryClient::send_joint_trajectory(
+        ROk(rtry!(arci::JointTrajectoryClient::send_joint_trajectory(
             self,
             trajectory
                 .into_iter()

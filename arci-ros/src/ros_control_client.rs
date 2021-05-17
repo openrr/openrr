@@ -391,11 +391,12 @@ impl JointTrajectoryClient for RosControlClient {
             )?
         };
         self.0.trajectory_publisher.send(traj).unwrap();
-        // Clone to avoid holding the lock for a long time.
-        let complete_condition = self.0.complete_condition.lock().unwrap().clone();
+        let this = self.clone();
         Ok(WaitFuture::new(async move {
+            // Clone to avoid holding the lock for a long time.
+            let complete_condition = this.0.complete_condition.lock().unwrap().clone();
             complete_condition
-                .wait(self, &positions, duration.as_secs_f64())
+                .wait(&this, &positions, duration.as_secs_f64())
                 .await
         }))
     }
@@ -430,12 +431,13 @@ impl JointTrajectoryClient for RosControlClient {
             )?
         };
         self.0.trajectory_publisher.send(traj).unwrap();
-        // Clone to avoid holding the lock for a long time.
-        let complete_condition = self.0.complete_condition.lock().unwrap().clone();
+        let this = self.clone();
         Ok(WaitFuture::new(async move {
+            // Clone to avoid holding the lock for a long time.
+            let complete_condition = this.0.complete_condition.lock().unwrap().clone();
             complete_condition
                 .wait(
-                    self,
+                    &this,
                     &trajectory.last().unwrap().positions,
                     trajectory.last().unwrap().time_from_start.as_secs_f64(),
                 )

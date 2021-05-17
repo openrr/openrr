@@ -19,7 +19,7 @@ impl DummySpeaker {
 }
 
 impl Speaker for DummySpeaker {
-    fn speak(&self, message: &str) -> Result<WaitFuture<'static>, Error> {
+    fn speak(&self, message: &str) -> Result<WaitFuture, Error> {
         *self.message.lock().unwrap() = message.to_string();
         Ok(WaitFuture::ready())
     }

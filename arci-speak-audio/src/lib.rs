@@ -40,7 +40,7 @@ impl AudioSpeaker {
 }
 
 impl Speaker for AudioSpeaker {
-    fn speak(&self, message: &str) -> Result<WaitFuture<'static>, arci::Error> {
+    fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
         match self.message_to_file_path.get(message) {
             Some(path) => play_audio_file(path),
             None => Err(Error::HashNotFound(message.to_string())),
@@ -49,7 +49,7 @@ impl Speaker for AudioSpeaker {
     }
 }
 
-fn play_audio_file(path: &Path) -> Result<WaitFuture<'static>, Error> {
+fn play_audio_file(path: &Path) -> Result<WaitFuture, Error> {
     let (_stream, stream_handle) = rodio::OutputStream::try_default()?;
     let sink = rodio::Sink::try_new(&stream_handle)?;
     let file = File::open(path)?;

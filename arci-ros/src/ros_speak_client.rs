@@ -24,7 +24,7 @@ impl RosEspeakClient {
 }
 
 impl arci::Speaker for RosEspeakClient {
-    fn speak(&self, message: &str) -> Result<WaitFuture<'static>, arci::Error> {
+    fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
         let ros_msg = msg::std_msgs::String {
             data: message.to_string(),
         };

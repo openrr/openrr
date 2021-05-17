@@ -9,7 +9,7 @@ pub trait Navigation: Send + Sync {
         goal: Isometry2<f64>,
         frame_id: &str,
         timeout: std::time::Duration,
-    ) -> Result<WaitFuture<'static>, Error>;
+    ) -> Result<WaitFuture, Error>;
 
     fn cancel(&self) -> Result<(), Error>;
 }

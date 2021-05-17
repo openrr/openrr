@@ -15,7 +15,6 @@ use std::{
 use abi_stable::{erased_types::TU_Opaque, library::lib_header_from_path, StableAbi};
 use anyhow::Result;
 use arci::{async_trait, Isometry2, Isometry3, WaitFuture};
-use auto_impl::auto_impl;
 
 // This is not a public API. Use export_plugin! macro for plugin exporting.
 #[doc(hidden)]
@@ -105,7 +104,7 @@ pub trait Plugin: 'static {
     fn new_joint_trajectory_client(
         &self,
         args: String,
-    ) -> Option<Box<dyn StaticJointTrajectoryClient>> {
+    ) -> Option<Box<dyn arci::JointTrajectoryClient>> {
         drop(args);
         None
     }
@@ -226,7 +225,7 @@ impl JointTrajectoryClientProxy {
     /// Creates a new `JointTrajectoryClientProxy`.
     pub fn new<T>(client: T) -> Self
     where
-        T: StaticJointTrajectoryClient,
+        T: arci::JointTrajectoryClient + 'static,
     {
         Self(JointTrajectoryClientTraitObject::from_value(
             client, TU_Opaque,
@@ -234,7 +233,7 @@ impl JointTrajectoryClientProxy {
     }
 }
 
-impl StaticJointTrajectoryClient for JointTrajectoryClientProxy {
+impl arci::JointTrajectoryClient for JointTrajectoryClientProxy {
     fn joint_names(&self) -> Vec<String> {
         self.0.joint_names().into_iter().map(|s| s.into()).collect()
     }
@@ -253,7 +252,7 @@ impl StaticJointTrajectoryClient for JointTrajectoryClientProxy {
         &self,
         positions: Vec<f64>,
         duration: Duration,
-    ) -> Result<WaitFuture<'static>, arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         Ok(self
             .0
             .send_joint_positions(
@@ -267,72 +266,13 @@ impl StaticJointTrajectoryClient for JointTrajectoryClientProxy {
     fn send_joint_trajectory(
         &self,
         trajectory: Vec<arci::TrajectoryPoint>,
-    ) -> Result<WaitFuture<'static>, arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         Ok(self
             .0
             .send_joint_trajectory(trajectory.into_iter().map(Into::into).collect())
             .into_result()?
             .into())
     }
-}
-
-impl arci::JointTrajectoryClient for JointTrajectoryClientProxy {
-    fn joint_names(&self) -> Vec<String> {
-        StaticJointTrajectoryClient::joint_names(self)
-    }
-
-    fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        StaticJointTrajectoryClient::current_joint_positions(self)
-    }
-
-    fn send_joint_positions(
-        &self,
-        positions: Vec<f64>,
-        duration: Duration,
-    ) -> Result<WaitFuture<'static>, arci::Error> {
-        StaticJointTrajectoryClient::send_joint_positions(self, positions, duration)
-    }
-
-    fn send_joint_trajectory(
-        &self,
-        trajectory: Vec<arci::TrajectoryPoint>,
-    ) -> Result<WaitFuture<'static>, arci::Error> {
-        StaticJointTrajectoryClient::send_joint_trajectory(self, trajectory)
-    }
-}
-
-/// Almost equivalent to [`arci::JointTrajectoryClient`], but is `'static` and
-/// returns `WaitFuture<'static>` instead of `WaitFuture<'_>`.
-#[auto_impl(Box, Arc)]
-pub trait StaticJointTrajectoryClient: Send + Sync + 'static {
-    /// Returns names of joints that this client handles.
-    ///
-    /// See [`arci::JointTrajectoryClient::joint_names`] for more.
-    fn joint_names(&self) -> Vec<String>;
-
-    /// Returns the current joint positions.
-    ///
-    /// See [`arci::JointTrajectoryClient::current_joint_positions`] for more.
-    fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error>;
-
-    /// Send the specified joint positions and returns a future that waits until
-    /// complete the move joints.
-    ///
-    /// See [`arci::JointTrajectoryClient::send_joint_positions`] for more.
-    fn send_joint_positions(
-        &self,
-        positions: Vec<f64>,
-        duration: Duration,
-    ) -> Result<WaitFuture<'static>, arci::Error>;
-
-    /// Send the specified joint trajectory and returns a future that waits until
-    /// complete the move joints.
-    ///
-    /// See [`arci::JointTrajectoryClient::send_joint_trajectory`] for more.
-    fn send_joint_trajectory(
-        &self,
-        trajectory: Vec<arci::TrajectoryPoint>,
-    ) -> Result<WaitFuture<'static>, arci::Error>;
 }
 
 // =============================================================================
@@ -354,7 +294,7 @@ impl SpeakerProxy {
 }
 
 impl arci::Speaker for SpeakerProxy {
-    fn speak(&self, message: &str) -> Result<WaitFuture<'static>, arci::Error> {
+    fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
         Ok(self.0.speak(message.into()).into_result()?.into())
     }
 }
@@ -412,7 +352,7 @@ impl arci::Navigation for NavigationProxy {
         goal: Isometry2<f64>,
         frame_id: &str,
         timeout: Duration,
-    ) -> Result<WaitFuture<'static>, arci::Error> {
+    ) -> Result<WaitFuture, arci::Error> {
         Ok(self
             .0
             .send_goal_pose(goal.into(), frame_id.into(), timeout.into())
