@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use arci::{
     CompleteCondition, JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition,
     TrajectoryPoint, WaitFuture,
@@ -12,11 +14,14 @@ use crate::{
 
 define_action_client_internal!(SimpleActionClient, msg::control_msgs, FollowJointTrajectory);
 
-pub struct RosControlActionClient {
+#[derive(Clone)]
+pub struct RosControlActionClient(Arc<RosControlActionClientInner>);
+
+struct RosControlActionClientInner {
     joint_names: Vec<String>,
     joint_state_subscriber_handler: SubscriberHandler<JointTrajectoryControllerState>,
     action_client: SimpleActionClient,
-    complete_condition: Box<dyn CompleteCondition>,
+    complete_condition: Mutex<Arc<dyn CompleteCondition>>,
 }
 
 impl RosControlActionClient {
@@ -30,16 +35,17 @@ impl RosControlActionClient {
             10.0,
         );
 
-        Self {
+        Self(Arc::new(RosControlActionClientInner {
             joint_names,
             joint_state_subscriber_handler,
             action_client,
-            complete_condition: Box::new(TotalJointDiffCondition::default()),
-        }
+            complete_condition: Mutex::new(Arc::new(TotalJointDiffCondition::default())),
+        }))
     }
 
     pub fn get_joint_state(&self) -> Result<JointTrajectoryControllerState, arci::Error> {
-        self.joint_state_subscriber_handler
+        self.0
+            .joint_state_subscriber_handler
             .get()?
             .ok_or_else(|| arci::Error::Other(Error::NoJointStateAvailable.into()))
     }
@@ -47,7 +53,7 @@ impl RosControlActionClient {
 
 impl JointTrajectoryClient for RosControlActionClient {
     fn joint_names(&self) -> &[String] {
-        &self.joint_names
+        &self.0.joint_names
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
@@ -74,11 +80,14 @@ impl JointTrajectoryClient for RosControlActionClient {
             ..Default::default()
         };
         let _goal_id = self
+            .0
             .action_client
             .send_goal(goal)
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        // Clone to avoid holding the lock for a long time.
+        let complete_condition = self.0.complete_condition.lock().unwrap().clone();
         Ok(WaitFuture::new(async move {
-            self.complete_condition
+            complete_condition
                 .wait(self, &positions, duration.as_secs_f64())
                 .await
         }))
@@ -106,11 +115,14 @@ impl JointTrajectoryClient for RosControlActionClient {
             ..Default::default()
         };
         let _goal_id = self
+            .0
             .action_client
             .send_goal(goal)
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        // Clone to avoid holding the lock for a long time.
+        let complete_condition = self.0.complete_condition.lock().unwrap().clone();
         Ok(WaitFuture::new(async move {
-            self.complete_condition
+            complete_condition
                 .wait(
                     self,
                     &trajectory.last().unwrap().positions,
@@ -136,6 +148,6 @@ impl JointTrajectoryClient for RosControlActionClient {
 
 impl SetCompleteCondition for RosControlActionClient {
     fn set_complete_condition(&mut self, condition: Box<dyn CompleteCondition>) {
-        self.complete_condition = condition;
+        *self.0.complete_condition.lock().unwrap() = condition.into();
     }
 }
