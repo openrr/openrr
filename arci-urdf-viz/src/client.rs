@@ -270,9 +270,9 @@ impl UrdfVizWebClient {
     }
 }
 
-impl Drop for UrdfVizWebClient {
+impl Drop for UrdfVizWebClientInner {
     fn drop(&mut self) {
-        self.0.is_dropping.store(true, Ordering::Relaxed);
+        self.is_dropping.store(true, Ordering::Relaxed);
     }
 }
 
