@@ -105,43 +105,43 @@ pub trait Plugin: 'static {
         &self,
         args: String,
     ) -> Option<Box<dyn arci::JointTrajectoryClient>> {
-        drop(args);
+        let _ = args;
         None
     }
 
     /// Creates a new instance of [`arci::Speaker`] with the specified arguments.
     fn new_speaker(&self, args: String) -> Option<Box<dyn arci::Speaker>> {
-        drop(args);
+        let _ = args;
         None
     }
 
     /// Creates a new instance of [`arci::MoveBase`] with the specified arguments.
     fn new_move_base(&self, args: String) -> Option<Box<dyn arci::MoveBase>> {
-        drop(args);
+        let _ = args;
         None
     }
 
     /// Creates a new instance of [`arci::Navigation`] with the specified arguments.
     fn new_navigation(&self, args: String) -> Option<Box<dyn arci::Navigation>> {
-        drop(args);
+        let _ = args;
         None
     }
 
     /// Creates a new instance of [`arci::Localization`] with the specified arguments.
     fn new_localization(&self, args: String) -> Option<Box<dyn arci::Localization>> {
-        drop(args);
+        let _ = args;
         None
     }
 
     /// Creates a new instance of [`arci::TransformResolver`] with the specified arguments.
     fn new_transform_resolver(&self, args: String) -> Option<Box<dyn arci::TransformResolver>> {
-        drop(args);
+        let _ = args;
         None
     }
 
     /// Creates a new instance of [`arci::Gamepad`] with the specified arguments.
     fn new_gamepad(&self, args: String) -> Option<Box<dyn arci::Gamepad>> {
-        drop(args);
+        let _ = args;
         None
     }
 }
