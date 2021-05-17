@@ -22,9 +22,7 @@ pub struct WaitFuture {
 impl WaitFuture {
     /// Waits until the `future` is complete.
     pub fn new(future: impl Future<Output = Result<(), Error>> + Send + 'static) -> Self {
-        Self {
-            future: future.boxed(),
-        }
+        Self::from(future.boxed())
     }
 
     /// Waits until the `stream` is complete.
