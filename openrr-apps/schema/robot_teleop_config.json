@@ -10,6 +10,14 @@
     "control_nodes_config": {
       "$ref": "#/definitions/ControlNodesConfig"
     },
+    "gamepad": {
+      "default": "Gilrs",
+      "allOf": [
+        {
+          "$ref": "#/definitions/GamepadKind"
+        }
+      ]
+    },
     "gil_gamepad_config": {
       "default": {
         "device_id": 0,
@@ -216,6 +224,13 @@
           ]
         }
       }
+    },
+    "GamepadKind": {
+      "type": "string",
+      "enum": [
+        "Gilrs",
+        "Keyboard"
+      ]
     },
     "GilGamepadConfig": {
       "type": "object",

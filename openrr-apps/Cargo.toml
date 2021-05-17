@@ -64,10 +64,6 @@ name = "openrr_apps_robot_teleop"
 path = "src/bin/robot_teleop.rs"
 
 [[bin]]
-name = "openrr_apps_robot_teleop_keyboard"
-path = "src/bin/robot_teleop_keyboard.rs"
-
-[[bin]]
 name = "openrr_apps_joint_position_sender"
 path = "src/bin/joint_position_sender.rs"
 required-features = ["gui"]

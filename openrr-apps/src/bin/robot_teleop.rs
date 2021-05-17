@@ -3,7 +3,7 @@ use std::thread;
 use std::{path::PathBuf, sync::Arc};
 
 use arci_gamepad_gilrs::GilGamepad;
-use openrr_apps::{Error, RobotConfig, RobotTeleopConfig};
+use openrr_apps::{Error, GamepadKind, RobotConfig, RobotTeleopConfig};
 use openrr_client::ArcRobotClient;
 use openrr_teleop::ControlNodeSwitcher;
 use structopt::StructOpt;
@@ -84,11 +84,26 @@ async fn main() -> Result<(), Error> {
             switcher_cloned.stop();
         });
     }
-    switcher
-        .main(GilGamepad::new_from_config(
-            teleop_config.gil_gamepad_config,
-        ))
-        .await;
+
+    match teleop_config.gamepad {
+        GamepadKind::Gilrs => {
+            switcher
+                .main(GilGamepad::new_from_config(
+                    teleop_config.gil_gamepad_config,
+                ))
+                .await;
+        }
+        #[cfg(unix)]
+        GamepadKind::Keyboard => {
+            switcher
+                .main(arci_gamepad_keyboard::KeyboardGamepad::new())
+                .await;
+        }
+        #[cfg(windows)]
+        GamepadKind::Keyboard => {
+            tracing::warn!("`gamepad = \"Keyboard\"` is not supported on windows");
+        }
+    }
 
     Ok(())
 }

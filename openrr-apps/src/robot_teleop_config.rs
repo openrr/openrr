@@ -8,12 +8,26 @@ use serde::{Deserialize, Serialize};
 
 use crate::Error;
 
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub enum GamepadKind {
+    Gilrs,
+    Keyboard,
+}
+
+impl Default for GamepadKind {
+    fn default() -> Self {
+        Self::Gilrs
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 pub struct RobotTeleopConfig {
     pub robot_config_path: String,
     robot_config_full_path: Option<PathBuf>,
     #[serde(default)]
     pub initial_mode: String,
+    #[serde(default)]
+    pub gamepad: GamepadKind,
     pub control_nodes_config: ControlNodesConfig,
     #[serde(default)]
     pub gil_gamepad_config: GilGamepadConfig,
