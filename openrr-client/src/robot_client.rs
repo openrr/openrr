@@ -436,12 +436,14 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct JointTrajectoryClientsContainerConfig {
     pub name: String,
     pub clients_names: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct OpenrrClientsConfig {
     pub urdf_path: Option<String>,
     urdf_full_path: Option<PathBuf>,
@@ -504,12 +506,15 @@ impl OpenrrClientsConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct JointsPose {
     pub pose_name: String,
     pub client_name: String,
     pub positions: Vec<f64>,
 }
+
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct IkClientConfig {
     pub name: String,
     pub client_name: String,
@@ -535,6 +540,7 @@ pub fn create_ik_clients(
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct CollisionCheckClientConfig {
     pub name: String,
     pub client_name: String,

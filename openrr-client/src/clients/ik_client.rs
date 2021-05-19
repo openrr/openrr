@@ -299,6 +299,7 @@ where
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct IkSolverConfig {
     pub root_node_name: Option<String>,
     pub ik_target: String,

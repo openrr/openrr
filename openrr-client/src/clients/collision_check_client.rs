@@ -145,6 +145,7 @@ where
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct SelfCollisionCheckerConfig {
     #[serde(default = "default_prediction")]
     pub prediction: f64,

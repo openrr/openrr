@@ -229,6 +229,7 @@ impl Navigation for RosNavClient {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct RosNavClientConfig {
     pub request_final_nomotion_update_hack: bool,
     pub clear_costmap_before_start: bool,

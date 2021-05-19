@@ -15,6 +15,7 @@ const AMCL_POSE_TOPIC: &str = "/amcl_pose";
 const NO_MOTION_UPDATE_SERVICE: &str = "request_nomotion_update";
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct RosLocalizationClientConfig {
     pub request_final_nomotion_update_hack: bool,
 }

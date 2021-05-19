@@ -21,6 +21,7 @@ impl Default for GamepadKind {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct RobotTeleopConfig {
     pub robot_config_path: String,
     robot_config_full_path: Option<PathBuf>,

@@ -25,6 +25,7 @@ use url::Url;
 use crate::utils::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct UrdfVizWebClientConfig {
     pub name: String,
     pub joint_names: Vec<String>,

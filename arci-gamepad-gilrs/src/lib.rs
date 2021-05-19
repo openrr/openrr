@@ -19,6 +19,7 @@ use tracing::{debug, error};
 
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Map {
     #[serde_as(as = "Vec<(_, _)>")]
     #[serde(default = "default_button_map")]
@@ -264,6 +265,7 @@ impl GilGamepad {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct GilGamepadConfig {
     #[serde(default)]
     device_id: usize,

@@ -153,6 +153,7 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct JoyJointTeleopNodeConfig {
     pub mode: String,
     #[serde(default = "default_joint_step")]
