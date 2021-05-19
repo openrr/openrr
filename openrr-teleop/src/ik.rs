@@ -204,6 +204,7 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct IkNodeConfig {
     pub mode: String,
     #[serde(default = "default_move_step_angular")]

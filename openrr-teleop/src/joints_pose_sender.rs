@@ -133,6 +133,7 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct JointsPoseSenderConfig {
     #[serde(default = "default_mode")]
     pub mode: String,

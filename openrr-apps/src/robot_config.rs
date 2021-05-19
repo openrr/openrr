@@ -23,6 +23,7 @@ use crate::Error;
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(tag = "type", content = "args")]
+#[serde(deny_unknown_fields)]
 #[non_exhaustive] // The variants will increase depending on the feature flag.
 pub enum SpeakConfig {
     Print,
@@ -52,6 +53,7 @@ impl Default for SpeakConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 #[non_exhaustive] // The fields will increase depending on the feature flag.
 pub struct RobotConfig {
     // TOML format has a restriction that if a table itself contains tables,

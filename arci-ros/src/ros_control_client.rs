@@ -20,6 +20,7 @@ use serde::{Deserialize, Serialize};
 use crate::{error::Error, msg, SubscriberHandler};
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct RosControlClientConfig {
     pub name: String,
     pub joint_names: Vec<String>,

@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::Error;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct LocalMoveConfig {
     pub reach_distance_threshold: f64,
     pub reach_angle_threshold: f64,

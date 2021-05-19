@@ -35,6 +35,7 @@ impl MoveBase for RosCmdVelMoveBase {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct RosCmdVelMoveBaseConfig {
     pub topic: String,
 }
