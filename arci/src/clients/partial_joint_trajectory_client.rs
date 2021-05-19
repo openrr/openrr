@@ -19,6 +19,8 @@ pub fn copy_joint_positions(
     to_joint_names: &[String],
     to_positions: &mut [f64],
 ) {
+    assert_eq!(from_joint_names.len(), from_positions.len());
+    assert_eq!(to_joint_names.len(), to_positions.len());
     for (to_index, to_joint_name) in to_joint_names.iter().enumerate() {
         if let Some(from_index) = from_joint_names.iter().position(|x| x == to_joint_name) {
             to_positions[to_index] = from_positions[from_index];
