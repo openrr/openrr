@@ -40,11 +40,8 @@ async fn main() -> Result<()> {
     let command = args.command.ok_or(Error::NoCommand)?;
     let robot_config = if let Some(overwrite) = &args.config {
         let s = &fs::read_to_string(&config_path)?;
-        // check if the input is valid config.
-        let _base: RobotConfig = toml::from_str(s)?;
-        let mut edit: toml::Value = toml::from_str(s)?;
-        openrr_config::overwrite(&mut edit, overwrite)?;
-        RobotConfig::from_str(&toml::to_string(&edit)?, config_path)?
+        let s = &openrr_config::overwrite_str(s, overwrite)?;
+        RobotConfig::from_str(s, config_path)?
     } else {
         RobotConfig::try_new(config_path)?
     };
