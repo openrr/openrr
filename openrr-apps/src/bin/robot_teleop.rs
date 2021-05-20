@@ -1,7 +1,8 @@
 #[cfg(feature = "ros")]
 use std::thread;
-use std::{path::PathBuf, sync::Arc};
+use std::{fs, path::PathBuf, sync::Arc};
 
+use anyhow::Result;
 use arci_gamepad_gilrs::GilGamepad;
 use openrr_apps::{Error, GamepadKind, RobotConfig, RobotTeleopConfig};
 use openrr_client::ArcRobotClient;
@@ -16,13 +17,21 @@ pub struct RobotTeleopArgs {
     /// Path to the setting file.
     #[structopt(short, long, parse(from_os_str))]
     config_path: Option<PathBuf>,
+    /// Set options from command line. These settings take priority over the
+    /// setting file specified by --config-path.
+    #[structopt(long)]
+    teleop_config: Option<String>,
+    /// Set options from command line. These settings take priority over the
+    /// setting file specified by --config-path.
+    #[structopt(long)]
+    robot_config: Option<String>,
     /// Prints the default setting as TOML.
     #[structopt(long)]
     show_default_config: bool,
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     let args = RobotTeleopArgs::from_args();
 
@@ -34,10 +43,29 @@ async fn main() -> Result<(), Error> {
         return Ok(());
     }
 
-    let config_path = args.config_path.ok_or(Error::NoConfigPath)?;
-    let teleop_config = RobotTeleopConfig::try_new(config_path)?;
-    let robot_config =
-        RobotConfig::try_new(teleop_config.robot_config_full_path().as_ref().unwrap())?;
+    let teleop_config_path = args.config_path.ok_or(Error::NoConfigPath)?;
+    let teleop_config = if let Some(overwrite) = &args.teleop_config {
+        let s = &fs::read_to_string(&teleop_config_path)?;
+        // check if the input is valid config.
+        let _base: RobotTeleopConfig = toml::from_str(s)?;
+        let mut edit: toml::Value = toml::from_str(s)?;
+        openrr_config::overwrite(&mut edit, overwrite)?;
+        RobotTeleopConfig::from_str(&toml::to_string(&edit)?, &teleop_config_path)?
+    } else {
+        RobotTeleopConfig::try_new(teleop_config_path)?
+    };
+    let robot_config_path = teleop_config.robot_config_full_path().as_ref().unwrap();
+    let robot_config = if let Some(overwrite) = &args.robot_config {
+        let s = &fs::read_to_string(&robot_config_path)?;
+        // check if the input is valid config.
+        let _base: RobotConfig = toml::from_str(s)?;
+        let mut edit: toml::Value = toml::from_str(s)?;
+        openrr_config::overwrite(&mut edit, overwrite)?;
+        RobotConfig::from_str(&toml::to_string(&edit)?, robot_config_path)?
+    } else {
+        RobotConfig::try_new(robot_config_path)?
+    };
+
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &robot_config);
     #[cfg(feature = "ros")]
     let use_ros = robot_config.has_ros_clients();
@@ -65,7 +93,7 @@ async fn main() -> Result<(), Error> {
     {
         initial_node_index
     } else {
-        return Err(Error::NoSpecifiedNode(teleop_config.initial_mode));
+        return Err(Error::NoSpecifiedNode(teleop_config.initial_mode).into());
     };
 
     let switcher = Arc::new(ControlNodeSwitcher::new(

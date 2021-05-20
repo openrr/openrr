@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use arci_gamepad_gilrs::GilGamepadConfig;
 use openrr_client::resolve_relative_path;
@@ -35,12 +35,17 @@ pub struct RobotTeleopConfig {
 }
 
 impl RobotTeleopConfig {
-    pub fn try_new<P: AsRef<std::path::Path>>(path: P) -> Result<Self, Error> {
-        let mut config: RobotTeleopConfig = toml::from_str(
+    pub fn try_new<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+        Self::from_str(
             &std::fs::read_to_string(&path)
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,
+            path,
         )
-        .map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
+    }
+
+    pub fn from_str<P: AsRef<Path>>(s: &str, path: P) -> Result<Self, Error> {
+        let mut config: RobotTeleopConfig =
+            toml::from_str(s).map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
         config.robot_config_full_path =
             Some(resolve_relative_path(path, &config.robot_config_path)?);
         Ok(config)

@@ -13,6 +13,7 @@ members = [
     "openrr-apps",
     "openrr-client",
     "openrr-command",
+    "openrr-config",
     "openrr-gui",
     "openrr-planner",
     "openrr-plugin",
@@ -35,6 +36,7 @@ openrr = { path = "openrr" }
 openrr-apps = { path = "openrr-apps" }
 openrr-client = { path = "openrr-client" }
 openrr-command = { path = "openrr-command" }
+openrr-config = { path = "openrr-config" }
 openrr-gui = { path = "openrr-gui" }
 openrr-planner = { path = "openrr-planner" }
 openrr-plugin = { path = "openrr-plugin" }

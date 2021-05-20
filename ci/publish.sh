@@ -9,6 +9,7 @@ MEMBERS=(
     "arci"
     "openrr-sleep"
     "openrr-planner"
+    "openrr-config"
 
     # depend on arci
     "openrr-plugin"
