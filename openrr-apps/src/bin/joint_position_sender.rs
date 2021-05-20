@@ -28,11 +28,8 @@ fn main() -> Result<()> {
     let config_path = openrr_apps::utils::get_apps_robot_config(opt.config_path).unwrap();
     let config = if let Some(overwrite) = &opt.config {
         let s = &fs::read_to_string(&config_path)?;
-        // check if the input is valid config.
-        let _base: RobotConfig = toml::from_str(s)?;
-        let mut edit: toml::Value = toml::from_str(s)?;
-        openrr_config::overwrite(&mut edit, overwrite)?;
-        RobotConfig::from_str(&toml::to_string(&edit)?, config_path)?
+        let s = &openrr_config::overwrite_str(s, overwrite)?;
+        RobotConfig::from_str(s, config_path)?
     } else {
         RobotConfig::try_new(config_path)?
     };

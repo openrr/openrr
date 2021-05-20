@@ -64,11 +64,10 @@ fn main() -> Result<()> {
             config: overwrite,
         } => {
             let s = &fs::read_to_string(&config_path)?;
-            // check if the input is valid config.
+            let s = &openrr_config::overwrite_str(s, &overwrite)?;
+            // check if the edited document is valid config.
             let _base: Config = toml::from_str(s)?;
-            let mut edit: toml::Value = toml::from_str(s)?;
-            openrr_config::overwrite(&mut edit, &overwrite)?;
-            println!("{}", toml::to_string(&edit)?);
+            println!("{}", s);
         }
     }
 

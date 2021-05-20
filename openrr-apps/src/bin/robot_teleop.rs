@@ -46,22 +46,16 @@ async fn main() -> Result<()> {
     let teleop_config_path = args.config_path.ok_or(Error::NoConfigPath)?;
     let teleop_config = if let Some(overwrite) = &args.teleop_config {
         let s = &fs::read_to_string(&teleop_config_path)?;
-        // check if the input is valid config.
-        let _base: RobotTeleopConfig = toml::from_str(s)?;
-        let mut edit: toml::Value = toml::from_str(s)?;
-        openrr_config::overwrite(&mut edit, overwrite)?;
-        RobotTeleopConfig::from_str(&toml::to_string(&edit)?, &teleop_config_path)?
+        let s = &openrr_config::overwrite_str(s, overwrite)?;
+        RobotTeleopConfig::from_str(s, teleop_config_path)?
     } else {
         RobotTeleopConfig::try_new(teleop_config_path)?
     };
     let robot_config_path = teleop_config.robot_config_full_path().as_ref().unwrap();
     let robot_config = if let Some(overwrite) = &args.robot_config {
         let s = &fs::read_to_string(&robot_config_path)?;
-        // check if the input is valid config.
-        let _base: RobotConfig = toml::from_str(s)?;
-        let mut edit: toml::Value = toml::from_str(s)?;
-        openrr_config::overwrite(&mut edit, overwrite)?;
-        RobotConfig::from_str(&toml::to_string(&edit)?, robot_config_path)?
+        let s = &openrr_config::overwrite_str(s, overwrite)?;
+        RobotConfig::from_str(s, robot_config_path)?
     } else {
         RobotConfig::try_new(robot_config_path)?
     };

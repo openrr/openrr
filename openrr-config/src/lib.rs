@@ -94,6 +94,16 @@ pub fn overwrite(doc: &mut Value, scripts: &str) -> Result<()> {
     Ok(())
 }
 
+/// Replaces the contents of the specified TOML document based on the specified scripts,
+/// returning edited document as string.
+///
+/// See [`overwrite`] for more.
+pub fn overwrite_str(doc: &str, scripts: &str) -> Result<String> {
+    let mut doc: toml::Value = toml::from_str(doc)?;
+    overwrite(&mut doc, scripts)?;
+    Ok(toml::to_string(&doc)?)
+}
+
 #[derive(Debug)]
 struct Script {
     line: usize,
