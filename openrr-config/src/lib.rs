@@ -1,5 +1,7 @@
 #![warn(rust_2018_idioms)]
 
+use std::{iter, mem};
+
 use anyhow::{bail, Context, Result};
 use toml::{value, Value};
 use toml_query::{
@@ -8,9 +10,11 @@ use toml_query::{
 };
 use tracing::debug;
 
+const SEPARATORS: &[char] = &['\n', ';'];
+
 /// Replaces the contents of the specified TOML document based on the specified scripts.
 ///
-/// You can specify multiple scripts at once (newline-separated).
+/// You can specify multiple scripts at once (newline-separated or semicolon-separated).
 ///
 /// # Set operation
 ///
@@ -40,14 +44,13 @@ pub fn overwrite(doc: &mut Value, scripts: &str) -> Result<()> {
 
     for script in scripts {
         let query = &script.query;
-        let line = script.line;
         let old = doc.read_mut(query)?;
         let exists = old.is_some();
         let is_structure = matches!(&old, Some(r) if r.is_table() || r.is_array());
         match script.operation {
             Operation::Set(value) => {
                 if exists {
-                    debug!(?query, ?line, ?value, ?old, "executing set operation");
+                    debug!(?query, ?value, ?old, "executing set operation");
                     doc.set(query, value)?;
                     continue;
                 }
@@ -55,14 +58,13 @@ pub fn overwrite(doc: &mut Value, scripts: &str) -> Result<()> {
                 // TODO:
                 // - Workaround for toml-query bug: https://docs.rs/toml-query/0.10/toml_query/insert/trait.TomlValueInsertExt.html#known-bugs
                 // - Validate that the query points to a valid configuration.
-                debug!(?query, ?line, ?value, "executing insert operation");
+                debug!(?query, ?value, "executing insert operation");
                 doc.insert(query, value)?;
             }
             Operation::Delete => {
                 if !exists {
                     debug!(
                         ?query,
-                        ?line,
                         "delete operation was not executed because value did not exist"
                     );
                     continue;
@@ -79,13 +81,7 @@ pub fn overwrite(doc: &mut Value, scripts: &str) -> Result<()> {
                     }
                 }
 
-                debug!(
-                    ?query,
-                    ?line,
-                    ?is_structure,
-                    ?old,
-                    "executing delete operation"
-                );
+                debug!(?query, ?is_structure, ?old, "executing delete operation");
                 doc.delete(query)?;
             }
         }
@@ -106,7 +102,6 @@ pub fn overwrite_str(doc: &str, scripts: &str) -> Result<String> {
 
 #[derive(Debug)]
 struct Script {
-    line: usize,
     query: String,
     operation: Operation,
 }
@@ -117,83 +112,143 @@ enum Operation {
     Delete,
 }
 
-fn parse_scripts(s: &str) -> Result<Vec<Script>> {
-    let mut scripts = vec![];
-
-    let mut lines = s
-        .lines()
-        .map(str::trim)
-        .enumerate()
-        .filter(|(_, s)| !s.is_empty());
-    while let Some((i, line)) = lines.next() {
-        if !line.contains('=') {
-            bail!(
-                "invalid script syntax at line {}: not found `=`: {}",
-                i + 1,
-                line
-            );
-        }
-
-        let mut iter = line.splitn(2, '=');
-        let query = iter.next().unwrap().trim();
-        let mut value = iter.next().unwrap().trim().to_string();
-
-        if value.ends_with('[') {
-            let mut depth = 1;
-            for (_, l) in &mut lines {
-                value.push_str(l);
-                if l.starts_with(']') {
-                    depth -= 1;
-                    if depth == 0 {
-                        break;
-                    }
-                }
-                if l.ends_with('[') {
-                    depth += 1;
+fn parse_string_literal(
+    buf: &mut String,
+    start: char,
+    chars: &mut iter::Peekable<impl Iterator<Item = (usize, char)>>,
+) -> bool {
+    buf.push(start);
+    while let Some((_, ch)) = chars.next() {
+        buf.push(ch);
+        match ch {
+            '\\' => {
+                if matches!(chars.peek(), Some(&(_, c)) if c == start) {
+                    buf.push(chars.next().unwrap().1);
+                    continue;
                 }
             }
+            _ if ch == start => {
+                return true;
+            }
+            _ => {}
         }
+    }
+    false
+}
 
+fn parse_scripts(s: &str) -> Result<Vec<Script>> {
+    fn push_script(
+        cur_query: &mut Option<String>,
+        buf: &mut String,
+        scripts: &mut Vec<Script>,
+        i: usize,
+    ) -> Result<()> {
+        let query = cur_query.take().unwrap();
+        let value = mem::take(buf);
+        let value = value.trim();
         let operation = if value.is_empty() {
             Operation::Delete
         } else {
             let value: Value = toml::from_str(&format!(r#"a = {}"#, value))
-                .with_context(|| format!("invalid script syntax at line {}: {}", i + 1, value))?;
+                .with_context(|| format!("invalid script syntax at {}: {}", i + 1, value))?;
             Operation::Set(value["a"].clone())
         };
 
         scripts.push(Script {
-            line: i + 1,
-            query: convert_query(query)?,
+            query: convert_query(&query)?,
             operation,
         });
+        Ok(())
+    }
+
+    let mut scripts = vec![];
+
+    let mut chars = s.char_indices().peekable();
+    let mut cur_query = None;
+    let mut in_bracket = 0;
+    let mut in_brace = 0;
+    let mut buf = String::new();
+    while let Some((i, ch)) = chars.next() {
+        match ch {
+            '"' | '\'' => {
+                let end = parse_string_literal(&mut buf, ch, &mut chars);
+                if !end {
+                    debug!(?buf, ?cur_query, "unexpected eof, expected `{}`", ch);
+                    bail!("unexpected eof, expected `{}`", ch);
+                }
+            }
+            '[' => {
+                buf.push(ch);
+                in_bracket += 1;
+            }
+            ']' => {
+                buf.push(ch);
+                in_bracket -= 1;
+            }
+            '{' => {
+                buf.push(ch);
+                in_brace += 1;
+            }
+            '}' => {
+                buf.push(ch);
+                in_brace -= 1;
+            }
+            '=' if in_bracket <= 0 && in_brace <= 0 => {
+                if cur_query.is_some() {
+                    debug!(?buf, ?i, "expected separator, found `=`");
+                    bail!("expected separator, found `=`");
+                }
+                let query = mem::take(&mut buf);
+                cur_query = Some(query);
+                debug!(?cur_query);
+            }
+            _ if in_bracket <= 0 && in_brace <= 0 && SEPARATORS.contains(&ch) => {
+                if cur_query.is_none() {
+                    if buf.trim().is_empty() {
+                        buf.clear();
+                        continue;
+                    } else {
+                        debug!(?buf, ?i, "expected `=`, found separator");
+                        bail!("expected `=`, found separator");
+                    }
+                }
+                push_script(&mut cur_query, &mut buf, &mut scripts, i)?;
+            }
+            _ if ch.is_whitespace() => {}
+            _ => {
+                buf.push(ch);
+            }
+        }
+    }
+    if cur_query.is_none() {
+        if !buf.trim().is_empty() {
+            debug!(?buf, ?cur_query, ?in_bracket, ?in_brace, "unexpected eof");
+            bail!("unexpected eof");
+        }
+    } else {
+        push_script(&mut cur_query, &mut buf, &mut scripts, s.len() - 1)?;
     }
 
     Ok(scripts)
 }
 
 fn convert_query(s: &str) -> Result<String> {
-    if s.contains('"') || s.contains('\'') {
-        // TODO
-        bail!("quote in query is not supported yet");
-    }
-
     let mut out = String::with_capacity(s.len());
-    let mut pos = 0;
-    loop {
-        let next = s[pos..].find('[');
-        let n = match next {
-            Some(n) => n,
-            None => {
-                out.push_str(&s[pos..]);
-                break;
+    let mut chars = s.char_indices().peekable();
+    while let Some((_, ch)) = chars.next() {
+        match ch {
+            '"' | '\'' => {
+                let end = parse_string_literal(&mut out, ch, &mut chars);
+                assert!(end);
             }
-        };
-
-        out.push_str(&s[pos..pos + n]);
-        out.push('.');
-        out.push('[');
-        pos += n + 1;
+            '[' => {
+                if !out.ends_with('.') {
+                    out.push('.');
+                }
+                out.push(ch);
+            }
+            _ => out.push(ch),
+        }
     }
 
     Ok(out)
@@ -212,13 +267,12 @@ mod tests {
         let f = |s: &str| parse_scripts(s).unwrap();
         assert!(f("").is_empty());
         assert!(f("\n").is_empty());
+
         assert!(parse_scripts("a").is_err());
         assert!(parse_scripts("a=b").is_err());
         assert!(parse_scripts(r#"a="b"=0"#).is_err());
-        assert!(parse_scripts(r#"'a'=0"#).is_err()); // TODO
-        assert!(parse_scripts(r#""a"=0"#).is_err()); // TODO
-        assert!(parse_scripts(r#"'a=b'=0"#).is_err()); // TODO
-        assert!(parse_scripts(r#""a=b"=0"#).is_err()); // TODO
+        assert!(parse_scripts(r#"a=""""#).is_err());
+
         assert!(matches!(
             &f(r#"a="b""#)[0],
             Script { query, operation: Operation::Set(Value::String(s)), .. }
@@ -235,12 +289,24 @@ mod tests {
             if query == "a" && s.is_empty()
         ));
         assert!(matches!(
-            &f(r#"a="#)[0],
+            &f("a=\"\\\"\"")[0],
+            Script { query, operation: Operation::Set(Value::String(s)), .. }
+            if query == "a" && s == "\""
+        ));
+        assert!(matches!(
+            &f("a=")[0],
             Script { query, operation: Operation::Delete, .. }
             if query == "a"
         ));
+
+        // array
         assert!(matches!(
             &f(r#"a[0]="""#)[0],
+            Script { query, operation: Operation::Set(Value::String(s)), .. }
+            if query == "a.[0]" && s.is_empty()
+        ));
+        assert!(matches!(
+            &f(r#"a.[0]="""#)[0],
             Script { query, operation: Operation::Set(Value::String(s)), .. }
             if query == "a.[0]" && s.is_empty()
         ));
@@ -248,6 +314,69 @@ mod tests {
             &f(r#"a[0][1].b[2]="""#)[0],
             Script { query, operation: Operation::Set(Value::String(s)), .. }
             if query == "a.[0].[1].b.[2]" && s.is_empty()
+        ));
+
+        // string literal
+        assert!(matches!(
+            &f(r#"'a'=0"#)[0],
+            Script { query, operation: Operation::Set(Value::Integer(n)), .. }
+            if query == "'a'" && *n == 0
+        ));
+        assert!(matches!(
+            &f(r#""a"=0"#)[0],
+            Script { query, operation: Operation::Set(Value::Integer(n)), .. }
+            if query == "\"a\"" && *n == 0
+        ));
+        assert!(matches!(
+            &f(r#"'a=b'=0"#)[0],
+            Script { query, operation: Operation::Set(Value::Integer(n)), .. }
+            if query == "'a=b'" && *n == 0
+        ));
+        assert!(matches!(
+            &f(r#""a=b"=0"#)[0],
+            Script { query, operation: Operation::Set(Value::Integer(n)), .. }
+            if query == "\"a=b\"" && *n == 0
+        ));
+
+        // separator
+        let r = &f("a=0\nb=1");
+        assert_eq!(r.len(), 2);
+        assert!(matches!(
+            &r[0],
+            Script { query, operation: Operation::Set(Value::Integer(n)), .. }
+            if query == "a" && *n == 0
+        ));
+        assert!(matches!(
+            &r[1],
+            Script { query, operation: Operation::Set(Value::Integer(n)), .. }
+            if query == "b" && *n == 1
+        ));
+        let r = &f("a=0;b=1");
+        assert_eq!(r.len(), 2);
+        assert!(matches!(
+            &r[0],
+            Script { query, operation: Operation::Set(Value::Integer(n)), .. }
+            if query == "a" && *n == 0
+        ));
+        assert!(matches!(
+            &r[1],
+            Script { query, operation: Operation::Set(Value::Integer(n)), .. }
+            if query == "b" && *n == 1
+        ));
+        assert!(matches!(
+            &f("'a;b'='c;d'")[0],
+            Script { query, operation: Operation::Set(Value::String(s)), .. }
+            if query == "'a;b'" && s == "c;d"
+        ));
+        assert!(matches!(
+            &f(r#""a;b"="c;d""#)[0],
+            Script { query, operation: Operation::Set(Value::String(s)), .. }
+            if query == r#""a;b""# && s == "c;d"
+        ));
+        assert!(matches!(
+            &f("a=\"\"\"\nb\nc\n\"\"\"")[0],
+            Script { query, operation: Operation::Set(Value::String(s)), .. }
+            if query == "a" && s == "b\nc\n"
         ));
     }
 
@@ -387,20 +516,20 @@ mod tests {
             )
         }
         {
-            // TODO: this should not be error
             // set array multi-line
             let v = &mut v.clone();
             overwrite(
                 v,
                 "urdf_viz_clients_configs[0].joint_names = [\n\"a\"]\ndummy=\"\"",
             )
-            .unwrap_err();
-            // assert_eq!(
-            //     *read(v, "urdf_viz_clients_configs[0].joint_names")
-            //         .as_array()
-            //         .unwrap(),
-            //     vec![Value::String("a".into())]
-            // )
+            .unwrap();
+            assert_eq!(
+                *read(v, "urdf_viz_clients_configs[0].joint_names")
+                    .unwrap()
+                    .as_array()
+                    .unwrap(),
+                vec![Value::String("a".into())]
+            )
         }
         {
             // TODO: toml-query bug: https://docs.rs/toml-query/0.10/toml_query/insert/trait.TomlValueInsertExt.html#known-bugs

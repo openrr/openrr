@@ -299,6 +299,24 @@ openrr_apps_robot_teleop \
   --robot-config='urdf_viz_clients_configs[0].wrap_with_joint_position_limiter=false'
 ```
 
+To overwrite multiple configs, separate the scripts with a semicolon or a newline. For example:
+
+```bash
+# semicolon-separated
+openrr_apps_robot_teleop \
+  --config-path=./openrr-apps/config/sample_teleop_config_urdf_viz.toml \
+  --robot-config='urdf_viz_clients_configs[0].wrap_with_joint_position_limiter=false;openrr_clients_config.urdf_path="path/to/urdf"'
+
+# newline-separated
+{
+  echo 'urdf_viz_clients_configs[0].wrap_with_joint_position_limiter=false'
+  echo 'openrr_clients_config.urdf_path="path/to/urdf"'
+} > overwrite.txt
+openrr_apps_robot_teleop \
+  --config-path=./openrr-apps/config/sample_teleop_config_urdf_viz.toml \
+  --robot-config="$(cat ./overwrite.txt)"
+```
+
 ## Schemas for config files
 
 The `schema` directory contains the JSON schemas for the config files used by openrr, and when combined with an extension of the editor that supports completion using the JSON schema, completion can be enabled.
