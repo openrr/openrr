@@ -1,4 +1,8 @@
+use std::{fs, path::PathBuf};
+
+use anyhow::Result;
 use schemars::schema_for;
+use serde::Deserialize;
 use structopt::{clap::arg_enum, StructOpt};
 use tracing::debug;
 
@@ -17,6 +21,14 @@ enum Subcommand {
         #[structopt(possible_values = &ConfigKind::variants(), case_insensitive = true)]
         kind: ConfigKind,
     },
+    Merge {
+        /// Path to the setting file.
+        #[structopt(long, parse(from_os_str))]
+        config_path: PathBuf,
+        /// Config to overwrite
+        #[structopt(long)]
+        config: String,
+    },
 }
 
 arg_enum! {
@@ -27,7 +39,14 @@ arg_enum! {
     }
 }
 
-fn main() {
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum Config {
+    RobotConfig(openrr_apps::RobotConfig),
+    RobotTeleopConfig(openrr_apps::RobotTeleopConfig),
+}
+
+fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     let args = Args::from_args();
     debug!(?args);
@@ -40,5 +59,18 @@ fn main() {
             };
             println!("{}", serde_json::to_string_pretty(&schema).unwrap());
         }
+        Subcommand::Merge {
+            config_path,
+            config: overwrite,
+        } => {
+            let s = &fs::read_to_string(&config_path)?;
+            // check if the input is valid config.
+            let _base: Config = toml::from_str(s)?;
+            let mut edit: toml::Value = toml::from_str(s)?;
+            openrr_config::overwrite(&mut edit, &overwrite)?;
+            println!("{}", toml::to_string(&edit)?);
+        }
     }
+
+    Ok(())
 }

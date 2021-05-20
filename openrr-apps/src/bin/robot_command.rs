@@ -1,5 +1,6 @@
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
 
+use anyhow::Result;
 use openrr_apps::{Error, RobotConfig};
 use openrr_command::{RobotCommand, RobotCommandExecutor};
 use structopt::StructOpt;
@@ -12,6 +13,10 @@ struct RobotCommandArgs {
     /// Path to the setting file.
     #[structopt(short, long, parse(from_os_str))]
     config_path: Option<PathBuf>,
+    /// Set options from command line. These settings take priority over the
+    /// setting file specified by --config-path.
+    #[structopt(long)]
+    config: Option<String>,
     #[structopt(subcommand)]
     command: Option<RobotCommand>,
     /// Prints the default setting as TOML.
@@ -20,7 +25,7 @@ struct RobotCommandArgs {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     let args = RobotCommandArgs::from_args();
     info!("ParsedArgs {:?}", args);
@@ -30,16 +35,24 @@ async fn main() -> Result<(), Error> {
         return Ok(());
     }
 
-    if let Some(config_path) = openrr_apps::utils::get_apps_robot_config(args.config_path) {
-        let command = args.command.ok_or(Error::NoCommand)?;
-        let robot_config = RobotConfig::try_new(config_path)?;
-        openrr_apps::utils::init_with_anonymize(env!("CARGO_BIN_NAME"), &robot_config);
-        let client = robot_config.create_robot_client()?;
-        let executor = RobotCommandExecutor {};
-        Ok(executor.execute(&client, &command).await?)
+    let config_path =
+        openrr_apps::utils::get_apps_robot_config(args.config_path).ok_or(Error::NoConfigPath)?;
+    let command = args.command.ok_or(Error::NoCommand)?;
+    let robot_config = if let Some(overwrite) = &args.config {
+        let s = &fs::read_to_string(&config_path)?;
+        // check if the input is valid config.
+        let _base: RobotConfig = toml::from_str(s)?;
+        let mut edit: toml::Value = toml::from_str(s)?;
+        openrr_config::overwrite(&mut edit, overwrite)?;
+        RobotConfig::from_str(&toml::to_string(&edit)?, config_path)?
     } else {
-        Err(Error::NoConfigPath)
-    }
+        RobotConfig::try_new(config_path)?
+    };
+
+    openrr_apps::utils::init_with_anonymize(env!("CARGO_BIN_NAME"), &robot_config);
+    let client = robot_config.create_robot_client()?;
+    let executor = RobotCommandExecutor {};
+    Ok(executor.execute(&client, &command).await?)
 }
 
 #[cfg(test)]

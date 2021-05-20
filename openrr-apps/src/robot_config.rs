@@ -397,11 +397,16 @@ mod test {
 
 impl RobotConfig {
     pub fn try_new<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
-        let mut config: RobotConfig = toml::from_str(
+        Self::from_str(
             &std::fs::read_to_string(&path)
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,
+            &path,
         )
-        .map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
+    }
+
+    pub fn from_str<P: AsRef<Path>>(s: &str, path: P) -> Result<Self, Error> {
+        let mut config: RobotConfig =
+            toml::from_str(s).map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
 
         // Returns an error if a config requires ros feature but ros feature is disabled.
         #[cfg(not(feature = "ros"))]
