@@ -1,6 +1,6 @@
 //! Experimental plugin support for [`arci`].
 
-#![warn(missing_docs, rust_2018_idioms)]
+#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 
 mod proxy;
 
@@ -275,6 +275,12 @@ impl arci::JointTrajectoryClient for JointTrajectoryClientProxy {
     }
 }
 
+impl fmt::Debug for JointTrajectoryClientProxy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("JointTrajectoryClientProxy").finish()
+    }
+}
+
 // =============================================================================
 // arci::Speaker
 
@@ -296,6 +302,12 @@ impl SpeakerProxy {
 impl arci::Speaker for SpeakerProxy {
     fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
         Ok(self.0.speak(message.into()).into_result()?.into())
+    }
+}
+
+impl fmt::Debug for SpeakerProxy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SpeakerProxy").finish()
     }
 }
 
@@ -325,6 +337,12 @@ impl arci::MoveBase for MoveBaseProxy {
 
     fn current_velocity(&self) -> Result<arci::BaseVelocity, arci::Error> {
         Ok(self.0.current_velocity().into_result()?.into())
+    }
+}
+
+impl fmt::Debug for MoveBaseProxy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("MoveBaseProxy").finish()
     }
 }
 
@@ -366,6 +384,12 @@ impl arci::Navigation for NavigationProxy {
     }
 }
 
+impl fmt::Debug for NavigationProxy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("NavigationProxy").finish()
+    }
+}
+
 // =============================================================================
 // arci::Localization
 
@@ -387,6 +411,12 @@ impl LocalizationProxy {
 impl arci::Localization for LocalizationProxy {
     fn current_pose(&self, frame_id: &str) -> Result<Isometry2<f64>, arci::Error> {
         Ok(self.0.current_pose(frame_id.into()).into_result()?.into())
+    }
+}
+
+impl fmt::Debug for LocalizationProxy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("LocalizationProxy").finish()
     }
 }
 
@@ -425,6 +455,12 @@ impl arci::TransformResolver for TransformResolverProxy {
     }
 }
 
+impl fmt::Debug for TransformResolverProxy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TransformResolverProxy").finish()
+    }
+}
+
 // =============================================================================
 // arci::Gamepad
 
@@ -455,5 +491,11 @@ impl arci::Gamepad for GamepadProxy {
 
     fn stop(&self) {
         self.0.stop();
+    }
+}
+
+impl fmt::Debug for GamepadProxy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("GamepadProxy").finish()
     }
 }
