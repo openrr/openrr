@@ -186,21 +186,27 @@ impl RobotConfig {
         )?)
     }
 
+    #[tracing::instrument(skip(self))]
     fn create_localization_without_ros(&self) -> Option<Box<dyn Localization>> {
         if self.use_localization_urdf_viz_web_client {
-            let urdf_viz_client = Box::new(UrdfVizWebClient::default());
-            Some(urdf_viz_client as Box<dyn Localization>)
+            Some(Box::new(arci::Lazy::new(move || {
+                debug!("creating UrdfVizWebClient");
+                Ok(UrdfVizWebClient::default())
+            })))
         } else {
             None
         }
     }
 
     #[cfg(feature = "ros")]
+    #[tracing::instrument(skip(self))]
     fn create_localization_with_ros(&self) -> Option<Box<dyn Localization>> {
         if let Some(ros_localization_client_config) = &self.ros_localization_client_config {
-            Some(Box::new(RosLocalizationClient::new_from_config(
-                ros_localization_client_config.clone(),
-            )) as Box<dyn Localization>)
+            let config = ros_localization_client_config.clone();
+            Some(Box::new(arci::Lazy::new(move || {
+                debug!("creating RosLocalizationClient");
+                Ok(RosLocalizationClient::new_from_config(config))
+            })))
         } else {
             self.create_localization_without_ros()
         }
@@ -217,21 +223,27 @@ impl RobotConfig {
         }
     }
 
+    #[tracing::instrument(skip(self))]
     fn create_navigation_without_ros(&self) -> Option<Box<dyn Navigation>> {
         if self.use_navigation_urdf_viz_web_client {
-            let urdf_viz_client = Box::new(UrdfVizWebClient::default());
-            Some(urdf_viz_client as Box<dyn Navigation>)
+            Some(Box::new(arci::Lazy::new(move || {
+                debug!("creating UrdfVizWebClient");
+                Ok(UrdfVizWebClient::default())
+            })))
         } else {
             None
         }
     }
 
     #[cfg(feature = "ros")]
+    #[tracing::instrument(skip(self))]
     fn create_navigation_with_ros(&self) -> Option<Box<dyn Navigation>> {
         if let Some(ros_navigation_client_config) = &self.ros_navigation_client_config {
-            Some(Box::new(RosNavClient::new_from_config(
-                ros_navigation_client_config.clone(),
-            )) as Box<dyn Navigation>)
+            let config = ros_navigation_client_config.clone();
+            Some(Box::new(arci::Lazy::new(move || {
+                debug!("creating RosNavClient");
+                Ok(RosNavClient::new_from_config(config))
+            })))
         } else {
             self.create_navigation_without_ros()
         }
@@ -248,23 +260,30 @@ impl RobotConfig {
         }
     }
 
+    #[tracing::instrument(skip(self))]
     fn create_move_base_without_ros(&self) -> Option<Box<dyn MoveBase>> {
         if self.use_move_base_urdf_viz_web_client {
-            let urdf_viz_client = Box::new(UrdfVizWebClient::default());
-            urdf_viz_client.run_thread();
-            Some(urdf_viz_client as Box<dyn MoveBase>)
+            Some(Box::new(arci::Lazy::new(move || {
+                debug!("creating UrdfVizWebClient");
+                let urdf_viz_client = UrdfVizWebClient::default();
+                urdf_viz_client.run_thread();
+                Ok(urdf_viz_client)
+            })))
         } else {
             None
         }
     }
 
     #[cfg(feature = "ros")]
+    #[tracing::instrument(skip(self))]
     fn create_move_base_with_ros(&self) -> Option<Box<dyn MoveBase>> {
         if let Some(ros_cmd_vel_move_base_client_config) = &self.ros_cmd_vel_move_base_client_config
         {
-            Some(Box::new(RosCmdVelMoveBase::new(
-                &ros_cmd_vel_move_base_client_config.topic,
-            )) as Box<dyn MoveBase>)
+            let topic = ros_cmd_vel_move_base_client_config.topic.to_string();
+            Some(Box::new(arci::Lazy::new(move || {
+                debug!("creating RosCmdVelMoveBase");
+                Ok(RosCmdVelMoveBase::new(&topic))
+            })))
         } else {
             self.create_move_base_without_ros()
         }
@@ -281,21 +300,38 @@ impl RobotConfig {
         }
     }
 
+    #[tracing::instrument(skip(self))]
     fn create_print_speaker(&self) -> Box<dyn Speaker> {
-        Box::new(PrintSpeaker::new())
+        Box::new(arci::Lazy::new(move || {
+            debug!("creating PrintSpeaker");
+            Ok(PrintSpeaker::new())
+        }))
     }
 
+    #[tracing::instrument(skip(self))]
     fn create_local_command_speaker(&self) -> Box<dyn Speaker> {
-        Box::new(LocalCommand::new())
+        Box::new(arci::Lazy::new(move || {
+            debug!("creating LocalCommand");
+            Ok(LocalCommand::new())
+        }))
     }
 
+    #[tracing::instrument(skip(self))]
     fn create_audio_speaker(&self, hash_map: HashMap<String, PathBuf>) -> Box<dyn Speaker> {
-        Box::new(AudioSpeaker::new(hash_map))
+        Box::new(arci::Lazy::new(move || {
+            debug!("creating AudioSpeaker");
+            Ok(AudioSpeaker::new(hash_map))
+        }))
     }
 
     #[cfg(feature = "ros")]
+    #[tracing::instrument(skip(self))]
     fn create_ros_espeak_client(&self, topic: &str) -> Box<dyn Speaker> {
-        Box::new(RosEspeakClient::new(topic))
+        let topic = topic.to_string();
+        Box::new(arci::Lazy::new(move || {
+            debug!("creating RosEspeakClient");
+            Ok(RosEspeakClient::new(&topic))
+        }))
     }
 
     fn create_speakers(&self) -> HashMap<String, Box<dyn Speaker>> {
