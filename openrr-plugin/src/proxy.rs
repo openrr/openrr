@@ -888,7 +888,9 @@ where
     }
 }
 
+// Not public API.
 #[doc(hidden)]
+#[allow(missing_debug_implementations)]
 #[repr(C)]
 #[derive(StableAbi)]
 #[sabi(kind(Prefix))]
