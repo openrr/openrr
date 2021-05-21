@@ -13,7 +13,6 @@ use std::{
 };
 
 use abi_stable::{erased_types::TU_Opaque, library::lib_header_from_path, StableAbi};
-use anyhow::Result;
 use arci::{async_trait, Isometry2, Isometry3, WaitFuture};
 
 // This is not a public API. Use export_plugin! macro for plugin exporting.
@@ -74,15 +73,8 @@ impl PluginManager {
     }
 
     /// Loads a plugin from the specified path.
-    pub fn load(&mut self, path: impl AsRef<Path>) -> Result<()> {
-        let path = path.as_ref();
-
-        let header = lib_header_from_path(&path)?;
-        let root_module = header.init_root_module::<PluginMod_Ref>()?;
-
-        let plugin_constructor = root_module.plugin_constructor();
-        let plugin = plugin_constructor();
-
+    pub fn load(&mut self, path: impl AsRef<Path>) -> Result<(), arci::Error> {
+        let plugin = PluginProxy::from_path(path)?;
         self.plugins.push(plugin);
         Ok(())
     }
@@ -158,6 +150,21 @@ impl PluginProxy {
         P: Plugin,
     {
         Self(PluginTraitObject::from_value(plugin, TU_Opaque))
+    }
+
+    /// Loads a plugin from the specified path.
+    pub fn from_path(path: impl AsRef<Path>) -> Result<Self, arci::Error> {
+        let path = path.as_ref();
+
+        let header = lib_header_from_path(&path).map_err(anyhow::Error::from)?;
+        let root_module = header
+            .init_root_module::<PluginMod_Ref>()
+            .map_err(anyhow::Error::from)?;
+
+        let plugin_constructor = root_module.plugin_constructor();
+        let plugin = plugin_constructor();
+
+        Ok(plugin)
     }
 
     /// Returns the name of this plugin.

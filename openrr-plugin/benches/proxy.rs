@@ -107,7 +107,7 @@ use std::{env, path::PathBuf, process::Command, time::Duration};
 use anyhow::Result;
 use arci::{DummyJointTrajectoryClient, JointTrajectoryClient};
 use criterion::{criterion_group, criterion_main, Criterion};
-use openrr_plugin::{JointTrajectoryClientProxy, PluginManager};
+use openrr_plugin::{JointTrajectoryClientProxy, PluginProxy};
 
 fn no_proxy_joint_names(c: &mut Criterion) {
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
@@ -169,12 +169,10 @@ fn proxy_same_crate_send_joint_positions(c: &mut Criterion) {
 }
 
 fn proxy_diff_crate_joint_names(c: &mut Criterion) {
-    let mut plugins = PluginManager::new();
     let plugin_path = test_plugin().unwrap();
-    plugins.load(&plugin_path).unwrap();
+    let plugin = PluginProxy::from_path(&plugin_path).unwrap();
 
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
-    let plugin = &plugins.plugins()[0];
     let client = plugin
         .new_joint_trajectory_client(format!(r#"{{ "joint_names": {:?} }}"#, joint_names))
         .unwrap();
@@ -185,12 +183,10 @@ fn proxy_diff_crate_joint_names(c: &mut Criterion) {
 }
 
 fn proxy_diff_crate_current_joint_positions(c: &mut Criterion) {
-    let mut plugins = PluginManager::new();
     let plugin_path = test_plugin().unwrap();
-    plugins.load(&plugin_path).unwrap();
+    let plugin = PluginProxy::from_path(&plugin_path).unwrap();
 
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
-    let plugin = &plugins.plugins()[0];
     let client = plugin
         .new_joint_trajectory_client(format!(r#"{{ "joint_names": {:?} }}"#, joint_names))
         .unwrap();
@@ -201,13 +197,11 @@ fn proxy_diff_crate_current_joint_positions(c: &mut Criterion) {
 }
 
 fn proxy_diff_crate_send_joint_positions(c: &mut Criterion) {
-    let mut plugins = PluginManager::new();
     let plugin_path = test_plugin().unwrap();
-    plugins.load(&plugin_path).unwrap();
+    let plugin = PluginProxy::from_path(&plugin_path).unwrap();
 
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
     let positions: Vec<_> = (0..joint_names.len()).map(|n| n as f64).collect();
-    let plugin = &plugins.plugins()[0];
     let client = plugin
         .new_joint_trajectory_client(format!(r#"{{ "joint_names": {:?} }}"#, joint_names))
         .unwrap();
