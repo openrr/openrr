@@ -5,7 +5,6 @@ use std::{
 
 use async_trait::async_trait;
 use nalgebra::{Isometry2, Isometry3};
-use tracing::error;
 
 use crate::{
     error::Error,
@@ -26,14 +25,19 @@ pub struct Lazy<'a, T>(
 );
 
 impl<'a, T> Lazy<'a, T> {
-    pub fn new(f: impl FnOnce() -> Result<T, Error> + Send + Sync + 'a) -> Self {
+    /// Creates a new `Lazy` with the given constructor.
+    pub fn new(constructor: impl FnOnce() -> Result<T, Error> + Send + Sync + 'a) -> Self {
         Self(once_cell::sync::Lazy::new(Box::new(|| {
-            f().map_err(Arc::new)
+            constructor().map_err(Arc::new)
         })))
     }
 
+    /// Returns a reference to the underlying value.
+    ///
+    /// - If this lazy value has not been constructed yet, this method will construct it.
+    /// - If the constructor of this lazy value fails, this method returns an error.
     pub fn get_ref(&self) -> Result<&T, Error> {
-        self.0.as_ref().map_err(|e| Error::Arc(e.clone()))
+        self.0.as_ref().map_err(|e| Error::Lazy(e.clone()))
     }
 }
 
@@ -44,11 +48,7 @@ where
     fn joint_names(&self) -> Vec<String> {
         match self.get_ref() {
             Ok(this) => this.joint_names(),
-            Err(e) => {
-                error!("{}", e);
-                // TODO
-                vec![]
-            }
+            Err(e) => panic!("{}", e),
         }
     }
 
@@ -140,19 +140,14 @@ where
     async fn next_event(&self) -> GamepadEvent {
         match self.get_ref() {
             Ok(this) => this.next_event().await,
-            Err(e) => {
-                error!("{}", e);
-                GamepadEvent::Unknown
-            }
+            Err(e) => panic!("{}", e),
         }
     }
 
     fn stop(&self) {
         match self.get_ref() {
             Ok(this) => this.stop(),
-            Err(e) => {
-                error!("{}", e);
-            }
+            Err(e) => panic!("{}", e),
         }
     }
 }

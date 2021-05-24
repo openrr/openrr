@@ -52,8 +52,8 @@ pub enum Error {
         position: f64,
         limit: RangeInclusive<f64>,
     },
-    #[error("{}", .0)]
-    Arc(Arc<Error>),
+    #[error("arci: Failed to construct instance: {}", .0)]
+    Lazy(Arc<Error>),
     #[error("arci: Other: {:?}", .0)]
     Other(#[from] anyhow::Error),
 }
