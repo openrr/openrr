@@ -19,7 +19,7 @@ glow = ["iced/glow"]
 
 [dependencies]
 arci = "0.0.5"
-iced = "0.3"
+iced = { version = "0.3", features = ["image"] }
 openrr-client = { version = "0.0.5", default-features = false }
 rand = "0.8"
 thiserror = "1"

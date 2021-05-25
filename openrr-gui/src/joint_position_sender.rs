@@ -15,6 +15,35 @@ use crate::{style, Error};
 
 const THEME: style::Theme = style::Theme;
 
+/// Launches GUI that send joint positions from GUI to the given `robot_client`.
+pub fn joint_position_sender<L, M, N>(
+    robot_client: RobotClient<L, M, N>,
+    robot: urdf_rs::Robot,
+) -> Result<(), Error>
+where
+    L: Localization + 'static,
+    M: MoveBase + 'static,
+    N: Navigation + 'static,
+{
+    let joints = joint_map(robot);
+    validate_joints(&joints, &robot_client)?;
+
+    let gui = JointPositionSender::new(robot_client, joints)?;
+
+    // Should we expose some of the settings to the user?
+    let settings = Settings {
+        flags: Some(gui),
+        window: window::Settings {
+            size: (400, 550),
+            ..window::Settings::default()
+        },
+        ..Settings::default()
+    };
+
+    JointPositionSender::run(settings)?;
+    Ok(())
+}
+
 #[derive(Default)]
 struct JointState {
     name: String,
@@ -67,51 +96,6 @@ where
             }
         }
     }
-    Ok(())
-}
-
-/// Launches GUI that send joint positions from GUI to the given `robot_client`.
-pub fn joint_position_sender<L, M, N>(
-    robot_client: RobotClient<L, M, N>,
-    robot: urdf_rs::Robot,
-) -> Result<(), Error>
-where
-    L: Localization + 'static,
-    M: MoveBase + 'static,
-    N: Navigation + 'static,
-{
-    let joints = joint_map(robot);
-    validate_joints(&joints, &robot_client)?;
-
-    let mut joint_trajectory_client_names = robot_client.joint_trajectory_clients_names();
-    joint_trajectory_client_names.sort_unstable();
-    debug!("{:?}", joint_trajectory_client_names);
-
-    let mut gui = JointPositionSender::new(robot_client, joints, joint_trajectory_client_names);
-
-    let joint_trajectory_client = gui.current_joint_trajectory_client();
-    for (index, position) in joint_trajectory_client
-        .current_joint_positions()?
-        .into_iter()
-        .enumerate()
-    {
-        gui.joint_states
-            .get_mut(&gui.current_joint_trajectory_client)
-            .unwrap()[index]
-            .update_position(position);
-    }
-
-    // Should we expose some of the settings to the user?
-    let settings = Settings {
-        flags: Some(gui),
-        window: window::Settings {
-            size: (400, 550),
-            ..window::Settings::default()
-        },
-        ..Settings::default()
-    };
-
-    JointPositionSender::run(settings)?;
     Ok(())
 }
 
@@ -202,8 +186,11 @@ where
     fn new(
         robot_client: RobotClient<L, M, N>,
         joints: HashMap<String, urdf_rs::Joint>,
-        joint_trajectory_client_names: Vec<String>,
-    ) -> Self {
+    ) -> Result<Self, Error> {
+        let mut joint_trajectory_client_names = robot_client.joint_trajectory_clients_names();
+        joint_trajectory_client_names.sort_unstable();
+        debug!("{:?}", joint_trajectory_client_names);
+
         let joint_states = joint_trajectory_client_names
             .iter()
             .map(|client_name| {
@@ -222,7 +209,7 @@ where
             })
             .collect();
 
-        Self {
+        let mut this = Self {
             robot_client,
             joints,
             current_joint_trajectory_client: joint_trajectory_client_names[0].clone(),
@@ -236,7 +223,21 @@ where
             duration_input: "0.1".into(),
             duration_input_state: Default::default(),
             errors: Default::default(),
+        };
+
+        let joint_trajectory_client = this.current_joint_trajectory_client();
+        for (index, position) in joint_trajectory_client
+            .current_joint_positions()?
+            .into_iter()
+            .enumerate()
+        {
+            this.joint_states
+                .get_mut(&this.current_joint_trajectory_client)
+                .unwrap()[index]
+                .update_position(position);
         }
+
+        Ok(this)
     }
 
     fn current_joint_trajectory_client(&self) -> Arc<dyn JointTrajectoryClient> {
@@ -268,7 +269,7 @@ where
     N: Navigation + 'static,
 {
     type Executor = iced::executor::Default;
-    // wrap in option due to Self doesn't impl Deffault.
+    // Wrap Self in Option due to Self doesn't implement Default.
     type Flags = Option<Self>;
     type Message = Message;
 
@@ -454,7 +455,7 @@ where
         let joint_positions = self.current_joint_positions();
         let joint_trajectory_client = self.current_joint_trajectory_client();
         let duration = self.duration;
-        debug!(?joint_positions, ?duration);
+        debug!(?joint_positions, ?duration, "send_joint_positions");
         match joint_trajectory_client.send_joint_positions(joint_positions, duration) {
             Err(e) => {
                 error!("{}", e);
@@ -564,7 +565,11 @@ where
                 }),
             );
 
-        let mut content = Column::new().spacing(20).padding(20).max_width(400);
+        let mut content = Column::new()
+            .spacing(20)
+            .padding(20)
+            .max_width(400)
+            .height(Length::Fill);
         if let Some(pick_list) = pick_list {
             content = content.push(pick_list);
         }
@@ -572,8 +577,7 @@ where
             .push(randomize_button)
             .push(zero_button)
             .push(sliders)
-            .push(duration)
-            .height(Length::Fill);
+            .push(duration);
 
         if self.errors.is_none() {
             content = content.push(

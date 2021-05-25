@@ -3,11 +3,11 @@ use std::{fs, path::PathBuf};
 use anyhow::Result;
 use openrr_apps::RobotConfig;
 use openrr_client::BoxRobotClient;
-use openrr_gui::joint_position_sender;
+use openrr_gui::velocity_sender;
 use structopt::StructOpt;
 use tracing::debug;
 
-/// An openrr GUI tool to send joint positions.
+/// An openrr GUI tool to send base velocity.
 #[derive(StructOpt, Debug)]
 #[structopt(name = env!("CARGO_BIN_NAME"))]
 struct Opt {
@@ -36,7 +36,6 @@ fn main() -> Result<()> {
 
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &config);
     let client: BoxRobotClient = config.create_robot_client()?;
-    let robot = urdf_rs::read_file(config.openrr_clients_config.urdf_full_path().unwrap())?;
-    joint_position_sender(client, robot)?;
+    velocity_sender(client)?;
     Ok(())
 }

@@ -31,7 +31,7 @@ impl From<Theme> for Box<dyn text_input::StyleSheet> {
 
 impl From<Theme> for Box<dyn button::StyleSheet> {
     fn from(_: Theme) -> Self {
-        Button.into()
+        Button::Default.into()
     }
 }
 
@@ -190,31 +190,54 @@ impl text_input::StyleSheet for TextInput {
     }
 }
 
-pub struct Button;
+pub enum Button {
+    Default,
+    Round { selected: bool },
+}
 
 impl button::StyleSheet for Button {
     fn active(&self) -> button::Style {
-        button::Style {
-            background: ACTIVE.into(),
-            border_radius: 3.0,
-            text_color: Color::WHITE,
-            ..button::Style::default()
+        match self {
+            Self::Default => button::Style {
+                background: ACTIVE.into(),
+                border_radius: 3.0,
+                text_color: Color::WHITE,
+                ..button::Style::default()
+            },
+            Self::Round { selected: false } => button::Style {
+                background: ACTIVE.into(),
+                border_radius: 50.0,
+                text_color: Color::WHITE,
+                ..button::Style::default()
+            },
+            Self::Round { selected: true } => button::Style {
+                background: ACTIVE.into(),
+                border_radius: 50.0,
+                border_width: 2.0,
+                border_color: ACCENT,
+                text_color: Color::WHITE,
+                ..button::Style::default()
+            },
         }
     }
 
     fn hovered(&self) -> button::Style {
-        button::Style {
-            background: HOVERED.into(),
-            text_color: Color::WHITE,
-            ..self.active()
+        match self {
+            Self::Default | Self::Round { .. } => button::Style {
+                background: HOVERED.into(),
+                text_color: Color::WHITE,
+                ..self.active()
+            },
         }
     }
 
     fn pressed(&self) -> button::Style {
-        button::Style {
-            border_width: 1.0,
-            border_color: Color::WHITE,
-            ..self.hovered()
+        match self {
+            Self::Default | Self::Round { .. } => button::Style {
+                border_width: 1.0,
+                border_color: Color::WHITE,
+                ..self.hovered()
+            },
         }
     }
 }
