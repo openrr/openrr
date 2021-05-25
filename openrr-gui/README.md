@@ -16,3 +16,15 @@
   - If you get the error that "GraphicsAdapterNotFound", try enabling the `glow` feature of openrr-gui or openrr-apps.
   - If that doesn't fix the problem, try passing the `LIBGL_ALWAYS_SOFTWARE=1` environment variable.
   - On VM (e.g., VirtualBox), you may need to disable hardware acceleration.
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).
+
+### Third party software
+
+This product includes copies and modifications of software developed by third parties:
+
+- [`assets/material-design-icons`](assets/material-design-icons) includes copies and modifications of icons from [google/material-design-icons](https://github.com/google/material-design-icons), licensed under the Apache License, Version 2.0.
+
+See the license files included in these directories for more details.

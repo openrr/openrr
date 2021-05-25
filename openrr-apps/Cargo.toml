@@ -70,5 +70,10 @@ path = "src/bin/joint_position_sender.rs"
 required-features = ["gui"]
 
 [[bin]]
+name = "openrr_apps_velocity_sender"
+path = "src/bin/velocity_sender.rs"
+required-features = ["gui"]
+
+[[bin]]
 name = "openrr_apps_config"
 path = "src/bin/config.rs"

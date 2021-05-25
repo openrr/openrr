@@ -254,6 +254,23 @@ openrr_apps_joint_position_sender \
 
 See [openrr-gui](../openrr-gui/README.md#troubleshooting) crate for troubleshooting on GUI.
 
+## How to run openrr_apps_velocity_sender
+
+### Sample robot
+
+- Launch urdf-viz.
+
+```bash
+urdf-viz ./openrr-planner/sample.urdf &
+```
+
+- Launch openrr_apps_velocity_sender.
+
+```bash
+openrr_apps_velocity_sender \
+  --config-path ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
+```
+
 ## Environmental Variables
 
 If you set `export OPENRR_APPS_ROBOT_CONFIG_PATH=some_path_to_config.toml`, you can skip
