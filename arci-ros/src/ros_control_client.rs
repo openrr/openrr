@@ -14,6 +14,7 @@ use msg::{
     control_msgs::JointTrajectoryControllerState,
     trajectory_msgs::{JointTrajectory, JointTrajectoryPoint},
 };
+use once_cell::sync::Lazy;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -48,11 +49,29 @@ fn default_complete_timeout_sec() -> f64 {
     10.0
 }
 
-type StateSubscriber = SubscriberHandler<JointTrajectoryControllerState>;
+type StateSubscriber = Lazy<
+    SubscriberHandler<JointTrajectoryControllerState>,
+    Box<dyn FnOnce() -> SubscriberHandler<JointTrajectoryControllerState> + Send + Sync>,
+>;
 
 pub fn create_joint_trajectory_clients(
     configs: Vec<RosControlClientConfig>,
     urdf_robot: Option<&urdf_rs::Robot>,
+) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
+    create_joint_trajectory_clients_inner(configs, urdf_robot, false)
+}
+
+pub fn create_joint_trajectory_clients_lazy(
+    configs: Vec<RosControlClientConfig>,
+    urdf_robot: Option<&urdf_rs::Robot>,
+) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
+    create_joint_trajectory_clients_inner(configs, urdf_robot, true)
+}
+
+fn create_joint_trajectory_clients_inner(
+    configs: Vec<RosControlClientConfig>,
+    urdf_robot: Option<&urdf_rs::Robot>,
+    lazy: bool,
 ) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
     let mut clients = HashMap::new();
     let mut state_topic_name_to_subscriber: HashMap<String, Arc<StateSubscriber>> = HashMap::new();
@@ -72,34 +91,47 @@ pub fn create_joint_trajectory_clients(
         } else {
             RosControlClient::state_topic_name(&config.controller_name)
         };
-        #[allow(clippy::map_entry)]
-        let mut client = if state_topic_name_to_subscriber.contains_key(&state_topic_name) {
-            RosControlClient::new_with_joint_state_subscriber_handler(
-                config.joint_names,
-                &config.controller_name,
-                config.send_partial_joints_goal,
-                state_topic_name_to_subscriber
-                    .get(&state_topic_name)
-                    .unwrap()
-                    .clone(),
-            )
+        let joint_state_subscriber_handler = if let Some(joint_state_subscriber_handler) =
+            state_topic_name_to_subscriber.get(&state_topic_name)
+        {
+            joint_state_subscriber_handler.clone()
         } else {
-            let client = RosControlClient::new_with_state_topic_name(
-                config.joint_names,
-                &config.controller_name,
-                &state_topic_name,
-                config.send_partial_joints_goal,
-            );
-            state_topic_name_to_subscriber.insert(
-                state_topic_name,
-                client.joint_state_subscriber_handler().clone(),
-            );
-            client
+            let joint_state_subscriber_handler =
+                RosControlClient::create_joint_state_subscriber_handler(&state_topic_name);
+            state_topic_name_to_subscriber
+                .insert(state_topic_name, joint_state_subscriber_handler.clone());
+            joint_state_subscriber_handler
         };
-        client.set_complete_condition(Box::new(EachJointDiffCondition::new(
-            config.complete_allowable_errors,
-            config.complete_timeout_sec,
-        )));
+
+        let RosControlClientConfig {
+            joint_names,
+            controller_name,
+            send_partial_joints_goal,
+            complete_allowable_errors,
+            complete_timeout_sec,
+            ..
+        } = config;
+        let joint_names_clone = joint_names.clone();
+        let create_client = move || {
+            rosrust::ros_debug!("create_joint_trajectory_clients_inner: creating RosControlClient");
+            let mut client = RosControlClient::new_with_joint_state_subscriber_handler(
+                joint_names_clone,
+                &controller_name,
+                send_partial_joints_goal,
+                joint_state_subscriber_handler,
+            );
+            client.set_complete_condition(Box::new(EachJointDiffCondition::new(
+                complete_allowable_errors,
+                complete_timeout_sec,
+            )));
+            Ok(client)
+        };
+        let client: Arc<dyn JointTrajectoryClient> = if lazy {
+            Arc::new(arci::Lazy::with_joint_names(create_client, joint_names))
+        } else {
+            Arc::new(create_client().unwrap())
+        };
+
         let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
             if config.wrap_with_joint_position_limiter {
                 Arc::new(new_joint_position_limiter(
@@ -312,18 +344,25 @@ impl RosControlClient {
         send_partial_joints_goal: bool,
     ) -> Self {
         let joint_state_topic_name = Self::state_topic_name(controller_name);
-        let joint_state_subscriber_handler =
-            Arc::new(SubscriberHandler::new(&joint_state_topic_name, 1));
-        Self::new_with_joint_state_subscriber_handler(
+        Self::new_with_state_topic_name(
             joint_names,
             controller_name,
+            &joint_state_topic_name,
             send_partial_joints_goal,
-            joint_state_subscriber_handler,
         )
     }
 
     pub fn state_topic_name(controller_name: &str) -> String {
         format!("{}/state", controller_name)
+    }
+
+    fn create_joint_state_subscriber_handler(
+        joint_state_topic_name: impl Into<String>,
+    ) -> Arc<StateSubscriber> {
+        let joint_state_topic_name = joint_state_topic_name.into();
+        Arc::new(Lazy::new(Box::new(move || {
+            SubscriberHandler::new(&joint_state_topic_name, 1)
+        })))
     }
 
     pub fn new_with_state_topic_name(
@@ -333,7 +372,7 @@ impl RosControlClient {
         send_partial_joints_goal: bool,
     ) -> Self {
         let joint_state_subscriber_handler =
-            Arc::new(SubscriberHandler::new(joint_state_topic_name, 1));
+            Self::create_joint_state_subscriber_handler(joint_state_topic_name);
         Self::new_with_joint_state_subscriber_handler(
             joint_names,
             controller_name,
