@@ -17,19 +17,35 @@ use crate::{
 };
 
 #[allow(clippy::type_complexity)]
-pub struct Lazy<'a, T>(
-    once_cell::sync::Lazy<
+pub struct Lazy<'a, T> {
+    inner: once_cell::sync::Lazy<
         Result<T, Arc<Error>>,
         Box<dyn FnOnce() -> Result<T, Arc<Error>> + Send + Sync + 'a>,
     >,
-);
+    joint_names: Option<Vec<String>>,
+}
 
 impl<'a, T> Lazy<'a, T> {
     /// Creates a new `Lazy` with the given constructor.
     pub fn new(constructor: impl FnOnce() -> Result<T, Error> + Send + Sync + 'a) -> Self {
-        Self(once_cell::sync::Lazy::new(Box::new(|| {
-            constructor().map_err(Arc::new)
-        })))
+        Self {
+            inner: once_cell::sync::Lazy::new(Box::new(|| constructor().map_err(Arc::new))),
+            joint_names: None,
+        }
+    }
+
+    /// Creates a new `Lazy` with the given constructor and joint names.
+    ///
+    /// The specified joint names will be used as the return value of
+    /// `JointTrajectoryClient::joint_names`.
+    pub fn with_joint_names(
+        constructor: impl FnOnce() -> Result<T, Error> + Send + Sync + 'a,
+        joint_names: Vec<String>,
+    ) -> Self {
+        Self {
+            inner: once_cell::sync::Lazy::new(Box::new(|| constructor().map_err(Arc::new))),
+            joint_names: Some(joint_names),
+        }
     }
 
     /// Returns a reference to the underlying value.
@@ -37,7 +53,7 @@ impl<'a, T> Lazy<'a, T> {
     /// - If this lazy value has not been constructed yet, this method will construct it.
     /// - If the constructor of this lazy value fails, this method returns an error.
     pub fn get_ref(&self) -> Result<&T, Error> {
-        self.0.as_ref().map_err(|e| Error::Lazy(e.clone()))
+        self.inner.as_ref().map_err(|e| Error::Lazy(e.clone()))
     }
 }
 
@@ -46,6 +62,9 @@ where
     T: JointTrajectoryClient,
 {
     fn joint_names(&self) -> Vec<String> {
+        if let Some(joint_names) = &self.joint_names {
+            return joint_names.clone();
+        }
         match self.get_ref() {
             Ok(this) => this.joint_names(),
             Err(e) => panic!("{}", e),
