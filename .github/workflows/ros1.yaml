@@ -8,6 +8,10 @@ on:
   schedule:
     - cron: '0 15 * * *'
 
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
 jobs:
   ros1_arci_ros:
     runs-on: ubuntu-18.04
