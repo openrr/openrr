@@ -47,14 +47,55 @@ pub fn create_joint_trajectory_clients(
     complete_timeout_sec: f64,
     urdf_robot: Option<&urdf_rs::Robot>,
 ) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
-    let mut clients = HashMap::new();
-    let mut all_client = UrdfVizWebClient::default();
-    all_client.set_complete_condition(Box::new(TotalJointDiffCondition::new(
+    create_joint_trajectory_clients_inner(
+        configs,
         total_complete_allowable_error,
         complete_timeout_sec,
-    )));
-    all_client.run_send_joint_positions_thread();
-    let all_client = Arc::new(all_client);
+        urdf_robot,
+        false,
+    )
+}
+
+pub fn create_joint_trajectory_clients_lazy(
+    configs: Vec<UrdfVizWebClientConfig>,
+    total_complete_allowable_error: f64,
+    complete_timeout_sec: f64,
+    urdf_robot: Option<&urdf_rs::Robot>,
+) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
+    create_joint_trajectory_clients_inner(
+        configs,
+        total_complete_allowable_error,
+        complete_timeout_sec,
+        urdf_robot,
+        true,
+    )
+}
+
+fn create_joint_trajectory_clients_inner(
+    configs: Vec<UrdfVizWebClientConfig>,
+    total_complete_allowable_error: f64,
+    complete_timeout_sec: f64,
+    urdf_robot: Option<&urdf_rs::Robot>,
+    lazy: bool,
+) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
+    let mut clients = HashMap::new();
+
+    let create_all_client = move || {
+        debug!("create_joint_trajectory_clients_inner: creating UrdfVizWebClient");
+        let mut all_client = UrdfVizWebClient::default();
+        all_client.set_complete_condition(Box::new(TotalJointDiffCondition::new(
+            total_complete_allowable_error,
+            complete_timeout_sec,
+        )));
+        all_client.run_send_joint_positions_thread();
+        Ok(all_client)
+    };
+    let all_client: Arc<dyn JointTrajectoryClient> = if lazy {
+        Arc::new(arci::Lazy::new(create_all_client))
+    } else {
+        Arc::new(create_all_client().unwrap())
+    };
+
     for config in configs {
         if config.wrap_with_joint_position_limiter
             && config.joint_position_limits.is_none()

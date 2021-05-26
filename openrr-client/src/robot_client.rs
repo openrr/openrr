@@ -570,3 +570,169 @@ pub fn create_collision_check_clients<P: AsRef<Path>>(
     }
     clients
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct PanicJointTrajectoryClient;
+
+    impl JointTrajectoryClient for PanicJointTrajectoryClient {
+        #[track_caller]
+        fn joint_names(&self) -> Vec<String> {
+            // TODO
+            // panic!("PanicJointTrajectoryClient::joint_names")
+            vec![
+                "l_shoulder_yaw".into(),
+                "l_shoulder_pitch".into(),
+                "l_shoulder_roll".into(),
+                "l_elbow_pitch".into(),
+                "l_wrist_yaw".into(),
+                "l_wrist_pitch".into(),
+            ]
+        }
+
+        #[track_caller]
+        fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
+            panic!("PanicJointTrajectoryClient::current_joint_positions")
+        }
+
+        #[track_caller]
+        fn send_joint_positions(
+            &self,
+            positions: Vec<f64>,
+            duration: std::time::Duration,
+        ) -> Result<WaitFuture, arci::Error> {
+            panic!(
+                "PanicJointTrajectoryClient::send_joint_positions positions={:?}, duration={:?}",
+                positions, duration
+            )
+        }
+
+        #[track_caller]
+        fn send_joint_trajectory(
+            &self,
+            trajectory: Vec<arci::TrajectoryPoint>,
+        ) -> Result<WaitFuture, arci::Error> {
+            panic!(
+                "PanicJointTrajectoryClient::send_joint_trajectory trajectory={:?}",
+                trajectory
+            )
+        }
+    }
+
+    struct PanicSpeaker;
+
+    impl Speaker for PanicSpeaker {
+        #[track_caller]
+        fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
+            panic!("PanicSpeaker::speak message={:?}", message)
+        }
+    }
+
+    struct PanicLocalization;
+
+    impl Localization for PanicLocalization {
+        #[track_caller]
+        fn current_pose(&self, frame_id: &str) -> Result<arci::Isometry2<f64>, arci::Error> {
+            panic!("PanicLocalization::current_pose frame_id={:?}", frame_id)
+        }
+    }
+
+    struct PanicMoveBase;
+
+    impl MoveBase for PanicMoveBase {
+        #[track_caller]
+        fn current_velocity(&self) -> Result<BaseVelocity, arci::Error> {
+            panic!("PanicMoveBase::current_velocity")
+        }
+
+        #[track_caller]
+        fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), arci::Error> {
+            panic!("PanicMoveBase::send_velocity velocity={:?}", velocity)
+        }
+    }
+
+    struct PanicNavigation;
+
+    impl Navigation for PanicNavigation {
+        #[track_caller]
+        fn send_goal_pose(
+            &self,
+            goal: Isometry2<f64>,
+            frame_id: &str,
+            timeout: std::time::Duration,
+        ) -> Result<WaitFuture, arci::Error> {
+            panic!(
+                "PanicNavigation::current_pose goal={:?}, frame_id={:?}, timeout={:?}",
+                goal, frame_id, timeout
+            )
+        }
+
+        #[track_caller]
+        fn cancel(&self) -> Result<(), arci::Error> {
+            panic!("PanicNavigation::cancel")
+        }
+    }
+
+    #[test]
+    fn lazy() {
+        let mut root_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        root_dir.pop(); // openrr-config
+
+        let mut config: OpenrrClientsConfig = toml::from_str(&format!(
+            r#"
+urdf_path = "{}/openrr-planner/sample.urdf"
+self_collision_check_pairs = ["l_shoulder_yaw:l_gripper_linear1"]
+
+[[joint_trajectory_clients_container_configs]]
+name = "arm"
+clients_names = ["arm"]
+
+[[collision_check_clients_configs]]
+name = "arm_collision_checked"
+client_name = "arm"
+
+[[ik_clients_configs]]
+name = "arm_ik"
+client_name = "arm_collision_checked"
+solver_name = "arm_ik_solver"
+
+[ik_solvers_configs.arm_ik_solver]
+ik_target = "l_tool_fixed"
+
+[[joints_poses]]
+pose_name = "zero"
+client_name = "arm"
+positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+"#,
+            root_dir.display()
+        ))
+        .unwrap();
+        config.urdf_full_path = Some(root_dir.join("openrr-planner/sample.urdf"));
+        let _client = BoxRobotClient::try_new(
+            config,
+            {
+                let mut map = HashMap::new();
+                map.insert(
+                    "arm".to_string(),
+                    Arc::new(PanicJointTrajectoryClient) as Arc<dyn JointTrajectoryClient>,
+                );
+                map.insert(
+                    "torso".to_string(),
+                    Arc::new(PanicJointTrajectoryClient) as Arc<dyn JointTrajectoryClient>,
+                );
+                map
+            },
+            {
+                let mut map = HashMap::new();
+                map.insert("a".to_string(), Arc::new(PanicSpeaker) as Arc<dyn Speaker>);
+                map
+            },
+            Some(Box::new(PanicLocalization)),
+            Some(Box::new(PanicMoveBase)),
+            Some(Box::new(PanicNavigation)),
+        )
+        .unwrap();
+    }
+}

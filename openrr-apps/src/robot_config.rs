@@ -13,7 +13,9 @@ use arci_ros::{
 };
 use arci_speak_audio::AudioSpeaker;
 use arci_speak_cmd::LocalCommand;
-use arci_urdf_viz::{create_joint_trajectory_clients, UrdfVizWebClient, UrdfVizWebClientConfig};
+use arci_urdf_viz::{
+    create_joint_trajectory_clients_lazy, UrdfVizWebClient, UrdfVizWebClientConfig,
+};
 use openrr_client::{OpenrrClientsConfig, PrintSpeaker, RobotClient};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -186,11 +188,10 @@ impl RobotConfig {
         )?)
     }
 
-    #[tracing::instrument(skip(self))]
     fn create_localization_without_ros(&self) -> Option<Box<dyn Localization>> {
         if self.use_localization_urdf_viz_web_client {
             Some(Box::new(arci::Lazy::new(move || {
-                debug!("creating UrdfVizWebClient");
+                debug!("create_localization_without_ros: creating UrdfVizWebClient");
                 Ok(UrdfVizWebClient::default())
             })))
         } else {
@@ -199,12 +200,11 @@ impl RobotConfig {
     }
 
     #[cfg(feature = "ros")]
-    #[tracing::instrument(skip(self))]
     fn create_localization_with_ros(&self) -> Option<Box<dyn Localization>> {
         if let Some(ros_localization_client_config) = &self.ros_localization_client_config {
             let config = ros_localization_client_config.clone();
             Some(Box::new(arci::Lazy::new(move || {
-                debug!("creating RosLocalizationClient");
+                debug!("create_localization_with_ros: creating RosLocalizationClient");
                 Ok(RosLocalizationClient::new_from_config(config))
             })))
         } else {
@@ -223,11 +223,10 @@ impl RobotConfig {
         }
     }
 
-    #[tracing::instrument(skip(self))]
     fn create_navigation_without_ros(&self) -> Option<Box<dyn Navigation>> {
         if self.use_navigation_urdf_viz_web_client {
             Some(Box::new(arci::Lazy::new(move || {
-                debug!("creating UrdfVizWebClient");
+                debug!("create_navigation_without_ros: creating UrdfVizWebClient");
                 Ok(UrdfVizWebClient::default())
             })))
         } else {
@@ -236,12 +235,11 @@ impl RobotConfig {
     }
 
     #[cfg(feature = "ros")]
-    #[tracing::instrument(skip(self))]
     fn create_navigation_with_ros(&self) -> Option<Box<dyn Navigation>> {
         if let Some(ros_navigation_client_config) = &self.ros_navigation_client_config {
             let config = ros_navigation_client_config.clone();
             Some(Box::new(arci::Lazy::new(move || {
-                debug!("creating RosNavClient");
+                debug!("create_navigation_with_ros: creating RosNavClient");
                 Ok(RosNavClient::new_from_config(config))
             })))
         } else {
@@ -260,11 +258,10 @@ impl RobotConfig {
         }
     }
 
-    #[tracing::instrument(skip(self))]
     fn create_move_base_without_ros(&self) -> Option<Box<dyn MoveBase>> {
         if self.use_move_base_urdf_viz_web_client {
             Some(Box::new(arci::Lazy::new(move || {
-                debug!("creating UrdfVizWebClient");
+                debug!("create_move_base_without_ros: creating UrdfVizWebClient");
                 let urdf_viz_client = UrdfVizWebClient::default();
                 urdf_viz_client.run_thread();
                 Ok(urdf_viz_client)
@@ -275,13 +272,12 @@ impl RobotConfig {
     }
 
     #[cfg(feature = "ros")]
-    #[tracing::instrument(skip(self))]
     fn create_move_base_with_ros(&self) -> Option<Box<dyn MoveBase>> {
         if let Some(ros_cmd_vel_move_base_client_config) = &self.ros_cmd_vel_move_base_client_config
         {
             let topic = ros_cmd_vel_move_base_client_config.topic.to_string();
             Some(Box::new(arci::Lazy::new(move || {
-                debug!("creating RosCmdVelMoveBase");
+                debug!("create_move_base_with_ros: creating RosCmdVelMoveBase");
                 Ok(RosCmdVelMoveBase::new(&topic))
             })))
         } else {
@@ -300,36 +296,32 @@ impl RobotConfig {
         }
     }
 
-    #[tracing::instrument(skip(self))]
     fn create_print_speaker(&self) -> Box<dyn Speaker> {
         Box::new(arci::Lazy::new(move || {
-            debug!("creating PrintSpeaker");
+            debug!("create_print_speaker: creating PrintSpeaker");
             Ok(PrintSpeaker::new())
         }))
     }
 
-    #[tracing::instrument(skip(self))]
     fn create_local_command_speaker(&self) -> Box<dyn Speaker> {
         Box::new(arci::Lazy::new(move || {
-            debug!("creating LocalCommand");
+            debug!("create_local_command_speaker: creating LocalCommand");
             Ok(LocalCommand::new())
         }))
     }
 
-    #[tracing::instrument(skip(self))]
     fn create_audio_speaker(&self, hash_map: HashMap<String, PathBuf>) -> Box<dyn Speaker> {
         Box::new(arci::Lazy::new(move || {
-            debug!("creating AudioSpeaker");
+            debug!("create_audio_speaker: creating AudioSpeaker");
             Ok(AudioSpeaker::new(hash_map))
         }))
     }
 
     #[cfg(feature = "ros")]
-    #[tracing::instrument(skip(self))]
     fn create_ros_espeak_client(&self, topic: &str) -> Box<dyn Speaker> {
         let topic = topic.to_string();
         Box::new(arci::Lazy::new(move || {
-            debug!("creating RosEspeakClient");
+            debug!("create_ros_espeak_client: creating RosEspeakClient");
             Ok(RosEspeakClient::new(&topic))
         }))
     }
@@ -372,7 +364,7 @@ impl RobotConfig {
         };
 
         #[cfg(not(feature = "ros"))]
-        let raw_joint_trajectory_clients = create_joint_trajectory_clients(
+        let raw_joint_trajectory_clients = create_joint_trajectory_clients_lazy(
             self.urdf_viz_clients_configs.clone(),
             self.urdf_viz_clients_total_complete_allowable_error,
             self.urdf_viz_clients_complete_timeout_sec,
@@ -383,7 +375,7 @@ impl RobotConfig {
             let mut clients = if self.urdf_viz_clients_configs.is_empty() {
                 HashMap::new()
             } else {
-                create_joint_trajectory_clients(
+                create_joint_trajectory_clients_lazy(
                     self.urdf_viz_clients_configs.clone(),
                     self.urdf_viz_clients_total_complete_allowable_error,
                     self.urdf_viz_clients_complete_timeout_sec,
