@@ -229,7 +229,7 @@ where
                 SliderState::new("y", -1.0..=1.0),
                 SliderState::new("θ", -1.0..=1.0),
             ],
-            show_velocity: false,
+            show_velocity: true,
             up_button: button_state!(
                 Message::UpButtonPressed,
                 "baseline_arrow_upward_white_24dp.png",
