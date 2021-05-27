@@ -25,13 +25,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: ci/ubuntu-install-dependencies.sh
+      - name: Install Rust
+        run: rustup update nightly && rustup default nightly
       - name: Generate code coverage
         run: |
           # for test of arci-ros2
           source /opt/ros/foxy/setup.bash
           # for test of arci-ros (roscore, rostopic)
           source /opt/ros/noetic/setup.bash
-          cargo +nightly-2021-03-04 tarpaulin --verbose --all-features --workspace --out Xml --timeout 60
+          cargo tarpaulin --verbose --all-features --workspace --out Xml --timeout 60
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
