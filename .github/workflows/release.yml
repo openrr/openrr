@@ -5,6 +5,7 @@ on:
     tags: [ 'v[0-9]+.*' ]
 
 env:
+  CARGO_INCREMENTAL: 0
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
 
