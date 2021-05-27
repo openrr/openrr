@@ -15,9 +15,17 @@ env:
 
 jobs:
   ros1_arci_ros:
-    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            distro: melodic
+          - os: ubuntu-20.04
+            distro: noetic
+    runs-on: ${{ matrix.os }}
     container:
-      image: docker://ros:melodic-ros-base
+      image: docker://ros:${{ matrix.distro }}-ros-base
     env:
       HOME: /root
     steps:
@@ -34,14 +42,22 @@ jobs:
         shell: bash -ieo pipefail {0}
         working-directory: arci-ros
         run: |
-          source /opt/ros/melodic/setup.bash
+          source /opt/ros/${{ matrix.distro }}/setup.bash
           rosdep install -y -i --from-paths .
           cargo test
 
   ros1_openrr_apps:
-    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            distro: melodic
+          - os: ubuntu-20.04
+            distro: noetic
+    runs-on: ${{ matrix.os }}
     container:
-      image: docker://ros:melodic-ros-base
+      image: docker://ros:${{ matrix.distro }}-ros-base
     env:
       HOME: /root
     steps:
