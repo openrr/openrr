@@ -14,3 +14,7 @@ So `libasound2-dev` package (debian or ubuntu) is required
 ```bash
 sudo apt install libasound2-dev
 ```
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).

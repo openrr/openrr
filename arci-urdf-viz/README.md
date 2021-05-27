@@ -9,3 +9,7 @@ arci implementation using [urdf-viz](https://github.com/openrr/urdf-viz).
 ```bash
 cargo install urdf-viz
 ```
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).

@@ -1,6 +1,6 @@
 // This is based on urdf-viz/web_server.rs
 // version = "0.25.0"
-// https://github.com/OpenRR/urdf-viz/blob/v0.25.0/src/web_server.rs
+// https://github.com/openrr/urdf-viz/blob/v0.25.0/src/web_server.rs
 // It is difficult to test with urdf-viz with `RUSTFLAGS=-Cpanic=abort`
 // because of wayland-client.
 // That flag is needed to get the test coverage.

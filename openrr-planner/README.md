@@ -5,7 +5,7 @@
 Collision Avoidance Path Planning for robotics in Rust-lang.
 This starts as a copy of [`gear`](https://github.com/openrr/gear) crate.
 
-[![Video](https://j.gifs.com/kZZyJK.gif)](http://www.youtube.com/watch?v=jEu3EfpVAI8)
+[![Video](https://j.gifs.com/kZZyJK.gif)](https://www.youtube.com/watch?v=jEu3EfpVAI8)
 
 [Documents](https://docs.rs/openrr_planner)
 
@@ -92,7 +92,7 @@ For example,
 cargo run --release --example reach $(rospack find pr2_description)/robots/pr2.urdf.xacro l_gripper_palm_link
 ```
 
-[![Video](https://j.gifs.com/kZZyJK.gif)](http://www.youtube.com/watch?v=jEu3EfpVAI8)
+[![Video](https://j.gifs.com/kZZyJK.gif)](https://www.youtube.com/watch?v=jEu3EfpVAI8)
 
 #### Universal Robot: UR10
 
@@ -109,3 +109,7 @@ cargo run --release --example reach $(rospack find sawyer_description)/urdf/sawy
 ```
 
 [![UR5 movie](https://j.gifs.com/G55yxL.gif)](https://www.youtube.com/watch?v=0YujRKUto-4)
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).

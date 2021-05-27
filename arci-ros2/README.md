@@ -9,3 +9,7 @@ ROS2 implementation for arci.
 * ROS2 Foxy
 * [r2r](https://github.com/sequenceplanner/r2r)
   * libclang-dev
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).

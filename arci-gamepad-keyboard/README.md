@@ -47,3 +47,7 @@ b : x (South)
 6 : Select
 7 : Start
 ```
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).

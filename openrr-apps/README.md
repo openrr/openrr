@@ -356,3 +356,7 @@ For example:
 <img width="581" alt="" src="https://user-images.githubusercontent.com/43724913/116380268-c458c700-a84e-11eb-83d2-3fd33b74183c.png">
 
 [Even Better TOML]: https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).

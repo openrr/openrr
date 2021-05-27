@@ -11,3 +11,7 @@
 ```bash
 sudo apt install libudev-dev
 ```
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).

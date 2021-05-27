@@ -1,10 +1,26 @@
-# openrr: `Open Rust Robotics`
+# OpenRR: `Open Rust Robotics`
 
 ![Build and Test](https://github.com/openrr/openrr/workflows/Build%20and%20Test/badge.svg) [![crates.io](https://img.shields.io/crates/v/openrr.svg)](https://crates.io/crates/openrr) [![codecov](https://codecov.io/gh/openrr/openrr/branch/main/graph/badge.svg?token=28GTOOT4RY)](https://codecov.io/gh/openrr/openrr) [![docs](https://docs.rs/openrr/badge.svg)](https://docs.rs/openrr)
 
 OpenRR (pronounced like "opener") is Open Rust Robotics platform.
 
 **It's heavily under development.**
+
+## What is OpenRR?
+
+OpenRR contains..
+
+* abstract robot interfaces (`arci`)
+* concrete implementation of the interfaces (`arci-ros`, `arci-urdf-viz`, ...)
+* library which uses the interfaces (`openrr-client`, ...)
+* tools (`openrr-apps`)
+* pure libraries nothing to do with `arci` (`openrr-planner`, `openrr-sleep`, ...)
+
+## Why OpenRR?
+
+We strongly believe that Rust is the future of robotics.
+OpenRR is the world first robotics platform which is made by Rust, made for Rust.
+It can be a reference, a base for the future robotic people, like us.
 
 ## Supported Platforms
 
@@ -31,20 +47,10 @@ sudo apt install cmake build-essential libudev-dev xorg-dev libglu1-mesa-dev lib
 
 ![architecture](img/architecture.png)
 
-`arci` is a hardware abstraction layer for openrr.
+`arci` is a hardware abstraction layer for OpenRR.
 Currently [ROS1](https://ros.org) and [urdf-viz](https://github.com/openrr/urdf-viz) (as a static simulator (actually it's just a viewer)) are implemented.
 
 You can write platform/hardware independent code if you use `arci` traits.
-
-## What is OpenRR?
-
-OpenRR contains..
-
-* abstract robot interfaces (`arci`)
-* concrete implementation of the interfaces (`arci-ros`, `arci-urdf-viz`, ...)
-* library which uses the interfaces (`openrr-client`, ...)
-* tools (`openrr-apps`)
-* pure libraries nothing to do with `arci` (`openrr-planner`, `openrr-sleep`, ...)
 
 ## Tools
 
@@ -68,31 +74,25 @@ General CLI to access `arci` robot clients. It supports not only sending joint t
 
 To format use nightly rustfmt,
 
-```rust
+```bash
 cargo +nightly fmt
 ```
 
-## License
-
-Apache2
-
 ## Related openrr repositories
 
-* [k](https://github.com/OpenRR/k) : kinematics library
-* [ros-nalgebra](https://github.com/OpenRR/ros-nalgebra) : rosrust nalgebra converter generator
-* [rrt](https://github.com/OpenRR/rrt) : RRT-dual-connect path planner
-* [trajectory](https://github.com/OpenRR/trajectory) : trajectory interpolator
-* [urdf-rs](https://github.com/OpenRR/urdf-rs) : URDF parser
-* [urdf-viz](https://github.com/OpenRR/urdf-viz): URDF visualizer
-* ~~[gear](https://github.com/OpenRR/gear)~~ : (deprecated) motion planning library, but it is openrr-planner now.
-
-## Why OpenRR?
-
-We strongly believe that Rust is the future of robotics.
-OpenRR is the world first robotics platform which is made by Rust, made for Rust.
-It can be a reference, a base for the future robotic people, like us.
+* [k](https://github.com/openrr/k) : kinematics library
+* [ros-nalgebra](https://github.com/openrr/ros-nalgebra) : rosrust nalgebra converter generator
+* [rrt](https://github.com/openrr/rrt) : RRT-dual-connect path planner
+* [trajectory](https://github.com/openrr/trajectory) : trajectory interpolator
+* [urdf-rs](https://github.com/openrr/urdf-rs) : URDF parser
+* [urdf-viz](https://github.com/openrr/urdf-viz): URDF visualizer
+* ~~[gear](https://github.com/openrr/gear)~~ : (deprecated) motion planning library, but it is `openrr-planner` now.
 
 ## Contribution
 
 We appreciate for your any contributions!
 [Create an issue](https://github.com/openrr/openrr/issues/new) at first!
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).

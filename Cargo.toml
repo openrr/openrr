@@ -5,7 +5,6 @@ members = [
     "arci-gamepad-gilrs",
     "arci-gamepad-keyboard",
     "arci-ros",
-    "arci-ros2",
     "arci-speak-cmd",
     "arci-speak-audio",
     "arci-urdf-viz",
@@ -20,7 +19,7 @@ members = [
     "openrr-sleep",
     "openrr-teleop",
     "openrr-plugin/examples/plugin",
-]
+] # "arci-ros2",
 
 [patch.crates-io]
 
@@ -30,7 +29,7 @@ arci = { path = "arci" }
 arci-gamepad-gilrs = { path = "arci-gamepad-gilrs" }
 arci-gamepad-keyboard = { path = "arci-gamepad-keyboard" }
 arci-ros = { path = "arci-ros" }
-arci-ros2 = { path = "arci-ros2" }
+# arci-ros2 = { path = "arci-ros2" }
 arci-urdf-viz = { path = "arci-urdf-viz" }
 openrr = { path = "openrr" }
 openrr-apps = { path = "openrr-apps" }
