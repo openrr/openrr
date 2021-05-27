@@ -16,10 +16,10 @@ limitations under the License.
 use std::path::{Path, PathBuf};
 
 use k::nalgebra as na;
-use kiss3d::event::{Action, Key, Modifiers, WindowEvent};
 use ncollide3d::shape::Compound;
 use openrr_planner::FromUrdf;
 use structopt::StructOpt;
+use urdf_viz::{Action, Key, Modifiers, WindowEvent};
 
 struct CollisionAvoidApp {
     planner: openrr_planner::JointPathPlannerWithIk<
