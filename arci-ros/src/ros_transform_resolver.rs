@@ -1,28 +1,18 @@
 use std::time::{Duration, SystemTime};
 
-use arci::TransformResolver;
+use arci::{Isometry3, TransformResolver};
+use nalgebra::{Quaternion, Translation3, UnitQuaternion};
+use rosrust::rate;
+use rustros_tf::TfListener;
 
-use crate::define_action_client_internal;
-mod msg {
-    ros_nalgebra::rosmsg_include!(
-        tf2_msgs / LookupTransformActionGoal,
-        tf2_msgs / LookupTransformGoal,
-        tf2_msgs / LookupTransformActionResult,
-        tf2_msgs / LookupTransformResult
-    );
-}
-
-define_action_client_internal!(SimpleActionClient, msg::tf2_msgs, LookupTransform);
-
-pub struct Tf2BufferServerClient {
-    action_client: SimpleActionClient,
+pub struct RosTransformResolver {
+    retry_rate: f64,
+    tf_listener: TfListener,
     base_time: SystemTime,
 }
 
-impl Tf2BufferServerClient {
-    pub fn new(base_topic: &str, queue_size: usize, monitoring_rate: f64) -> Self {
-        let action_client = SimpleActionClient::new(base_topic, queue_size, monitoring_rate);
-
+impl RosTransformResolver {
+    pub fn new(retry_rate: f64) -> Self {
         let base_time = if rosrust::param("/use_sim_time")
             .and_then(|v| v.get().ok())
             .unwrap_or(false)
@@ -33,13 +23,14 @@ impl Tf2BufferServerClient {
         };
 
         Self {
-            action_client,
+            retry_rate,
+            tf_listener: TfListener::new(),
             base_time,
         }
     }
 }
 
-impl TransformResolver for Tf2BufferServerClient {
+impl TransformResolver for RosTransformResolver {
     fn resolve_transformation(
         &self,
         from: &str,
@@ -47,41 +38,35 @@ impl TransformResolver for Tf2BufferServerClient {
         time: std::time::SystemTime,
     ) -> Result<nalgebra::Isometry3<f64>, arci::Error> {
         const MAX_RETRY: usize = 10;
-        const TIMEOUT_SEC: f64 = 10.0;
-        let timeout = std::time::Duration::from_secs_f64(TIMEOUT_SEC);
-        let rostime = rosrust::Time::from_nanos(
+        let ros_time = rosrust::Time::from_nanos(
             time.duration_since(self.base_time).unwrap().as_nanos() as i64,
         );
-        let goal = msg::tf2_msgs::LookupTransformGoal {
-            target_frame: from.to_owned(),
-            source_frame: to.to_owned(),
-            source_time: rostime,
-            ..Default::default()
-        };
-
-        let mut result = self
-            .action_client
-            .send_goal_and_wait(goal.clone(), timeout)
-            .map_err(|e| anyhow::anyhow!("Failed to send_goal_and_wait : {}", e.to_string()))?;
-        match result.error.error {
-            msg::tf2_msgs::TF2Error::NO_ERROR => Ok(result.transform.transform.into()),
-            msg::tf2_msgs::TF2Error::EXTRAPOLATION_ERROR => {
-                for i in 1..=MAX_RETRY {
-                    rosrust::ros_warn!("EXTRAPOLATION_ERROR : retrying {} / {} ...", i, MAX_RETRY);
-
-                    result = self
-                        .action_client
-                        .send_goal_and_wait(goal.clone(), timeout)
-                        .map_err(|e| {
-                            anyhow::anyhow!("Failed to send_goal_and_wait : {}", e.to_string())
-                        })?;
-                    if result.error.error == msg::tf2_msgs::TF2Error::NO_ERROR {
-                        return Ok(result.transform.transform.into());
-                    }
-                }
-                Err(anyhow::anyhow!("TF2Error {:?}", result.error).into())
+        let rate = rate(self.retry_rate);
+        let mut last_error = None;
+        for i in 0..=MAX_RETRY {
+            if i != 0 {
+                rosrust::ros_warn!("Retrying {} -> {} ({} / {}) ...", from, to, i, MAX_RETRY);
             }
-            _ => Err(anyhow::anyhow!("TF2Error {:?}", result.error).into()),
+            let result = self.tf_listener.lookup_transform(from, to, ros_time);
+            match result {
+                Ok(result) => {
+                    let translation = result.transform.translation;
+                    let rotation = result.transform.rotation;
+
+                    return Ok(Isometry3::from_parts(
+                        Translation3::new(translation.x, translation.y, translation.z),
+                        UnitQuaternion::from_quaternion(Quaternion::new(
+                            rotation.w, rotation.x, rotation.y, rotation.z,
+                        )),
+                    ));
+                }
+                Err(e) => last_error = Some(e),
+            }
+            rate.sleep();
+        }
+        match last_error {
+            Some(e) => Err(anyhow::anyhow!("{:?}", e).into()),
+            None => Err(anyhow::anyhow!("Broken Logic").into()),
         }
     }
 }
