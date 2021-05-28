@@ -826,15 +826,18 @@ impl From<RGamepadEvent> for arci::gamepad::GamepadEvent {
 pub(crate) type PluginTraitObject = RPluginTrait_TO<RBox<()>>;
 
 #[sabi_trait]
-pub(crate) trait RPluginTrait: 'static {
+pub(crate) trait RPluginTrait: Send + Sync + 'static {
     fn name(&self) -> RString;
-    fn new_joint_trajectory_client(&self, args: RString) -> ROption<JointTrajectoryClientProxy>;
-    fn new_speaker(&self, args: RString) -> ROption<SpeakerProxy>;
-    fn new_move_base(&self, args: RString) -> ROption<MoveBaseProxy>;
-    fn new_navigation(&self, args: RString) -> ROption<NavigationProxy>;
-    fn new_localization(&self, args: RString) -> ROption<LocalizationProxy>;
-    fn new_transform_resolver(&self, args: RString) -> ROption<TransformResolverProxy>;
-    fn new_gamepad(&self, args: RString) -> ROption<GamepadProxy>;
+    fn new_joint_trajectory_client(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<JointTrajectoryClientProxy>>;
+    fn new_speaker(&self, args: RString) -> RResult<ROption<SpeakerProxy>>;
+    fn new_move_base(&self, args: RString) -> RResult<ROption<MoveBaseProxy>>;
+    fn new_navigation(&self, args: RString) -> RResult<ROption<NavigationProxy>>;
+    fn new_localization(&self, args: RString) -> RResult<ROption<LocalizationProxy>>;
+    fn new_transform_resolver(&self, args: RString) -> RResult<ROption<TransformResolverProxy>>;
+    fn new_gamepad(&self, args: RString) -> RResult<ROption<GamepadProxy>>;
 }
 
 impl<P> RPluginTrait for P
@@ -845,46 +848,51 @@ where
         Plugin::name(self).into()
     }
 
-    fn new_joint_trajectory_client(&self, args: RString) -> ROption<JointTrajectoryClientProxy> {
-        Plugin::new_joint_trajectory_client(self, args.into())
-            .map(JointTrajectoryClientProxy::new)
-            .into()
+    fn new_joint_trajectory_client(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<JointTrajectoryClientProxy>> {
+        ROk(
+            rtry!(Plugin::new_joint_trajectory_client(self, args.into()))
+                .map(JointTrajectoryClientProxy::new)
+                .into(),
+        )
     }
 
-    fn new_speaker(&self, args: RString) -> ROption<SpeakerProxy> {
-        Plugin::new_speaker(self, args.into())
+    fn new_speaker(&self, args: RString) -> RResult<ROption<SpeakerProxy>> {
+        ROk(rtry!(Plugin::new_speaker(self, args.into()))
             .map(SpeakerProxy::new)
-            .into()
+            .into())
     }
 
-    fn new_move_base(&self, args: RString) -> ROption<MoveBaseProxy> {
-        Plugin::new_move_base(self, args.into())
+    fn new_move_base(&self, args: RString) -> RResult<ROption<MoveBaseProxy>> {
+        ROk(rtry!(Plugin::new_move_base(self, args.into()))
             .map(MoveBaseProxy::new)
-            .into()
+            .into())
     }
 
-    fn new_navigation(&self, args: RString) -> ROption<NavigationProxy> {
-        Plugin::new_navigation(self, args.into())
+    fn new_navigation(&self, args: RString) -> RResult<ROption<NavigationProxy>> {
+        ROk(rtry!(Plugin::new_navigation(self, args.into()))
             .map(NavigationProxy::new)
-            .into()
+            .into())
     }
 
-    fn new_localization(&self, args: RString) -> ROption<LocalizationProxy> {
-        Plugin::new_localization(self, args.into())
+    fn new_localization(&self, args: RString) -> RResult<ROption<LocalizationProxy>> {
+        ROk(rtry!(Plugin::new_localization(self, args.into()))
             .map(LocalizationProxy::new)
-            .into()
+            .into())
     }
 
-    fn new_transform_resolver(&self, args: RString) -> ROption<TransformResolverProxy> {
-        Plugin::new_transform_resolver(self, args.into())
+    fn new_transform_resolver(&self, args: RString) -> RResult<ROption<TransformResolverProxy>> {
+        ROk(rtry!(Plugin::new_transform_resolver(self, args.into()))
             .map(TransformResolverProxy::new)
-            .into()
+            .into())
     }
 
-    fn new_gamepad(&self, args: RString) -> ROption<GamepadProxy> {
-        Plugin::new_gamepad(self, args.into())
+    fn new_gamepad(&self, args: RString) -> RResult<ROption<GamepadProxy>> {
+        ROk(rtry!(Plugin::new_gamepad(self, args.into()))
             .map(GamepadProxy::new)
-            .into()
+            .into())
     }
 }
 
