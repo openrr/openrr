@@ -1,8 +1,14 @@
-use std::{env, time::SystemTime};
+use std::{
+    env,
+    time::{Duration, SystemTime},
+};
 
 use anyhow::{anyhow, Error};
 use arci::TransformResolver;
-use arci_ros::Tf2BufferServerClient;
+use arci_ros::RosTransformResolver;
+
+const TF_RETRY_RATE: f64 = 10.0;
+const TIME_OFFSET_SECS: f64 = 0.1;
 
 fn main() -> Result<(), Error> {
     let args: Vec<String> = env::args().collect();
@@ -13,11 +19,30 @@ fn main() -> Result<(), Error> {
     let to = &args[2];
 
     arci_ros::init("arc_ros_example_resolve_transformation");
-    let resolver = Tf2BufferServerClient::new("/tf2_buffer_server", 1, 10.0);
+    let resolver = RosTransformResolver::new(TF_RETRY_RATE);
     let rate = arci_ros::rate(1.0);
     while arci_ros::is_ok() {
-        let transformation = resolver.resolve_transformation(from, to, SystemTime::now());
-        println!("{:?}", transformation);
+        match resolver.resolve_transformation(
+            from,
+            to,
+            SystemTime::now() - Duration::from_secs_f64(TIME_OFFSET_SECS),
+        ) {
+            Ok(transformation) => {
+                let translation = transformation.translation;
+                let rotation = transformation.rotation;
+                let rpy = rotation.euler_angles();
+                println!(
+                    "Translation x: {:.3} y: {:.3} z: {:.3}",
+                    translation.x, translation.y, translation.z,
+                );
+                println!("Rotation rpy: {:.3} {:.3} {:.3}", rpy.0, rpy.1, rpy.2,);
+                println!(
+                    "Rotation xyzw: {:.3} {:.3} {:.3} {:.3}",
+                    rotation.i, rotation.j, rotation.k, rotation.w
+                )
+            }
+            Err(e) => println!("{:?}", e),
+        };
         rate.sleep();
     }
     Ok(())
