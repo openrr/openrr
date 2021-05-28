@@ -13,7 +13,7 @@ async fn main() -> Result<()> {
     for plugin in pm.plugins() {
         println!("Plugin: {}", plugin.name());
         if let Some(joint_trajectory_client) =
-            plugin.new_joint_trajectory_client(r#"{ "joint_names": ["a", "b"] }"#.into())
+            plugin.new_joint_trajectory_client(r#"{ "joint_names": ["a", "b"] }"#.into())?
         {
             println!("joint_names: {:?}", joint_trajectory_client.joint_names());
             println!(
@@ -29,10 +29,10 @@ async fn main() -> Result<()> {
                 joint_trajectory_client.current_joint_positions()?
             );
         }
-        if let Some(speaker) = plugin.new_speaker("".into()) {
+        if let Some(speaker) = plugin.new_speaker("".into())? {
             speaker.speak("hi!")?.await?;
         }
-        if let Some(move_base) = plugin.new_move_base("".into()) {
+        if let Some(move_base) = plugin.new_move_base("".into())? {
             println!("current_velocity: {:?}", move_base.current_velocity()?);
             let new = BaseVelocity {
                 x: 2.0,

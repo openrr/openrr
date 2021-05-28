@@ -175,6 +175,7 @@ fn proxy_diff_crate_joint_names(c: &mut Criterion) {
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
     let client = plugin
         .new_joint_trajectory_client(format!(r#"{{ "joint_names": {:?} }}"#, joint_names))
+        .unwrap()
         .unwrap();
 
     c.bench_function("proxy_diff_crate_joint_names", |b| {
@@ -189,6 +190,7 @@ fn proxy_diff_crate_current_joint_positions(c: &mut Criterion) {
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
     let client = plugin
         .new_joint_trajectory_client(format!(r#"{{ "joint_names": {:?} }}"#, joint_names))
+        .unwrap()
         .unwrap();
 
     c.bench_function("proxy_diff_crate_current_joint_positions", |b| {
@@ -204,6 +206,7 @@ fn proxy_diff_crate_send_joint_positions(c: &mut Criterion) {
     let positions: Vec<_> = (0..joint_names.len()).map(|n| n as f64).collect();
     let client = plugin
         .new_joint_trajectory_client(format!(r#"{{ "joint_names": {:?} }}"#, joint_names))
+        .unwrap()
         .unwrap();
 
     c.bench_function("proxy_diff_crate_send_joint_positions", |b| {
@@ -266,9 +269,10 @@ impl openrr_plugin::Plugin for TestPlugin {
     fn new_joint_trajectory_client(
         &self,
         args: String,
-    ) -> Option<Box<dyn arci::JointTrajectoryClient>> {
-        let config: TestClientConfig = serde_json::from_str(&args).ok()?;
-        Some(Box::new(DummyJointTrajectoryClient::new(config.joint_names)))
+    ) -> Result<Option<Box<dyn arci::JointTrajectoryClient>>, arci::Error> {
+        let config: TestClientConfig =
+            serde_json::from_str(&args).map_err(|e| arci::Error::Other(e.into()))?;
+        Ok(Some(Box::new(DummyJointTrajectoryClient::new(config.joint_names))))
     }
 }
 

@@ -1,6 +1,6 @@
 use std::{sync::Mutex, time::Duration};
 
-use arci::{DummyMoveBase, DummyNavigation, Error, TrajectoryPoint, WaitFuture};
+use arci::{DummyLocalization, DummyMoveBase, DummyNavigation, Error, TrajectoryPoint, WaitFuture};
 use openrr_client::PrintSpeaker;
 use openrr_plugin::Plugin;
 use serde::Deserialize;
@@ -17,25 +17,43 @@ impl Plugin for MyPlugin {
     fn new_joint_trajectory_client(
         &self,
         args: String,
-    ) -> Option<Box<dyn arci::JointTrajectoryClient>> {
-        let config: MyClientConfig = serde_json::from_str(&args).ok()?;
+    ) -> Result<Option<Box<dyn arci::JointTrajectoryClient>>, arci::Error> {
+        let config: MyClientConfig =
+            serde_json::from_str(&args).map_err(|e| arci::Error::Other(e.into()))?;
         let dof = config.joint_names.len();
-        Some(Box::new(MyJointTrajectoryClient {
+        Ok(Some(Box::new(MyJointTrajectoryClient {
             joint_names: config.joint_names,
             joint_positions: Mutex::new(vec![0.0; dof]),
-        }))
+        })))
     }
 
-    fn new_speaker(&self, _args: String) -> Option<Box<dyn arci::Speaker>> {
-        Some(Box::new(PrintSpeaker::default()))
+    fn new_speaker(&self, _args: String) -> Result<Option<Box<dyn arci::Speaker>>, arci::Error> {
+        Ok(Some(Box::new(PrintSpeaker::default())))
     }
 
-    fn new_move_base(&self, _args: String) -> Option<Box<dyn arci::MoveBase>> {
-        Some(Box::new(DummyMoveBase::default()))
+    fn new_move_base(&self, _args: String) -> Result<Option<Box<dyn arci::MoveBase>>, arci::Error> {
+        Ok(Some(Box::new(DummyMoveBase::default())))
     }
 
-    fn new_navigation(&self, _args: String) -> Option<Box<dyn arci::Navigation>> {
-        Some(Box::new(DummyNavigation::default()))
+    fn new_navigation(
+        &self,
+        _args: String,
+    ) -> Result<Option<Box<dyn arci::Navigation>>, arci::Error> {
+        Ok(Some(Box::new(DummyNavigation::default())))
+    }
+
+    fn new_localization(
+        &self,
+        _args: String,
+    ) -> Result<Option<Box<dyn arci::Localization>>, arci::Error> {
+        Ok(Some(Box::new(DummyLocalization::default())))
+    }
+
+    #[cfg(unix)]
+    fn new_gamepad(&self, _args: String) -> Result<Option<Box<dyn arci::Gamepad>>, arci::Error> {
+        Ok(Some(
+            Box::new(arci_gamepad_keyboard::KeyboardGamepad::new()),
+        ))
     }
 }
 
@@ -61,8 +79,9 @@ impl arci::JointTrajectoryClient for MyJointTrajectoryClient {
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
-        _duration: Duration,
+        duration: Duration,
     ) -> Result<WaitFuture, Error> {
+        println!("positions = {:?}, duration = {:?}", positions, duration);
         *self.joint_positions.lock().unwrap() = positions;
         Ok(WaitFuture::new(async move { async { Ok(()) }.await }))
     }
@@ -71,6 +90,7 @@ impl arci::JointTrajectoryClient for MyJointTrajectoryClient {
         &self,
         _trajectory: Vec<TrajectoryPoint>,
     ) -> Result<WaitFuture, Error> {
-        std::process::abort()
+        // panic across the ffi boundary will be converted to abort.
+        panic!()
     }
 }

@@ -86,7 +86,7 @@ impl PluginManager {
 }
 
 /// The plugin trait.
-pub trait Plugin: 'static {
+pub trait Plugin: Send + Sync + 'static {
     /// Returns the name of this plugin.
     ///
     /// NOTE: This is *not* a unique identifier.
@@ -96,45 +96,54 @@ pub trait Plugin: 'static {
     fn new_joint_trajectory_client(
         &self,
         args: String,
-    ) -> Option<Box<dyn arci::JointTrajectoryClient>> {
+    ) -> Result<Option<Box<dyn arci::JointTrajectoryClient>>, arci::Error> {
         let _ = args;
-        None
+        Ok(None)
     }
 
     /// Creates a new instance of [`arci::Speaker`] with the specified arguments.
-    fn new_speaker(&self, args: String) -> Option<Box<dyn arci::Speaker>> {
+    fn new_speaker(&self, args: String) -> Result<Option<Box<dyn arci::Speaker>>, arci::Error> {
         let _ = args;
-        None
+        Ok(None)
     }
 
     /// Creates a new instance of [`arci::MoveBase`] with the specified arguments.
-    fn new_move_base(&self, args: String) -> Option<Box<dyn arci::MoveBase>> {
+    fn new_move_base(&self, args: String) -> Result<Option<Box<dyn arci::MoveBase>>, arci::Error> {
         let _ = args;
-        None
+        Ok(None)
     }
 
     /// Creates a new instance of [`arci::Navigation`] with the specified arguments.
-    fn new_navigation(&self, args: String) -> Option<Box<dyn arci::Navigation>> {
+    fn new_navigation(
+        &self,
+        args: String,
+    ) -> Result<Option<Box<dyn arci::Navigation>>, arci::Error> {
         let _ = args;
-        None
+        Ok(None)
     }
 
     /// Creates a new instance of [`arci::Localization`] with the specified arguments.
-    fn new_localization(&self, args: String) -> Option<Box<dyn arci::Localization>> {
+    fn new_localization(
+        &self,
+        args: String,
+    ) -> Result<Option<Box<dyn arci::Localization>>, arci::Error> {
         let _ = args;
-        None
+        Ok(None)
     }
 
     /// Creates a new instance of [`arci::TransformResolver`] with the specified arguments.
-    fn new_transform_resolver(&self, args: String) -> Option<Box<dyn arci::TransformResolver>> {
+    fn new_transform_resolver(
+        &self,
+        args: String,
+    ) -> Result<Option<Box<dyn arci::TransformResolver>>, arci::Error> {
         let _ = args;
-        None
+        Ok(None)
     }
 
     /// Creates a new instance of [`arci::Gamepad`] with the specified arguments.
-    fn new_gamepad(&self, args: String) -> Option<Box<dyn arci::Gamepad>> {
+    fn new_gamepad(&self, args: String) -> Result<Option<Box<dyn arci::Gamepad>>, arci::Error> {
         let _ = args;
-        None
+        Ok(None)
     }
 }
 
@@ -175,40 +184,64 @@ impl PluginProxy {
     }
 
     /// Creates a new instance of [`arci::JointTrajectoryClient`] with the specified arguments.
-    pub fn new_joint_trajectory_client(&self, args: String) -> Option<JointTrajectoryClientProxy> {
-        self.0
+    pub fn new_joint_trajectory_client(
+        &self,
+        args: String,
+    ) -> Result<Option<JointTrajectoryClientProxy>, arci::Error> {
+        Ok(self
+            .0
             .new_joint_trajectory_client(args.into())
-            .into_option()
+            .into_result()?
+            .into_option())
     }
 
     /// Creates a new instance of [`arci::Speaker`] with the specified arguments.
-    pub fn new_speaker(&self, args: String) -> Option<SpeakerProxy> {
-        self.0.new_speaker(args.into()).into_option()
+    pub fn new_speaker(&self, args: String) -> Result<Option<SpeakerProxy>, arci::Error> {
+        Ok(self.0.new_speaker(args.into()).into_result()?.into_option())
     }
 
     /// Creates a new instance of [`arci::MoveBase`] with the specified arguments.
-    pub fn new_move_base(&self, args: String) -> Option<MoveBaseProxy> {
-        self.0.new_move_base(args.into()).into_option()
+    pub fn new_move_base(&self, args: String) -> Result<Option<MoveBaseProxy>, arci::Error> {
+        Ok(self
+            .0
+            .new_move_base(args.into())
+            .into_result()?
+            .into_option())
     }
 
     /// Creates a new instance of [`arci::Navigation`] with the specified arguments.
-    pub fn new_navigation(&self, args: String) -> Option<NavigationProxy> {
-        self.0.new_navigation(args.into()).into_option()
+    pub fn new_navigation(&self, args: String) -> Result<Option<NavigationProxy>, arci::Error> {
+        Ok(self
+            .0
+            .new_navigation(args.into())
+            .into_result()?
+            .into_option())
     }
 
     /// Creates a new instance of [`arci::Localization`] with the specified arguments.
-    pub fn new_localization(&self, args: String) -> Option<LocalizationProxy> {
-        self.0.new_localization(args.into()).into_option()
+    pub fn new_localization(&self, args: String) -> Result<Option<LocalizationProxy>, arci::Error> {
+        Ok(self
+            .0
+            .new_localization(args.into())
+            .into_result()?
+            .into_option())
     }
 
     /// Creates a new instance of [`arci::TransformResolver`] with the specified arguments.
-    pub fn new_transform_resolver(&self, args: String) -> Option<TransformResolverProxy> {
-        self.0.new_transform_resolver(args.into()).into_option()
+    pub fn new_transform_resolver(
+        &self,
+        args: String,
+    ) -> Result<Option<TransformResolverProxy>, arci::Error> {
+        Ok(self
+            .0
+            .new_transform_resolver(args.into())
+            .into_result()?
+            .into_option())
     }
 
     /// Creates a new instance of [`arci::Gamepad`] with the specified arguments.
-    pub fn new_gamepad(&self, args: String) -> Option<GamepadProxy> {
-        self.0.new_gamepad(args.into()).into_option()
+    pub fn new_gamepad(&self, args: String) -> Result<Option<GamepadProxy>, arci::Error> {
+        Ok(self.0.new_gamepad(args.into()).into_result()?.into_option())
     }
 }
 
