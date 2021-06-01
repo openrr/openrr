@@ -10,7 +10,7 @@ use anyhow::format_err;
 use arci::{
     BaseVelocity, CompleteCondition, JointPositionLimit, JointPositionLimiter,
     JointTrajectoryClient, JointVelocityLimiter, Localization, MoveBase, Navigation,
-    SetCompleteCondition, TotalJointDiffCondition, WaitFuture,
+    SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint, WaitFuture,
 };
 use nalgebra as na;
 use openrr_sleep::ScopedSleep;
@@ -162,20 +162,26 @@ where
     }
 }
 
-struct SendJointPositionsTarget {
-    positions: Vec<f64>,
-    duration: Duration,
-}
-
-enum SendJointPositionsTargetState {
-    Some(SendJointPositionsTarget),
+#[derive(Debug)]
+enum SendJointPositionsTarget {
+    Some(Vec<TrajectoryPoint>),
     None,
     Abort,
 }
 
-impl SendJointPositionsTargetState {
-    fn take(&mut self) -> Self {
-        mem::replace(self, Self::None)
+impl SendJointPositionsTarget {
+    fn set_positions(&mut self, positions: Vec<f64>, duration: Duration) {
+        *self = Self::Some(vec![TrajectoryPoint::new(positions, duration)]);
+    }
+
+    fn set_trajectory(&mut self, trajectory: Vec<TrajectoryPoint>) {
+        *self = Self::Some(trajectory);
+    }
+}
+
+impl Default for SendJointPositionsTarget {
+    fn default() -> Self {
+        Self::None
     }
 }
 
@@ -192,7 +198,7 @@ struct UrdfVizWebClientInner {
     base_url: Url,
     joint_names: Vec<String>,
     velocity: Mutex<BaseVelocity>,
-    send_joint_positions_target: Mutex<SendJointPositionsTargetState>,
+    send_joint_positions_target: Mutex<SendJointPositionsTarget>,
     complete_condition: Mutex<Arc<dyn CompleteCondition>>,
     threads: Mutex<ThreadState>,
 }
@@ -209,13 +215,11 @@ impl UrdfVizWebClientInner {
 impl UrdfVizWebClient {
     pub fn try_new(base_url: Url) -> Result<Self, anyhow::Error> {
         let joint_state = get_joint_positions(&base_url)?;
-        let velocity = Mutex::new(BaseVelocity::default());
-        let send_joint_positions_target = Mutex::new(SendJointPositionsTargetState::None);
         Ok(Self(Arc::new(UrdfVizWebClientInner {
             base_url,
             joint_names: joint_state.names,
-            velocity,
-            send_joint_positions_target,
+            velocity: Mutex::new(BaseVelocity::default()),
+            send_joint_positions_target: Mutex::new(Default::default()),
             complete_condition: Mutex::new(Arc::new(TotalJointDiffCondition::default())),
             threads: Mutex::new(ThreadState::default()),
         })))
@@ -284,12 +288,23 @@ impl UrdfVizWebClient {
             }
 
             let bomb = Bomb(inner);
-            while !bomb.0.is_dropping() {
+            'outer: while !bomb.0.is_dropping() {
                 const UNIT_DURATION: Duration = Duration::from_millis(10);
-                let send_joint_positions_target =
-                    { bomb.0.send_joint_positions_target.lock().unwrap().take() };
-                if let SendJointPositionsTargetState::Some(target) = send_joint_positions_target {
-                    if target.duration.as_nanos() == 0 {
+                let trajectory =
+                    match { mem::take(&mut *bomb.0.send_joint_positions_target.lock().unwrap()) } {
+                        SendJointPositionsTarget::Some(trajectory) => trajectory,
+                        SendJointPositionsTarget::None | SendJointPositionsTarget::Abort => {
+                            sleep(UNIT_DURATION);
+                            continue;
+                        }
+                    };
+
+                let mut last_time = Duration::default();
+                for target in trajectory {
+                    let duration = target.time_from_start - last_time;
+                    last_time = target.time_from_start;
+                    if duration.as_nanos() == 0 {
+                        let start_time = std::time::Instant::now();
                         let target_state = JointState {
                             names: bomb.0.joint_names.clone(),
                             positions: target.positions.clone(),
@@ -299,6 +314,11 @@ impl UrdfVizWebClient {
                                 message: format!("{:?}", e),
                             })
                             .unwrap();
+                        let elapsed = start_time.elapsed();
+                        if UNIT_DURATION > elapsed {
+                            let sleep_duration = UNIT_DURATION - elapsed;
+                            sleep(sleep_duration);
+                        }
                         continue;
                     }
 
@@ -308,7 +328,7 @@ impl UrdfVizWebClient {
                         })
                         .unwrap()
                         .positions;
-                    let duration_sec = target.duration.as_secs_f64();
+                    let duration_sec = duration.as_secs_f64();
                     let unit_sec = UNIT_DURATION.as_secs_f64();
                     let trajectories = openrr_planner::interpolate(
                         &[current, target.positions.to_vec()],
@@ -321,11 +341,10 @@ impl UrdfVizWebClient {
                     for traj in trajectories {
                         if matches!(
                             *bomb.0.send_joint_positions_target.lock().unwrap(),
-                            SendJointPositionsTargetState::Some(..)
-                                | SendJointPositionsTargetState::Abort
+                            SendJointPositionsTarget::Some(..) | SendJointPositionsTarget::Abort
                         ) {
-                            debug!("Abort old target.");
-                            break;
+                            debug!("Abort old target");
+                            break 'outer;
                         }
                         let start_time = std::time::Instant::now();
                         let target_state = JointState {
@@ -343,15 +362,13 @@ impl UrdfVizWebClient {
                             sleep(sleep_duration);
                         }
                     }
-                } else {
-                    sleep(UNIT_DURATION);
                 }
             }
         });
     }
 
     pub fn abort(&self) {
-        *self.0.send_joint_positions_target.lock().unwrap() = SendJointPositionsTargetState::Abort;
+        *self.0.send_joint_positions_target.lock().unwrap() = SendJointPositionsTarget::Abort;
     }
 }
 
@@ -389,11 +406,11 @@ impl JointTrajectoryClient for UrdfVizWebClient {
             panic!("send_joint_positions called without run_send_joint_positions_thread being called first");
         }
 
-        *self.0.send_joint_positions_target.lock().unwrap() =
-            SendJointPositionsTargetState::Some(SendJointPositionsTarget {
-                positions: positions.clone(),
-                duration,
-            });
+        self.0
+            .send_joint_positions_target
+            .lock()
+            .unwrap()
+            .set_positions(positions.clone(), duration);
         let this = self.clone();
         Ok(WaitFuture::new(async move {
             // Clone to avoid holding the lock for a long time.
@@ -406,18 +423,19 @@ impl JointTrajectoryClient for UrdfVizWebClient {
 
     fn send_joint_trajectory(
         &self,
-        trajectory: Vec<arci::TrajectoryPoint>,
+        trajectory: Vec<TrajectoryPoint>,
     ) -> Result<WaitFuture, arci::Error> {
         if trajectory.is_empty() {
             return Ok(WaitFuture::ready());
         }
 
-        let mut last_time = Duration::default();
         let last_traj = trajectory.last().unwrap().clone();
-        for traj in trajectory {
-            let _ = self.send_joint_positions(traj.positions, traj.time_from_start - last_time)?;
-            last_time = traj.time_from_start;
-        }
+        self.0
+            .send_joint_positions_target
+            .lock()
+            .unwrap()
+            .set_trajectory(trajectory);
+
         let this = self.clone();
         Ok(WaitFuture::new(async move {
             // Clone to avoid holding the lock for a long time.
