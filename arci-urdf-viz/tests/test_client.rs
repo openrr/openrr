@@ -2,19 +2,11 @@ mod web_server;
 
 use std::time::Duration;
 
-use arci::{
-    BaseVelocity, JointTrajectoryClient, MoveBase, SetCompleteCondition, TotalJointDiffCondition,
-    TrajectoryPoint,
-};
+use arci::{BaseVelocity, JointTrajectoryClient, MoveBase, TrajectoryPoint};
 use arci_urdf_viz::{UrdfVizWebClient, UrdfVizWebClientConfig};
 use assert_approx_eq::assert_approx_eq;
 use url::Url;
 use web_server::*;
-
-// TotalJointDiffCondition allows error of 0.02, so WaitFuture may complete
-// before the joint reaches the target. So, allow more error than
-// TotalJointDiffCondition allows, when comparison.
-const TOTAL_COMPLETE_ALLOWABLE_ERROR: f64 = 0.03;
 
 #[test]
 fn test_urdf_viz_web_client_config_accessor() {
@@ -117,7 +109,7 @@ fn test_create_joint_trajectory_clients() {
             joint_velocity_limits: None,
         },
     ];
-    let _clients = arci_urdf_viz::create_joint_trajectory_clients(configs, 0.1, 0.1, None).unwrap();
+    let _clients = arci_urdf_viz::create_joint_trajectory_clients(configs, None).unwrap();
 }
 
 #[test]
@@ -134,18 +126,6 @@ fn test_current_joint_positions() {
     let v = c.current_joint_positions().unwrap();
     assert_approx_eq!(v[0], 1.0);
     assert_approx_eq!(v[1], -1.0);
-}
-
-#[test]
-fn test_set_complete_condition() {
-    const PORT: u16 = 7779;
-    let web_server = WebServer::new(PORT);
-    web_server.start_background();
-    let mut client =
-        UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-            .unwrap();
-    let cond = TotalJointDiffCondition::new(0.0, 0.1);
-    client.set_complete_condition(Box::new(cond));
 }
 
 #[tokio::test]
@@ -167,7 +147,7 @@ async fn test_send_joint_positions() {
         .await;
     assert!(result.is_ok());
     let v = client.current_joint_positions().unwrap();
-    assert_approx_eq!(v[0], 1.0, TOTAL_COMPLETE_ALLOWABLE_ERROR);
+    assert_approx_eq!(v[0], 1.0);
 }
 
 #[test]
@@ -217,7 +197,7 @@ async fn test_send_joint_trajectory() {
         .await
         .unwrap();
     let v = client.current_joint_positions().unwrap();
-    assert_approx_eq!(v[0], 2.0, TOTAL_COMPLETE_ALLOWABLE_ERROR);
+    assert_approx_eq!(v[0], 2.0);
 
     let trajectory = vec![
         TrajectoryPoint::new(vec![1.0], Duration::from_millis(1)),
@@ -232,7 +212,7 @@ async fn test_send_joint_trajectory() {
         .await
         .unwrap();
     let v = client.current_joint_positions().unwrap();
-    assert_approx_eq!(v[0], 5.0, TOTAL_COMPLETE_ALLOWABLE_ERROR);
+    assert_approx_eq!(v[0], 5.0);
 }
 
 #[test]
