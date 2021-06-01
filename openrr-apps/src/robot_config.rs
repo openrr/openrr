@@ -263,7 +263,7 @@ impl RobotConfig {
             Some(Box::new(arci::Lazy::new(move || {
                 debug!("create_move_base_without_ros: creating UrdfVizWebClient");
                 let urdf_viz_client = UrdfVizWebClient::default();
-                urdf_viz_client.run_thread();
+                urdf_viz_client.run_send_velocity_thread();
                 Ok(urdf_viz_client)
             })))
         } else {
