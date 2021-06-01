@@ -19,10 +19,19 @@ pub struct JointNamesAndPositions {
     pub positions: Vec<f32>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, Default)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct RobotOrigin {
     pub position: [f32; 3],
     pub quaternion: [f32; 4],
+}
+
+impl Default for RobotOrigin {
+    fn default() -> Self {
+        Self {
+            position: Default::default(),
+            quaternion: [1.0, 0.0, 0.0, 0.0],
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
