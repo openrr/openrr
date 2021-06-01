@@ -31,4 +31,4 @@ k = "0.24"
 # for tests/utils (using same version of rosrust 0.9.5)
 
 [target.'cfg(unix)'.dev-dependencies]
-nix = "0.20.0"
+nix = "0.21.0"
