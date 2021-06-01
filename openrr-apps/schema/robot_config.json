@@ -52,21 +52,11 @@
         "$ref": "#/definitions/SpeakConfig"
       }
     },
-    "urdf_viz_clients_complete_timeout_sec": {
-      "default": 3.0,
-      "type": "number",
-      "format": "double"
-    },
     "urdf_viz_clients_configs": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/UrdfVizWebClientConfig"
       }
-    },
-    "urdf_viz_clients_total_complete_allowable_error": {
-      "default": 0.02,
-      "type": "number",
-      "format": "double"
     },
     "use_localization_urdf_viz_web_client": {
       "default": true,
@@ -81,6 +71,7 @@
       "type": "boolean"
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "CollisionCheckClientConfig": {
       "type": "object",
@@ -106,7 +97,8 @@
             }
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "IkClientConfig": {
       "type": "object",
@@ -125,7 +117,8 @@
         "solver_name": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "IkSolverConfig": {
       "type": "object",
@@ -206,7 +199,8 @@
           "default": false,
           "type": "boolean"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "JointPositionLimit": {
       "type": "object",
@@ -243,7 +237,8 @@
         "name": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "JointsPose": {
       "type": "object",
@@ -266,7 +261,8 @@
             "format": "double"
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "OpenrrClientsConfig": {
       "type": "object",
@@ -321,7 +317,8 @@
             "null"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "RosCmdVelMoveBaseConfig": {
       "type": "object",
@@ -332,7 +329,8 @@
         "topic": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "RosControlClientConfig": {
       "type": "object",
@@ -404,7 +402,8 @@
           "default": false,
           "type": "boolean"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "RosEspeakClientConfig": {
       "type": "object",
@@ -415,7 +414,8 @@
         "topic": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "RosLocalizationClientConfig": {
       "type": "object",
@@ -426,7 +426,8 @@
         "request_final_nomotion_update_hack": {
           "type": "boolean"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "RosNavClientConfig": {
       "type": "object",
@@ -441,7 +442,8 @@
         "request_final_nomotion_update_hack": {
           "type": "boolean"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "SelfCollisionCheckerConfig": {
       "type": "object",
@@ -456,7 +458,8 @@
           "type": "number",
           "format": "double"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "SpeakConfig": {
       "anyOf": [
@@ -472,7 +475,8 @@
                 "Print"
               ]
             }
-          }
+          },
+          "additionalProperties": false
         },
         {
           "type": "object",
@@ -486,7 +490,8 @@
                 "Command"
               ]
             }
-          }
+          },
+          "additionalProperties": false
         },
         {
           "type": "object",
@@ -504,7 +509,8 @@
                 "config": {
                   "$ref": "#/definitions/RosEspeakClientConfig"
                 }
-              }
+              },
+              "additionalProperties": false
             },
             "type": {
               "type": "string",
@@ -512,7 +518,8 @@
                 "RosEspeak"
               ]
             }
-          }
+          },
+          "additionalProperties": false
         },
         {
           "type": "object",
@@ -533,7 +540,8 @@
                     "type": "string"
                   }
                 }
-              }
+              },
+              "additionalProperties": false
             },
             "type": {
               "type": "string",
@@ -541,7 +549,8 @@
                 "Audio"
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -588,7 +597,8 @@
           "default": false,
           "type": "boolean"
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }

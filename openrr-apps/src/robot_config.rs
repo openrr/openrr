@@ -61,10 +61,6 @@ pub struct RobotConfig {
     // TOML format has a restriction that if a table itself contains tables,
     // all keys with non-table values must be emitted first.
     // Therefore, these fields must be located at the start of the struct.
-    #[serde(default = "default_urdf_viz_clients_total_complete_allowable_error")]
-    pub urdf_viz_clients_total_complete_allowable_error: f64,
-    #[serde(default = "default_urdf_viz_clients_complete_timeout_sec")]
-    pub urdf_viz_clients_complete_timeout_sec: f64,
     #[serde(default = "default_true")]
     pub use_move_base_urdf_viz_web_client: bool,
     #[serde(default = "default_true")]
@@ -118,9 +114,6 @@ impl Default for RobotConfig {
         Self {
             ros_clients_configs: Default::default(),
             urdf_viz_clients_configs: Default::default(),
-            urdf_viz_clients_total_complete_allowable_error:
-                default_urdf_viz_clients_total_complete_allowable_error(),
-            urdf_viz_clients_complete_timeout_sec: default_urdf_viz_clients_complete_timeout_sec(),
             speak_configs: Default::default(),
             ros_cmd_vel_move_base_client_config: Default::default(),
             use_move_base_urdf_viz_web_client: default_true(),
@@ -131,14 +124,6 @@ impl Default for RobotConfig {
             openrr_clients_config: Default::default(),
         }
     }
-}
-
-fn default_urdf_viz_clients_total_complete_allowable_error() -> f64 {
-    0.02
-}
-
-fn default_urdf_viz_clients_complete_timeout_sec() -> f64 {
-    3.0
 }
 
 fn default_true() -> bool {
@@ -366,8 +351,6 @@ impl RobotConfig {
         #[cfg(not(feature = "ros"))]
         let raw_joint_trajectory_clients = create_joint_trajectory_clients_lazy(
             self.urdf_viz_clients_configs.clone(),
-            self.urdf_viz_clients_total_complete_allowable_error,
-            self.urdf_viz_clients_complete_timeout_sec,
             urdf_robot.as_ref(),
         )?;
         #[cfg(feature = "ros")]
@@ -377,8 +360,6 @@ impl RobotConfig {
             } else {
                 create_joint_trajectory_clients_lazy(
                     self.urdf_viz_clients_configs.clone(),
-                    self.urdf_viz_clients_total_complete_allowable_error,
-                    self.urdf_viz_clients_complete_timeout_sec,
                     urdf_robot.as_ref(),
                 )?
             };
