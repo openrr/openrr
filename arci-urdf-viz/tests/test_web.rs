@@ -12,6 +12,7 @@ fn test_set_get_vel() {
     web_server.start_background();
     let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
         .unwrap();
+    c.run_send_velocity_thread();
     let v = c.current_velocity().unwrap();
     assert_approx_eq!(v.x, 0.0);
     assert_approx_eq!(v.y, 0.0);
