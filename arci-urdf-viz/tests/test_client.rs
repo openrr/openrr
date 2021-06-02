@@ -173,6 +173,7 @@ fn test_send_joint_positions_no_wait() {
     assert_approx_eq!(v[0], 1.0);
 }
 
+#[cfg_attr(tarpaulin, ignore)]
 #[tokio::test]
 async fn test_send_joint_trajectory() {
     const PORT: u16 = 7782;
