@@ -175,7 +175,7 @@ fn test_send_joint_positions_no_wait() {
 
 #[tokio::test]
 async fn test_send_joint_trajectory() {
-    const PORT: u16 = 7782;
+    const PORT: u16 = 7783;
     let web_server = WebServer::new(PORT);
     web_server.set_current_joint_positions(JointNamesAndPositions {
         names: vec!["j1".to_owned()],
@@ -218,7 +218,7 @@ async fn test_send_joint_trajectory() {
 #[test]
 #[should_panic = "send_joint_positions called without run_send_joint_positions_thread being called first"]
 fn send_joint_positions_without_send_joint_positions_thread() {
-    const PORT: u16 = 7783;
+    const PORT: u16 = 7784;
     let web_server = WebServer::new(PORT);
     web_server.set_current_joint_positions(JointNamesAndPositions {
         names: vec!["j1".to_owned()],
@@ -236,7 +236,7 @@ fn send_joint_positions_without_send_joint_positions_thread() {
 #[test]
 #[should_panic = "send_velocity called without run_send_velocity_thread being called first"]
 fn send_velocity_without_send_velocity_thread() {
-    const PORT: u16 = 7784;
+    const PORT: u16 = 7785;
     let web_server = WebServer::new(PORT);
     web_server.start_background();
     let client =
