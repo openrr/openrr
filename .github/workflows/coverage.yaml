@@ -40,7 +40,7 @@ jobs:
       - name: Install Rust
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
-            sh -s -- -y --profile minimal --default-toolchain stable
+            sh -s -- -y --profile minimal --default-toolchain nightly
       - run: cargo install cargo-tarpaulin --version 0.18.0-alpha3
       - name: Generate code coverage
         run: |
