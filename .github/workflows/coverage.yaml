@@ -41,7 +41,7 @@ jobs:
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
             sh -s -- -y --profile minimal --default-toolchain nightly
-      - run: cargo install cargo-tarpaulin --version 0.18.0-alpha3
+      - run: cargo install cargo-tarpaulin --version 0.16.0
       - name: Generate code coverage
         run: |
           # for test of arci-ros2
