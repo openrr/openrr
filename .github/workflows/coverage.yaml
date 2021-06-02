@@ -19,15 +19,29 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     container:
-      image: docker://openrr/openrr-coverage-ci:ros2
+      image: docker://ros:foxy-ros1-bridge-focal
       options: --security-opt seccomp=unconfined
     env:
       HOME: /root
     steps:
       - uses: actions/checkout@v2
-      - run: ci/ubuntu-install-dependencies.sh
+      - run: |
+          sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            curl \
+            libasound2-dev \
+            libclang-dev \
+            libfreetype6-dev \
+            libglu1-mesa-dev \
+            libudev-dev \
+            xorg-dev
       - name: Install Rust
-        run: rustup update nightly && rustup default nightly
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
+            sh -s -- -y --profile minimal --default-toolchain stable
+      - run: cargo install cargo-tarpaulin --version 0.16.0
       - name: Generate code coverage
         run: |
           # for test of arci-ros2
