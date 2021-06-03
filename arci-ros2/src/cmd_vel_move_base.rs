@@ -1,5 +1,6 @@
 use arci::*;
 use r2r::geometry_msgs::msg::Twist;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct Ros2CmdVelMoveBase {
@@ -35,7 +36,7 @@ impl MoveBase for Ros2CmdVelMoveBase {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Ros2CmdVelMoveBaseConfig {
     pub topic: String,
 }
