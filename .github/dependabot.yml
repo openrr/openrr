@@ -6,4 +6,10 @@ updates:
       interval: daily
     commit-message:
       prefix: ''
+    ignore:
+      # These dependencies need to be updated at the same time.
+      - dependency-name: k
+      - dependency-name: nalgebra
+      - dependency-name: ncollide3d
+      - dependency-name: urdf-viz
     labels: []
