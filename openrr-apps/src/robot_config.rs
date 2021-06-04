@@ -163,7 +163,7 @@ impl RobotConfig {
             speakers.insert(name, speaker.into());
         }
 
-        Ok(RobotClient::try_new(
+        Ok(RobotClient::new(
             self.openrr_clients_config.clone(),
             self.create_raw_joint_trajectory_clients()?,
             speakers,
@@ -402,7 +402,7 @@ mod test {
 }
 
 impl RobotConfig {
-    pub fn try_new<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         Self::from_str(
             &std::fs::read_to_string(&path)
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,

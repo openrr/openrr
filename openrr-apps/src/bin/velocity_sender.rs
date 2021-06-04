@@ -31,7 +31,7 @@ fn main() -> Result<()> {
         let s = &openrr_config::overwrite_str(s, overwrite)?;
         RobotConfig::from_str(s, config_path)?
     } else {
-        RobotConfig::try_new(config_path)?
+        RobotConfig::new(config_path)?
     };
 
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &config);

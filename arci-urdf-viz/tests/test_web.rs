@@ -10,8 +10,8 @@ fn test_set_get_vel() {
     const PORT: u16 = 8888;
     let web_server = WebServer::new(PORT);
     web_server.start_background();
-    let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-        .unwrap();
+    let c =
+        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
     c.run_send_velocity_thread();
     let v = c.current_velocity().unwrap();
     assert_approx_eq!(v.x, 0.0);
@@ -30,8 +30,8 @@ async fn test_set_get_pose() {
     const PORT: u16 = 8889;
     let web_server = WebServer::new(PORT);
     web_server.start_background();
-    let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-        .unwrap();
+    let c =
+        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
     let pose = c.current_pose("").unwrap();
     assert_approx_eq!(pose.translation.x, 0.0);
     assert_approx_eq!(pose.translation.y, 0.0);
@@ -55,8 +55,8 @@ fn test_set_get_pose_no_wait() {
     const PORT: u16 = 8890;
     let web_server = WebServer::new(PORT);
     web_server.start_background();
-    let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-        .unwrap();
+    let c =
+        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
     let pose = c.current_pose("").unwrap();
     assert_approx_eq!(pose.translation.x, 0.0);
     assert_approx_eq!(pose.translation.y, 0.0);

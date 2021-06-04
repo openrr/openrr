@@ -18,7 +18,7 @@ pub struct LocalMoveConfig {
 }
 
 impl LocalMoveConfig {
-    pub fn try_new<P: AsRef<std::path::Path>>(path: P) -> Result<Self, Error> {
+    pub fn new<P: AsRef<std::path::Path>>(path: P) -> Result<Self, Error> {
         let config: LocalMoveConfig = toml::from_str(
             &std::fs::read_to_string(&path)
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,
@@ -99,7 +99,7 @@ mod tests {
     #[test]
     fn test_config() {
         let path = std::path::Path::new("tests/local_move_sample.toml");
-        let config = LocalMoveConfig::try_new(path).unwrap();
+        let config = LocalMoveConfig::new(path).unwrap();
         assert_approx_eq!(config.reach_distance_threshold, 0.1);
         assert_approx_eq!(config.control_frequency, 10.0);
         assert_approx_eq!(config.linear_gain, 1.0);
@@ -109,7 +109,7 @@ mod tests {
     #[test]
     fn test() {
         let path = std::path::Path::new("tests/local_move_sample.toml");
-        let config = LocalMoveConfig::try_new(path).unwrap();
+        let config = LocalMoveConfig::new(path).unwrap();
         assert_approx_eq!(config.linear_gain, 1.0);
         let move_base = DummyMoveBase::new();
         let nav = DummyNavigation::new();

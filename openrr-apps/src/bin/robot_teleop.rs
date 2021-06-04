@@ -49,7 +49,7 @@ async fn main() -> Result<()> {
         let s = &openrr_config::overwrite_str(s, overwrite)?;
         RobotTeleopConfig::from_str(s, teleop_config_path)?
     } else {
-        RobotTeleopConfig::try_new(teleop_config_path)?
+        RobotTeleopConfig::new(teleop_config_path)?
     };
     let robot_config_path = teleop_config.robot_config_full_path().as_ref().unwrap();
     let robot_config = if let Some(overwrite) = &args.robot_config {
@@ -57,7 +57,7 @@ async fn main() -> Result<()> {
         let s = &openrr_config::overwrite_str(s, overwrite)?;
         RobotConfig::from_str(s, robot_config_path)?
     } else {
-        RobotConfig::try_new(robot_config_path)?
+        RobotConfig::new(robot_config_path)?
     };
 
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &robot_config);

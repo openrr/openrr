@@ -35,7 +35,7 @@ pub struct RobotTeleopConfig {
 }
 
 impl RobotTeleopConfig {
-    pub fn try_new<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         Self::from_str(
             &std::fs::read_to_string(&path)
                 .map_err(|e| Error::NoFile(path.as_ref().to_owned(), e))?,

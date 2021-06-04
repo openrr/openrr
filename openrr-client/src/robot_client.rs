@@ -54,7 +54,7 @@ where
     M: MoveBase,
     N: Navigation,
 {
-    pub fn try_new(
+    pub fn new(
         config: OpenrrClientsConfig,
         raw_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
         speakers: HashMap<String, Arc<dyn Speaker>>,
@@ -710,7 +710,7 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         ))
         .unwrap();
         config.urdf_full_path = Some(root_dir.join("openrr-planner/sample.urdf"));
-        let _client = BoxRobotClient::try_new(
+        let _client = BoxRobotClient::new(
             config,
             {
                 let mut map = HashMap::new();
