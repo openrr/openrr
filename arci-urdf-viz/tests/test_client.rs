@@ -121,8 +121,8 @@ fn test_current_joint_positions() {
         positions: vec![1.0, -1.0],
     });
     web_server.start_background();
-    let c = UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-        .unwrap();
+    let c =
+        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
     let v = c.current_joint_positions().unwrap();
     assert_approx_eq!(v[0], 1.0);
     assert_approx_eq!(v[1], -1.0);
@@ -138,8 +138,7 @@ async fn test_send_joint_positions() {
     });
     web_server.start_background();
     let client =
-        UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-            .unwrap();
+        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
     client.run_send_joint_positions_thread();
     let result = client
         .send_joint_positions(vec![1.0], Duration::from_secs(1))
@@ -160,8 +159,7 @@ fn test_send_joint_positions_no_wait() {
     });
     web_server.start_background();
     let client =
-        UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-            .unwrap();
+        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
     client.run_send_joint_positions_thread();
     let _ = client
         .send_joint_positions(vec![1.0], Duration::from_secs(1))
@@ -184,8 +182,7 @@ async fn test_send_joint_trajectory() {
     });
     web_server.start_background();
     let client =
-        UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-            .unwrap();
+        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
     client.run_send_joint_positions_thread();
 
     let trajectory = vec![
@@ -227,8 +224,7 @@ fn send_joint_positions_without_send_joint_positions_thread() {
     });
     web_server.start_background();
     let client =
-        UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-            .unwrap();
+        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
     let _ = client
         .send_joint_positions(vec![1.0], Duration::from_secs(1))
         .unwrap();
@@ -241,7 +237,6 @@ fn send_velocity_without_send_velocity_thread() {
     let web_server = WebServer::new(PORT);
     web_server.start_background();
     let client =
-        UrdfVizWebClient::try_new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap())
-            .unwrap();
+        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
     client.send_velocity(&BaseVelocity::default()).unwrap();
 }

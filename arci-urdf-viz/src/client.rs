@@ -195,7 +195,7 @@ impl UrdfVizWebClientInner {
 }
 
 impl UrdfVizWebClient {
-    pub fn try_new(base_url: Url) -> Result<Self, anyhow::Error> {
+    pub fn new(base_url: Url) -> Result<Self, anyhow::Error> {
         let joint_state = get_joint_positions(&base_url)?;
         Ok(Self(Arc::new(UrdfVizWebClientInner {
             base_url,
@@ -360,7 +360,7 @@ impl UrdfVizWebClient {
 
 impl Default for UrdfVizWebClient {
     fn default() -> Self {
-        Self::try_new(Url::parse("http://127.0.0.1:7777").unwrap()).unwrap()
+        Self::new(Url::parse("http://127.0.0.1:7777").unwrap()).unwrap()
     }
 }
 
