@@ -32,7 +32,8 @@ jobs:
           source /opt/ros/foxy/setup.bash
           # for test of arci-ros (roscore, rostopic)
           source /opt/ros/noetic/setup.bash
-          cargo tarpaulin --verbose --all-features --workspace --out Xml --timeout 60
+          # TODO: Currently, if we include arci-ros2, the build fails due to "Broken pipe (os error 32)" error.
+          cargo tarpaulin --verbose --all-features --workspace --exclude arci-ros2 --out Xml --timeout 60
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
