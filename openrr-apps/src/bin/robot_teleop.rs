@@ -2,10 +2,11 @@
 use std::thread;
 use std::{fs, path::PathBuf, sync::Arc};
 
-use anyhow::Result;
+use anyhow::{format_err, Result};
 use arci_gamepad_gilrs::GilGamepad;
-use openrr_apps::{Error, GamepadKind, RobotConfig, RobotTeleopConfig};
+use openrr_apps::{BuiltinGamepad, Error, GamepadKind, RobotConfig, RobotTeleopConfig};
 use openrr_client::ArcRobotClient;
+use openrr_plugin::PluginProxy;
 use openrr_teleop::ControlNodeSwitcher;
 use structopt::StructOpt;
 use tracing::info;
@@ -108,7 +109,7 @@ async fn main() -> Result<()> {
     }
 
     match teleop_config.gamepad {
-        GamepadKind::Gilrs => {
+        GamepadKind::Builtin(BuiltinGamepad::Gilrs) => {
             switcher
                 .main(GilGamepad::new_from_config(
                     teleop_config.gil_gamepad_config,
@@ -116,14 +117,43 @@ async fn main() -> Result<()> {
                 .await;
         }
         #[cfg(unix)]
-        GamepadKind::Keyboard => {
+        GamepadKind::Builtin(BuiltinGamepad::Keyboard) => {
             switcher
                 .main(arci_gamepad_keyboard::KeyboardGamepad::new())
                 .await;
         }
         #[cfg(windows)]
-        GamepadKind::Keyboard => {
+        GamepadKind::Builtin(BuiltinGamepad::Keyboard) => {
             tracing::warn!("`gamepad = \"Keyboard\"` is not supported on windows");
+        }
+        GamepadKind::Plugin(name) => {
+            let mut gamepad = None;
+            for (plugin_name, config) in teleop_config.plugins {
+                if name == plugin_name {
+                    let args = if let Some(path) = &config.args_from_path {
+                        fs::read_to_string(path).map_err(|e| Error::NoFile(path.to_owned(), e))?
+                    } else {
+                        config.args.unwrap_or_default()
+                    };
+                    let plugin = PluginProxy::from_path(&config.path)?;
+                    gamepad = Some(plugin.new_gamepad(args)?.ok_or_else(|| {
+                        format_err!("failed to create `Gamepad` instance `{}`: None", name,)
+                    })?);
+                    break;
+                }
+            }
+            match gamepad {
+                Some(gamepad) => {
+                    switcher.main(gamepad).await;
+                }
+                None => {
+                    return Err(Error::NoPluginInstance {
+                        name,
+                        kind: "Gamepad".to_string(),
+                    }
+                    .into());
+                }
+            }
         }
     }
 

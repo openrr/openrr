@@ -34,6 +34,7 @@ k = "0.24"
 openrr-client = { version = "0.0.5", default-features = false }
 openrr-command = { version = "0.0.5", default-features = false }
 openrr-config = "0.0.5"
+openrr-plugin = "0.0.5"
 openrr-teleop = { version = "0.0.5", default-features = false }
 rand = "0.8.0"
 schemars = "0.8.3"

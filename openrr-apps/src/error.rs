@@ -17,6 +17,10 @@ pub enum Error {
     NoParentDirectory(PathBuf),
     #[error("openrr-apps: No SpecifiedNode {:?} is found.", .0)]
     NoSpecifiedNode(String),
+    #[error("openrr-apps: No {:?} plugin instance {:?} is found", kind, name)]
+    NoPluginInstance { kind: String, name: String },
+    #[error("openrr-apps: {}", .0)]
+    DuplicateInstance(String),
     #[error("openrr-apps: Config {:?} requires ros feature.", .0)]
     ConfigRequireRos(String),
     #[error("openrr-apps: arci: {:?}", .0)]

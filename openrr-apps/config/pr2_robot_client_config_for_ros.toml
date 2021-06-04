@@ -1,5 +1,3 @@
-use_move_base_urdf_viz_web_client = false
-use_navigation_urdf_viz_web_client = false
 ros_cmd_vel_move_base_client_config.topic = "/base_controller/command"
 
 [[ros_clients_configs]]

@@ -4,10 +4,7 @@ use std::{iter, mem};
 
 use anyhow::{bail, Context, Result};
 use toml::{value, Value};
-use toml_query::{
-    delete::TomlValueDeleteExt, insert::TomlValueInsertExt, read::TomlValueReadExt,
-    set::TomlValueSetExt,
-};
+use toml_query::{delete::TomlValueDeleteExt, insert::TomlValueInsertExt, read::TomlValueReadExt};
 use tracing::debug;
 
 const SEPARATORS: &[char] = &['\n', ';'];
@@ -49,12 +46,6 @@ pub fn overwrite(doc: &mut Value, scripts: &str) -> Result<()> {
         let is_structure = matches!(&old, Some(r) if r.is_table() || r.is_array());
         match script.operation {
             Operation::Set(value) => {
-                if exists {
-                    debug!(?query, ?value, ?old, "executing set operation");
-                    doc.set(query, value)?;
-                    continue;
-                }
-
                 // TODO:
                 // - Workaround for toml-query bug: https://docs.rs/toml-query/0.10/toml_query/insert/trait.TomlValueInsertExt.html#known-bugs
                 // - Validate that the query points to a valid configuration.

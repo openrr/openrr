@@ -11,7 +11,7 @@
       "$ref": "#/definitions/ControlNodesConfig"
     },
     "gamepad": {
-      "default": "Gilrs",
+      "default": "gilrs",
       "allOf": [
         {
           "$ref": "#/definitions/GamepadKind"
@@ -140,6 +140,13 @@
       "default": "",
       "type": "string"
     },
+    "plugins": {
+      "default": {},
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/TeleopPluginConfig"
+      }
+    },
     "robot_config_full_path": {
       "type": [
         "string",
@@ -150,6 +157,7 @@
       "type": "string"
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "Axis": {
       "type": "string",
@@ -163,6 +171,13 @@
         "DPadX",
         "DPadY",
         "Unknown"
+      ]
+    },
+    "BuiltinGamepad": {
+      "type": "string",
+      "enum": [
+        "gilrs",
+        "keyboard"
       ]
     },
     "Button": {
@@ -223,13 +238,17 @@
             "null"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "GamepadKind": {
-      "type": "string",
-      "enum": [
-        "Gilrs",
-        "Keyboard"
+      "anyOf": [
+        {
+          "$ref": "#/definitions/BuiltinGamepad"
+        },
+        {
+          "type": "string"
+        }
       ]
     },
     "GilGamepadConfig": {
@@ -356,7 +375,8 @@
             }
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "GilrsAxis": {
       "type": "string",
@@ -439,7 +459,8 @@
           "type": "number",
           "format": "double"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "IkNodeTeleopConfig": {
       "type": "object",
@@ -458,7 +479,8 @@
         "solver_name": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "JointsPoseSenderConfig": {
       "type": "object",
@@ -472,7 +494,8 @@
           "default": "pose",
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "JoyJointTeleopConfig": {
       "type": "object",
@@ -487,7 +510,8 @@
         "config": {
           "$ref": "#/definitions/JoyJointTeleopNodeConfig"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "JoyJointTeleopNodeConfig": {
       "type": "object",
@@ -508,7 +532,8 @@
           "type": "number",
           "format": "double"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "Map": {
       "type": "object",
@@ -568,6 +593,33 @@
           }
         }
       }
+    },
+    "TeleopPluginConfig": {
+      "type": "object",
+      "required": [
+        "path"
+      ],
+      "properties": {
+        "args": {
+          "description": "Arguments passed when creating this instance.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "args_from_path": {
+          "description": "Pass the contents of the specified file as an argument.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "Path to the plugin. If no extension is specified, the default extension for `cdylib` on the current OS will be selected. (linux: `.so`, macos: `.dylib`, windows: `.dll`)",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }
