@@ -30,13 +30,27 @@ impl<C> PartialJointTrajectoryClient<C>
 where
     C: JointTrajectoryClient,
 {
-    pub fn new(joint_names: Vec<String>, shared_client: C) -> Self {
+    pub fn try_new(joint_names: Vec<String>, shared_client: C) -> Result<Self, String> {
         let full_joint_names = shared_client.joint_names().to_vec();
-        Self {
+        if joint_names.len() > full_joint_names.len() {
+            return Err(format!(
+                "Joint name length is illegal. (full = { }, partial = { })",
+                full_joint_names.len(),
+                joint_names.len()
+            ));
+        }
+
+        for joint_name in joint_names.iter() {
+            if full_joint_names.iter().find(|&x| x == joint_name).is_none() {
+                return Err(format!("{ } is not find at Shared joint.", joint_name,));
+            }
+        }
+
+        Ok(Self {
             joint_names,
             shared_client,
             full_joint_names,
-        }
+        })
     }
 }
 
@@ -160,18 +174,36 @@ mod tests {
             last_trajectory: Arc::new(Mutex::new(Vec::new())),
         };
 
+        // over joint pattern(Error)
+        let joint_names = vec![
+            String::from("low"),
+            String::from("part2"),
+            String::from("high"),
+            String::from("part1"),
+        ];
+        let partial = PartialJointTrajectoryClient::try_new(joint_names, client.clone());
+        assert!(partial.is_err());
+
+        // same joint pattern(Error)
+        let joint_names = vec![
+            String::from("low"),
+            String::from("part2"),
+            String::from("part1"),
+        ];
+        let partial = PartialJointTrajectoryClient::try_new(joint_names, client.clone());
+        assert!(partial.is_err());
+
         // same joint pattern
         let joint_names = vec![
-            String::from("part1"),
             String::from("high"),
             String::from("part2"),
-            String::from("low"),
+            String::from("part1"),
         ];
-        let partial = PartialJointTrajectoryClient::new(joint_names, client.clone());
+        let partial = PartialJointTrajectoryClient::try_new(joint_names, client.clone()).unwrap();
 
         assert_eq!(
             format!("{:?}", partial.joint_names),
-            "[\"part1\", \"high\", \"part2\", \"low\"]"
+            "[\"high\", \"part2\", \"part1\"]"
         );
         assert_eq!(
             format!("{:?}", client),
@@ -182,9 +214,14 @@ mod tests {
             "[\"part1\", \"high\", \"part2\"]"
         );
 
+        // few joint pattern(Error)
+        let joint_names = vec![String::from("low"), String::from("high")];
+        let partial = PartialJointTrajectoryClient::try_new(joint_names, client.clone());
+        assert!(partial.is_err());
+
         // few joint pattern
         let joint_names = vec![String::from("part1"), String::from("high")];
-        let partial = PartialJointTrajectoryClient::new(joint_names, client.clone());
+        let partial = PartialJointTrajectoryClient::try_new(joint_names, client.clone()).unwrap();
 
         assert_eq!(
             format!("{:?}", partial.joint_names),
@@ -329,8 +366,7 @@ mod tests {
             last_trajectory: Arc::new(Mutex::new(Vec::new())),
         };
         let joint_names = vec![String::from("part1"), String::from("high")];
-
-        let partial = PartialJointTrajectoryClient::new(joint_names, client);
+        let partial = PartialJointTrajectoryClient::try_new(joint_names, client).unwrap();
 
         assert_eq!(
             format!("{:?}", partial.joint_names()),
@@ -340,7 +376,7 @@ mod tests {
 
     #[test]
     fn test_partial_current_pos() {
-        // partial > full
+        // partial = full
         let client = DummyFull {
             name: vec![
                 String::from("part1"),
@@ -354,11 +390,10 @@ mod tests {
             String::from("part1"),
             String::from("high"),
             String::from("part2"),
-            String::from("low"),
         ];
         let correct = vec![1.0_f64, 3.0, 2.4];
 
-        let partial = PartialJointTrajectoryClient::new(joint_names, client.clone());
+        let partial = PartialJointTrajectoryClient::try_new(joint_names, client.clone()).unwrap();
         let current_pos = partial.current_joint_positions();
         assert!(current_pos.is_ok());
         let current_pos = current_pos.unwrap();
@@ -372,7 +407,7 @@ mod tests {
         let joint_names = vec![String::from("part1"), String::from("high")];
         let correct = vec![1.0_f64, 3.0, 2.4];
 
-        let partial = PartialJointTrajectoryClient::new(joint_names, client);
+        let partial = PartialJointTrajectoryClient::try_new(joint_names, client).unwrap();
         let current_pos = partial.current_joint_positions();
         assert!(current_pos.is_ok());
         let current_pos = current_pos.unwrap();
@@ -396,16 +431,16 @@ mod tests {
         };
         let duration = std::time::Duration::from_secs(5);
 
-        // partial > full
+        // partial = full
         let joint_names = vec![
             String::from("part1"),
             String::from("high"),
             String::from("part2"),
-            String::from("low"),
         ];
         let next_pos = vec![2.2_f64, 0.5, 1.7];
 
-        let partial = PartialJointTrajectoryClient::new(joint_names.clone(), client.clone());
+        let partial =
+            PartialJointTrajectoryClient::try_new(joint_names.clone(), client.clone()).unwrap();
 
         let result = partial.send_joint_positions(next_pos.clone(), duration);
         assert!(result.is_ok());
@@ -421,7 +456,8 @@ mod tests {
         let joint_names = vec![String::from("part2"), String::from("part1")];
         let next_pos = vec![4.8_f64, 1.5];
 
-        let partial = PartialJointTrajectoryClient::new(joint_names.clone(), client.clone());
+        let partial =
+            PartialJointTrajectoryClient::try_new(joint_names.clone(), client.clone()).unwrap();
 
         let result = partial.send_joint_positions(next_pos.clone(), duration);
         assert!(result.is_ok());
@@ -448,7 +484,7 @@ mod tests {
             last_trajectory: Arc::new(Mutex::new(Vec::new())),
         };
 
-        // partial > full
+        // partial = full
         let joint_names = vec![
             String::from("part1"),
             String::from("high"),
@@ -467,7 +503,8 @@ mod tests {
         ];
         let correct = vec![3.4_f64, 5.8_f64, 0.1_f64, 2.5_f64];
 
-        let partial = PartialJointTrajectoryClient::new(joint_names.clone(), client.clone());
+        let partial =
+            PartialJointTrajectoryClient::try_new(joint_names.clone(), client.clone()).unwrap();
         let result = partial.send_joint_trajectory(trajectories);
         assert!(result.is_ok());
         assert!(result.unwrap().await.is_ok());
@@ -497,7 +534,8 @@ mod tests {
         ];
         let correct = vec![1.0_f64, 3.0_f64, 2.2_f64];
 
-        let partial = PartialJointTrajectoryClient::new(joint_names.clone(), client.clone());
+        let partial =
+            PartialJointTrajectoryClient::try_new(joint_names.clone(), client.clone()).unwrap();
         let result = partial.send_joint_trajectory(trajectories);
         assert!(result.is_ok());
         assert!(result.unwrap().await.is_ok());

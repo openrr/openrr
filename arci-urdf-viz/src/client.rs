@@ -83,7 +83,8 @@ fn create_joint_trajectory_clients_inner(
             .into());
         }
         let client =
-            arci::PartialJointTrajectoryClient::new(config.joint_names, all_client.clone());
+            arci::PartialJointTrajectoryClient::try_new(config.joint_names, all_client.clone())
+                .unwrap();
         let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
             if config.wrap_with_joint_position_limiter {
                 Arc::new(new_joint_position_limiter(
