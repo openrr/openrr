@@ -144,7 +144,7 @@ impl PluginConfig {
         if instances.is_empty() {
             return Err(Error::NoPluginInstance {
                 name: instance_name.unwrap_or_default().to_string(),
-                kind: format!("{:?}", instance_kind),
+                kind: instance_kind.to_string(),
             });
         }
         if instances.len() == 1 {
@@ -205,6 +205,40 @@ impl PluginInstance {
             Ok(self.args.clone().unwrap_or_default())
         }
     }
+
+    fn create_lazy_instance<T, F>(
+        &self,
+        plugins: &mut PluginMap,
+        plugin_name: &str,
+        f: F,
+    ) -> Result<arci::Lazy<'static, T>, Error>
+    where
+        T: fmt::Debug,
+        F: FnOnce(&PluginProxy, String) -> Result<Option<T>, arci::Error> + Send + Sync + 'static,
+    {
+        let plugin = if let Some(plugin) = plugins.load(plugin_name)? {
+            plugin
+        } else {
+            return Err(Error::NoPluginInstance {
+                name: plugin_name.to_string(),
+                kind: self.type_.to_string(),
+            });
+        };
+        let args = self.load_args()?;
+        let plugin_name = plugin_name.to_string();
+        let instance_name = self.name.clone();
+        let instance_kind = self.type_;
+        Ok(arci::Lazy::new(move || match f(&plugin, args) {
+            Ok(Some(instance)) => {
+                info!(
+                    "created `{:?}` instance `{}` from plugin `{}`",
+                    instance_kind, instance_name, plugin_name,
+                );
+                Ok(instance)
+            }
+            res => instance_create_error(res, instance_kind, instance_name, plugin_name)?,
+        }))
+    }
 }
 
 /// Trait kind of the instance.
@@ -217,6 +251,12 @@ pub enum PluginInstanceKind {
     MoveBase,
     Navigation,
     Speaker,
+}
+
+impl fmt::Display for PluginInstanceKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 #[derive(Debug, Default)]
@@ -431,23 +471,11 @@ impl RobotConfig {
             )?,
         };
 
-        let plugin = plugins.load(plugin_name)?.unwrap();
-        let args = instance.load_args()?;
-        let plugin_name = plugin_name.to_string();
-        let instance_name = instance.name.clone();
-        let instance_kind = instance.type_;
-        Ok(Some(Box::new(arci::Lazy::new(move || {
-            match plugin.new_localization(args) {
-                Ok(Some(loc)) => {
-                    info!(
-                        "created `{:?}` instance `{}` from plugin `{}`",
-                        instance_kind, instance_name, plugin_name,
-                    );
-                    Ok(loc)
-                }
-                res => instance_create_error(res, instance_kind, instance_name, plugin_name)?,
-            }
-        }))))
+        Ok(Some(Box::new(instance.create_lazy_instance(
+            plugins,
+            plugin_name,
+            PluginProxy::new_localization,
+        )?)))
     }
 
     fn create_navigation_urdf_viz(&self) -> Box<dyn Navigation> {
@@ -512,23 +540,11 @@ impl RobotConfig {
             )?,
         };
 
-        let plugin = plugins.load(plugin_name)?.unwrap();
-        let args = instance.load_args()?;
-        let plugin_name = plugin_name.to_string();
-        let instance_name = instance.name.clone();
-        let instance_kind = instance.type_;
-        Ok(Some(Box::new(arci::Lazy::new(move || {
-            match plugin.new_navigation(args) {
-                Ok(Some(nav)) => {
-                    info!(
-                        "created `{:?}` instance `{}` from plugin `{}`",
-                        instance_kind, instance_name, plugin_name,
-                    );
-                    Ok(nav)
-                }
-                res => instance_create_error(res, instance_kind, instance_name, plugin_name)?,
-            }
-        }))))
+        Ok(Some(Box::new(instance.create_lazy_instance(
+            plugins,
+            plugin_name,
+            PluginProxy::new_navigation,
+        )?)))
     }
 
     fn create_move_base_urdf_viz(&self) -> Box<dyn MoveBase> {
@@ -599,23 +615,11 @@ impl RobotConfig {
             )?,
         };
 
-        let plugin = plugins.load(plugin_name)?.unwrap();
-        let args = instance.load_args()?;
-        let plugin_name = plugin_name.to_string();
-        let instance_name = instance.name.clone();
-        let instance_kind = instance.type_;
-        Ok(Some(Box::new(arci::Lazy::new(move || {
-            match plugin.new_move_base(args) {
-                Ok(Some(nav)) => {
-                    info!(
-                        "created `{:?}` instance `{}` from plugin `{}`",
-                        instance_kind, instance_name, plugin_name,
-                    );
-                    Ok(nav)
-                }
-                res => instance_create_error(res, instance_kind, instance_name, plugin_name)?,
-            }
-        }))))
+        Ok(Some(Box::new(instance.create_lazy_instance(
+            plugins,
+            plugin_name,
+            PluginProxy::new_move_base,
+        )?)))
     }
 
     fn create_print_speaker(&self) -> Box<dyn Speaker> {
@@ -689,25 +693,14 @@ impl RobotConfig {
                         instance.type_, instance.name,
                     )));
                 }
-                let plugin = plugins.load(plugin_name)?.unwrap();
-                let args = instance.load_args()?;
-                let plugin_name = plugin_name.clone();
-                let instance_name = instance.name.clone();
-                let instance_kind = instance.type_;
+
                 speakers.insert(
-                    instance_name.clone(),
-                    Arc::new(arci::Lazy::new(move || match plugin.new_speaker(args) {
-                        Ok(Some(speaker)) => {
-                            info!(
-                                "created `{:?}` instance `{}` from plugin `{}`",
-                                instance_kind, instance_name, plugin_name,
-                            );
-                            Ok(speaker)
-                        }
-                        res => {
-                            instance_create_error(res, instance_kind, instance_name, plugin_name)?
-                        }
-                    })),
+                    instance.name.clone(),
+                    Arc::new(instance.create_lazy_instance(
+                        plugins,
+                        plugin_name,
+                        PluginProxy::new_speaker,
+                    )?),
                 );
             }
         }
@@ -787,24 +780,21 @@ impl RobotConfig {
                         instance.type_, instance.name,
                     )));
                 }
-                let plugin = plugins.load(plugin_name)?.unwrap();
-                let args = instance.load_args()?;
-                let plugin_name = plugin_name.clone();
-                let instance_name = instance.name.clone();
-                let instance_kind = instance.type_;
-                // JointTrajectoryClientsContainer::new, which is called inside
-                // RobotClient::new, calls JointTrajectoryClient::joint_names,
-                // so it makes no sense to make JointTrajectoryClient lazy here.
-                match plugin.new_joint_trajectory_client(args) {
-                    Ok(Some(client)) => {
-                        info!(
-                            "created `{:?}` instance `{}` from plugin `{}`",
-                            instance_kind, instance_name, plugin_name,
-                        );
-                        clients.insert(instance_name, Arc::new(client));
-                    }
-                    res => instance_create_error(res, instance_kind, instance_name, plugin_name)?,
-                }
+
+                let client = instance.create_lazy_instance(
+                    plugins,
+                    plugin_name,
+                    PluginProxy::new_joint_trajectory_client,
+                )?;
+                // If the `PluginProxy::new_joint_trajectory_client` returns
+                // `Err` or `None`, `JointTrajectoryClient::joint_names` will
+                // panic. Therefore, initialize it here to allow the user to
+                // handle error.
+                // `JointTrajectoryClientsContainer::new`, which is called inside
+                // `RobotClient::new`, calls `JointTrajectoryClient::joint_names`,
+                // so it makes no sense to make `JointTrajectoryClient` lazy here.
+                client.get_ref()?;
+                clients.insert(instance.name.clone(), Arc::new(client));
             }
         }
 
