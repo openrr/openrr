@@ -60,31 +60,6 @@ macro_rules! export_plugin {
     };
 }
 
-/// The plugin manager.
-#[derive(Debug, Default)]
-pub struct PluginManager {
-    plugins: Vec<PluginProxy>,
-}
-
-impl PluginManager {
-    /// Creates a new `PluginManager`.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Loads a plugin from the specified path.
-    pub fn load(&mut self, path: impl AsRef<Path>) -> Result<(), arci::Error> {
-        let plugin = PluginProxy::from_path(path)?;
-        self.plugins.push(plugin);
-        Ok(())
-    }
-
-    /// Returns the list of all plugins managed by this plugin manager.
-    pub fn plugins(&self) -> &[PluginProxy] {
-        &self.plugins
-    }
-}
-
 /// The plugin trait.
 pub trait Plugin: Send + Sync + 'static {
     /// Returns the name of this plugin.

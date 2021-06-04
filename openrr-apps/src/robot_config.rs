@@ -1,9 +1,12 @@
 use std::{
     collections::HashMap,
+    fmt, fs,
+    iter::FromIterator,
     path::{Path, PathBuf},
     sync::Arc,
 };
 
+use anyhow::format_err;
 use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker};
 #[cfg(feature = "ros")]
 use arci_ros::{
@@ -13,15 +16,48 @@ use arci_ros::{
 };
 use arci_speak_audio::AudioSpeaker;
 use arci_speak_cmd::LocalCommand;
-use arci_urdf_viz::{
-    create_joint_trajectory_clients_lazy, UrdfVizWebClient, UrdfVizWebClientConfig,
-};
+use arci_urdf_viz::{UrdfVizWebClient, UrdfVizWebClientConfig};
 use openrr_client::{OpenrrClientsConfig, PrintSpeaker, RobotClient};
+use openrr_plugin::PluginProxy;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use tracing::debug;
+use tracing::{debug, error, info};
 
 use crate::Error;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum BuiltinClient {
+    /// [ROS1](https://ros.org)
+    Ros,
+    /// [urdf-viz](https://github.com/openrr/urdf-viz)
+    UrdfViz,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(untagged)]
+pub enum ClientKind {
+    // Use builtin client, ros or urdf-viz.
+    Builtin(BuiltinClient),
+    // Use plugin.
+    Plugin(String),
+    // true: auto-selection
+    // false: disable
+    Auto(bool),
+}
+
+impl ClientKind {
+    #[cfg(feature = "ros")]
+    fn is_builtin_ros(&self) -> bool {
+        matches!(self, Self::Builtin(BuiltinClient::Ros))
+    }
+}
+
+impl Default for ClientKind {
+    fn default() -> Self {
+        Self::Auto(true)
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(tag = "type", content = "args")]
@@ -39,7 +75,7 @@ pub enum SpeakConfig {
     #[doc(hidden)]
     #[cfg(not(feature = "ros"))]
     #[serde(rename = "RosEspeak")]
-    __RosEspeak {
+    RosEspeak {
         #[schemars(schema_with = "unimplemented_schema")]
         config: toml::Value,
     },
@@ -54,19 +90,187 @@ impl Default for SpeakConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct PluginConfig {
+    /// Path to the plugin. If no extension is specified, the default extension
+    /// for `cdylib` on the current OS will be selected.
+    /// (linux: `.so`, macos: `.dylib`, windows: `.dll`)
+    pub path: PathBuf,
+    pub instances: Vec<PluginInstance>,
+}
+
+impl PluginConfig {
+    fn find_instances_by_name<'a>(
+        map: &'a HashMap<String, Self>,
+        instance_name: &'a str,
+        instance_kind: PluginInstanceKind,
+    ) -> impl Iterator<Item = (&'a str, &'a PluginInstance)> {
+        map.iter().flat_map(move |(plugin_name, plugin_config)| {
+            plugin_config
+                .instances
+                .iter()
+                .filter(move |instance| {
+                    instance.name == instance_name && instance.type_ == instance_kind
+                })
+                .map(move |instance| (plugin_name.as_str(), instance))
+        })
+    }
+
+    fn find_instances_by_kind(
+        map: &HashMap<String, Self>,
+        instance_kind: PluginInstanceKind,
+    ) -> impl Iterator<Item = (&str, &PluginInstance)> {
+        map.iter().flat_map(move |(plugin_name, plugin_config)| {
+            plugin_config
+                .instances
+                .iter()
+                .filter(move |instance| instance.type_ == instance_kind)
+                .map(move |instance| (plugin_name.as_str(), instance))
+        })
+    }
+
+    fn resolve_instance<'a>(
+        map: &'a HashMap<String, Self>,
+        instance_name: Option<&'a str>,
+        instance_kind: PluginInstanceKind,
+    ) -> Result<(&'a str, &'a PluginInstance), Error> {
+        let instances: Vec<_> = if let Some(instance_name) = instance_name {
+            Self::find_instances_by_name(map, instance_name, instance_kind).collect()
+        } else {
+            Self::find_instances_by_kind(map, instance_kind).collect()
+        };
+
+        if instances.is_empty() {
+            return Err(Error::NoPluginInstance {
+                name: instance_name.unwrap_or_default().to_string(),
+                kind: format!("{:?}", instance_kind),
+            });
+        }
+        if instances.len() == 1 {
+            return Ok(instances[0]);
+        }
+
+        if let Some(instance_name) = instance_name {
+            Err(Error::DuplicateInstance(format!(
+                "Multiple {:?} plugin instances {:?} are found. Consider renaming one of the instances",
+                instance_kind, instance_name,
+            )))
+        } else {
+            Err(Error::DuplicateInstance(format!(
+                "Multiple plugin instances for {:?} are found. Consider specifying the instance to use",
+                instance_kind
+            )))
+        }
+    }
+}
+
+pub(crate) fn resolve_plugin_path(
+    plugin_path: &mut PathBuf,
+    base_path: impl AsRef<Path>,
+) -> Result<(), Error> {
+    *plugin_path = openrr_client::resolve_relative_path(base_path, &plugin_path)?;
+    if plugin_path.extension().is_none() {
+        plugin_path.set_extension(PLUGIN_EXT);
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+const PLUGIN_EXT: &str = "so";
+#[cfg(target_os = "macos")]
+const PLUGIN_EXT: &str = "dylib";
+#[cfg(windows)]
+const PLUGIN_EXT: &str = "dll";
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct PluginInstance {
+    /// Name of this plugin instance.
+    pub name: String,
+    /// Trait kind of this instance.
+    #[serde(rename = "type")]
+    pub type_: PluginInstanceKind,
+    /// Arguments passed when creating this instance.
+    pub args: Option<String>,
+    /// Pass the contents of the specified file as an argument.
+    pub args_from_path: Option<PathBuf>,
+}
+
+impl PluginInstance {
+    pub fn load_args(&self) -> Result<String, Error> {
+        if let Some(path) = &self.args_from_path {
+            fs::read_to_string(path).map_err(|e| Error::NoFile(path.to_owned(), e))
+        } else {
+            Ok(self.args.clone().unwrap_or_default())
+        }
+    }
+}
+
+/// Trait kind of the instance.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+#[non_exhaustive]
+pub enum PluginInstanceKind {
+    JointTrajectoryClient,
+    Localization,
+    MoveBase,
+    Navigation,
+    Speaker,
+}
+
+#[derive(Debug, Default)]
+pub struct PluginMap {
+    path: HashMap<String, PathBuf>,
+    cache: HashMap<String, Arc<PluginProxy>>,
+}
+
+impl PluginMap {
+    pub fn load(&mut self, name: impl AsRef<str>) -> Result<Option<Arc<PluginProxy>>, arci::Error> {
+        let name = name.as_ref();
+        if let Some((name, path)) = self.path.remove_entry(name) {
+            let plugin = Arc::new(PluginProxy::from_path(&path)?);
+            self.cache.insert(name, plugin.clone());
+            Ok(Some(plugin))
+        } else {
+            Ok(self.cache.get(name).cloned())
+        }
+    }
+}
+
+impl<S: Into<String>, P: Into<PathBuf>> FromIterator<(S, P)> for PluginMap {
+    fn from_iter<T: IntoIterator<Item = (S, P)>>(iter: T) -> Self {
+        let path: HashMap<_, _> = iter
+            .into_iter()
+            .map(|(name, path)| (name.into(), path.into()))
+            .collect();
+        Self {
+            cache: HashMap::with_capacity(path.len() / 2),
+            path,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 #[non_exhaustive] // The fields will increase depending on the feature flag.
 pub struct RobotConfig {
     // TOML format has a restriction that if a table itself contains tables,
     // all keys with non-table values must be emitted first.
     // Therefore, these fields must be located at the start of the struct.
-    #[serde(default = "default_true")]
-    pub use_move_base_urdf_viz_web_client: bool,
-    #[serde(default = "default_true")]
-    pub use_navigation_urdf_viz_web_client: bool,
-    #[serde(default = "default_true")]
-    pub use_localization_urdf_viz_web_client: bool,
+    /// Joint trajectory clients to be used.
+    pub joint_trajectory_clients: Option<Vec<String>>,
+    /// Speakers to be used.
+    pub speakers: Option<Vec<String>>,
+    /// Localization to be used. `"ros"`, `"urdf-viz"`, `false`, or plugin instance name.
+    #[serde(default)]
+    pub localization: ClientKind,
+    /// MoveBase to be used. `"ros"`, `"urdf-viz"`, `false`, or plugin instance name.
+    #[serde(default)]
+    pub move_base: ClientKind,
+    /// Navigation to be used. `"ros"`, `"urdf-viz"`, `false`, or plugin instance name.
+    #[serde(default)]
+    pub navigation: ClientKind,
 
     #[cfg(feature = "ros")]
     #[serde(default)]
@@ -107,27 +311,9 @@ pub struct RobotConfig {
     ros_localization_client_config: Option<toml::Value>,
 
     pub openrr_clients_config: OpenrrClientsConfig,
-}
 
-impl Default for RobotConfig {
-    fn default() -> Self {
-        Self {
-            ros_clients_configs: Default::default(),
-            urdf_viz_clients_configs: Default::default(),
-            speak_configs: Default::default(),
-            ros_cmd_vel_move_base_client_config: Default::default(),
-            use_move_base_urdf_viz_web_client: default_true(),
-            ros_navigation_client_config: Default::default(),
-            use_navigation_urdf_viz_web_client: default_true(),
-            ros_localization_client_config: Default::default(),
-            use_localization_urdf_viz_web_client: default_true(),
-            openrr_clients_config: Default::default(),
-        }
-    }
-}
-
-fn default_true() -> bool {
-    true
+    #[serde(default)]
+    pub plugins: HashMap<String, PluginConfig>,
 }
 
 // Creates dummy schema for dummy fields.
@@ -150,6 +336,9 @@ impl RobotConfig {
             || has_ros_espeak
             || self.ros_cmd_vel_move_base_client_config.is_some()
             || self.ros_navigation_client_config.is_some()
+            || self.localization.is_builtin_ros()
+            || self.move_base.is_builtin_ros()
+            || self.navigation.is_builtin_ros()
     }
 
     pub fn create_robot_client<L, M, N>(&self) -> Result<RobotClient<L, M, N>, Error>
@@ -158,127 +347,275 @@ impl RobotConfig {
         M: MoveBase + From<Box<dyn MoveBase>>,
         N: Navigation + From<Box<dyn Navigation>>,
     {
-        let mut speakers = HashMap::new();
-        for (name, speaker) in self.create_speakers() {
-            speakers.insert(name, speaker.into());
-        }
+        let mut plugins: PluginMap = self
+            .plugins
+            .iter()
+            .map(|(plugin_name, config)| (plugin_name, &config.path))
+            .collect();
+
+        let joint_trajectory_clients = self.create_raw_joint_trajectory_clients(&mut plugins)?;
+        let speakers = self.create_speakers(&mut plugins)?;
+        let localization = self.create_localization(&mut plugins)?;
+        let move_base = self.create_move_base(&mut plugins)?;
+        let navigation = self.create_navigation(&mut plugins)?;
 
         Ok(RobotClient::new(
             self.openrr_clients_config.clone(),
-            self.create_raw_joint_trajectory_clients()?,
+            joint_trajectory_clients,
             speakers,
-            self.create_localization().map(|l| l.into()),
-            self.create_move_base().map(|m| m.into()),
-            self.create_navigation().map(|n| n.into()),
+            localization.map(L::from),
+            move_base.map(M::from),
+            navigation.map(N::from),
         )?)
     }
 
-    fn create_localization_without_ros(&self) -> Option<Box<dyn Localization>> {
-        if self.use_localization_urdf_viz_web_client {
-            Some(Box::new(arci::Lazy::new(move || {
-                debug!("create_localization_without_ros: creating UrdfVizWebClient");
-                Ok(UrdfVizWebClient::default())
-            })))
-        } else {
-            None
-        }
+    fn create_localization_urdf_viz(&self) -> Box<dyn Localization> {
+        Box::new(arci::Lazy::new(move || {
+            debug!("create_localization_urdf_viz: creating UrdfVizWebClient");
+            Ok(UrdfVizWebClient::default())
+        }))
     }
 
     #[cfg(feature = "ros")]
-    fn create_localization_with_ros(&self) -> Option<Box<dyn Localization>> {
-        if let Some(ros_localization_client_config) = &self.ros_localization_client_config {
-            let config = ros_localization_client_config.clone();
-            Some(Box::new(arci::Lazy::new(move || {
-                debug!("create_localization_with_ros: creating RosLocalizationClient");
-                Ok(RosLocalizationClient::new_from_config(config))
-            })))
-        } else {
-            self.create_localization_without_ros()
-        }
+    fn create_localization_ros(&self) -> Option<Box<dyn Localization>> {
+        let config = self.ros_localization_client_config.clone()?;
+        Some(Box::new(arci::Lazy::new(move || {
+            debug!("create_localization_ros: creating RosLocalizationClient");
+            Ok(RosLocalizationClient::new_from_config(config))
+        })))
     }
 
-    fn create_localization(&self) -> Option<Box<dyn Localization>> {
-        #[cfg(not(feature = "ros"))]
-        {
-            self.create_localization_without_ros()
-        }
-        #[cfg(feature = "ros")]
-        {
-            self.create_localization_with_ros()
-        }
+    fn create_localization(
+        &self,
+        plugins: &mut PluginMap,
+    ) -> Result<Option<Box<dyn Localization>>, Error> {
+        let (plugin_name, instance) = match &self.localization {
+            ClientKind::Auto(false) => return Ok(None),
+            ClientKind::Auto(true) => {
+                #[cfg(feature = "ros")]
+                if self.ros_localization_client_config.is_some() {
+                    return Ok(self.create_localization_ros());
+                }
+                match PluginConfig::resolve_instance(
+                    &self.plugins,
+                    None,
+                    PluginInstanceKind::Localization,
+                ) {
+                    Err(Error::NoPluginInstance { .. }) => {
+                        // If ros is already used, it would *not* usually be
+                        // assumed that urdf-viz would also be used.
+                        // Users who want to use both at the same time need to
+                        // specify it explicitly by `localization = "urdf-viz"`.
+                        #[cfg(feature = "ros")]
+                        if self.has_ros_clients() {
+                            return Ok(None);
+                        }
+                        return Ok(Some(self.create_localization_urdf_viz()));
+                    }
+                    res => res?,
+                }
+            }
+            #[cfg(not(feature = "ros"))]
+            ClientKind::Builtin(BuiltinClient::Ros) => unreachable!(),
+            #[cfg(feature = "ros")]
+            ClientKind::Builtin(BuiltinClient::Ros) => {
+                return Ok(self.create_localization_ros());
+            }
+            ClientKind::Builtin(BuiltinClient::UrdfViz) => {
+                return Ok(Some(self.create_localization_urdf_viz()));
+            }
+            ClientKind::Plugin(instance_name) => PluginConfig::resolve_instance(
+                &self.plugins,
+                Some(instance_name),
+                PluginInstanceKind::Localization,
+            )?,
+        };
+
+        let plugin = plugins.load(plugin_name)?.unwrap();
+        let args = instance.load_args()?;
+        let plugin_name = plugin_name.to_string();
+        let instance_name = instance.name.clone();
+        let instance_kind = instance.type_;
+        Ok(Some(Box::new(arci::Lazy::new(move || {
+            match plugin.new_localization(args) {
+                Ok(Some(loc)) => {
+                    info!(
+                        "created `{:?}` instance `{}` from plugin `{}`",
+                        instance_kind, instance_name, plugin_name,
+                    );
+                    Ok(loc)
+                }
+                res => instance_create_error(res, instance_kind, instance_name, plugin_name)?,
+            }
+        }))))
     }
 
-    fn create_navigation_without_ros(&self) -> Option<Box<dyn Navigation>> {
-        if self.use_navigation_urdf_viz_web_client {
-            Some(Box::new(arci::Lazy::new(move || {
-                debug!("create_navigation_without_ros: creating UrdfVizWebClient");
-                Ok(UrdfVizWebClient::default())
-            })))
-        } else {
-            None
-        }
+    fn create_navigation_urdf_viz(&self) -> Box<dyn Navigation> {
+        Box::new(arci::Lazy::new(move || {
+            debug!("create_navigation_urdf_viz: creating UrdfVizWebClient");
+            Ok(UrdfVizWebClient::default())
+        }))
     }
 
     #[cfg(feature = "ros")]
-    fn create_navigation_with_ros(&self) -> Option<Box<dyn Navigation>> {
-        if let Some(ros_navigation_client_config) = &self.ros_navigation_client_config {
-            let config = ros_navigation_client_config.clone();
-            Some(Box::new(arci::Lazy::new(move || {
-                debug!("create_navigation_with_ros: creating RosNavClient");
-                Ok(RosNavClient::new_from_config(config))
-            })))
-        } else {
-            self.create_navigation_without_ros()
-        }
+    fn create_navigation_ros(&self) -> Option<Box<dyn Navigation>> {
+        let config = self.ros_navigation_client_config.clone()?;
+        Some(Box::new(arci::Lazy::new(move || {
+            debug!("create_navigation_ros: creating RosNavClient");
+            Ok(RosNavClient::new_from_config(config))
+        })))
     }
 
-    fn create_navigation(&self) -> Option<Box<dyn Navigation>> {
-        #[cfg(not(feature = "ros"))]
-        {
-            self.create_navigation_without_ros()
-        }
-        #[cfg(feature = "ros")]
-        {
-            self.create_navigation_with_ros()
-        }
+    fn create_navigation(
+        &self,
+        plugins: &mut PluginMap,
+    ) -> Result<Option<Box<dyn Navigation>>, Error> {
+        let (plugin_name, instance) = match &self.navigation {
+            ClientKind::Auto(false) => return Ok(None),
+            ClientKind::Auto(true) => {
+                #[cfg(feature = "ros")]
+                if self.ros_navigation_client_config.is_some() {
+                    return Ok(self.create_navigation_ros());
+                }
+                match PluginConfig::resolve_instance(
+                    &self.plugins,
+                    None,
+                    PluginInstanceKind::Navigation,
+                ) {
+                    Err(Error::NoPluginInstance { .. }) => {
+                        // If ros is already used, it would *not* usually be
+                        // assumed that urdf-viz would also be used.
+                        // Users who want to use both at the same time need to
+                        // specify it explicitly by `navigation = "urdf-viz"`.
+                        #[cfg(feature = "ros")]
+                        if self.has_ros_clients() {
+                            return Ok(None);
+                        }
+                        return Ok(Some(self.create_navigation_urdf_viz()));
+                    }
+                    res => res?,
+                }
+            }
+            #[cfg(not(feature = "ros"))]
+            ClientKind::Builtin(BuiltinClient::Ros) => unreachable!(),
+            #[cfg(feature = "ros")]
+            ClientKind::Builtin(BuiltinClient::Ros) => {
+                return Ok(self.create_navigation_ros());
+            }
+            ClientKind::Builtin(BuiltinClient::UrdfViz) => {
+                return Ok(Some(self.create_navigation_urdf_viz()));
+            }
+            ClientKind::Plugin(instance_name) => PluginConfig::resolve_instance(
+                &self.plugins,
+                Some(instance_name),
+                PluginInstanceKind::Navigation,
+            )?,
+        };
+
+        let plugin = plugins.load(plugin_name)?.unwrap();
+        let args = instance.load_args()?;
+        let plugin_name = plugin_name.to_string();
+        let instance_name = instance.name.clone();
+        let instance_kind = instance.type_;
+        Ok(Some(Box::new(arci::Lazy::new(move || {
+            match plugin.new_navigation(args) {
+                Ok(Some(nav)) => {
+                    info!(
+                        "created `{:?}` instance `{}` from plugin `{}`",
+                        instance_kind, instance_name, plugin_name,
+                    );
+                    Ok(nav)
+                }
+                res => instance_create_error(res, instance_kind, instance_name, plugin_name)?,
+            }
+        }))))
     }
 
-    fn create_move_base_without_ros(&self) -> Option<Box<dyn MoveBase>> {
-        if self.use_move_base_urdf_viz_web_client {
-            Some(Box::new(arci::Lazy::new(move || {
-                debug!("create_move_base_without_ros: creating UrdfVizWebClient");
-                let urdf_viz_client = UrdfVizWebClient::default();
-                urdf_viz_client.run_send_velocity_thread();
-                Ok(urdf_viz_client)
-            })))
-        } else {
-            None
-        }
+    fn create_move_base_urdf_viz(&self) -> Box<dyn MoveBase> {
+        Box::new(arci::Lazy::new(move || {
+            debug!("create_move_base_urdf_viz: creating UrdfVizWebClient");
+            let urdf_viz_client = UrdfVizWebClient::default();
+            urdf_viz_client.run_send_velocity_thread();
+            Ok(urdf_viz_client)
+        }))
     }
 
     #[cfg(feature = "ros")]
-    fn create_move_base_with_ros(&self) -> Option<Box<dyn MoveBase>> {
-        if let Some(ros_cmd_vel_move_base_client_config) = &self.ros_cmd_vel_move_base_client_config
-        {
-            let topic = ros_cmd_vel_move_base_client_config.topic.to_string();
-            Some(Box::new(arci::Lazy::new(move || {
-                debug!("create_move_base_with_ros: creating RosCmdVelMoveBase");
-                Ok(RosCmdVelMoveBase::new(&topic))
-            })))
-        } else {
-            self.create_move_base_without_ros()
-        }
+    fn create_move_base_ros(&self) -> Option<Box<dyn MoveBase>> {
+        let topic = self
+            .ros_cmd_vel_move_base_client_config
+            .as_ref()?
+            .topic
+            .to_string();
+        Some(Box::new(arci::Lazy::new(move || {
+            debug!("create_move_base_ros: creating RosCmdVelMoveBase");
+            Ok(RosCmdVelMoveBase::new(&topic))
+        })))
     }
 
-    fn create_move_base(&self) -> Option<Box<dyn MoveBase>> {
-        #[cfg(not(feature = "ros"))]
-        {
-            self.create_move_base_without_ros()
-        }
-        #[cfg(feature = "ros")]
-        {
-            self.create_move_base_with_ros()
-        }
+    fn create_move_base(
+        &self,
+        plugins: &mut PluginMap,
+    ) -> Result<Option<Box<dyn MoveBase>>, Error> {
+        let (plugin_name, instance) = match &self.move_base {
+            ClientKind::Auto(false) => return Ok(None),
+            ClientKind::Auto(true) => {
+                #[cfg(feature = "ros")]
+                if self.ros_cmd_vel_move_base_client_config.is_some() {
+                    return Ok(self.create_move_base_ros());
+                }
+                match PluginConfig::resolve_instance(
+                    &self.plugins,
+                    None,
+                    PluginInstanceKind::MoveBase,
+                ) {
+                    Err(Error::NoPluginInstance { .. }) => {
+                        // If ros is already used, it would *not* usually be
+                        // assumed that urdf-viz would also be used.
+                        // Users who want to use both at the same time need to
+                        // specify it explicitly by `move_base = "urdf-viz"`.
+                        #[cfg(feature = "ros")]
+                        if self.has_ros_clients() {
+                            return Ok(None);
+                        }
+                        return Ok(Some(self.create_move_base_urdf_viz()));
+                    }
+                    res => res?,
+                }
+            }
+            #[cfg(not(feature = "ros"))]
+            ClientKind::Builtin(BuiltinClient::Ros) => unreachable!(),
+            #[cfg(feature = "ros")]
+            ClientKind::Builtin(BuiltinClient::Ros) => {
+                return Ok(self.create_move_base_ros());
+            }
+            ClientKind::Builtin(BuiltinClient::UrdfViz) => {
+                return Ok(Some(self.create_move_base_urdf_viz()));
+            }
+            ClientKind::Plugin(instance_name) => PluginConfig::resolve_instance(
+                &self.plugins,
+                Some(instance_name),
+                PluginInstanceKind::MoveBase,
+            )?,
+        };
+
+        let plugin = plugins.load(plugin_name)?.unwrap();
+        let args = instance.load_args()?;
+        let plugin_name = plugin_name.to_string();
+        let instance_name = instance.name.clone();
+        let instance_kind = instance.type_;
+        Ok(Some(Box::new(arci::Lazy::new(move || {
+            match plugin.new_move_base(args) {
+                Ok(Some(nav)) => {
+                    info!(
+                        "created `{:?}` instance `{}` from plugin `{}`",
+                        instance_kind, instance_name, plugin_name,
+                    );
+                    Ok(nav)
+                }
+                res => instance_create_error(res, instance_kind, instance_name, plugin_name)?,
+            }
+        }))))
     }
 
     fn create_print_speaker(&self) -> Box<dyn Speaker> {
@@ -311,9 +648,16 @@ impl RobotConfig {
         }))
     }
 
-    fn create_speakers(&self) -> HashMap<String, Box<dyn Speaker>> {
-        let mut speakers = HashMap::new();
-        for (name, speak_config) in &self.speak_configs {
+    fn create_speakers(
+        &self,
+        plugins: &mut PluginMap,
+    ) -> Result<HashMap<String, Arc<dyn Speaker>>, Error> {
+        let mut speakers: HashMap<_, Arc<dyn Speaker>> = HashMap::new();
+        for (name, speak_config) in self
+            .speak_configs
+            .iter()
+            .filter(|(name, _)| self.speakers.as_ref().map_or(true, |v| v.contains(name)))
+        {
             speakers.insert(
                 name.to_owned(),
                 match speak_config {
@@ -322,54 +666,149 @@ impl RobotConfig {
                         self.create_ros_espeak_client(&config.topic)
                     }
                     #[cfg(not(feature = "ros"))]
-                    SpeakConfig::__RosEspeak { .. } => unreachable!(),
+                    SpeakConfig::RosEspeak { .. } => unreachable!(),
                     SpeakConfig::Audio { ref map } => self.create_audio_speaker(map.clone()),
                     SpeakConfig::Command => self.create_local_command_speaker(),
                     SpeakConfig::Print => self.create_print_speaker(),
-                },
+                }
+                .into(),
             );
         }
-        if speakers.is_empty() {
+
+        for (plugin_name, config) in &self.plugins {
+            for instance in config.instances.iter().filter(|instance| {
+                instance.type_ == PluginInstanceKind::Speaker
+                    && self
+                        .speakers
+                        .as_ref()
+                        .map_or(true, |v| v.contains(&instance.name))
+            }) {
+                if speakers.contains_key(&instance.name) {
+                    return Err(Error::DuplicateInstance(format!(
+                        "Multiple {:?} instances {:?} are found. Consider renaming one of the instances",
+                        instance.type_, instance.name,
+                    )));
+                }
+                let plugin = plugins.load(plugin_name)?.unwrap();
+                let args = instance.load_args()?;
+                let plugin_name = plugin_name.clone();
+                let instance_name = instance.name.clone();
+                let instance_kind = instance.type_;
+                speakers.insert(
+                    instance_name.clone(),
+                    Arc::new(arci::Lazy::new(move || match plugin.new_speaker(args) {
+                        Ok(Some(speaker)) => {
+                            info!(
+                                "created `{:?}` instance `{}` from plugin `{}`",
+                                instance_kind, instance_name, plugin_name,
+                            );
+                            Ok(speaker)
+                        }
+                        res => {
+                            instance_create_error(res, instance_kind, instance_name, plugin_name)?
+                        }
+                    })),
+                );
+            }
+        }
+
+        if self.speakers.is_none() && speakers.is_empty() {
             speakers.insert(
                 Self::DEFAULT_SPEAKER_NAME.to_owned(),
-                self.create_print_speaker(),
+                self.create_print_speaker().into(),
             );
         }
-        speakers
+        Ok(speakers)
     }
 
     fn create_raw_joint_trajectory_clients(
         &self,
+        plugins: &mut PluginMap,
     ) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, Error> {
-        let urdf_robot = if let Some(urdf_path) = self.openrr_clients_config.urdf_full_path() {
-            let urdf_robot = urdf_rs::utils::read_urdf_or_xacro(urdf_path)?;
-            Some(urdf_robot)
+        let urdf_viz_clients_configs: Vec<_> = self
+            .urdf_viz_clients_configs
+            .iter()
+            .filter(|c| {
+                self.joint_trajectory_clients
+                    .as_ref()
+                    .map_or(true, |v| v.contains(&c.name))
+            })
+            .cloned()
+            .collect();
+        #[cfg(feature = "ros")]
+        let ros_clients_configs: Vec<_> = self
+            .ros_clients_configs
+            .iter()
+            .filter(|c| {
+                self.joint_trajectory_clients
+                    .as_ref()
+                    .map_or(true, |v| v.contains(&c.name))
+            })
+            .cloned()
+            .collect();
+
+        let mut urdf_robot = None;
+        #[cfg(not(feature = "ros"))]
+        let use_urdf = !urdf_viz_clients_configs.is_empty();
+        #[cfg(feature = "ros")]
+        let use_urdf = !urdf_viz_clients_configs.is_empty() || !ros_clients_configs.is_empty();
+        if use_urdf {
+            if let Some(urdf_path) = self.openrr_clients_config.urdf_full_path() {
+                urdf_robot = Some(urdf_rs::utils::read_urdf_or_xacro(urdf_path)?);
+            }
+        }
+
+        let mut clients = if urdf_viz_clients_configs.is_empty() {
+            HashMap::new()
         } else {
-            None
+            arci_urdf_viz::create_joint_trajectory_clients_lazy(
+                urdf_viz_clients_configs,
+                urdf_robot.as_ref(),
+            )?
         };
 
-        #[cfg(not(feature = "ros"))]
-        let raw_joint_trajectory_clients = create_joint_trajectory_clients_lazy(
-            self.urdf_viz_clients_configs.clone(),
-            urdf_robot.as_ref(),
-        )?;
         #[cfg(feature = "ros")]
-        let raw_joint_trajectory_clients = {
-            let mut clients = if self.urdf_viz_clients_configs.is_empty() {
-                HashMap::new()
-            } else {
-                create_joint_trajectory_clients_lazy(
-                    self.urdf_viz_clients_configs.clone(),
-                    urdf_robot.as_ref(),
-                )?
-            };
-            clients.extend(arci_ros::create_joint_trajectory_clients_lazy(
-                self.ros_clients_configs.clone(),
-                urdf_robot.as_ref(),
-            )?);
-            clients
-        };
-        Ok(raw_joint_trajectory_clients)
+        clients.extend(arci_ros::create_joint_trajectory_clients_lazy(
+            ros_clients_configs,
+            urdf_robot.as_ref(),
+        )?);
+
+        for (plugin_name, config) in &self.plugins {
+            for instance in config.instances.iter().filter(|instance| {
+                instance.type_ == PluginInstanceKind::JointTrajectoryClient
+                    && self
+                        .joint_trajectory_clients
+                        .as_ref()
+                        .map_or(true, |v| v.contains(&instance.name))
+            }) {
+                if clients.contains_key(&instance.name) {
+                    return Err(Error::DuplicateInstance(format!(
+                        "Multiple {:?} instances {:?} are found. Consider renaming one of the instances",
+                        instance.type_, instance.name,
+                    )));
+                }
+                let plugin = plugins.load(plugin_name)?.unwrap();
+                let args = instance.load_args()?;
+                let plugin_name = plugin_name.clone();
+                let instance_name = instance.name.clone();
+                let instance_kind = instance.type_;
+                // JointTrajectoryClientsContainer::new, which is called inside
+                // RobotClient::new, calls JointTrajectoryClient::joint_names,
+                // so it makes no sense to make JointTrajectoryClient lazy here.
+                match plugin.new_joint_trajectory_client(args) {
+                    Ok(Some(client)) => {
+                        info!(
+                            "created `{:?}` instance `{}` from plugin `{}`",
+                            instance_kind, instance_name, plugin_name,
+                        );
+                        clients.insert(instance_name, Arc::new(client));
+                    }
+                    res => instance_create_error(res, instance_kind, instance_name, plugin_name)?,
+                }
+            }
+        }
+
+        Ok(clients)
     }
 }
 
@@ -379,11 +818,32 @@ fn resolve_audio_file_path<P: AsRef<Path>>(
     relative_hash_map: &mut HashMap<String, PathBuf>,
 ) -> Result<(), Error> {
     for v in relative_hash_map.values_mut() {
-        let full_path =
-            openrr_client::resolve_relative_path(base_path.as_ref().to_owned(), v.to_owned())?;
+        let full_path = openrr_client::resolve_relative_path(base_path.as_ref(), &v)?;
         *v = full_path;
     }
     Ok(())
+}
+
+fn instance_create_error<T: fmt::Debug, U>(
+    res: Result<T, arci::Error>,
+    instance_kind: PluginInstanceKind,
+    instance_name: String,
+    plugin_name: String,
+) -> Result<U, arci::Error> {
+    error!(
+        "failed to create `{:?}` instance `{}` from plugin `{}`: {:?}",
+        instance_kind, instance_name, plugin_name, res,
+    );
+    res.and_then(|_| {
+        // TODO: error msg
+        Err(format_err!(
+            "failed to create `{:?}` instance `{}` from plugin `{}`: None",
+            instance_kind,
+            instance_name,
+            plugin_name,
+        )
+        .into())
+    })
 }
 
 #[cfg(test)]
@@ -411,39 +871,73 @@ impl RobotConfig {
     }
 
     pub fn from_str<P: AsRef<Path>>(s: &str, path: P) -> Result<Self, Error> {
+        let path = path.as_ref();
+
         let mut config: RobotConfig =
-            toml::from_str(s).map_err(|e| Error::TomlParseFailure(path.as_ref().to_owned(), e))?;
+            toml::from_str(s).map_err(|e| Error::TomlParseFailure(path.to_owned(), e))?;
 
         // Returns an error if a config requires ros feature but ros feature is disabled.
         #[cfg(not(feature = "ros"))]
         {
             for (name, speak_config) in &config.speak_configs {
-                if matches!(speak_config, SpeakConfig::__RosEspeak { .. }) {
+                if matches!(speak_config, SpeakConfig::RosEspeak { .. }) {
                     return Err(Error::ConfigRequireRos(format!("speak_configs.{}", name)));
                 }
             }
             if config.ros_clients_configs.is_some() {
                 return Err(Error::ConfigRequireRos("ros_clients_configs".into()));
             }
-            if config.ros_cmd_vel_move_base_client_config.is_some() {
-                return Err(Error::ConfigRequireRos(
-                    "ros_cmd_vel_move_base_client_config".into(),
-                ));
+            match config.move_base {
+                ClientKind::Builtin(BuiltinClient::Ros) => {
+                    return Err(Error::ConfigRequireRos("move_base".into()));
+                }
+                ClientKind::Auto(true) if config.ros_cmd_vel_move_base_client_config.is_some() => {
+                    return Err(Error::ConfigRequireRos(
+                        "ros_cmd_vel_move_base_client_config".into(),
+                    ));
+                }
+                _ => {}
             }
-            if config.ros_navigation_client_config.is_some() {
-                return Err(Error::ConfigRequireRos(
-                    "ros_navigation_client_config".into(),
-                ));
+            match config.navigation {
+                ClientKind::Builtin(BuiltinClient::Ros) => {
+                    return Err(Error::ConfigRequireRos("navigation".into()));
+                }
+                ClientKind::Auto(true) if config.ros_navigation_client_config.is_some() => {
+                    return Err(Error::ConfigRequireRos(
+                        "ros_navigation_client_config".into(),
+                    ));
+                }
+                _ => {}
+            }
+            match config.localization {
+                ClientKind::Builtin(BuiltinClient::Ros) => {
+                    return Err(Error::ConfigRequireRos("localization".into()));
+                }
+                ClientKind::Auto(true) if config.ros_localization_client_config.is_some() => {
+                    return Err(Error::ConfigRequireRos(
+                        "ros_localization_client_config".into(),
+                    ));
+                }
+                _ => {}
             }
         }
 
         if config.openrr_clients_config.urdf_path.is_some() {
-            config.openrr_clients_config.resolve_path(path.as_ref())?;
+            config.openrr_clients_config.resolve_path(path)?;
         }
         for speak_config in config.speak_configs.values_mut() {
             if let SpeakConfig::Audio { ref mut map } = speak_config {
-                resolve_audio_file_path(path.as_ref(), map)?;
-            };
+                resolve_audio_file_path(path, map)?;
+            }
+        }
+        for plugin_config in config.plugins.values_mut() {
+            resolve_plugin_path(&mut plugin_config.path, path)?;
+            for instance in &mut plugin_config.instances {
+                if let Some(args_path) = instance.args_from_path.take() {
+                    instance.args_from_path =
+                        Some(openrr_client::resolve_relative_path(path, &args_path)?);
+                }
+            }
         }
         debug!("{:?}", config);
         Ok(config)

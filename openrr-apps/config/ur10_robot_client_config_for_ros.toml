@@ -1,6 +1,3 @@
-use_move_base_urdf_viz_web_client = false
-use_navigation_urdf_viz_web_client = false
-
 [[ros_clients_configs]]
 name = "arm"
 joint_names = [

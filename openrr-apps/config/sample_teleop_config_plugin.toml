@@ -1,0 +1,26 @@
+robot_config_path = "sample_robot_client_config_for_plugin.toml"
+gamepad = "plugin1"
+
+[control_nodes_config]
+move_base_mode = "base"
+
+[control_nodes_config.joints_pose_sender_config]
+
+[[control_nodes_config.ik_node_teleop_configs]]
+solver_name = "arm_ik_solver"
+joint_trajectory_client_name = "arm"
+
+[control_nodes_config.ik_node_teleop_configs.config]
+mode = "i k"
+
+[[control_nodes_config.joy_joint_teleop_configs]]
+client_name = "arm_collision_checked"
+
+[control_nodes_config.joy_joint_teleop_configs.config]
+mode = "arm"
+
+[plugins.plugin1]
+# Path to the plugin. If no extension is specified, the default extension
+# for `cdylib` on the current OS will be selected.
+# (linux: `.so`, macos: `.dylib`, windows: `.dll`)
+path = "../../target/debug/libopenrr_plugin_example"

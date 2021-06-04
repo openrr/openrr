@@ -6,8 +6,52 @@
     "openrr_clients_config"
   ],
   "properties": {
+    "joint_trajectory_clients": {
+      "description": "Joint trajectory clients to be used.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
+    "localization": {
+      "description": "Localization to be used. `\"ros\"`, `\"urdf-viz\"`, `false`, or plugin instance name.",
+      "default": true,
+      "allOf": [
+        {
+          "$ref": "#/definitions/ClientKind"
+        }
+      ]
+    },
+    "move_base": {
+      "description": "MoveBase to be used. `\"ros\"`, `\"urdf-viz\"`, `false`, or plugin instance name.",
+      "default": true,
+      "allOf": [
+        {
+          "$ref": "#/definitions/ClientKind"
+        }
+      ]
+    },
+    "navigation": {
+      "description": "Navigation to be used. `\"ros\"`, `\"urdf-viz\"`, `false`, or plugin instance name.",
+      "default": true,
+      "allOf": [
+        {
+          "$ref": "#/definitions/ClientKind"
+        }
+      ]
+    },
     "openrr_clients_config": {
       "$ref": "#/definitions/OpenrrClientsConfig"
+    },
+    "plugins": {
+      "default": {},
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/PluginConfig"
+      }
     },
     "ros_clients_configs": {
       "type": "array",
@@ -52,27 +96,45 @@
         "$ref": "#/definitions/SpeakConfig"
       }
     },
+    "speakers": {
+      "description": "Speakers to be used.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
     "urdf_viz_clients_configs": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/UrdfVizWebClientConfig"
       }
-    },
-    "use_localization_urdf_viz_web_client": {
-      "default": true,
-      "type": "boolean"
-    },
-    "use_move_base_urdf_viz_web_client": {
-      "default": true,
-      "type": "boolean"
-    },
-    "use_navigation_urdf_viz_web_client": {
-      "default": true,
-      "type": "boolean"
     }
   },
   "additionalProperties": false,
   "definitions": {
+    "BuiltinClient": {
+      "type": "string",
+      "enum": [
+        "ros",
+        "urdf-viz"
+      ]
+    },
+    "ClientKind": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/BuiltinClient"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "boolean"
+        }
+      ]
+    },
     "CollisionCheckClientConfig": {
       "type": "object",
       "required": [
@@ -319,6 +381,73 @@
         }
       },
       "additionalProperties": false
+    },
+    "PluginConfig": {
+      "type": "object",
+      "required": [
+        "instances",
+        "path"
+      ],
+      "properties": {
+        "instances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PluginInstance"
+          }
+        },
+        "path": {
+          "description": "Path to the plugin. If no extension is specified, the default extension for `cdylib` on the current OS will be selected. (linux: `.so`, macos: `.dylib`, windows: `.dll`)",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PluginInstance": {
+      "type": "object",
+      "required": [
+        "name",
+        "type"
+      ],
+      "properties": {
+        "args": {
+          "description": "Arguments passed when creating this instance.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "args_from_path": {
+          "description": "Pass the contents of the specified file as an argument.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "description": "Name of this plugin instance.",
+          "type": "string"
+        },
+        "type": {
+          "description": "Trait kind of this instance.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/PluginInstanceKind"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "PluginInstanceKind": {
+      "description": "Trait kind of the instance.",
+      "type": "string",
+      "enum": [
+        "JointTrajectoryClient",
+        "Localization",
+        "MoveBase",
+        "Navigation",
+        "Speaker"
+      ]
     },
     "RosCmdVelMoveBaseConfig": {
       "type": "object",
