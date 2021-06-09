@@ -90,6 +90,10 @@ fn test_urdf_viz_web_client_config_clone() {
 fn test_create_joint_trajectory_clients() {
     const DEFAULT_PORT: u16 = 7777;
     let web_server = WebServer::new(DEFAULT_PORT);
+    web_server.set_current_joint_positions(JointNamesAndPositions {
+        names: vec!["j1".to_owned(), "j2".to_owned()],
+        positions: vec![1.0, -1.0],
+    });
     web_server.start_background();
     let configs = vec![
         UrdfVizWebClientConfig {

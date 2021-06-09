@@ -25,6 +25,15 @@ pub enum Error {
     #[error("arci: No Joint={} is found.", .0)]
     NoJoint(String),
     #[error(
+        "arci: Joint Names Mismatch : left = {:?}, right = {:?}",
+        partial,
+        full
+    )]
+    JointNamesMissmatch {
+        partial: Vec<String>,
+        full: Vec<String>,
+    },
+    #[error(
         "arci: Wait timeout target={:?}, cur={:?} is_reached={:?}",
         target,
         current,
