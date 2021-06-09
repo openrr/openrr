@@ -21,3 +21,7 @@ pub mod sleep {
 pub mod teleop {
     pub use openrr_teleop::*;
 }
+
+pub mod config {
+    pub use openrr_config::*;
+}

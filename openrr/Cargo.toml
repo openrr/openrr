@@ -25,6 +25,7 @@ ros = ["openrr-apps/ros"]
 
 [dependencies]
 openrr-client = { version = "0.0.5", default-features = false }
+openrr-config = { version = "0.0.5", default-features = false }
 openrr-command = { version = "0.0.5", default-features = false }
 openrr-planner = { version = "0.0.5", default-features = false }
 openrr-sleep = "0.0.5"
