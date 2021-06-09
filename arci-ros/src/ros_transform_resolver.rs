@@ -1,4 +1,4 @@
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 use arci::{Isometry3, TransformResolver};
 use nalgebra::{Quaternion, Translation3, UnitQuaternion};
@@ -8,24 +8,13 @@ use rustros_tf::TfListener;
 pub struct RosTransformResolver {
     retry_rate: f64,
     tf_listener: TfListener,
-    base_time: SystemTime,
 }
 
 impl RosTransformResolver {
     pub fn new(retry_rate: f64) -> Self {
-        let base_time = if rosrust::param("/use_sim_time")
-            .and_then(|v| v.get().ok())
-            .unwrap_or(false)
-        {
-            std::time::SystemTime::now() - Duration::from_nanos(rosrust::now().nanos() as u64)
-        } else {
-            std::time::SystemTime::UNIX_EPOCH
-        };
-
         Self {
             retry_rate,
             tf_listener: TfListener::new(),
-            base_time,
         }
     }
 }
@@ -38,9 +27,18 @@ impl TransformResolver for RosTransformResolver {
         time: std::time::SystemTime,
     ) -> Result<nalgebra::Isometry3<f64>, arci::Error> {
         const MAX_RETRY: usize = 10;
-        let ros_time = rosrust::Time::from_nanos(
-            time.duration_since(self.base_time).unwrap().as_nanos() as i64,
-        );
+        let ros_now = rosrust::now();
+        let system_now = SystemTime::now();
+
+        let ros_time = if system_now < time {
+            rosrust::Time::from_nanos(
+                time.duration_since(system_now).unwrap().as_nanos() as i64 + ros_now.nanos() as i64,
+            )
+        } else {
+            rosrust::Time::from_nanos(
+                ros_now.nanos() as i64 - system_now.duration_since(time).unwrap().as_nanos() as i64,
+            )
+        };
         let rate = rate(self.retry_rate);
         let mut last_error = None;
         for i in 0..=MAX_RETRY {
