@@ -1,3 +1,5 @@
+move_base = "plugin1"
+
 [openrr_clients_config]
 urdf_path = "../../openrr-planner/sample.urdf"
 self_collision_check_pairs = ["l_shoulder_yaw:l_gripper_linear1"]
@@ -42,5 +44,20 @@ args = """
 """
 
 [[plugins.plugin1.instances]]
-name = "move_base"
+name = "plugin1"
 type = "MoveBase"
+
+[[plugins.plugin1.instances]]
+# If the instances are of different types, the names of the instances will not conflict.
+name = "plugin1"
+type = "Navigation"
+
+[plugins.arci_ros2]
+path = "../../target/debug/libarci_ros2"
+
+[[plugins.arci_ros2.instances]]
+name = "arci_ros2"
+type = "MoveBase"
+args = """
+topic = "/cmd_vel"
+"""
