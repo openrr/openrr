@@ -42,7 +42,7 @@ where
                     .map(|p| na::Point3::new(p[0] as usize, p[1] as usize, p[2] as usize))
                     .collect(),
                 Split(_) => {
-                    panic!("convex_hull implemenataion has been changed by ncollide3d update?");
+                    panic!("convex_hull implementation has been changed by ncollide3d update?");
                 }
             };
             Some(ShapeHandle::new(TriMesh::new(
