@@ -99,7 +99,7 @@ where
                     self.increment_mode().await.unwrap();
                 }
                 GamepadEvent::Unknown => {
-                    warn!("gamepad Unkwon");
+                    warn!("gamepad Unknown");
                     self.stop();
                 }
                 _ => {
