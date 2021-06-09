@@ -10,13 +10,19 @@ categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 documentation = "https://docs.rs/arci-ros2"
 
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+
 [dependencies]
+abi_stable = "0.9"
 anyhow = "1.0"
 arci = "0.0.5"
 async-trait = "0.1"
-thiserror = "1.0"
-r2r = { git = "https://github.com/sequenceplanner/r2r", optional = true}
+openrr-plugin = "0.0.5"
+r2r = { git = "https://github.com/sequenceplanner/r2r", optional = true }
 serde = { version = "1", features = ["derive"] }
+thiserror = "1.0"
+toml = "0.5"
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }

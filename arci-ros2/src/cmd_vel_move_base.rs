@@ -37,6 +37,7 @@ impl MoveBase for Ros2CmdVelMoveBase {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Ros2CmdVelMoveBaseConfig {
     pub topic: String,
 }
