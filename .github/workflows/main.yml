@@ -15,7 +15,7 @@ env:
 
 jobs:
   windows:
-    name: Build on Windowns
+    name: Build on Windows
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
