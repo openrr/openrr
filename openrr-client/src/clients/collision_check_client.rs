@@ -17,6 +17,7 @@ pub struct SelfCollisionChecker {
 }
 
 impl SelfCollisionChecker {
+    #[track_caller]
     pub fn new(
         joint_names: Vec<String>,
         collision_check_robot: Arc<k::Chain<f64>>,

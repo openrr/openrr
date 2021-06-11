@@ -9,6 +9,7 @@ use nix::{
 pub struct ChildProcessTerminator(pub Child);
 
 impl ChildProcessTerminator {
+    #[track_caller]
     pub fn spawn(command: &mut Command) -> ChildProcessTerminator {
         command
             .stdin(Stdio::null())

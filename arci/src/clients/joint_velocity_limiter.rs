@@ -35,6 +35,7 @@ where
     /// # Panics
     ///
     /// Panics if the lengths of `velocity_limits` and joints that `client` handles are different.
+    #[track_caller]
     pub fn new(client: C, velocity_limits: Vec<f64>) -> Self {
         assert!(client.joint_names().len() == velocity_limits.len());
         Self {

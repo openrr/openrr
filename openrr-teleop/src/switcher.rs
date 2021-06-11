@@ -31,6 +31,7 @@ where
     N: 'static + ControlNode,
     S: Speaker,
 {
+    #[track_caller]
     pub fn new(control_nodes: Vec<N>, speaker: S, initial_node_index: usize) -> Self {
         assert!(!control_nodes.is_empty());
         Self {

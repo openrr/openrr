@@ -96,6 +96,7 @@ where
 /// assert_eq!(a[0], 0.1, "no change");
 /// assert!((a[1] - 3.716814).abs() < 0.000001);
 /// ```
+#[track_caller]
 pub fn modify_to_nearest_angle<T>(vec1: &[T], vec2: &mut [T], limits: &Limits<T>)
 where
     T: RealField,
