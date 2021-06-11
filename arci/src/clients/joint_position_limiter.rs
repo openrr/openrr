@@ -29,10 +29,12 @@ where
     /// # Panics
     ///
     /// Panics if the lengths of `limits` and joints that `client` handles are different.
+    #[track_caller]
     pub fn new(client: C, limits: Vec<JointPositionLimit>) -> Self {
         Self::new_with_strategy(client, limits, Default::default())
     }
 
+    #[track_caller]
     pub fn new_with_strategy(
         client: C,
         limits: Vec<JointPositionLimit>,
