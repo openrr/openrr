@@ -11,3 +11,12 @@
 ```bash
 sudo apt install libudev-dev
 ```
+
+## FAQ
+
+Q. I can't open any devices on Linux
+A. You need to join `input` group if you don't have the permissions.
+
+```bash
+sudo adduser $USER input
+```
