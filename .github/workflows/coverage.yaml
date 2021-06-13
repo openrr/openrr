@@ -2,40 +2,46 @@ name: Code Coverage
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   CARGO_INCREMENTAL: 0
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
 
-defaults:
-  run:
-    shell: bash -ieo pipefail {0}
-
 jobs:
   coverage:
     runs-on: ubuntu-latest
-    container:
-      image: docker://openrr/openrr-coverage-ci:ros2
-      options: --security-opt seccomp=unconfined
-    env:
-      HOME: /root
     steps:
       - uses: actions/checkout@v2
       - run: ci/ubuntu-install-dependencies.sh
+      - run: |
+          # ros2
+          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+          # ros1
+          sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+          sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
+          sudo apt-get update
+          sudo apt-get install -y \
+            ros-noetic-ros-base ros-noetic-joy \
+            ros-foxy-ros-core ros-foxy-geometry2
+      - run: rustup toolchain install nightly --component llvm-tools-preview && rustup default nightly
+      - run: cargo install cargo-llvm-cov --version 0.1.0-alpha.4
       - name: Generate code coverage
         run: |
           # for test of arci-ros2
           source /opt/ros/foxy/setup.bash
           # for test of arci-ros (roscore, rostopic)
           source /opt/ros/noetic/setup.bash
-          # TODO: Currently, if we include arci-ros2, the build fails due to "Broken pipe (os error 32)" error.
-          cargo tarpaulin --verbose --all-features --workspace --exclude arci-ros2 --out Xml --timeout 60
+          RUST_LOG=cargo_llvm_cov=trace \
+          cargo llvm-cov --verbose --all-features --workspace --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
-          token: ${{secrets.CODECOV_TOKEN}}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: lcov.info
           fail_ci_if_error: true
