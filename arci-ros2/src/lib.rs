@@ -1,14 +1,12 @@
 //! [`arci`] implementation using ROS2.
-
 #![warn(rust_2018_idioms)]
-
-#[cfg(feature = "ros2")]
+#![cfg(feature = "ros2")]
 mod cmd_vel_move_base;
-#[cfg(feature = "ros2")]
+mod navigation;
 mod plugin;
 
-#[cfg(feature = "ros2")]
 pub use cmd_vel_move_base::*;
+pub use navigation::*;
+
 // re-export
-#[cfg(feature = "ros2")]
 pub use r2r;
