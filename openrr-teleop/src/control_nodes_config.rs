@@ -29,7 +29,9 @@ pub struct IkNodeTeleopConfig {
 #[serde(deny_unknown_fields)]
 pub struct ControlNodesConfig {
     pub move_base_mode: Option<String>,
+    #[serde(default)]
     pub joy_joint_teleop_configs: Vec<JoyJointTeleopConfig>,
+    #[serde(default)]
     pub ik_node_teleop_configs: Vec<IkNodeTeleopConfig>,
     pub joints_pose_sender_config: Option<JointsPoseSenderConfig>,
 }

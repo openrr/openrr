@@ -350,6 +350,7 @@ pub struct RobotConfig {
     #[schemars(schema_with = "unimplemented_schema")]
     ros_localization_client_config: Option<toml::Value>,
 
+    #[serde(default)]
     pub openrr_clients_config: OpenrrClientsConfig,
 
     #[serde(default)]
