@@ -53,13 +53,7 @@ where
 
         // check redundant joint name of partial
         let input_len = joint_names.len();
-        let mut unique_joint_names = joint_names
-            .clone()
-            .into_iter()
-            .collect::<HashSet<String>>()
-            .into_iter()
-            .collect::<Vec<String>>();
-        unique_joint_names.sort();
+        let unique_joint_names = joint_names.clone().into_iter().collect::<HashSet<String>>();
 
         if unique_joint_names.len() != input_len {
             return Err(Error::LengthMismatch {
