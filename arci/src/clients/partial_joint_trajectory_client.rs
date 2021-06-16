@@ -79,7 +79,7 @@ where
         }
 
         Ok(Self {
-            joint_names: joint_names,
+            joint_names,
             shared_client,
             full_joint_names,
         })
