@@ -10,11 +10,10 @@ async fn test_pub() {
     use r2r::geometry_msgs::msg::Twist;
 
     let ctx = r2r::Context::create().unwrap();
-    let mut node = r2r::Node::create(ctx, "example_cmd_vel_node", "").unwrap();
-    let c = Ros2CmdVelMoveBase::new(&mut node, "/cmd_vel_test");
+    let mut c = Ros2CmdVelMoveBase::new(ctx.clone(), "/cmd_vel_test");
     let (tx, rx) = mpsc::channel::<Twist>();
 
-    let _sub = node.subscribe(
+    let _sub = c.node.subscribe(
         "/cmd_vel_test",
         Box::new(move |v: Twist| {
             tx.send(v).unwrap();
@@ -26,7 +25,7 @@ async fn test_pub() {
     while count < 10 {
         vel.x = 0.001 * (count as f64);
         c.send_velocity(&vel).unwrap();
-        node.spin_once(std::time::Duration::from_millis(10));
+        c.node.spin_once(std::time::Duration::from_millis(10));
         let v = rx.recv().unwrap();
         assert_approx_eq!(v.linear.x, vel.x);
         assert_approx_eq!(v.linear.y, vel.y);
@@ -43,7 +42,7 @@ async fn test_pub() {
         vel.y = 0.002 * (count as f64);
         vel.theta = -0.003 * (count as f64);
         c.send_velocity(&vel).unwrap();
-        node.spin_once(std::time::Duration::from_millis(10));
+        c.node.spin_once(std::time::Duration::from_millis(10));
         let v = rx.recv().unwrap();
         assert_approx_eq!(v.linear.x, vel.x);
         assert_approx_eq!(v.linear.y, vel.y);

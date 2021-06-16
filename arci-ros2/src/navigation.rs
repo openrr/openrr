@@ -1,6 +1,7 @@
 use arci::*;
 use r2r::geometry_msgs::msg;
 use r2r::nav2_msgs::action::NavigateToPose;
+use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -82,12 +83,14 @@ impl Navigation for Ros2Navigation {
             .send_goal_request(goal, cb, feedback_cb, result_cb)
             .unwrap();
         let spin_node = self.node.clone();
+        let start_time = std::time::Instant::now();
         let wait = WaitFuture::new(async move {
             const SLEEP_DURATION: std::time::Duration = std::time::Duration::from_micros(100);
-            while has_reached.lock().unwrap().is_none() {
+            while has_reached.lock().unwrap().is_none() && start_time.elapsed() < timeout {
                 spin_node.lock().unwrap().0.spin_once(SLEEP_DURATION);
                 std::thread::sleep(SLEEP_DURATION);
             }
+            // TODO: Handle the result and timeout
             Ok(())
         });
 
@@ -97,4 +100,10 @@ impl Navigation for Ros2Navigation {
     fn cancel(&self) -> Result<(), Error> {
         todo!();
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Ros2NavigationConfig {
+    pub action_name: String,
 }

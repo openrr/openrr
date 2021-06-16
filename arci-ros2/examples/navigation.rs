@@ -3,7 +3,6 @@
 async fn main() -> Result<(), anyhow::Error> {
     use arci::*;
     use arci_ros2::{r2r, Ros2Navigation};
-    use std::sync::{Arc, Mutex};
 
     let ctx = r2r::Context::create().unwrap();
     let n = Ros2Navigation::new(ctx, "/navigate_to_pose");
