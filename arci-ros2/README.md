@@ -7,9 +7,9 @@ ROS2 implementation for arci.
 ## Dependencies
 
 * ROS2 Foxy
+  * ros-foxy-nav2-msgs
 * [r2r](https://github.com/sequenceplanner/r2r)
   * libclang-dev
-
 
 ## Build
 
