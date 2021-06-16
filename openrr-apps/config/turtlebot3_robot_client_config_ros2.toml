@@ -1,0 +1,21 @@
+move_base = "arci_ros2"
+navigation = "arci_ros2"
+
+[openrr_clients_config]
+
+[plugins.arci_ros2]
+path = "../../target/debug/libarci_ros2"
+
+[[plugins.arci_ros2.instances]]
+name = "arci_ros2"
+type = "MoveBase"
+args = """
+topic = "/cmd_vel"
+"""
+
+[[plugins.arci_ros2.instances]]
+name = "arci_ros2"
+type = "Navigation"
+args = """
+action_name = "/navigate_to_pose"
+"""
