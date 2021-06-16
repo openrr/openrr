@@ -28,7 +28,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             ros-noetic-ros-base ros-noetic-joy \
-            ros-foxy-ros-core ros-foxy-geometry2
+            ros-foxy-ros-core ros-foxy-geometry2 ros-foxy-nav2-msgs
       - run: rustup toolchain install nightly --component llvm-tools-preview && rustup default nightly
       - run: cargo install cargo-llvm-cov --version 0.1.0-alpha.4
       - name: Generate code coverage
