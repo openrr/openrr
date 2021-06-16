@@ -23,6 +23,7 @@ jobs:
       - run: |
           apt-get update
           apt-get -y install curl libclang-dev
+          apt-get install ros-foxy-nav2-msgs
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
