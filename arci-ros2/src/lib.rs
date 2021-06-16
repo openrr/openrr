@@ -7,6 +7,5 @@ mod plugin;
 
 pub use cmd_vel_move_base::*;
 pub use navigation::*;
-
 // re-export
 pub use r2r;

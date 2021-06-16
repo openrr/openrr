@@ -1,9 +1,11 @@
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+
 use arci::*;
-use r2r::geometry_msgs::msg;
-use r2r::nav2_msgs::action::NavigateToPose;
+use r2r::{geometry_msgs::msg, nav2_msgs::action::NavigateToPose};
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
 
 struct MyNode(r2r::Node);
 
