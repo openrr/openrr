@@ -5,8 +5,7 @@ async fn main() -> Result<(), anyhow::Error> {
     use arci_ros2::{r2r, Ros2CmdVelMoveBase};
 
     let ctx = r2r::Context::create().unwrap();
-    let mut node = r2r::Node::create(ctx, "example_cmd_vel_node", "").unwrap();
-    let c = Ros2CmdVelMoveBase::new(&mut node, "/cmd_vel");
+    let c = Ros2CmdVelMoveBase::new(ctx, "/cmd_vel");
     let mut count = 0;
     let mut vel = BaseVelocity::default();
     while count < 100 {

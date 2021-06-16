@@ -2,15 +2,17 @@ use arci::*;
 use r2r::geometry_msgs::msg::Twist;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
 pub struct Ros2CmdVelMoveBase {
     vel_publisher: r2r::Publisher<Twist>,
+    pub node: r2r::Node,
 }
 
 impl Ros2CmdVelMoveBase {
-    pub fn new(node: &mut r2r::Node, cmd_topic_name: &str) -> Self {
+    pub fn new(ctx: r2r::Context, cmd_topic_name: &str) -> Self {
+        let mut node = r2r::Node::create(ctx, "cmd_vel_node", "arci_ros2").unwrap();
         Self {
             vel_publisher: node.create_publisher(cmd_topic_name).unwrap(),
+            node,
         }
     }
 }
