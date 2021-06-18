@@ -1,5 +1,7 @@
 //! [`arci::Gamepad`] implementation using [gilrs](https://gitlab.com/gilrs-project/gilrs).
 
+#![warn(rust_2018_idioms)]
+
 use std::{
     collections::HashMap,
     sync::{
@@ -211,6 +213,7 @@ fn default_axis_value_map() -> HashMap<Axis, f64> {
     axis_value_map
 }
 
+#[derive(Debug)]
 pub struct GilGamepad {
     rx: flume::Receiver<GamepadEvent>,
     is_running: Arc<AtomicBool>,

@@ -39,7 +39,10 @@ where
 }
 
 #[cfg(feature = "assimp")]
-pub(crate) fn assimp_scene_to_ncollide_mesh<T>(scene: assimp::Scene, scale: &[f64]) -> TriMesh<T>
+pub(crate) fn assimp_scene_to_ncollide_mesh<T>(
+    scene: assimp::Scene<'_>,
+    scale: &[f64],
+) -> TriMesh<T>
 where
     T: RealField,
 {

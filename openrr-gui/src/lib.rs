@@ -1,3 +1,5 @@
+#![warn(rust_2018_idioms)]
+
 mod error;
 mod joint_position_sender;
 mod style;

@@ -1,5 +1,7 @@
 //! Abstract Robot Control Interface.
 
+#![warn(rust_2018_idioms)]
+
 mod clients;
 mod error;
 mod traits;

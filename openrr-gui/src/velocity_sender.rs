@@ -426,7 +426,7 @@ where
         Command::none()
     }
 
-    fn view(&mut self) -> Element<Message> {
+    fn view(&mut self) -> Element<'_, Message> {
         let mut content = Column::new()
             .spacing(10)
             .padding(20)

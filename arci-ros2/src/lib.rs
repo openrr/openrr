@@ -1,5 +1,7 @@
 //! [`arci`] implementation using ROS2.
 
+#![warn(rust_2018_idioms)]
+
 #[cfg(feature = "ros2")]
 mod cmd_vel_move_base;
 #[cfg(feature = "ros2")]
