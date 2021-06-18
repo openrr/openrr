@@ -102,6 +102,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install Rust
+        run: rustup update stable
       - run: ci/ubuntu-install-dependencies.sh
       - run: cargo install cargo-hack
       - run: cargo hack check --all --feature-powerset --optional-deps --exclude arci-ros2
