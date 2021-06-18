@@ -20,6 +20,7 @@ ncollide3d = "0.29"
 num-traits = "0.2"
 rand = "0.8"
 rrt = "0.5"
+stl_io = "0.6"
 thiserror = "1.0"
 tracing = { version = "0.1", features = ["log"] }
 trajectory = "0.0.2"
