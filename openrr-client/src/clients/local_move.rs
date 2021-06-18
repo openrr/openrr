@@ -116,22 +116,10 @@ mod tests {
         let local_move = LocalMove::new(Box::new(nav), Box::new(move_base), config);
 
         // Check convergence evaluations
-        assert_eq!(
-            local_move.is_reached(Isometry2::new(Vector2::new(0.0, 0.0), 0.0)),
-            true
-        );
-        assert_eq!(
-            local_move.is_reached(Isometry2::new(Vector2::new(0.05, 0.05), 0.05)),
-            true
-        );
-        assert_eq!(
-            local_move.is_reached(Isometry2::new(Vector2::new(0.11, 0.0), 0.0)),
-            false
-        ); // reach_distance_threshold = 0.1
-        assert_eq!(
-            local_move.is_reached(Isometry2::new(Vector2::new(0.0, 0.0), 0.11)),
-            false
-        ); // reach_angle_threshold = 0.1
+        assert!(local_move.is_reached(Isometry2::new(Vector2::new(0.0, 0.0), 0.0)));
+        assert!(local_move.is_reached(Isometry2::new(Vector2::new(0.05, 0.05), 0.05)));
+        assert!(!local_move.is_reached(Isometry2::new(Vector2::new(0.11, 0.0), 0.0))); // reach_distance_threshold = 0.1
+        assert!(!local_move.is_reached(Isometry2::new(Vector2::new(0.0, 0.0), 0.11))); // reach_angle_threshold = 0.1
 
         // Set control velocity
         local_move
