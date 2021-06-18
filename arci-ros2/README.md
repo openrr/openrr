@@ -7,15 +7,21 @@ ROS2 implementation for arci.
 ## Dependencies
 
 * ROS2 Foxy
-  * ros-foxy-nav2-msgs
 * [r2r](https://github.com/sequenceplanner/r2r)
-  * libclang-dev
+
+## Install
+
+```bash
+sudo apt install ros-foxy-nav2-msgs ros-foxy-geometry-msgs
+sudo apt install libclang-dev  # for r2r
+```
 
 ## Build
 
 Build `openrr` with the feature `ros2`
 
 ```bash
+source /opt/ros/foxy/setup.bash
 cargo build --features ros2
 ```
 
