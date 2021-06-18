@@ -308,11 +308,7 @@ impl RosControlClient {
             .unwrap()
             .joint_names;
         for joint_name in &joint_names {
-            if state_joint_names
-                .iter()
-                .find(|name| **name == *joint_name)
-                .is_none()
-            {
+            if !state_joint_names.iter().any(|name| **name == *joint_name) {
                 panic!(
                     "Invalid configuration : Joint ({}) is not found in state ({:?})",
                     joint_name, state_joint_names
