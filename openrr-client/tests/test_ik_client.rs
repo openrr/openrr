@@ -192,12 +192,12 @@ fn test_ik_solver_with_chain_constraints() {
     let ik_solver_with_chain = IkSolverWithChain::new(arm, Arc::new(ik_solver), constraints);
 
     let c = ik_solver_with_chain.constraints();
-    assert_eq!(c.position_x, true);
-    assert_eq!(c.position_y, false);
-    assert_eq!(c.position_z, true);
-    assert_eq!(c.rotation_x, false);
-    assert_eq!(c.rotation_y, true);
-    assert_eq!(c.rotation_z, false);
+    assert!(c.position_x);
+    assert!(!c.position_y);
+    assert!(c.position_z);
+    assert!(!c.rotation_x);
+    assert!(c.rotation_y);
+    assert!(!c.rotation_z);
 }
 
 #[test]
