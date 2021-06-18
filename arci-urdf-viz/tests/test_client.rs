@@ -21,9 +21,9 @@ fn test_urdf_viz_web_client_config_accessor() {
     assert_eq!(config.name, "test");
     assert_eq!(config.joint_names[0], "j1");
     assert_eq!(config.joint_names[1], "j2");
-    assert_eq!(config.wrap_with_joint_position_limiter, true);
+    assert!(config.wrap_with_joint_position_limiter);
     assert!(config.joint_position_limits.is_none());
-    assert_eq!(config.wrap_with_joint_velocity_limiter, true);
+    assert!(config.wrap_with_joint_velocity_limiter);
     assert_approx_eq!(config.joint_velocity_limits.as_ref().unwrap()[0], 1.0);
     assert_approx_eq!(config.joint_velocity_limits.unwrap()[1], 2.0);
     config.name = "arm".to_owned();
@@ -35,9 +35,9 @@ fn test_urdf_viz_web_client_config_accessor() {
     assert_eq!(config.name, "arm");
     assert_eq!(config.joint_names[0], "shoulder_pan_joint");
     assert_eq!(config.joint_names[1], "elbow_joint");
-    assert_eq!(config.wrap_with_joint_position_limiter, false);
+    assert!(!config.wrap_with_joint_position_limiter);
     assert!(config.joint_position_limits.unwrap().is_empty());
-    assert_eq!(config.wrap_with_joint_velocity_limiter, false);
+    assert!(!config.wrap_with_joint_velocity_limiter);
     assert_approx_eq!(config.joint_velocity_limits.as_ref().unwrap()[0], 0.0);
     assert_approx_eq!(config.joint_velocity_limits.unwrap()[1], 0.0);
 }
@@ -79,9 +79,9 @@ fn test_urdf_viz_web_client_config_clone() {
     assert_eq!(config2.name, "test");
     assert_eq!(config2.joint_names[0], "j1");
     assert_eq!(config2.joint_names[1], "j2");
-    assert_eq!(config2.wrap_with_joint_position_limiter, true);
+    assert!(config2.wrap_with_joint_position_limiter);
     assert!(config2.joint_position_limits.is_none());
-    assert_eq!(config2.wrap_with_joint_velocity_limiter, true);
+    assert!(config2.wrap_with_joint_velocity_limiter);
     assert_approx_eq!(config2.joint_velocity_limits.as_ref().unwrap()[0], 1.0);
     assert_approx_eq!(config2.joint_velocity_limits.unwrap()[1], 2.0);
 }
