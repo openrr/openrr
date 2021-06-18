@@ -15,7 +15,7 @@ use tracing::{debug, info};
 pub struct Ros2Navigation {
     action_client: r2r::ActionClient<NavigateToPose::Action>,
     /// r2r::Node to handle the action
-    pub node: Arc<Mutex<r2r::Node>>,
+    node: Arc<Mutex<r2r::Node>>,
 }
 
 // TODO:
