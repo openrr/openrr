@@ -1,13 +1,14 @@
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+
 use arci::*;
 use r2r::{
     builtin_interfaces::msg::Time, geometry_msgs::msg, nav2_msgs::action::NavigateToPose,
     std_msgs::msg::Header,
 };
 use serde::{Deserialize, Serialize};
-use std::{
-    sync::{Arc, Mutex},
-    time::Duration,
-};
 use tracing::{debug, info};
 
 /// Implement arci::Navigation for ROS2
