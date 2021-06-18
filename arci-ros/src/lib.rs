@@ -1,5 +1,7 @@
 //! [`arci`] implementation using ROS1.
 
+#![warn(rust_2018_idioms)]
+
 mod cmd_vel_move_base;
 mod error;
 mod joy_gamepad;

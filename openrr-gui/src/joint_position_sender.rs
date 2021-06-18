@@ -467,7 +467,7 @@ where
         Command::none()
     }
 
-    fn view(&mut self) -> Element<Message> {
+    fn view(&mut self) -> Element<'_, Message> {
         let pick_list = if self.joint_trajectory_client_names.len() > 1 {
             let pick_list = PickList::new(
                 &mut self.pick_list,

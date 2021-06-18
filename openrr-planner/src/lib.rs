@@ -18,6 +18,9 @@ limitations under the License.
 //! Get the collision free trajectory of joint angles. `ncollide3d` is used to check the
 //! collision between the robot and the environment.
 //!
+
+#![warn(rust_2018_idioms)]
+
 mod errors;
 
 pub mod collision;

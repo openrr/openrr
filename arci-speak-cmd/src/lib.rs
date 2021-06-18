@@ -1,5 +1,7 @@
 //! [`arci::Speaker`] implementation using local command.
 
+#![warn(missing_docs, rust_2018_idioms)]
+
 use std::{io, process::Command};
 
 use arci::{Speaker, WaitFuture};

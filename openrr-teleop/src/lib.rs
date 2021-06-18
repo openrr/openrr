@@ -1,3 +1,5 @@
+#![warn(rust_2018_idioms)]
+
 mod control_node;
 mod control_nodes_config;
 mod ik;

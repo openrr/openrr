@@ -1,5 +1,7 @@
 //! [`arci::Speaker`] implementation for playing audio files.
 
+#![warn(rust_2018_idioms)]
+
 use std::{
     collections::HashMap,
     fs::File,

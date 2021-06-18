@@ -1,3 +1,5 @@
+#![warn(rust_2018_idioms)]
+
 mod error;
 mod robot_config;
 mod robot_teleop_config;
