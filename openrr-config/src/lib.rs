@@ -1,4 +1,6 @@
-#![warn(rust_2018_idioms)]
+//! Utilities for modifying configuration files.
+
+#![warn(missing_docs, rust_2018_idioms)]
 
 use std::{iter, mem};
 
@@ -12,6 +14,7 @@ const SEPARATORS: &[char] = &['\n', ';'];
 /// Replaces the contents of the specified TOML document based on the specified scripts.
 ///
 /// You can specify multiple scripts at once (newline-separated or semicolon-separated).
+/// Empty scripts, and leading and trailing separators will be ignored.
 ///
 /// # Set operation
 ///
@@ -258,8 +261,13 @@ mod tests {
         let f = |s: &str| parse_scripts(s).unwrap();
         assert!(f("").is_empty());
         assert!(f("\n").is_empty());
+        assert!(f(";").is_empty());
+        assert!(f(";;").is_empty());
 
         assert!(parse_scripts("a").is_err());
+        assert!(parse_scripts("a\n").is_err());
+        assert!(parse_scripts("a;").is_err());
+        assert!(parse_scripts(";a").is_err());
         assert!(parse_scripts("a=b").is_err());
         assert!(parse_scripts(r#"a="b"=0"#).is_err());
         assert!(parse_scripts(r#"a=""""#).is_err());
