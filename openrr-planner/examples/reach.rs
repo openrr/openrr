@@ -19,7 +19,7 @@ use k::nalgebra as na;
 use ncollide3d::shape::Compound;
 use openrr_planner::FromUrdf;
 use structopt::StructOpt;
-use urdf_viz::{Action, Key, Modifiers, WindowEvent};
+use urdf_viz::{kiss3d::window::Window, Action, Key, Modifiers, WindowEvent};
 
 struct CollisionAvoidApp {
     planner: openrr_planner::JointPathPlannerWithIk<
@@ -30,6 +30,7 @@ struct CollisionAvoidApp {
     ik_target_pose: na::Isometry3<f64>,
     colliding_link_names: Vec<String>,
     viewer: urdf_viz::Viewer,
+    window: Option<Window>,
     arm: k::SerialChain<f64>,
     end_link_name: String,
     ignore_rotation_x: bool,
@@ -55,14 +56,18 @@ impl CollisionAvoidApp {
         let solver = openrr_planner::JacobianIkSolver::new(0.001f64, 0.005, 0.2, 100);
         let solver = openrr_planner::RandomInitializeIkSolver::new(solver, 100);
         let planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);
-        let mut viewer = urdf_viz::Viewer::new("openrr_planner: example reach");
-        viewer.add_robot_with_base_dir(planner.urdf_robot().as_ref().unwrap(), robot_path.parent());
-        viewer.add_axis_cylinders("origin", 1.0);
+        let (mut viewer, mut window) = urdf_viz::Viewer::new("openrr_planner: example reach");
+        viewer.add_robot_with_base_dir(
+            &mut window,
+            planner.urdf_robot().as_ref().unwrap(),
+            robot_path.parent(),
+        );
+        viewer.add_axis_cylinders(&mut window, "origin", 1.0);
 
         let urdf_obstacles =
             urdf_rs::utils::read_urdf_or_xacro(obstacle_path).expect("obstacle file not found");
         let obstacles = Compound::from_urdf_robot(&urdf_obstacles);
-        viewer.add_robot(&urdf_obstacles);
+        viewer.add_robot(&mut window, &urdf_obstacles);
         println!("robot={}", planner.path_planner.collision_check_robot);
         let arm = {
             let end_link = planner
@@ -74,9 +79,10 @@ impl CollisionAvoidApp {
         };
         let ik_target_pose = arm.end_transform();
         let end_link_name = end_link_name.to_owned();
-        viewer.add_axis_cylinders("ik_target", 0.3);
+        viewer.add_axis_cylinders(&mut window, "ik_target", 0.3);
         CollisionAvoidApp {
             viewer,
+            window: Some(window),
             obstacles,
             ik_target_pose,
             colliding_link_names: Vec::new(),
@@ -118,7 +124,7 @@ impl CollisionAvoidApp {
         }
     }
 
-    fn run(&mut self) {
+    fn run(mut self) {
         let mut is_collide_show = false;
 
         let c = k::Constraints {
@@ -131,14 +137,15 @@ impl CollisionAvoidApp {
         self.update_robot();
         self.update_ik_target();
         let mut plans: Vec<Vec<f64>> = Vec::new();
+        let mut window = self.window.take().unwrap();
 
-        while self.viewer.render() {
+        while window.render_with_camera(&mut self.viewer.arc_ball) {
             if !plans.is_empty() {
                 self.arm.set_joint_positions(&plans.pop().unwrap()).unwrap();
                 self.update_robot();
             }
             std::thread::sleep(std::time::Duration::from_millis(10));
-            for event in self.viewer.events().iter() {
+            for event in window.events().iter() {
                 if let WindowEvent::Key(code, Action::Press, mods) = event.value {
                     match code {
                         Key::U => {
@@ -279,8 +286,9 @@ impl CollisionAvoidApp {
                         Key::V => {
                             is_collide_show = !is_collide_show;
                             let ref_robot = self.planner.urdf_robot().as_ref().unwrap();
-                            self.viewer.remove_robot(ref_robot);
+                            self.viewer.remove_robot(&mut window, ref_robot);
                             self.viewer.add_robot_with_base_dir_and_collision_flag(
+                                &mut window,
                                 ref_robot,
                                 None,
                                 is_collide_show,
@@ -306,7 +314,7 @@ impl CollisionAvoidApp {
                                 na::Vector3::new(-1.5, -1.5, -0.5),
                                 0.2,
                             ) {
-                                let mut c = self.viewer.window.add_cube(0.05, 0.04, 0.03);
+                                let mut c = window.add_cube(0.05, 0.04, 0.03);
                                 c.prepend_to_local_transformation(&na::convert(v));
                                 c.set_color(0.0, 1.0, 0.0);
                             }
@@ -352,7 +360,7 @@ struct Opt {
 fn main() -> Result<(), openrr_planner::Error> {
     tracing_subscriber::fmt::init();
     let opt = Opt::from_args();
-    let mut app = CollisionAvoidApp::new(
+    let app = CollisionAvoidApp::new(
         &opt.robot_urdf_path,
         &opt.end_link,
         &opt.obstacle_urdf_path,
