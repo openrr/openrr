@@ -1,3 +1,5 @@
+use std::fmt;
+
 use nalgebra as na;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -33,66 +35,6 @@ pub(crate) struct RpcResult {
     pub reason: String,
 }
 
-fn try_connect<T>(
-    base_url: &Url,
-    f: impl FnOnce() -> Result<T, ureq::Error>,
-) -> Result<T, arci::Error> {
-    f().map_err(|e| arci::Error::Connection {
-        message: format!("base_url:{}: {:?}", base_url, e),
-    })
-}
-
-pub(crate) fn get_joint_positions(base_url: &Url) -> Result<JointState, arci::Error> {
-    try_connect(base_url, || {
-        let re = ureq::get(base_url.join("get_joint_positions").unwrap().as_str())
-            .call()?
-            .into_json::<JointState>()?;
-        Ok(re)
-    })
-}
-
-pub(crate) fn send_joint_positions(
-    base_url: &Url,
-    joint_state: JointState,
-) -> Result<(), arci::Error> {
-    let res: RpcResult = try_connect(base_url, || {
-        let re = ureq::post(base_url.join("set_joint_positions").unwrap().as_str())
-            .send_json(serde_json::to_value(joint_state).unwrap())?
-            .into_json()?;
-        Ok(re)
-    })?;
-    if !res.is_ok {
-        return Err(arci::Error::Connection {
-            message: res.reason,
-        });
-    }
-    Ok(())
-}
-
-pub(crate) fn get_robot_origin(base_url: &Url) -> Result<BasePose, arci::Error> {
-    try_connect(base_url, || {
-        let re = ureq::get(base_url.join("get_robot_origin").unwrap().as_str())
-            .call()?
-            .into_json::<BasePose>()?;
-        Ok(re)
-    })
-}
-
-pub(crate) fn send_robot_origin(base_url: &Url, base_pose: BasePose) -> Result<(), arci::Error> {
-    let res: RpcResult = try_connect(base_url, || {
-        let re = ureq::post(base_url.join("set_robot_origin").unwrap().as_str())
-            .send_json(serde_json::to_value(base_pose).unwrap())?
-            .into_json()?;
-        Ok(re)
-    })?;
-    if !res.is_ok {
-        return Err(arci::Error::Connection {
-            message: res.reason,
-        });
-    }
-    Ok(())
-}
-
 pub(crate) fn euler_angles_from_quaternion(q: &[f64; 4]) -> (f64, f64, f64) {
     to_nalgebra(q).euler_angles()
 }
@@ -113,6 +55,150 @@ fn from_nalgebra(na_q: &nalgebra::UnitQuaternion<f64>) -> [f64; 4] {
 
 fn to_nalgebra(q: &[f64; 4]) -> nalgebra::UnitQuaternion<f64> {
     nalgebra::UnitQuaternion::from_quaternion(nalgebra::Quaternion::new(q[0], q[1], q[2], q[3]))
+}
+
+fn map_connection_error<E: fmt::Display>(url: &Url) -> impl FnOnce(E) -> arci::Error + '_ {
+    move |e: E| arci::Error::Connection {
+        message: format!("url:{}: {}", url, e),
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) use native::*;
+#[cfg(target_arch = "wasm32")]
+pub(crate) use wasm::*;
+
+#[cfg(not(target_arch = "wasm32"))]
+mod native {
+    use serde::{de::DeserializeOwned, Serialize};
+    use url::Url;
+
+    use super::*;
+
+    fn get<T: DeserializeOwned>(url: Url) -> Result<T, arci::Error> {
+        ureq::get(url.as_str())
+            .call()
+            .map_err(map_connection_error(&url))?
+            .into_json::<T>()
+            .map_err(map_connection_error(&url))
+    }
+
+    fn post<T: Serialize, U: DeserializeOwned>(url: Url, msg: T) -> Result<U, arci::Error> {
+        ureq::post(url.as_str())
+            .send_json(serde_json::to_value(msg).unwrap())
+            .map_err(map_connection_error(&url))?
+            .into_json()
+            .map_err(map_connection_error(&url))
+    }
+
+    pub(crate) fn get_joint_positions(base_url: &Url) -> Result<JointState, arci::Error> {
+        get(base_url.join("get_joint_positions").unwrap())
+    }
+
+    pub(crate) fn send_joint_positions(
+        base_url: &Url,
+        joint_state: JointState,
+    ) -> Result<(), arci::Error> {
+        let res: RpcResult = post(base_url.join("set_joint_positions").unwrap(), joint_state)?;
+        if !res.is_ok {
+            return Err(arci::Error::Connection {
+                message: res.reason,
+            });
+        }
+        Ok(())
+    }
+
+    pub(crate) fn get_robot_origin(base_url: &Url) -> Result<BasePose, arci::Error> {
+        get(base_url.join("get_robot_origin").unwrap())
+    }
+
+    pub(crate) fn send_robot_origin(
+        base_url: &Url,
+        base_pose: BasePose,
+    ) -> Result<(), arci::Error> {
+        let res: RpcResult = post(base_url.join("set_robot_origin").unwrap(), base_pose)?;
+        if !res.is_ok {
+            return Err(arci::Error::Connection {
+                message: res.reason,
+            });
+        }
+        Ok(())
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+mod wasm {
+    use serde::{de::DeserializeOwned, Serialize};
+    use url::Url;
+
+    use super::*;
+
+    async fn get<T: DeserializeOwned>(url: Url) -> Result<T, arci::Error> {
+        reqwest::get(url)
+            .await
+            .map_err(map_connection_error(url))?
+            .json::<T>()
+            .await
+            .map_err(map_connection_error(url))
+    }
+
+    async fn post<T: Serialize, U: DeserializeOwned>(url: Url, msg: T) -> Result<U, arci::Error> {
+        reqwest::Client::new()
+            .post(url)
+            .json(&msg)
+            .send()
+            .await
+            .map_err(map_connection_error(url))?
+            .json()
+            .await
+            .map_err(map_connection_error(url))
+    }
+
+    pub(crate) async fn get_joint_positions(base_url: &Url) -> Result<JointState, arci::Error> {
+        get(base_url.join("get_joint_positions").unwrap()).await
+    }
+
+    pub(crate) async fn send_joint_positions(
+        base_url: &Url,
+        joint_state: JointState,
+    ) -> Result<(), arci::Error> {
+        let res: RpcResult =
+            post(base_url.join("set_joint_positions").unwrap(), joint_state).await?;
+        if !res.is_ok {
+            return Err(arci::Error::Connection {
+                message: res.reason,
+            });
+        }
+        Ok(())
+    }
+
+    pub(crate) async fn get_robot_origin(base_url: &Url) -> Result<BasePose, arci::Error> {
+        get(base_url.join("get_robot_origin").unwrap()).await
+    }
+
+    pub(crate) async fn send_robot_origin(
+        base_url: &Url,
+        base_pose: BasePose,
+    ) -> Result<(), arci::Error> {
+        let res: RpcResult = post(base_url.join("set_robot_origin").unwrap(), base_pose).await?;
+        if !res.is_ok {
+            return Err(arci::Error::Connection {
+                message: res.reason,
+            });
+        }
+        Ok(())
+    }
+
+    pub(crate) async fn sleep(ms: i32) {
+        let promise = Promise::new(&mut |resolve, _| {
+            web_sys::window()
+                .unwrap()
+                .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, ms)
+                .unwrap();
+        });
+
+        JsFuture::from(promise).await.unwrap();
+    }
 }
 
 #[cfg(test)]

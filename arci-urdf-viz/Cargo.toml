@@ -22,8 +22,28 @@ serde_json = "1.0"
 tokio = { version = "1", features = ["sync"] }
 tracing = { version = "0.1", features = ["log"] }
 urdf-rs = "0.6"
-ureq = { version = "2", features = ["json"] }
 url = "2.0"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+ureq = { version = "2", features = ["json"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+futures = "0.3"
+getrandom = { version = "0.2", features = ["js"] }
+js-sys = "0.3"
+reqwest = { version = "0.11", features = ["json"] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "Window",
+    "Location",
+    "Url",
+    "FileReader",
+    "Blob",
+    "File",
+    "Response",
+    "WebGlRenderingContext",
+] }
 
 [dev-dependencies]
 actix-web = "3"
