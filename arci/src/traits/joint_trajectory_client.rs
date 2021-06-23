@@ -1,11 +1,12 @@
 use auto_impl::auto_impl;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     error::Error,
     waits::{CompleteCondition, WaitFuture},
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TrajectoryPoint {
     pub positions: Vec<f64>,
     pub velocities: Option<Vec<f64>>,
