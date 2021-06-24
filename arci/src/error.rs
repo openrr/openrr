@@ -29,10 +29,12 @@ pub enum Error {
         partial,
         full
     )]
-    JointNamesMissmatch {
+    JointNamesMismatch {
         partial: Vec<String>,
         full: Vec<String>,
     },
+    #[error("arci: CopyJointError {:?} {:?} : {:?} {:?}", .0, .1, .2, .3)]
+    CopyJointError(Vec<String>, Vec<f64>, Vec<String>, Vec<f64>),
     #[error(
         "arci: Wait timeout target={:?}, cur={:?} is_reached={:?}",
         target,
