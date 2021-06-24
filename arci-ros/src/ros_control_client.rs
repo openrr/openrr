@@ -206,7 +206,7 @@ pub fn create_joint_trajectory_message_for_send_joint_positions(
     let full_dof = full_names.len();
 
     let mut full_positions = state.actual.positions;
-    copy_joint_positions(&partial_names, positions, &full_names, &mut full_positions);
+    copy_joint_positions(&partial_names, positions, &full_names, &mut full_positions)?;
 
     let point_with_full_positions = JointTrajectoryPoint {
         positions: full_positions,
@@ -242,26 +242,26 @@ pub fn create_joint_trajectory_message_for_send_joint_trajectory(
                     &tp.positions,
                     &full_names,
                     &mut full_positions,
-                );
-                JointTrajectoryPoint {
+                )?;
+                Ok(JointTrajectoryPoint {
                     positions: full_positions,
                     velocities: if let Some(partial_velocities) = &tp.velocities {
                         let mut full_velocities = vec![0.0; full_dof];
                         copy_joint_positions(
                             &client.joint_names(),
-                            &partial_velocities,
+                            partial_velocities,
                             &full_names,
                             &mut full_velocities,
-                        );
+                        )?;
                         full_velocities
                     } else {
                         vec![]
                     },
                     time_from_start: tp.time_from_start.into(),
                     ..Default::default()
-                }
+                })
             })
-            .collect(),
+            .collect::<Result<Vec<_>, arci::Error>>()?,
         joint_names: full_names,
         ..Default::default()
     })
@@ -270,7 +270,7 @@ pub fn create_joint_trajectory_message_for_send_joint_trajectory(
 pub fn extract_current_joint_positions_from_message(
     client: &dyn JointTrajectoryClient,
     state: JointTrajectoryControllerState,
-) -> Vec<f64> {
+) -> Result<Vec<f64>, arci::Error> {
     // TODO: cache index map and use it
     let mut result = vec![0.0; client.joint_names().len()];
     copy_joint_positions(
@@ -278,8 +278,8 @@ pub fn extract_current_joint_positions_from_message(
         &state.actual.positions,
         &client.joint_names(),
         &mut result,
-    );
-    result
+    )?;
+    Ok(result)
 }
 
 #[derive(Clone)]
@@ -395,10 +395,7 @@ impl JointTrajectoryClient for RosControlClient {
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        Ok(extract_current_joint_positions_from_message(
-            self,
-            self.get_joint_state()?,
-        ))
+        extract_current_joint_positions_from_message(self, self.get_joint_state()?)
     }
 
     fn send_joint_positions(

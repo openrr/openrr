@@ -57,10 +57,7 @@ impl JointTrajectoryClient for RosControlActionClient {
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        Ok(extract_current_joint_positions_from_message(
-            self,
-            self.get_joint_state()?,
-        ))
+        extract_current_joint_positions_from_message(self, self.get_joint_state()?)
     }
 
     fn send_joint_positions(
