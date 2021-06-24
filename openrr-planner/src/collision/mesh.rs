@@ -49,10 +49,15 @@ where
     P: AsRef<Path>,
     T: RealField,
 {
-    let mesh = stl_io::read_stl(&mut File::open(filename)?)?;
+    let mesh: nom_stl::IndexMesh = nom_stl::parse_stl(&mut File::open(filename)?)
+        .map_err(|e| match e {
+            nom_stl::Error::IOError(e) => e.into(),
+            nom_stl::Error::ParseError(e) => Error::ParseError(e),
+        })?
+        .into();
 
     let vertices = mesh
-        .vertices
+        .vertices()
         .iter()
         .map(|v| {
             na::Point3::<T>::new(
@@ -64,9 +69,15 @@ where
         .collect();
 
     let indices = mesh
-        .faces
+        .triangles()
         .iter()
-        .map(|face| na::Point3::new(face.vertices[0], face.vertices[1], face.vertices[2]))
+        .map(|face| {
+            na::Point3::new(
+                face.vertices_indices()[0],
+                face.vertices_indices()[1],
+                face.vertices_indices()[2],
+            )
+        })
         .collect();
 
     Ok(TriMesh::new(vertices, indices, None))
