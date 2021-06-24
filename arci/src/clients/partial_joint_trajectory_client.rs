@@ -13,15 +13,48 @@ where
     full_joint_names: Vec<String>,
 }
 
+/// # To copy joint name and position between `from` and `to`
+///
+/// Copy position of same joint name.
+/// This function returns Ok() or Err().
+///
+/// # When this function through Error?
+///
+/// length of joint names and positions is difference.
+///
+/// # Sample code
+///
+/// ```
+/// use arci::copy_joint_positions;
+///
+/// let from_positions = vec![2.1_f64, 4.8, 1.0, 6.5];
+/// let from_joint_names = vec![
+/// String::from("part1"),
+/// String::from("part2"),
+/// String::from("part3"),
+/// String::from("part4"),
+/// ];
+///
+/// let mut to_positions = vec![3.3_f64, 8.1];
+/// let to_joint_names = vec![
+/// String::from("part4"),
+/// String::from("part1"),
+/// ];
+///
+/// copy_joint_positions(
+/// &from_joint_names,
+/// &from_positions,
+/// &to_joint_names,
+/// &mut to_positions,
+/// ).unwrap();
+/// ```
 pub fn copy_joint_positions(
     from_joint_names: &[String],
     from_positions: &[f64],
     to_joint_names: &[String],
     to_positions: &mut [f64],
 ) -> Result<(), Error> {
-    if from_joint_names.len() != from_positions.len()
-        || from_joint_names.len() != to_joint_names.len()
-        || from_joint_names.len() != to_positions.len()
+    if from_joint_names.len() != from_positions.len() || to_joint_names.len() != to_positions.len()
     {
         return Err(Error::CopyJointError(
             from_joint_names.to_vec(),
@@ -107,7 +140,7 @@ where
             &self.shared_client.current_joint_positions()?,
             &self.joint_names(),
             &mut result,
-        ).unwrap();
+        )?;
         Ok(result)
     }
 
@@ -122,7 +155,7 @@ where
             &positions,
             &self.full_joint_names,
             &mut full_positions,
-        ).unwrap();
+        )?;
         self.shared_client
             .send_joint_positions(full_positions, duration)
     }
@@ -138,16 +171,16 @@ where
                 &point.positions,
                 &self.full_joint_names,
                 &mut full_positions,
-            ).unwrap();
+            )?;
             let mut full_point = TrajectoryPoint::new(full_positions, point.time_from_start);
             if let Some(partial_velocities) = &point.velocities {
                 let mut full_velocities = vec![0.0; full_dof];
                 copy_joint_positions(
                     &self.joint_names(),
-                    &partial_velocities,
+                    partial_velocities,
                     &self.full_joint_names,
                     &mut full_velocities,
-                ).unwrap();
+                )?;
                 full_point.velocities = Some(full_velocities);
             }
             full_trajectory.push(full_point);
@@ -294,28 +327,42 @@ mod tests {
             String::from("part2"),
         ];
         let correct = vec![4.8_f64, 6.5, 1.0, 2.1];
-        copy_joint_positions(
+        let result = copy_joint_positions(
             &from_joint_names,
             &from_positions,
             &to_joint_names,
             &mut to_positions,
-        ).unwrap();
+        );
+        assert!(result.is_ok());
         println!("{:?}", to_positions);
         to_positions
             .iter()
             .zip(correct.iter())
             .for_each(|(pos, correct)| assert_approx_eq!(*pos, correct));
 
-        // few joint pattern
+        // few joint pattern(Error)
         let mut to_positions = vec![3.3_f64, 8.1, 5.2, 0.8];
         let from_joint_names = vec![String::from("part4"), String::from("part1")];
-        let correct = vec![4.8_f64, 8.1, 5.2, 2.1];
-        copy_joint_positions(
+        let result = copy_joint_positions(
             &from_joint_names,
             &from_positions,
             &to_joint_names,
             &mut to_positions,
-        ).unwrap();
+        );
+        assert!(result.is_err());
+
+        // few joint pattern(Ok)
+        let from_positions = vec![2.1_f64, 4.8];
+        let mut to_positions = vec![3.3_f64, 8.1, 5.2, 0.8];
+        let from_joint_names = vec![String::from("part4"), String::from("part1")];
+        let correct = vec![4.8_f64, 8.1, 5.2, 2.1];
+        let result = copy_joint_positions(
+            &from_joint_names,
+            &from_positions,
+            &to_joint_names,
+            &mut to_positions,
+        );
+        assert!(result.is_ok());
         println!("{:?}", to_positions);
         to_positions
             .iter()
@@ -346,7 +393,8 @@ mod tests {
             &from_positions,
             &to_joint_names,
             &mut to_positions,
-        ).unwrap();
+        )
+        .unwrap();
         to_positions
             .iter()
             .zip(from_positions.iter())
@@ -367,7 +415,8 @@ mod tests {
             &from_positions,
             &to_joint_names,
             &mut to_positions,
-        ).unwrap();
+        )
+        .unwrap();
         to_positions
             .iter()
             .zip(correct.iter())
@@ -375,7 +424,7 @@ mod tests {
         println!("{:?}", to_positions);
 
         // few joint pattern
-        let mut to_positions = vec![3.3_f64, 8.1, 5.2, 0.8];
+        let mut to_positions = vec![3.3_f64, 8.1];
         let to_joint_names = vec![String::from("part4"), String::from("part1")];
         let correct = vec![6.5_f64, 2.1];
         copy_joint_positions(
@@ -383,7 +432,8 @@ mod tests {
             &from_positions,
             &to_joint_names,
             &mut to_positions,
-        ).unwrap();
+        )
+        .unwrap();
         to_positions
             .iter()
             .zip(correct.iter())

@@ -94,7 +94,7 @@ where
             .enumerate()
             .filter_map(|(i, (l, p))| l.range().map(|l| (i, l, p)))
         {
-            if limit.contains(&position) {
+            if limit.contains(position) {
                 continue;
             }
             match self.strategy {
