@@ -18,12 +18,24 @@ pub fn copy_joint_positions(
     from_positions: &[f64],
     to_joint_names: &[String],
     to_positions: &mut [f64],
-) {
+) -> Result<(), Error> {
+    if from_joint_names.len() != from_positions.len()
+        || from_joint_names.len() != to_joint_names.len()
+        || from_joint_names.len() != to_positions.len()
+    {
+        return Err(Error::CopyJointError(
+            from_joint_names.to_vec(),
+            from_positions.to_vec(),
+            to_joint_names.to_vec(),
+            to_positions.to_vec(),
+        ));
+    }
     for (to_index, to_joint_name) in to_joint_names.iter().enumerate() {
         if let Some(from_index) = from_joint_names.iter().position(|x| x == to_joint_name) {
             to_positions[to_index] = from_positions[from_index];
         }
     }
+    Ok(())
 }
 
 impl<C> PartialJointTrajectoryClient<C>
@@ -66,7 +78,7 @@ where
             .iter()
             .all(|joint_name| full_joint_names.iter().any(|x| x == joint_name))
         {
-            return Err(Error::JointNamesMissmatch {
+            return Err(Error::JointNamesMismatch {
                 partial: joint_names,
                 full: full_joint_names,
             });
@@ -95,7 +107,7 @@ where
             &self.shared_client.current_joint_positions()?,
             &self.joint_names(),
             &mut result,
-        );
+        ).unwrap();
         Ok(result)
     }
 
@@ -110,7 +122,7 @@ where
             &positions,
             &self.full_joint_names,
             &mut full_positions,
-        );
+        ).unwrap();
         self.shared_client
             .send_joint_positions(full_positions, duration)
     }
@@ -126,7 +138,7 @@ where
                 &point.positions,
                 &self.full_joint_names,
                 &mut full_positions,
-            );
+            ).unwrap();
             let mut full_point = TrajectoryPoint::new(full_positions, point.time_from_start);
             if let Some(partial_velocities) = &point.velocities {
                 let mut full_velocities = vec![0.0; full_dof];
@@ -135,7 +147,7 @@ where
                     &partial_velocities,
                     &self.full_joint_names,
                     &mut full_velocities,
-                );
+                ).unwrap();
                 full_point.velocities = Some(full_velocities);
             }
             full_trajectory.push(full_point);
@@ -287,7 +299,7 @@ mod tests {
             &from_positions,
             &to_joint_names,
             &mut to_positions,
-        );
+        ).unwrap();
         println!("{:?}", to_positions);
         to_positions
             .iter()
@@ -303,7 +315,7 @@ mod tests {
             &from_positions,
             &to_joint_names,
             &mut to_positions,
-        );
+        ).unwrap();
         println!("{:?}", to_positions);
         to_positions
             .iter()
@@ -334,7 +346,7 @@ mod tests {
             &from_positions,
             &to_joint_names,
             &mut to_positions,
-        );
+        ).unwrap();
         to_positions
             .iter()
             .zip(from_positions.iter())
@@ -355,7 +367,7 @@ mod tests {
             &from_positions,
             &to_joint_names,
             &mut to_positions,
-        );
+        ).unwrap();
         to_positions
             .iter()
             .zip(correct.iter())
@@ -371,7 +383,7 @@ mod tests {
             &from_positions,
             &to_joint_names,
             &mut to_positions,
-        );
+        ).unwrap();
         to_positions
             .iter()
             .zip(correct.iter())
