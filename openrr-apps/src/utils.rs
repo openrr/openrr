@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{io, path::PathBuf};
 
 use rand::prelude::*;
 use tracing::{debug, warn};
@@ -61,4 +61,11 @@ pub fn init_with_anonymize(name: &str, config: &RobotConfig) {
     let suffix: u64 = rand::thread_rng().gen();
     let anon_name = format!("{}_{}", name, suffix);
     init(&anon_name, config);
+}
+
+pub fn init_tracing() {
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_writer(io::stderr)
+        .init();
 }

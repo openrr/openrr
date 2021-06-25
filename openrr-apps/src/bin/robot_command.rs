@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use anyhow::Result;
-use openrr_apps::{Error, RobotConfig};
+use openrr_apps::{utils::init_tracing, Error, RobotConfig};
 use openrr_command::{RobotCommand, RobotCommandExecutor};
 use structopt::StructOpt;
 use tracing::info;
@@ -26,7 +26,7 @@ struct RobotCommandArgs {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt::init();
+    init_tracing();
     let args = RobotCommandArgs::from_args();
     info!("ParsedArgs {:?}", args);
 

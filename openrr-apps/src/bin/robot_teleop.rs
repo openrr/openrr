@@ -4,7 +4,9 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use anyhow::{format_err, Result};
 use arci_gamepad_gilrs::GilGamepad;
-use openrr_apps::{BuiltinGamepad, Error, GamepadKind, RobotConfig, RobotTeleopConfig};
+use openrr_apps::{
+    utils::init_tracing, BuiltinGamepad, Error, GamepadKind, RobotConfig, RobotTeleopConfig,
+};
 use openrr_client::ArcRobotClient;
 use openrr_plugin::PluginProxy;
 use openrr_teleop::ControlNodeSwitcher;
@@ -33,7 +35,7 @@ pub struct RobotTeleopArgs {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt::init();
+    init_tracing();
     let args = RobotTeleopArgs::from_args();
 
     if args.show_default_config {
