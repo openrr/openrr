@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use anyhow::Result;
-use openrr_apps::RobotConfig;
+use openrr_apps::{utils::init_tracing, RobotConfig};
 use openrr_client::BoxRobotClient;
 use openrr_gui::joint_position_sender;
 use structopt::StructOpt;
@@ -21,7 +21,7 @@ struct Opt {
 }
 
 fn main() -> Result<()> {
-    tracing_subscriber::fmt::init();
+    init_tracing();
     let opt = Opt::from_args();
     debug!("opt: {:?}", opt);
 

@@ -1,6 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use anyhow::Result;
+use openrr_apps::utils::init_tracing;
 use schemars::schema_for;
 use serde::Deserialize;
 use structopt::{clap::arg_enum, StructOpt};
@@ -47,7 +48,7 @@ enum Config {
 }
 
 fn main() -> Result<()> {
-    tracing_subscriber::fmt::init();
+    init_tracing();
     let args = Args::from_args();
     debug!(?args);
 
