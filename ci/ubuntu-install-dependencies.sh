@@ -7,5 +7,7 @@ sudo apt-get update
 
 # libudev-dev is for arci-gamepad-gilrs
 # libasound2-dev is for arci-speak-audio
+# libxkbcommon-dev is for openrr-gui
 sudo apt-get install -y \
-    libudev-dev libasound2-dev
+     libudev-dev libasound2-dev \
+     libxkbcommon-dev
