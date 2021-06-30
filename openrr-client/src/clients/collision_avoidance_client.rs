@@ -17,7 +17,7 @@ fn trajectory_from_positions(
     traj
 }
 
-pub struct CollisionAvoidClient<'a, T>
+pub struct CollisionAvoidanceClient<'a, T>
 where
     T: JointTrajectoryClient,
 {
@@ -28,7 +28,7 @@ where
     pub planner: openrr_planner::JointPathPlanner<f64>,
 }
 
-impl<'a, T> CollisionAvoidClient<'a, T>
+impl<'a, T> CollisionAvoidanceClient<'a, T>
 where
     T: JointTrajectoryClient,
 {
@@ -47,7 +47,7 @@ where
     }
 }
 
-impl<'a, T> JointTrajectoryClient for CollisionAvoidClient<'a, T>
+impl<'a, T> JointTrajectoryClient for CollisionAvoidanceClient<'a, T>
 where
     T: JointTrajectoryClient,
 {
