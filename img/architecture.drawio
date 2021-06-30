@@ -61,7 +61,7 @@
                 <mxCell id="17" value="..." style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="570" y="294" width="30" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="19" value="openrr-client&lt;br&gt;(CollisionAvoidClient, IkClient)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                <mxCell id="19" value="openrr-client&lt;br&gt;(CollisionAvoidanceClient, IkClient)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="150" y="170" width="180" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="20" value="Your Applications" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
