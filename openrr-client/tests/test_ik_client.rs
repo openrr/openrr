@@ -167,6 +167,7 @@ fn test_ik_solver_with_chain_solve_with_constraints() {
         rotation_x: true,
         rotation_y: true,
         rotation_z: true,
+        ..Default::default()
     };
     let result = ik_solver_with_chain.solve_with_constraints(&target, &constraints);
     assert!(result.is_ok());
@@ -188,6 +189,7 @@ fn test_ik_solver_with_chain_constraints() {
         rotation_x: false,
         rotation_y: true,
         rotation_z: false,
+        ..Default::default()
     };
     let ik_solver_with_chain = IkSolverWithChain::new(arm, Arc::new(ik_solver), constraints);
 
@@ -245,6 +247,7 @@ fn test_ik_solver_with_chain_generate_trajectory_with_interpolation_and_constrai
         rotation_x: true,
         rotation_y: true,
         rotation_z: true,
+        ..Default::default()
     };
     let result = ik_solver_with_chain
         .generate_trajectory_with_interpolation_and_constraints(

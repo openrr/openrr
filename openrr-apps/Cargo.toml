@@ -30,7 +30,7 @@ arci-gamepad-gilrs = "0.0.5"
 arci-speak-audio = "0.0.5"
 arci-speak-cmd = "0.0.5"
 arci-urdf-viz = "0.0.5"
-k = "0.24"
+k = "0.25"
 openrr-client = { version = "0.0.5", default-features = false }
 openrr-command = { version = "0.0.5", default-features = false }
 openrr-config = "0.0.5"

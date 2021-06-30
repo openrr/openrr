@@ -398,6 +398,6 @@ pub fn create_ik_solver_with_chain(
         } else {
             Arc::new(create_jacobian_ik_solver(&parameters))
         },
-        config.constraints,
+        config.constraints.clone(),
     )
 }
