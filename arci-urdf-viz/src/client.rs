@@ -227,7 +227,7 @@ impl UrdfVizWebClient {
             let bomb = Bomb(inner);
             while !bomb.0.is_dropping() {
                 const DT: f64 = 0.02;
-                let _ = ScopedSleep::from_secs(DT);
+                let _guard = ScopedSleep::from_secs(DT);
                 let velocity = bomb.0.velocity.lock().unwrap();
                 let mut pose = get_robot_origin(&bomb.0.base_url).unwrap();
                 let mut rpy = euler_angles_from_quaternion(&pose.quaternion);
