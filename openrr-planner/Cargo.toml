@@ -15,7 +15,7 @@ default = ["assimp"]
 
 [dependencies]
 assimp = { version = "0.3", optional = true }
-k = "0.24"
+k = "0.25"
 ncollide3d = "0.29"
 nom_stl = "0.2"
 num-traits = "0.2"
