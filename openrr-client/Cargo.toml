@@ -1,6 +1,6 @@
 [package]
 name = "openrr-client"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -16,9 +16,9 @@ assimp = ["openrr-planner/assimp"]
 
 [dependencies]
 anyhow = "1.0"
-arci = "0.0.5"
+arci = "0.0.6"
 k = { version = "0.25", features = ["serde-serialize"] }
-openrr-planner = { version = "0.0.5", default-features = false }
+openrr-planner = { version = "0.0.6", default-features = false }
 schemars = "0.8.3"
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"

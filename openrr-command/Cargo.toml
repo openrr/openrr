@@ -1,6 +1,6 @@
 [package]
 name = "openrr-command"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Mitsuharu Kojima <kojima@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -15,10 +15,10 @@ default = ["assimp"]
 assimp = ["openrr-client/assimp"]
 
 [dependencies]
-arci = "0.0.5"
+arci = "0.0.6"
 async-recursion = "0.3"
 k = "0.25"
-openrr-client = { version = "0.0.5", default-features = false }
+openrr-client = { version = "0.0.6", default-features = false }
 structopt = "0.3.21"
 thiserror = "1.0"
 tracing = { version = "0.1", features = ["log"] }

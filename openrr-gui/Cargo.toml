@@ -1,6 +1,6 @@
 [package]
 name = "openrr-gui"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Taiki Endo <taiki@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -18,9 +18,9 @@ assimp = ["openrr-client/assimp"]
 glow = ["iced/glow"]
 
 [dependencies]
-arci = "0.0.5"
+arci = "0.0.6"
 iced = { version = "0.3", features = ["image"] }
-openrr-client = { version = "0.0.5", default-features = false }
+openrr-client = { version = "0.0.6", default-features = false }
 rand = "0.8"
 thiserror = "1"
 tracing = { version = "0.1", features = ["log"] }

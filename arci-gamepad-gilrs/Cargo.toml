@@ -1,6 +1,6 @@
 [package]
 name = "arci-gamepad-gilrs"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -11,7 +11,7 @@ repository = "https://github.com/openrr/openrr"
 documentation = "https://docs.rs/arci-gamepad-gilrs"
 
 [dependencies]
-arci = "0.0.5"
+arci = "0.0.6"
 flume = "0.10"
 gilrs = { version = "0.8.1", features = ["serde-serialize"] }
 schemars = "0.8.3"
