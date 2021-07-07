@@ -1,22 +1,16 @@
-// TODO: how to disable entire test?
+#![cfg(target_os = "linux")]
 
-#[cfg(target_os = "linux")]
-mod util;
-#[cfg(target_os = "linux")]
 use std::collections::HashMap;
 
-#[cfg(target_os = "linux")]
 use arci::{gamepad::GamepadEvent, Gamepad};
-#[cfg(target_os = "linux")]
 use arci_ros::JoyGamepad;
-#[cfg(target_os = "linux")]
+
+mod util;
 mod msg {
     rosrust::rosmsg_include!(sensor_msgs / Joy);
 }
-#[cfg(target_os = "linux")]
 use msg::sensor_msgs::Joy;
 
-#[cfg(target_os = "linux")]
 #[tokio::test]
 async fn test_joy() {
     let _roscore = util::run_roscore_for(util::Language::None, util::Feature::Publisher);
