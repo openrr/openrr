@@ -8,7 +8,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let c = RosCmdVelMoveBase::new("/cmd_vel");
     let mut count = 0;
     let mut vel = BaseVelocity::default();
-    println!("cmd_vel is running!");
+    println!("\"cmd_vel\" Publisher is running!");
     while count < 100 {
         vel.x = 0.001 * (count as f64);
         c.send_velocity(&vel)?;
