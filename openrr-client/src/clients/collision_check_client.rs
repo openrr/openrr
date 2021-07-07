@@ -9,7 +9,7 @@ use tracing::debug;
 use crate::utils::find_nodes;
 
 pub struct SelfCollisionChecker {
-    pub using_joints: k::Chain<f64>,
+    pub used_joints: k::Chain<f64>,
     pub collision_check_robot: Arc<k::Chain<f64>>,
     pub collision_checker: openrr_planner::CollisionChecker<f64>,
     pub collision_pairs: Vec<(String, String)>,
@@ -30,10 +30,10 @@ impl SelfCollisionChecker {
             "time_interpolate_rate must be 0.0~1.0 but {}",
             time_interpolate_rate
         );
-        let using_joints =
+        let used_joints =
             k::Chain::<f64>::from_nodes(find_nodes(&joint_names, &collision_check_robot).unwrap());
         Self {
-            using_joints,
+            used_joints,
             collision_check_robot,
             collision_checker,
             collision_pairs,
@@ -55,7 +55,7 @@ impl SelfCollisionChecker {
             Some(interpolated) => {
                 debug!("interpolated len={}", interpolated.len());
                 for v in interpolated {
-                    self.using_joints.set_joint_positions_clamped(&v.position);
+                    self.used_joints.set_joint_positions_clamped(&v.position);
                     self.collision_check_robot.update_transforms();
                     let mut self_checker = self
                         .collision_checker
@@ -80,7 +80,7 @@ impl SelfCollisionChecker {
 
     pub fn check_joint_trajectory(&self, trajectory: &[TrajectoryPoint]) -> Result<(), Error> {
         for v in trajectory {
-            self.using_joints
+            self.used_joints
                 .set_joint_positions(&v.positions)
                 .map_err(|e| Error::Other(e.into()))?;
             if let Some(names) = self

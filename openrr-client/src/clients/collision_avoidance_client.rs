@@ -22,8 +22,8 @@ where
     T: JointTrajectoryClient,
 {
     pub client: T,
-    /// using_joints and collision_check_robot must share the k::Node instance.
-    pub using_joints: k::Chain<f64>,
+    /// used_joints and collision_check_robot must share the k::Node instance.
+    pub used_joints: k::Chain<f64>,
     pub collision_check_robot: &'a k::Chain<f64>,
     pub planner: openrr_planner::JointPathPlanner<f64>,
 }
@@ -34,13 +34,13 @@ where
 {
     pub fn new(
         client: T,
-        using_joints: k::Chain<f64>,
+        used_joints: k::Chain<f64>,
         collision_check_robot: &'a k::Chain<f64>,
         planner: openrr_planner::JointPathPlanner<f64>,
     ) -> Self {
         Self {
             client,
-            using_joints,
+            used_joints,
             collision_check_robot,
             planner,
         }
@@ -64,12 +64,12 @@ where
         positions: Vec<f64>,
         duration: std::time::Duration,
     ) -> Result<WaitFuture, Error> {
-        self.using_joints
+        self.used_joints
             .set_joint_positions_clamped(&self.current_joint_positions()?);
-        let current = self.using_joints.joint_positions();
+        let current = self.used_joints.joint_positions();
         let traj = self
             .planner
-            .plan_avoid_self_collision(&self.using_joints, &current, &positions)
+            .plan_avoid_self_collision(&self.used_joints, &current, &positions)
             .map_err(|e| Error::Other(e.into()))?;
         self.client
             .send_joint_trajectory(trajectory_from_positions(&traj, duration))
@@ -79,12 +79,12 @@ where
         if trajectory.is_empty() {
             return Ok(WaitFuture::ready());
         }
-        self.using_joints
+        self.used_joints
             .set_joint_positions_clamped(&self.current_joint_positions()?);
-        let current = self.using_joints.joint_positions();
+        let current = self.used_joints.joint_positions();
         let positions = self
             .planner
-            .plan_avoid_self_collision(&self.using_joints, &current, &trajectory[0].positions)
+            .plan_avoid_self_collision(&self.used_joints, &current, &trajectory[0].positions)
             .map_err(|e| Error::Other(e.into()))?;
         let mut trajs = trajectory_from_positions(&positions, trajectory[0].time_from_start);
 
@@ -92,7 +92,7 @@ where
             let positions = self
                 .planner
                 .plan_avoid_self_collision(
-                    &self.using_joints,
+                    &self.used_joints,
                     &trajectory[i - 1].positions,
                     &trajectory[i].positions,
                 )
