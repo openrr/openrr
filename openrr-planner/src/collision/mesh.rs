@@ -6,7 +6,7 @@ use ncollide3d::shape::TriMesh;
 use crate::errors::*;
 
 #[cfg(feature = "assimp")]
-pub(crate) fn load_mesh<P, T>(filename: P, scale: &[f64]) -> Result<TriMesh<T>>
+pub(crate) fn load_mesh<P, T>(filename: P, scale: &[f64; 3]) -> Result<TriMesh<T>>
 where
     P: AsRef<Path>,
     T: RealField,
@@ -29,7 +29,7 @@ where
 }
 
 #[cfg(not(feature = "assimp"))]
-pub(crate) fn load_mesh<P, T>(filename: P, scale: &[f64]) -> Result<TriMesh<T>>
+pub(crate) fn load_mesh<P, T>(filename: P, scale: &[f64; 3]) -> Result<TriMesh<T>>
 where
     P: AsRef<Path>,
     T: RealField,
@@ -44,7 +44,7 @@ where
     }
 }
 
-fn load_stl<P, T>(filename: P, scale: &[f64]) -> Result<TriMesh<T>>
+fn load_stl<P, T>(filename: P, scale: &[f64; 3]) -> Result<TriMesh<T>>
 where
     P: AsRef<Path>,
     T: RealField,
@@ -84,7 +84,7 @@ where
 }
 
 #[cfg(feature = "assimp")]
-fn assimp_scene_to_ncollide_mesh<T>(scene: assimp::Scene<'_>, scale: &[f64]) -> TriMesh<T>
+fn assimp_scene_to_ncollide_mesh<T>(scene: assimp::Scene<'_>, scale: &[f64; 3]) -> TriMesh<T>
 where
     T: RealField,
 {
