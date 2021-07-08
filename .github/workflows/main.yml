@@ -108,17 +108,16 @@ jobs:
       - run: cargo install cargo-hack
       - run: cargo hack check --all --feature-powerset --optional-deps --exclude arci-ros2
 
+  # TODO: revert nightyly-2021-07-01
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-          components: rustfmt
+      - name: Install Rust
+        run: |
+          rustup toolchain install nightly-2021-07-01 --component rustfmt --allow-downgrade
+          rustup default nightly-2021-07-01
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
