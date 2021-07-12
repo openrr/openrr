@@ -10,13 +10,14 @@ use arci::{
     Localization, MoveBase, Navigation, Speaker, WaitFuture,
 };
 use k::{nalgebra::Isometry2, Chain, Isometry3};
+use openrr_planner::{SelfCollisionChecker, SelfCollisionCheckerConfig};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::{
     create_collision_check_client, create_ik_solver_with_chain, CollisionCheckClient, Error,
-    IkClient, IkSolverConfig, IkSolverWithChain, SelfCollisionChecker, SelfCollisionCheckerConfig,
+    IkClient, IkSolverConfig, IkSolverWithChain,
 };
 
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
