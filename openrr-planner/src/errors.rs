@@ -42,6 +42,8 @@ pub enum Error {
         part: CollisionPart,
         collision_link_names: Vec<(String, String)>,
     },
+    #[error("Interpolation error: {:?}", .0)]
+    InterpolationError(String),
     #[error("IO error {:?}", source)]
     Io {
         #[from]

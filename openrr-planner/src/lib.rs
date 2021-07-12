@@ -35,7 +35,7 @@ mod planner;
 pub use k::{InverseKinematicsSolver, JacobianIkSolver};
 
 pub use crate::{
-    collision::{CollisionChecker, FromUrdf},
+    collision::{CollisionChecker, FromUrdf, SelfCollisionChecker, SelfCollisionCheckerConfig},
     errors::Error,
     funcs::*,
     ik::*,
