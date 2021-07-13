@@ -90,3 +90,18 @@ where
         &self.submode
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use arci::DummyMoveBase;
+
+    #[test]
+    fn test_move_node_new() {
+        let mode = String::from("tested");
+        let base = DummyMoveBase::new();
+        let node = MoveBaseNode::new(mode.clone(), base);
+
+        
+    }
+}
