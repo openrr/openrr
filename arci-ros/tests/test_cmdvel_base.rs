@@ -1,16 +1,12 @@
-#[cfg(target_os = "linux")]
+#![cfg(target_os = "linux")]
 use arci::{BaseVelocity, MoveBase};
 
-#[cfg(target_os = "linux")]
 mod msg {
     rosrust::rosmsg_include!(geometry_msgs / Twist);
 }
-#[cfg(target_os = "linux")]
 use msg::geometry_msgs::Twist;
-#[cfg(target_os = "linux")]
 mod util;
 
-#[cfg(target_os = "linux")]
 #[tokio::test]
 async fn test_cmd_vel() {
     use std::sync::mpsc;
@@ -24,7 +20,7 @@ async fn test_cmd_vel() {
     arci_ros::init("arci_ros_cmd_vel_test");
     let (tx, rx) = mpsc::channel::<Twist>();
 
-    let sub = rosrust::subscribe(&topic_name, 1, move |v: Twist| {
+    let _sub = rosrust::subscribe(&topic_name, 1, move |v: Twist| {
         println!("{:?}", v);
         tx.send(v).unwrap();
     })
