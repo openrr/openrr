@@ -93,8 +93,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use arci::DummyMoveBase;
+
+    use super::*;
 
     #[test]
     fn test_move_node_new() {
@@ -102,6 +103,17 @@ mod tests {
         let base = DummyMoveBase::new();
         let node = MoveBaseNode::new(mode.clone(), base);
 
-        
+        assert_eq!(
+            format!("{:?}", node.move_base),
+            format!("{:?}", DummyMoveBase::new())
+        );
+        assert_eq!(node.mode, mode);
+        assert_eq!(node.submode, String::from(""));
+        assert_eq!(
+            format!("{:?}", node.vel),
+            format!("{:?}", BaseVelocity::default())
+        );
+        assert!(!node.is_enabled);
+        assert!(!node.is_turbo);
     }
 }
