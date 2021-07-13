@@ -1,7 +1,7 @@
 use std::{
     sync::{
-        atomic::{AtomicBool, AtomicUsize, Ordering},
-        Arc,
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
     },
     time::Duration,
 };
@@ -20,7 +20,7 @@ where
     N: ControlNode,
     S: Speaker,
 {
-    current_index: Arc<AtomicUsize>,
+    current_index: Arc<Mutex<usize>>,
     control_nodes: Arc<TokioMutex<Vec<N>>>,
     speaker: S,
     is_running: Arc<AtomicBool>,
@@ -35,7 +35,7 @@ where
     pub fn new(control_nodes: Vec<N>, speaker: S, initial_node_index: usize) -> Self {
         assert!(!control_nodes.is_empty());
         Self {
-            current_index: Arc::new(AtomicUsize::new(initial_node_index)),
+            current_index: Arc::new(Mutex::new(initial_node_index)),
             control_nodes: Arc::new(TokioMutex::new(control_nodes)),
             speaker,
             is_running: Arc::new(AtomicBool::new(false)),
@@ -44,9 +44,10 @@ where
 
     pub async fn increment_mode(&self) -> Result<(), arci::Error> {
         let len = self.control_nodes.lock().await.len();
-        self.current_index.fetch_add(1, Ordering::Relaxed);
-        let next = self.current_index.load(Ordering::Relaxed) % len;
-        self.current_index.store(next, Ordering::Relaxed);
+        {
+            let mut index = self.current_index.lock().unwrap();
+            *index = (*index + 1) % len;
+        }
         self.speak_current_mode().await
     }
 
@@ -59,7 +60,7 @@ where
     }
 
     fn current_index(&self) -> usize {
-        self.current_index.load(Ordering::Relaxed)
+        *self.current_index.lock().unwrap()
     }
 
     fn is_running(&self) -> bool {
@@ -85,9 +86,8 @@ where
             let mut interval = tokio::time::interval(Duration::from_millis(50));
             while is_running.load(Ordering::Relaxed) {
                 debug!("tick");
-                nodes.lock().await[index.load(Ordering::Relaxed)]
-                    .proc()
-                    .await;
+                let index = *index.lock().unwrap();
+                nodes.lock().await[index].proc().await;
                 interval.tick().await;
             }
             gamepad_cloned.stop();
