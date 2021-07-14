@@ -14,6 +14,7 @@ use std::{
 
 use arci::{Speaker, WaitFuture};
 use thiserror::Error;
+use tokio::sync::oneshot;
 use tracing::error;
 
 #[derive(Error, Debug)]
@@ -47,31 +48,35 @@ impl AudioSpeaker {
 impl Speaker for AudioSpeaker {
     fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
         match self.message_to_file_path.get(message) {
-            Some(path) => play_audio_file(path),
+            Some(path) => {
+                let (sender, receiver) = oneshot::channel();
+                let path = path.to_owned();
+
+                std::thread::spawn(move || {
+                    let res = play_audio_file(&path);
+                    let _ = sender.send(res);
+                });
+
+                Ok(WaitFuture::new(async move {
+                    receiver
+                        .await
+                        .map_err(|e| arci::Error::Other(e.into()))?
+                        .map_err(|e| arci::Error::Other(e.into()))
+                }))
+            }
             None => Err(Error::HashNotFound(message.to_string())),
         }
         .map_err(|e| arci::Error::Other(e.into()))
     }
 }
 
-fn play_audio_file(path: &Path) -> Result<WaitFuture, Error> {
+fn play_audio_file(path: &Path) -> Result<(), Error> {
+    // NOTE: Dropping `_stream` stops the audio from playing.
     let (_stream, stream_handle) = rodio::OutputStream::try_default()?;
     let sink = rodio::Sink::try_new(&stream_handle)?;
     let file = File::open(path)?;
     let source = rodio::Decoder::new(io::BufReader::new(file))?;
     sink.append(source);
-
-    // Creates a WaitFuture that waits until the sound ends only if the future
-    // is polled. This future is a bit tricky, but it's more efficient than
-    // using only `tokio::task::spawn_blocking` because it doesn't spawn a thread
-    // if the WaitFuture is ignored.
-    let wait = WaitFuture::new(async move {
-        tokio::task::spawn_blocking(move || {
-            sink.sleep_until_end();
-        })
-        .await
-        .map_err(|e| arci::Error::Other(e.into()))
-    });
-
-    Ok(wait)
+    sink.sleep_until_end();
+    Ok(())
 }
