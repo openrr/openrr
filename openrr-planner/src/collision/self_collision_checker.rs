@@ -148,3 +148,34 @@ pub fn create_self_collision_checker<P: AsRef<Path>>(
         config.time_interpolate_rate,
     )
 }
+
+#[test]
+fn test_create_self_collision_checker() {
+    let urdf_robot = urdf_rs::read_file("sample.urdf").unwrap();
+    let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
+    let self_collision_checker = create_self_collision_checker(
+        "sample.urdf",
+        &vec!["root:l_shoulder_roll".into()],
+        robot
+            .iter_joints()
+            .map(|joint| joint.name.clone())
+            .collect(),
+        &SelfCollisionCheckerConfig::default(),
+        robot,
+    );
+
+    assert!(self_collision_checker
+        .check_joint_positions(
+            &vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            &vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            std::time::Duration::new(1, 0),
+        )
+        .is_ok());
+    assert!(self_collision_checker
+        .check_joint_positions(
+            &vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            &vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            std::time::Duration::new(1, 0),
+        )
+        .is_err());
+}
