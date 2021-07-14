@@ -15,7 +15,7 @@ arci = "0.0.6"
 rodio = "0.14.0"
 thiserror = "1.0"
 tracing = { version = "0.1", features = ["log"] }
-tokio = { version = "1", features = ["rt-multi-thread"] }
+tokio = { version = "1", features = ["sync"] }
 
 [dev-dependencies]
 structopt = "0.3"

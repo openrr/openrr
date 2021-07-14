@@ -48,35 +48,34 @@ impl AudioSpeaker {
 impl Speaker for AudioSpeaker {
     fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
         match self.message_to_file_path.get(message) {
-            Some(path) => {
-                let (sender, receiver) = oneshot::channel();
-                let path = path.to_owned();
-
-                std::thread::spawn(move || {
-                    let res = play_audio_file(&path);
-                    let _ = sender.send(res);
-                });
-
-                Ok(WaitFuture::new(async move {
-                    receiver
-                        .await
-                        .map_err(|e| arci::Error::Other(e.into()))?
-                        .map_err(|e| arci::Error::Other(e.into()))
-                }))
-            }
+            Some(path) => play_audio_file(path),
             None => Err(Error::HashNotFound(message.to_string())),
         }
         .map_err(|e| arci::Error::Other(e.into()))
     }
 }
 
-fn play_audio_file(path: &Path) -> Result<(), Error> {
-    // NOTE: Dropping `_stream` stops the audio from playing.
-    let (_stream, stream_handle) = rodio::OutputStream::try_default()?;
-    let sink = rodio::Sink::try_new(&stream_handle)?;
+fn play_audio_file(path: &Path) -> Result<WaitFuture, Error> {
     let file = File::open(path)?;
     let source = rodio::Decoder::new(io::BufReader::new(file))?;
-    sink.append(source);
-    sink.sleep_until_end();
-    Ok(())
+
+    let (sender, receiver) = oneshot::channel();
+    std::thread::spawn(move || {
+        let res: Result<_, Error> = (|| {
+            // NOTE: Dropping `_stream` stops the audio from playing.
+            let (_stream, stream_handle) = rodio::OutputStream::try_default()?;
+            let sink = rodio::Sink::try_new(&stream_handle)?;
+            sink.append(source);
+            sink.sleep_until_end();
+            Ok(())
+        })();
+        let _ = sender.send(res);
+    });
+
+    Ok(WaitFuture::new(async move {
+        receiver
+            .await
+            .map_err(|e| arci::Error::Other(e.into()))?
+            .map_err(|e| arci::Error::Other(e.into()))
+    }))
 }
