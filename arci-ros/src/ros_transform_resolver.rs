@@ -4,6 +4,7 @@ use arci::{Isometry3, TransformResolver};
 use nalgebra::{Quaternion, Translation3, UnitQuaternion};
 use rosrust::rate;
 use tf_rosrust::TfListener;
+use tracing::{debug, warn};
 
 pub struct RosTransformResolver {
     retry_rate: f64,
@@ -43,7 +44,7 @@ impl TransformResolver for RosTransformResolver {
         let mut last_error = None;
         for i in 0..=MAX_RETRY {
             if i != 0 {
-                rosrust::ros_warn!("Retrying {} -> {} ({} / {}) ...", from, to, i, MAX_RETRY);
+                warn!("Retrying {} -> {} ({} / {}) ...", from, to, i, MAX_RETRY);
             }
             let result = self.tf_listener.lookup_transform(from, to, ros_time);
             match result {
@@ -58,7 +59,10 @@ impl TransformResolver for RosTransformResolver {
                         )),
                     ));
                 }
-                Err(e) => last_error = Some(e),
+                Err(e) => {
+                    debug!("Failed to lookup_transform ({:?})", e);
+                    last_error = Some(e)
+                }
             }
             rate.sleep();
         }
