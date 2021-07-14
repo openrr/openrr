@@ -155,7 +155,7 @@ fn test_create_self_collision_checker() {
     let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
     let self_collision_checker = create_self_collision_checker(
         "sample.urdf",
-        &vec!["root:l_shoulder_roll".into()],
+        &["root:l_shoulder_roll".into()],
         robot
             .iter_joints()
             .map(|joint| joint.name.clone())
@@ -166,15 +166,15 @@ fn test_create_self_collision_checker() {
 
     assert!(self_collision_checker
         .check_joint_positions(
-            &vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            &vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             std::time::Duration::new(1, 0),
         )
         .is_ok());
     assert!(self_collision_checker
         .check_joint_positions(
-            &vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            &vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            &[1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             std::time::Duration::new(1, 0),
         )
         .is_err());
