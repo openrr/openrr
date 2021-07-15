@@ -11,7 +11,7 @@ use std::{
 use arci::{BaseVelocity, Localization, MoveBase, Navigation};
 use async_recursion::async_recursion;
 use k::nalgebra::{Isometry2, Vector2};
-use openrr_client::{isometry, BoxRobotClient};
+use openrr_client::{isometry, RobotClient};
 use structopt::StructOpt;
 use tracing::{error, info};
 
@@ -116,11 +116,16 @@ pub struct RobotCommandExecutor {}
 
 impl RobotCommandExecutor {
     #[async_recursion]
-    pub async fn execute(
+    pub async fn execute<L, M, N>(
         &self,
-        client: &BoxRobotClient,
+        client: &RobotClient<L, M, N>,
         command: &RobotCommand,
-    ) -> Result<(), OpenrrCommandError> {
+    ) -> Result<(), OpenrrCommandError>
+    where
+        L: Localization,
+        M: MoveBase,
+        N: Navigation,
+    {
         match &command {
             RobotCommand::SendJoints {
                 name,

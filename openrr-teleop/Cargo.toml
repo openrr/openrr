@@ -20,8 +20,10 @@ async-trait = "0.1"
 auto_impl = "0.4.1"
 k = "0.25"
 openrr-client = { version = "0.0.6", default-features = false }
+openrr-command = { version = "0.0.6", default-features = false }
 schemars = "0.8.3"
 serde = { version = "1.0", features = ["derive"] }
+structopt = "0.3"
 tokio = { version = "1.0", features = ["rt-multi-thread", "sync", "time"] }
 tracing = { version = "0.1", features = ["log"] }
 
