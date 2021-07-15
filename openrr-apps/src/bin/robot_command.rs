@@ -2,6 +2,7 @@ use std::{fs, path::PathBuf};
 
 use anyhow::Result;
 use openrr_apps::{utils::init_tracing, Error, RobotConfig};
+use openrr_client::BoxRobotClient;
 use openrr_command::{RobotCommand, RobotCommandExecutor};
 use structopt::StructOpt;
 use tracing::info;
@@ -47,7 +48,7 @@ async fn main() -> Result<()> {
     };
 
     openrr_apps::utils::init_with_anonymize(env!("CARGO_BIN_NAME"), &robot_config);
-    let client = robot_config.create_robot_client()?;
+    let client: BoxRobotClient = robot_config.create_robot_client()?;
     let executor = RobotCommandExecutor {};
     Ok(executor.execute(&client, &command).await?)
 }

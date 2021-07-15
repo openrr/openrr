@@ -1,13 +1,14 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use arci::{JointTrajectoryClient, MoveBase, Speaker};
-use openrr_client::{IkSolverWithChain, JointsPose};
+use openrr_client::{ArcRobotClient, IkSolverWithChain, JointsPose};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     ControlNode, IkNode, IkNodeConfig, JointsPoseSender, JointsPoseSenderConfig,
-    JoyJointTeleopNode, JoyJointTeleopNodeConfig, MoveBaseNode,
+    JoyJointTeleopNode, JoyJointTeleopNodeConfig, MoveBaseNode, RobotCommandConfig,
+    RobotCommandExecutor,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
@@ -30,15 +31,26 @@ pub struct IkNodeTeleopConfig {
 pub struct ControlNodesConfig {
     pub move_base_mode: Option<String>,
     #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub joy_joint_teleop_configs: Vec<JoyJointTeleopConfig>,
     #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub ik_node_teleop_configs: Vec<IkNodeTeleopConfig>,
     pub joints_pose_sender_config: Option<JointsPoseSenderConfig>,
+    #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub command_configs: Vec<RobotCommandConfig>,
 }
 
 impl ControlNodesConfig {
+    #[allow(clippy::too_many_arguments)]
     pub fn create_control_nodes(
         &self,
+        base_path: PathBuf,
+        robot_client: Arc<ArcRobotClient>,
         speaker: Arc<dyn Speaker>,
         joint_trajectory_client_map: &HashMap<String, Arc<dyn JointTrajectoryClient>>,
         ik_solver_with_chain_map: &HashMap<String, Arc<IkSolverWithChain>>,
@@ -87,6 +99,17 @@ impl ControlNodesConfig {
                     joint_trajectory_clients,
                     speaker.clone(),
                 )));
+            }
+        }
+
+        if !self.command_configs.is_empty() {
+            if let Some(e) = RobotCommandExecutor::new(
+                base_path,
+                self.command_configs.clone(),
+                robot_client,
+                speaker.clone(),
+            ) {
+                nodes.push(Box::new(e));
             }
         }
 

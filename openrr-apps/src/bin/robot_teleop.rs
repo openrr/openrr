@@ -50,9 +50,9 @@ async fn main() -> Result<()> {
     let teleop_config = if let Some(overwrite) = &args.teleop_config {
         let s = &fs::read_to_string(&teleop_config_path)?;
         let s = &openrr_config::overwrite_str(s, overwrite)?;
-        RobotTeleopConfig::from_str(s, teleop_config_path)?
+        RobotTeleopConfig::from_str(s, teleop_config_path.clone())?
     } else {
-        RobotTeleopConfig::new(teleop_config_path)?
+        RobotTeleopConfig::new(teleop_config_path.clone())?
     };
     let robot_config_path = teleop_config.robot_config_full_path().as_ref().unwrap();
     let robot_config = if let Some(overwrite) = &args.robot_config {
@@ -71,6 +71,8 @@ async fn main() -> Result<()> {
     let speaker = client.speakers().values().next().unwrap();
 
     let nodes = teleop_config.control_nodes_config.create_control_nodes(
+        teleop_config_path,
+        client.clone(),
         speaker.clone(),
         client.joint_trajectory_clients(),
         client.ik_solvers(),
