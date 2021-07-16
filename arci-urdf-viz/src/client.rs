@@ -66,7 +66,19 @@ fn create_joint_trajectory_clients_inner(
         Ok(all_client)
     };
     let all_client: Arc<dyn JointTrajectoryClient> = if lazy {
-        Arc::new(arci::Lazy::new(create_all_client))
+        if let Some(urdf_robot) = urdf_robot {
+            Arc::new(arci::Lazy::with_joint_names(
+                create_all_client,
+                urdf_robot
+                    .joints
+                    .iter()
+                    .filter(|j| j.joint_type != urdf_rs::JointType::Fixed)
+                    .map(|j| j.name.clone())
+                    .collect(),
+            ))
+        } else {
+            Arc::new(arci::Lazy::new(create_all_client))
+        }
     } else {
         Arc::new(create_all_client().unwrap())
     };
