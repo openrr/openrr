@@ -25,7 +25,7 @@ use crate::utils::*;
 #[serde(deny_unknown_fields)]
 pub struct UrdfVizWebClientConfig {
     pub name: String,
-    pub joint_names: Vec<String>,
+    pub joint_names: Option<Vec<String>>,
     #[serde(default)]
     pub wrap_with_joint_position_limiter: bool,
     #[serde(default)]
@@ -82,8 +82,14 @@ fn create_joint_trajectory_clients_inner(
             )
             .into());
         }
-        let client =
-            arci::PartialJointTrajectoryClient::new(config.joint_names, all_client.clone())?;
+        let client = if let Some(joint_names) = &config.joint_names {
+            Arc::new(arci::PartialJointTrajectoryClient::new(
+                joint_names.to_owned(),
+                all_client.clone(),
+            )?)
+        } else {
+            all_client.clone()
+        };
         let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
             if config.wrap_with_joint_position_limiter {
                 Arc::new(new_joint_position_limiter(
@@ -105,7 +111,7 @@ fn create_joint_trajectory_clients_inner(
                 urdf_robot,
             )?)
         } else {
-            Arc::new(client)
+            client
         };
         clients.insert(config.name, client);
     }
