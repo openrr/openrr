@@ -24,7 +24,7 @@ use crate::{error::Error, msg, SubscriberHandler};
 #[serde(deny_unknown_fields)]
 pub struct RosControlClientConfig {
     pub name: String,
-    pub joint_names: Vec<String>,
+    pub joint_names: Option<Vec<String>>,
     #[serde(default)]
     pub wrap_with_joint_position_limiter: bool,
     #[serde(default)]
@@ -111,6 +111,18 @@ fn create_joint_trajectory_clients_inner(
             complete_timeout_sec,
             ..
         } = config;
+        let joint_names = if let Some(joint_names) = joint_names {
+            joint_names
+        } else if let Some(urdf_robot) = urdf_robot {
+            urdf_robot
+                .joints
+                .iter()
+                .filter(|j| j.joint_type != urdf_rs::JointType::Fixed)
+                .map(|j| j.name.clone())
+                .collect()
+        } else {
+            return Err(format_err!("joint_names or urdf need to be specified").into());
+        };
         let joint_names_clone = joint_names.clone();
         let create_client = move || {
             rosrust::ros_debug!("create_joint_trajectory_clients_inner: creating RosControlClient");
