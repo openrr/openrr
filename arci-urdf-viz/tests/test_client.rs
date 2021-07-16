@@ -12,29 +12,35 @@ use web_server::*;
 fn test_urdf_viz_web_client_config_accessor() {
     let mut config = UrdfVizWebClientConfig {
         name: "test".to_owned(),
-        joint_names: vec!["j1".to_owned(), "j2".to_owned()],
+        joint_names: Some(vec!["j1".to_owned(), "j2".to_owned()]),
         wrap_with_joint_position_limiter: true,
         joint_position_limits: None,
         wrap_with_joint_velocity_limiter: true,
         joint_velocity_limits: Some(vec![1.0, 2.0]),
     };
     assert_eq!(config.name, "test");
-    assert_eq!(config.joint_names[0], "j1");
-    assert_eq!(config.joint_names[1], "j2");
+    assert_eq!(config.joint_names.as_ref().unwrap()[0], "j1");
+    assert_eq!(config.joint_names.as_ref().unwrap()[1], "j2");
     assert!(config.wrap_with_joint_position_limiter);
     assert!(config.joint_position_limits.is_none());
     assert!(config.wrap_with_joint_velocity_limiter);
     assert_approx_eq!(config.joint_velocity_limits.as_ref().unwrap()[0], 1.0);
     assert_approx_eq!(config.joint_velocity_limits.unwrap()[1], 2.0);
     config.name = "arm".to_owned();
-    config.joint_names = vec!["shoulder_pan_joint".to_owned(), "elbow_joint".to_owned()];
+    config.joint_names = Some(vec![
+        "shoulder_pan_joint".to_owned(),
+        "elbow_joint".to_owned(),
+    ]);
     config.wrap_with_joint_position_limiter = false;
     config.joint_position_limits = Some(vec![]);
     config.wrap_with_joint_velocity_limiter = false;
     config.joint_velocity_limits = Some(vec![0.0, 0.0]);
     assert_eq!(config.name, "arm");
-    assert_eq!(config.joint_names[0], "shoulder_pan_joint");
-    assert_eq!(config.joint_names[1], "elbow_joint");
+    assert_eq!(
+        config.joint_names.as_ref().unwrap()[0],
+        "shoulder_pan_joint"
+    );
+    assert_eq!(config.joint_names.as_ref().unwrap()[1], "elbow_joint");
     assert!(!config.wrap_with_joint_position_limiter);
     assert!(config.joint_position_limits.unwrap().is_empty());
     assert!(!config.wrap_with_joint_velocity_limiter);
@@ -46,7 +52,7 @@ fn test_urdf_viz_web_client_config_accessor() {
 fn test_urdf_viz_web_client_config_debug() {
     let config = UrdfVizWebClientConfig {
         name: "test".to_owned(),
-        joint_names: vec!["j1".to_owned(), "j2".to_owned()],
+        joint_names: Some(vec!["j1".to_owned(), "j2".to_owned()]),
         wrap_with_joint_position_limiter: true,
         joint_position_limits: None,
         wrap_with_joint_velocity_limiter: true,
@@ -55,7 +61,7 @@ fn test_urdf_viz_web_client_config_debug() {
     assert_eq!(
         format!("{:?}", config),
         "UrdfVizWebClientConfig { name: \"test\", \
-            joint_names: [\"j1\", \"j2\"], \
+            joint_names: Some([\"j1\", \"j2\"]), \
             wrap_with_joint_position_limiter: true, \
             wrap_with_joint_velocity_limiter: true, \
             joint_velocity_limits: Some([1.0, 2.0]), \
@@ -69,7 +75,7 @@ fn test_urdf_viz_web_client_config_debug() {
 fn test_urdf_viz_web_client_config_clone() {
     let config1 = UrdfVizWebClientConfig {
         name: "test".to_owned(),
-        joint_names: vec!["j1".to_owned(), "j2".to_owned()],
+        joint_names: Some(vec!["j1".to_owned(), "j2".to_owned()]),
         wrap_with_joint_position_limiter: true,
         joint_position_limits: None,
         wrap_with_joint_velocity_limiter: true,
@@ -77,8 +83,8 @@ fn test_urdf_viz_web_client_config_clone() {
     };
     let config2 = config1.clone();
     assert_eq!(config2.name, "test");
-    assert_eq!(config2.joint_names[0], "j1");
-    assert_eq!(config2.joint_names[1], "j2");
+    assert_eq!(config2.joint_names.as_ref().unwrap()[0], "j1");
+    assert_eq!(config2.joint_names.as_ref().unwrap()[1], "j2");
     assert!(config2.wrap_with_joint_position_limiter);
     assert!(config2.joint_position_limits.is_none());
     assert!(config2.wrap_with_joint_velocity_limiter);
@@ -98,7 +104,7 @@ fn test_create_joint_trajectory_clients() {
     let configs = vec![
         UrdfVizWebClientConfig {
             name: "c1".to_owned(),
-            joint_names: vec!["j1".to_owned(), "j2".to_owned()],
+            joint_names: Some(vec!["j1".to_owned(), "j2".to_owned()]),
             wrap_with_joint_position_limiter: false,
             joint_position_limits: None,
             wrap_with_joint_velocity_limiter: true,
@@ -106,7 +112,7 @@ fn test_create_joint_trajectory_clients() {
         },
         UrdfVizWebClientConfig {
             name: "c2".to_owned(),
-            joint_names: vec!["j1".to_owned(), "j2".to_owned()],
+            joint_names: Some(vec!["j1".to_owned(), "j2".to_owned()]),
             wrap_with_joint_position_limiter: false,
             joint_position_limits: None,
             wrap_with_joint_velocity_limiter: false,
