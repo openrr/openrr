@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    tags: [ 'v[0-9]+.*' ]
+    tags: ['v[0-9]+.*']
 
 env:
   CARGO_INCREMENTAL: 0
@@ -24,6 +24,8 @@ jobs:
       - run: ci/ubuntu-install-dependencies.sh
       - run: cargo build
       - uses: taiki-e/create-gh-release-action@v1
+        with:
+          branch: main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: ci/publish.sh
