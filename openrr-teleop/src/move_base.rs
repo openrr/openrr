@@ -129,8 +129,8 @@ mod tests {
         assert_eq!(base_sub_mode, &String::from(""));
     }
 
-    #[test]
-    fn test_move_node_proc() {
+    #[tokio::test]
+    async fn test_move_node_proc() {
         let mode = String::from("tested");
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
@@ -140,10 +140,52 @@ mod tests {
             is_enabled: false,
             is_turbo: false,
         };
-        node.proc();
+        node.proc().await;
         assert_eq!(
             format!("{:?}", node.vel),
             format!("{:?}", BaseVelocity::default())
+        );
+
+        let node = MoveBaseNode {
+            move_base: DummyMoveBase::new(),
+            mode: mode.clone(),
+            submode: "".to_string(),
+            vel: BaseVelocity::default(),
+            is_enabled: false,
+            is_turbo: true,
+        };
+        node.proc().await;
+        assert_eq!(
+            format!("{:?}", node.vel),
+            format!("{:?}", BaseVelocity::default())
+        );
+
+        let node = MoveBaseNode {
+            move_base: DummyMoveBase::new(),
+            mode: mode.clone(),
+            submode: "".to_string(),
+            vel: BaseVelocity::default(),
+            is_enabled: true,
+            is_turbo: false,
+        };
+        node.proc().await;
+        assert_eq!(
+            format!("{:?}", node.vel),
+            format!("{:?}", BaseVelocity::default())
+        );
+
+        let node = MoveBaseNode {
+            move_base: DummyMoveBase::new(),
+            mode: mode.clone(),
+            submode: "".to_string(),
+            vel: BaseVelocity::default(),
+            is_enabled: true,
+            is_turbo: true,
+        };
+        node.proc().await;
+        assert_eq!(
+            format!("{:?}", node.vel),
+            format!("{:?}", BaseVelocity::default() * BASE_TURBO_GAIN)
         );
     }
 }
