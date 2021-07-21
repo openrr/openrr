@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
 
 // TODO: speed limit
@@ -17,25 +19,25 @@ fn trajectory_from_positions(
     traj
 }
 
-pub struct CollisionAvoidanceClient<'a, T>
+pub struct CollisionAvoidanceClient<T>
 where
     T: JointTrajectoryClient,
 {
     pub client: T,
     /// using_joints and collision_check_robot must share the k::Node instance.
     pub using_joints: k::Chain<f64>,
-    pub collision_check_robot: &'a k::Chain<f64>,
+    pub collision_check_robot: Arc<k::Chain<f64>>,
     pub planner: openrr_planner::JointPathPlanner<f64>,
 }
 
-impl<'a, T> CollisionAvoidanceClient<'a, T>
+impl<T> CollisionAvoidanceClient<T>
 where
     T: JointTrajectoryClient,
 {
     pub fn new(
         client: T,
         using_joints: k::Chain<f64>,
-        collision_check_robot: &'a k::Chain<f64>,
+        collision_check_robot: Arc<k::Chain<f64>>,
         planner: openrr_planner::JointPathPlanner<f64>,
     ) -> Self {
         Self {
@@ -47,7 +49,7 @@ where
     }
 }
 
-impl<'a, T> JointTrajectoryClient for CollisionAvoidanceClient<'a, T>
+impl<T> JointTrajectoryClient for CollisionAvoidanceClient<T>
 where
     T: JointTrajectoryClient,
 {
