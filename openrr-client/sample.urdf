@@ -1,0 +1,245 @@
+<robot name="robo">
+  <!-- links -->
+  <link name="root">
+    <inertial>
+      <origin xyz="0 0 0.0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="100" ixy="0" ixz="0" iyy="100" iyz="0" izz="100" />
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.3" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.5 0.3 0.6" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="1.0 1.0 1.0 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.3" rpy="0 0 0" />
+      <geometry>
+        <box size="0.5 0.3 0.6" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- left arm -->
+  <link name="l_shoulder1">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.1 0.1 0.1" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="0 1.0 1.0 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.1 0.1 0.1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="l_shoulder2">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.1 0.1 0.1" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="1.0 1.0 0.0 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.1 0.1 0.1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="l_shoulder3">
+    <visual>
+      <origin xyz="0.05 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.25 0.1 0.15" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="0.5 0.5 0.2 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.05 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.25 0.1 0.15" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="l_elbow1">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.25 0.05 0.1" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="0.8 0.2 0.2 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.25 0.05 0.1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="l_wrist1">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.25 0.15 0.1" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="1.0 0.0 0.0 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.25 0.15 0.1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="l_wrist2">
+    <visual>
+      <origin xyz="0.05 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.1 0.08 0.05" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="0.0 0.0 1.0 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.05 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.1 0.08 0.05" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="l_tool">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+      <geometry>
+        <box size="0.01 0.01 0.01" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="0.0 0.0 1.0 1.0" />
+      </material>
+    </visual>
+  </link>
+
+  <link name="l_gripper1">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0" />
+      <geometry>
+        <cylinder radius="0.02" length="0.15" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="0.0 0.0 1.0 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0" rpy="1.57 0.0 0" />
+      <geometry>
+        <cylinder radius="0.02" length="0.15" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="l_gripper2">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0" />
+      <geometry>
+        <cylinder radius="0.02" length="0.15" />
+      </geometry>
+      <material name="Cyan">
+        <color rgba="0.0 0.0 1.0 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0" rpy="1.57 0 0" />
+      <geometry>
+        <cylinder radius="0.02" length="0.15" />
+      </geometry>
+    </collision>
+  </link>
+
+
+  <!-- joints -->
+  <!-- left arm -->
+  <joint name="l_shoulder_yaw" type="revolute">
+    <origin xyz="0.0 0.2 0.5" />
+    <parent link="root" />
+    <child link="l_shoulder1" />
+    <axis xyz="0 0 1" />
+    <limit lower="-3" upper="3" effort="0" velocity="1.0" />
+  </joint>
+  <joint name="l_shoulder_pitch" type="revolute">
+    <origin xyz="0.0 0.1 0.0" />
+    <parent link="l_shoulder1" />
+    <child link="l_shoulder2" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.0" upper="1.5" effort="0" velocity="1.0" />
+  </joint>
+  <joint name="l_shoulder_roll" type="revolute">
+    <origin xyz="0.0 0.1 0.0" />
+    <parent link="l_shoulder2" />
+    <child link="l_shoulder3" />
+    <axis xyz="1 0 0" />
+    <limit lower="-1.5" upper="2.0" effort="0" velocity="1.0" />
+  </joint>
+  <joint name="l_elbow_pitch" type="revolute">
+    <origin xyz="0.3 0.0 0.0" />
+    <parent link="l_shoulder3" />
+    <child link="l_elbow1" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.0" upper="1.5" effort="0" velocity="1.0" />
+  </joint>
+  <joint name="l_wrist_yaw" type="revolute">
+    <origin xyz="0.25 0.0 0.0" />
+    <parent link="l_elbow1" />
+    <child link="l_wrist1" />
+    <axis xyz="0 0 1" />
+    <limit lower="-3" upper="3" effort="0" velocity="1.0" />
+  </joint>
+  <joint name="l_wrist_pitch" type="revolute">
+    <origin xyz="0.15 0.0 0.0" />
+    <parent link="l_wrist1" />
+    <child link="l_wrist2" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2" upper="2.0" effort="0" velocity="1.0" />
+  </joint>
+  <joint name="l_tool_fixed" type="fixed">
+    <origin xyz="0.2 0.0 0.0" />
+    <parent link="l_wrist2" />
+    <child link="l_tool" />
+  </joint>
+
+  <joint name="l_gripper_linear1" type="prismatic">
+    <origin xyz="0.15 -0.05 0.0" rpy="0 0 1.57" />
+    <parent link="l_wrist2" />
+    <child link="l_gripper1" />
+    <axis xyz="1 0 0" />
+    <limit lower="-0.05" upper="0.05" effort="0" velocity="1.0" />
+  </joint>
+
+  <joint name="l_gripper_linear2" type="prismatic">
+    <origin xyz="0.15 0.05 0.0" rpy="0 0 1.57" />
+    <parent link="l_wrist2" />
+    <child link="l_gripper2" />
+    <axis xyz="1 0 0" />
+    <limit lower="-0.05" upper="0.05" effort="0" velocity="1.0" />
+    <mimic joint="l_gripper_linear1" multiplier="-1.0" />
+  </joint>
+
+</robot>
