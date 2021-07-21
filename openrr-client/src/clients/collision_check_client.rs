@@ -83,45 +83,47 @@ pub fn create_collision_check_client<P: AsRef<Path>>(
 }
 
 #[cfg(test)]
-extern crate tokio;
-#[cfg(test)]
-#[tokio::test]
-async fn test_create_collision_check_client() {
-    let urdf_path = Path::new("sample.urdf");
-    let urdf_robot = urdf_rs::read_file(urdf_path).unwrap();
-    let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
-    let client = arci::DummyJointTrajectoryClient::new(
-        robot
-            .iter_joints()
-            .map(|joint| joint.name.clone())
-            .collect(),
-    );
-    client
-        .send_joint_positions(vec![0.0; 9], std::time::Duration::new(0, 0))
-        .unwrap()
-        .await
-        .unwrap();
+mod tests {
+    use super::*;
 
-    let collision_check_client = create_collision_check_client(
-        urdf_path,
-        &["root:l_shoulder_roll".into()],
-        &SelfCollisionCheckerConfig::default(),
-        Arc::new(client),
-        robot,
-    );
+    #[tokio::test]
+    async fn test_create_collision_check_client() {
+        let urdf_path = Path::new("sample.urdf");
+        let urdf_robot = urdf_rs::read_file(urdf_path).unwrap();
+        let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
+        let client = arci::DummyJointTrajectoryClient::new(
+            robot
+                .iter_joints()
+                .map(|joint| joint.name.clone())
+                .collect(),
+        );
+        client
+            .send_joint_positions(vec![0.0; 9], std::time::Duration::new(0, 0))
+            .unwrap()
+            .await
+            .unwrap();
 
-    assert_eq!(
-        *collision_check_client.current_joint_positions().unwrap(),
-        vec![0.0; 9]
-    );
+        let collision_check_client = create_collision_check_client(
+            urdf_path,
+            &["root:l_shoulder_roll".into()],
+            &SelfCollisionCheckerConfig::default(),
+            Arc::new(client),
+            robot,
+        );
 
-    assert!(collision_check_client
-        .send_joint_positions(vec![0.0; 9], std::time::Duration::new(1, 0),)
-        .is_ok());
-    assert!(collision_check_client
-        .send_joint_positions(
-            vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            std::time::Duration::new(1, 0),
-        )
-        .is_err());
+        assert_eq!(
+            *collision_check_client.current_joint_positions().unwrap(),
+            vec![0.0; 9]
+        );
+
+        assert!(collision_check_client
+            .send_joint_positions(vec![0.0; 9], std::time::Duration::new(1, 0),)
+            .is_ok());
+        assert!(collision_check_client
+            .send_joint_positions(
+                vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                std::time::Duration::new(1, 0),
+            )
+            .is_err());
+    }
 }
