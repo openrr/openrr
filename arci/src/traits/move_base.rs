@@ -32,12 +32,16 @@ impl BaseVelocity {
 impl std::ops::Mul<f64> for BaseVelocity {
     type Output = Self;
 
-    fn mul(self, rhs: f64) -> Self::Output {
-        Self {
+    fn mul(mut self, rhs: f64) -> Self::Output {
+   /*     Self {
             x: self.x * rhs,
             y: self.y * rhs,
             theta: self.theta * rhs,
-        }
+        }*/
+        self.x *= rhs;
+        self.y *= rhs;
+        self.theta *= rhs;
+        self
     }
 }
 
