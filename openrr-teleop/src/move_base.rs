@@ -116,4 +116,34 @@ mod tests {
         assert!(!node.is_enabled);
         assert!(!node.is_turbo);
     }
+
+    #[test]
+    fn test_move_node_get() {
+        let mode = String::from("tested");
+        let base = DummyMoveBase::new();
+        let node = MoveBaseNode::new(mode.clone(), base);
+
+        let base_mode = node.mode();
+        assert_eq!(base_mode, mode);
+        let base_sub_mode = node.submode();
+        assert_eq!(base_sub_mode, &String::from(""));
+    }
+
+    #[test]
+    fn test_move_node_proc() {
+        let mode = String::from("tested");
+        let node = MoveBaseNode {
+            move_base: DummyMoveBase::new(),
+            mode: mode.clone(),
+            submode: "".to_string(),
+            vel: BaseVelocity::default(),
+            is_enabled: false,
+            is_turbo: false,
+        };
+        node.proc();
+        assert_eq!(
+            format!("{:?}", node.vel),
+            format!("{:?}", BaseVelocity::default())
+        );
+    }
 }
