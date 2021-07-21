@@ -41,6 +41,28 @@ impl std::ops::Mul<f64> for BaseVelocity {
     }
 }
 
+/// Multiply scalar value for velocity
+///
+/// # Example
+///
+/// ```
+/// use assert_approx_eq::assert_approx_eq;
+/// use arci::BaseVelocity;
+///
+/// let mut vel = BaseVelocity::new(0.1, -0.2, 1.0);
+/// vel *= 2.0;
+/// assert_approx_eq!(vel.x, 0.2);
+/// assert_approx_eq!(vel.y, -0.4);
+/// assert_approx_eq!(vel.theta, 2.0);
+/// ```
+impl std::ops::MulAssign<f64> for BaseVelocity {
+    fn mul_assign(&mut self, rhs: f64) {
+        self.x *= rhs;
+        self.y *= rhs;
+        self.theta *= rhs;
+    }
+}
+
 #[auto_impl(Box, Arc)]
 pub trait MoveBase: Send + Sync {
     fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error>;
