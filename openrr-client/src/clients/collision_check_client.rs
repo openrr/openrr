@@ -76,7 +76,7 @@ pub fn create_collision_check_client<P: AsRef<Path>>(
             urdf_path,
             self_collision_check_pairs,
             joint_names,
-            &config,
+            config,
             full_chain,
         )),
     )

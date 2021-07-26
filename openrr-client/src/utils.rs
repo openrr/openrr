@@ -31,7 +31,7 @@ pub fn wait_joint_positions(
 pub fn find_nodes(joint_names: &[String], chain: &k::Chain<f64>) -> Option<Vec<k::Node<f64>>> {
     let mut nodes = vec![];
     for name in joint_names {
-        if let Some(node) = chain.find(&name) {
+        if let Some(node) = chain.find(name) {
             nodes.push(node.clone());
         } else {
             return None;

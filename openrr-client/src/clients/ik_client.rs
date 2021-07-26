@@ -58,7 +58,7 @@ impl IkSolverWithChain {
         constraints: &Constraints,
     ) -> Result<(), Error> {
         self.ik_solver
-            .solve_with_constraints(&self.ik_arm, &target_pose, constraints)
+            .solve_with_constraints(&self.ik_arm, target_pose, constraints)
             .map_err(|e| Error::Other(e.into()))
     }
 
@@ -187,7 +187,7 @@ where
         duration_sec: f64,
     ) -> Result<WaitFuture, Error> {
         self.ik_solver_with_chain
-            .solve_with_constraints(&target_pose, constraints)?;
+            .solve_with_constraints(target_pose, constraints)?;
 
         let positions = self.ik_solver_with_chain.joint_positions();
         let duration = std::time::Duration::from_secs_f64(duration_sec);
@@ -221,7 +221,7 @@ where
         target_pose: &k::Isometry3<f64>,
         duration_sec: f64,
     ) -> Result<WaitFuture, Error> {
-        self.ik_solver_with_chain.solve(&target_pose)?;
+        self.ik_solver_with_chain.solve(target_pose)?;
 
         let positions = self.ik_solver_with_chain.joint_positions();
         let duration = std::time::Duration::from_secs_f64(duration_sec);
@@ -264,7 +264,7 @@ where
     }
 
     pub fn constraints(&self) -> &Constraints {
-        &self.ik_solver_with_chain.constraints()
+        self.ik_solver_with_chain.constraints()
     }
 
     pub fn set_joint_positions_clamped(&self, positions: &[f64]) {
