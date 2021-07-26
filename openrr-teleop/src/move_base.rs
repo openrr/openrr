@@ -93,8 +93,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use approx::{self, *};
     use arci::DummyMoveBase;
+    use assert_approx_eq::*;
 
     use super::*;
 
@@ -133,22 +133,26 @@ mod tests {
     #[tokio::test]
     async fn test_move_node_proc() {
         let mode = String::from("tested");
-        let x = 1.2_f64;
-        let y = 3.5;
-        let theta = 1.8;
+        const X: f64 = 1.2;
+        const Y: f64 = 3.5;
+        const THETA: f64 = 1.8;
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            vel: BaseVelocity { x, y, theta },
+            vel: BaseVelocity {
+                x: X,
+                y: Y,
+                theta: THETA,
+            },
             is_enabled: false,
             is_turbo: false,
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
-        assert_relative_eq!(current.x, 0.0);
-        assert_relative_eq!(current.y, 0.0);
-        assert_relative_eq!(current.theta, 0.0);
+        assert_approx_eq!(current.x, 0.0);
+        assert_approx_eq!(current.y, 0.0);
+        assert_approx_eq!(current.theta, 0.0);
         println!("{:?} {:?}", node.vel, current);
 
         let node = MoveBaseNode {
@@ -156,7 +160,7 @@ mod tests {
             mode: mode.clone(),
             submode: "".to_string(),
             vel: BaseVelocity {
-                x: 1.2_f64,
+                x: 1.2,
                 y: 3.5,
                 theta: 1.8,
             },
@@ -165,9 +169,28 @@ mod tests {
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
-        assert_relative_eq!(current.x, 0.0);
-        assert_relative_eq!(current.y, 0.0);
-        assert_relative_eq!(current.theta, 0.0);
+        assert_approx_eq!(current.x, 0.0);
+        assert_approx_eq!(current.y, 0.0);
+        assert_approx_eq!(current.theta, 0.0);
+        println!("{:?} {:?}", node.vel, current);
+
+        let node = MoveBaseNode {
+            move_base: DummyMoveBase::new(),
+            mode: mode.clone(),
+            submode: "".to_string(),
+            vel: BaseVelocity {
+                x: 1.2,
+                y: 3.5,
+                theta: 1.8,
+            },
+            is_enabled: true,
+            is_turbo: false,
+        };
+        node.proc().await;
+        let current = node.move_base.current_velocity().unwrap();
+        assert_approx_eq!(current.x, X);
+        assert_approx_eq!(current.y, Y);
+        assert_approx_eq!(current.theta, THETA);
         println!("{:?} {:?}", node.vel, current);
 
         let node = MoveBaseNode {
@@ -180,32 +203,13 @@ mod tests {
                 theta: 1.8,
             },
             is_enabled: true,
-            is_turbo: false,
-        };
-        node.proc().await;
-        let current = node.move_base.current_velocity().unwrap();
-        assert_relative_eq!(current.x, x);
-        assert_relative_eq!(current.y, y);
-        assert_relative_eq!(current.theta, theta);
-        println!("{:?} {:?}", node.vel, current);
-
-        let node = MoveBaseNode {
-            move_base: DummyMoveBase::new(),
-            mode: mode.clone(),
-            submode: "".to_string(),
-            vel: BaseVelocity {
-                x: 1.2_f64,
-                y: 3.5,
-                theta: 1.8,
-            },
-            is_enabled: true,
             is_turbo: true,
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
-        assert_relative_eq!(current.x, x * 2.0);
-        assert_relative_eq!(current.y, y * 2.0);
-        assert_relative_eq!(current.theta, theta * 2.0);
+        assert_approx_eq!(current.x, X * 2.0);
+        assert_approx_eq!(current.y, Y * 2.0);
+        assert_approx_eq!(current.theta, THETA * 2.0);
         println!("{:?} {:?}", node.vel, current);
     }
 }
