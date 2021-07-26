@@ -132,7 +132,7 @@ where
     }
 
     fn mode(&self) -> &str {
-        &MODE
+        MODE
     }
 
     fn submode(&self) -> &str {
