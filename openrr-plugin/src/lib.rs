@@ -143,7 +143,7 @@ impl PluginProxy {
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self, arci::Error> {
         let path = path.as_ref();
 
-        let header = lib_header_from_path(&path).map_err(anyhow::Error::from)?;
+        let header = lib_header_from_path(path).map_err(anyhow::Error::from)?;
         let root_module = header
             .init_root_module::<PluginMod_Ref>()
             .map_err(anyhow::Error::from)?;
