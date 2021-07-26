@@ -113,7 +113,7 @@ where
                 target_pose.translation.vector[0] = x;
                 arm.set_joint_positions_unchecked(&initial_angles);
                 if ik_solver
-                    .solve_with_constraints(arm, &target_pose, &constraints)
+                    .solve_with_constraints(arm, &target_pose, constraints)
                     .is_ok()
                 {
                     solved_poses.push(target_pose);

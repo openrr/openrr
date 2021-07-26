@@ -244,7 +244,7 @@ where
         prediction: T,
     ) -> Self {
         let mut name_collision_model_map = HashMap::new();
-        let link_joint_map = k::urdf::link_to_joint_map(&urdf_robot);
+        let link_joint_map = k::urdf::link_to_joint_map(urdf_robot);
         for l in &urdf_robot.links {
             let col_pose_vec = l
                 .collision
