@@ -45,7 +45,7 @@ pub struct RosControlClientConfig {
     pub joint_position_limits: Option<Vec<JointPositionLimit>>,
 }
 
-fn default_complete_timeout_sec() -> f64 {
+const fn default_complete_timeout_sec() -> f64 {
     10.0
 }
 
@@ -482,5 +482,49 @@ impl JointTrajectoryClient for RosControlClient {
 impl SetCompleteCondition for RosControlClient {
     fn set_complete_condition(&mut self, condition: Box<dyn CompleteCondition>) {
         *self.0.complete_condition.lock().unwrap() = condition.into();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_joint_position_limiter() {
+        use arci::{DummyJointTrajectoryClient, JointPositionLimit, JointPositionLimiter};
+
+        let client = DummyJointTrajectoryClient::new(vec![
+            String::from("a".to_owned()),
+            String::from("b".to_owned()),
+        ]);
+        let limits = vec![
+            JointPositionLimit::new(-5.0, 5.0),
+            JointPositionLimit::new(-5.0, 5.0),
+        ];
+
+        let result = new_joint_position_limiter(client, Some(limits.clone()), None);
+        assert!(result.is_ok());
+        let result = result.unwrap();
+
+        let client = DummyJointTrajectoryClient::new(vec![
+            String::from("a".to_owned()),
+            String::from("b".to_owned()),
+        ]);
+        let correct = JointPositionLimiter::new(client, limits);
+        //result.limits.iter();
+        /* How check private field? */
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_new_joint_position_limiter_error() {
+        use arci::DummyJointTrajectoryClient;
+
+        let client = DummyJointTrajectoryClient::new(vec![
+            String::from("a".to_owned()),
+            String::from("b".to_owned()),
+        ]);
+
+        let _ = new_joint_position_limiter(client, None, None);
     }
 }
