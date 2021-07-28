@@ -65,6 +65,8 @@ pub enum Error {
     },
     #[error("arci: Failed to construct instance: {}", .0)]
     Lazy(Arc<Error>),
+    #[error("arci: urdf: {:?}", .0)]
+    Urdf(#[from] urdf_rs::UrdfError),
     #[error("arci: Other: {:?}", .0)]
     Other(#[from] anyhow::Error),
 }

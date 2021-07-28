@@ -1,5 +1,7 @@
+use std::fmt;
+
 use nalgebra as na;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -33,34 +35,37 @@ pub(crate) struct RpcResult {
     pub reason: String,
 }
 
-fn try_connect<T>(
-    base_url: &Url,
-    f: impl FnOnce() -> Result<T, ureq::Error>,
-) -> Result<T, arci::Error> {
-    f().map_err(|e| arci::Error::Connection {
-        message: format!("base_url:{}: {:?}", base_url, e),
-    })
+fn map_connection_error<E: fmt::Display>(url: &Url) -> impl FnOnce(E) -> arci::Error + '_ {
+    move |e: E| arci::Error::Connection {
+        message: format!("url:{}: {}", url, e),
+    }
+}
+
+fn get(url: Url) -> Result<ureq::Response, arci::Error> {
+    ureq::get(url.as_str())
+        .call()
+        .map_err(map_connection_error(&url))
+}
+
+fn post<T: Serialize, U: DeserializeOwned>(url: Url, msg: T) -> Result<U, arci::Error> {
+    ureq::post(url.as_str())
+        .send_json(serde_json::to_value(msg).unwrap())
+        .map_err(map_connection_error(&url))?
+        .into_json()
+        .map_err(map_connection_error(&url))
 }
 
 pub(crate) fn get_joint_positions(base_url: &Url) -> Result<JointState, arci::Error> {
-    try_connect(base_url, || {
-        let re = ureq::get(base_url.join("get_joint_positions").unwrap().as_str())
-            .call()?
-            .into_json::<JointState>()?;
-        Ok(re)
-    })
+    get(base_url.join("get_joint_positions").unwrap())?
+        .into_json()
+        .map_err(map_connection_error(base_url))
 }
 
 pub(crate) fn send_joint_positions(
     base_url: &Url,
     joint_state: JointState,
 ) -> Result<(), arci::Error> {
-    let res: RpcResult = try_connect(base_url, || {
-        let re = ureq::post(base_url.join("set_joint_positions").unwrap().as_str())
-            .send_json(serde_json::to_value(joint_state).unwrap())?
-            .into_json()?;
-        Ok(re)
-    })?;
+    let res: RpcResult = post(base_url.join("set_joint_positions").unwrap(), joint_state)?;
     if !res.is_ok {
         return Err(arci::Error::Connection {
             message: res.reason,
@@ -70,27 +75,26 @@ pub(crate) fn send_joint_positions(
 }
 
 pub(crate) fn get_robot_origin(base_url: &Url) -> Result<BasePose, arci::Error> {
-    try_connect(base_url, || {
-        let re = ureq::get(base_url.join("get_robot_origin").unwrap().as_str())
-            .call()?
-            .into_json::<BasePose>()?;
-        Ok(re)
-    })
+    get(base_url.join("get_robot_origin").unwrap())?
+        .into_json()
+        .map_err(map_connection_error(base_url))
 }
 
 pub(crate) fn send_robot_origin(base_url: &Url, base_pose: BasePose) -> Result<(), arci::Error> {
-    let res: RpcResult = try_connect(base_url, || {
-        let re = ureq::post(base_url.join("set_robot_origin").unwrap().as_str())
-            .send_json(serde_json::to_value(base_pose).unwrap())?
-            .into_json()?;
-        Ok(re)
-    })?;
+    let res: RpcResult = post(base_url.join("set_robot_origin").unwrap(), base_pose)?;
     if !res.is_ok {
         return Err(arci::Error::Connection {
             message: res.reason,
         });
     }
     Ok(())
+}
+
+pub(crate) fn get_urdf(base_url: &Url) -> Result<urdf_rs::Robot, arci::Error> {
+    let s = get(base_url.join("get_urdf_text").unwrap())?
+        .into_string()
+        .map_err(map_connection_error(base_url))?;
+    Ok(urdf_rs::read_from_string(&s)?)
 }
 
 pub(crate) fn euler_angles_from_quaternion(q: &[f64; 4]) -> (f64, f64, f64) {

@@ -1,6 +1,0 @@
-[[urdf_viz_clients_configs]]
-name = "arm"
-wrap_with_joint_position_limiter = true
-
-[openrr_clients_config]
-urdf_path = "../../openrr-planner/sample.urdf"

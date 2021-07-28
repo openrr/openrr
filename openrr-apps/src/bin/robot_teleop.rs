@@ -54,13 +54,33 @@ async fn main() -> Result<()> {
     } else {
         RobotTeleopConfig::new(teleop_config_path.clone())?
     };
-    let robot_config_path = teleop_config.robot_config_full_path().as_ref().unwrap();
-    let robot_config = if let Some(overwrite) = &args.robot_config {
-        let s = &fs::read_to_string(&robot_config_path)?;
-        let s = &openrr_config::overwrite_str(s, overwrite)?;
-        RobotConfig::from_str(s, robot_config_path)?
-    } else {
-        RobotConfig::new(robot_config_path)?
+    let robot_config_path = teleop_config.robot_config_full_path();
+    let robot_config = match (robot_config_path, &args.robot_config) {
+        (Some(config_path), Some(overwrite)) => {
+            let s = &fs::read_to_string(&config_path)?;
+            let s = &openrr_config::overwrite_str(s, overwrite)?;
+            RobotConfig::from_str(s, config_path)?
+        }
+        (Some(config_path), None) => RobotConfig::new(config_path)?,
+        (None, overwrite) => {
+            let mut config = RobotConfig::default();
+            config
+                .urdf_viz_clients_configs
+                .push(arci_urdf_viz::UrdfVizWebClientConfig {
+                    name: "all".into(),
+                    joint_names: None,
+                    wrap_with_joint_position_limiter: false,
+                    wrap_with_joint_velocity_limiter: false,
+                    joint_velocity_limits: None,
+                    joint_position_limits: None,
+                });
+            if let Some(overwrite) = overwrite {
+                let s = &toml::to_string(&config)?;
+                let s = &openrr_config::overwrite_str(s, overwrite)?;
+                config = toml::from_str(s)?;
+            }
+            config
+        }
     };
 
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &robot_config);

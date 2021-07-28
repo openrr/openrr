@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     collections::HashMap,
     mem,
     sync::{Arc, Mutex},
@@ -57,7 +58,12 @@ fn create_joint_trajectory_clients_inner(
     urdf_robot: Option<&urdf_rs::Robot>,
     lazy: bool,
 ) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
+    if configs.is_empty() {
+        return Ok(HashMap::default());
+    }
+
     let mut clients = HashMap::new();
+    let mut urdf_robot = urdf_robot.map(Cow::Borrowed);
 
     let create_all_client = move || {
         debug!("create_joint_trajectory_clients_inner: creating UrdfVizWebClient");
@@ -65,22 +71,31 @@ fn create_joint_trajectory_clients_inner(
         all_client.run_send_joint_positions_thread();
         Ok(all_client)
     };
-    let all_client: Arc<dyn JointTrajectoryClient> = if lazy {
-        if let Some(urdf_robot) = urdf_robot {
-            Arc::new(arci::Lazy::with_joint_names(
-                create_all_client,
-                urdf_robot
-                    .joints
-                    .iter()
-                    .filter(|j| j.joint_type != urdf_rs::JointType::Fixed)
-                    .map(|j| j.name.clone())
-                    .collect(),
-            ))
-        } else {
-            Arc::new(arci::Lazy::new(create_all_client))
-        }
+    let all_client: Arc<dyn JointTrajectoryClient> = if lazy && urdf_robot.is_some() {
+        let urdf_robot = urdf_robot.as_ref().unwrap();
+        Arc::new(arci::Lazy::with_joint_names(
+            create_all_client,
+            urdf_robot
+                .joints
+                .iter()
+                .filter(|j| j.joint_type != urdf_rs::JointType::Fixed)
+                .map(|j| j.name.clone())
+                .collect(),
+        ))
     } else {
-        Arc::new(create_all_client().unwrap())
+        // Subsequent processing call joint_names, so we cannot make the client
+        // lazy if joint_names is not specified.
+        let client = create_all_client()?;
+        if urdf_robot.is_none()
+            && configs.iter().any(|config| {
+                config.wrap_with_joint_position_limiter && config.joint_position_limits.is_none()
+                    || config.wrap_with_joint_velocity_limiter
+                        && config.joint_velocity_limits.is_none()
+            })
+        {
+            urdf_robot = Some(Cow::Owned(client.get_urdf()?));
+        }
+        Arc::new(client)
     };
 
     for config in configs {
@@ -105,22 +120,26 @@ fn create_joint_trajectory_clients_inner(
         let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
             if config.wrap_with_joint_position_limiter {
                 Arc::new(new_joint_position_limiter(
-                    new_joint_velocity_limiter(client, config.joint_velocity_limits, urdf_robot)?,
+                    new_joint_velocity_limiter(
+                        client,
+                        config.joint_velocity_limits,
+                        urdf_robot.as_deref(),
+                    )?,
                     config.joint_position_limits,
-                    urdf_robot,
+                    urdf_robot.as_deref(),
                 )?)
             } else {
                 Arc::new(new_joint_velocity_limiter(
                     client,
                     config.joint_velocity_limits,
-                    urdf_robot,
+                    urdf_robot.as_deref(),
                 )?)
             }
         } else if config.wrap_with_joint_position_limiter {
             Arc::new(new_joint_position_limiter(
                 client,
                 config.joint_position_limits,
-                urdf_robot,
+                urdf_robot.as_deref(),
             )?)
         } else {
             client
@@ -373,6 +392,10 @@ impl UrdfVizWebClient {
 
     pub fn abort(&self) {
         *self.0.send_joint_positions_target.lock().unwrap() = SendJointPositionsTarget::Abort;
+    }
+
+    pub fn get_urdf(&self) -> Result<urdf_rs::Robot, arci::Error> {
+        get_urdf(&self.0.base_url)
     }
 }
 

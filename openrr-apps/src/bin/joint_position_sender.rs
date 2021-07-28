@@ -25,18 +25,41 @@ fn main() -> Result<()> {
     let opt = Opt::from_args();
     debug!("opt: {:?}", opt);
 
-    let config_path = openrr_apps::utils::get_apps_robot_config(opt.config_path).unwrap();
-    let config = if let Some(overwrite) = &opt.config {
-        let s = &fs::read_to_string(&config_path)?;
-        let s = &openrr_config::overwrite_str(s, overwrite)?;
-        RobotConfig::from_str(s, config_path)?
-    } else {
-        RobotConfig::new(config_path)?
+    let config_path = openrr_apps::utils::get_apps_robot_config(opt.config_path);
+    let config = match (&config_path, &opt.config) {
+        (Some(config_path), Some(overwrite)) => {
+            let s = &fs::read_to_string(&config_path)?;
+            let s = &openrr_config::overwrite_str(s, overwrite)?;
+            RobotConfig::from_str(s, config_path)?
+        }
+        (Some(config_path), None) => RobotConfig::new(config_path)?,
+        (None, overwrite) => {
+            let mut config = RobotConfig::default();
+            config
+                .urdf_viz_clients_configs
+                .push(arci_urdf_viz::UrdfVizWebClientConfig {
+                    name: "all".into(),
+                    joint_names: None,
+                    wrap_with_joint_position_limiter: false,
+                    wrap_with_joint_velocity_limiter: false,
+                    joint_velocity_limits: None,
+                    joint_position_limits: None,
+                });
+            if let Some(overwrite) = overwrite {
+                let s = &toml::to_string(&config)?;
+                let s = &openrr_config::overwrite_str(s, overwrite)?;
+                config = toml::from_str(s)?;
+            }
+            config
+        }
     };
 
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &config);
     let client: BoxRobotClient = config.create_robot_client()?;
-    let robot = urdf_rs::read_file(config.openrr_clients_config.urdf_full_path().unwrap())?;
+    let robot = match config.openrr_clients_config.urdf_full_path() {
+        Some(path) => urdf_rs::utils::read_urdf_or_xacro(path)?,
+        None => arci_urdf_viz::UrdfVizWebClient::default().get_urdf()?,
+    };
     joint_position_sender(client, robot)?;
     Ok(())
 }
