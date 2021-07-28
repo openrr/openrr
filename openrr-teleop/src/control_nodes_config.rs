@@ -49,7 +49,7 @@ impl ControlNodesConfig {
     #[allow(clippy::too_many_arguments)]
     pub fn create_control_nodes(
         &self,
-        base_path: PathBuf,
+        base_path: Option<PathBuf>,
         robot_client: Arc<ArcRobotClient>,
         speaker: Arc<dyn Speaker>,
         joint_trajectory_client_map: &HashMap<String, Arc<dyn JointTrajectoryClient>>,
@@ -103,13 +103,15 @@ impl ControlNodesConfig {
         }
 
         if !self.command_configs.is_empty() {
-            if let Some(e) = RobotCommandExecutor::new(
-                base_path,
-                self.command_configs.clone(),
-                robot_client,
-                speaker.clone(),
-            ) {
-                nodes.push(Box::new(e));
+            if let Some(base_path) = base_path {
+                if let Some(e) = RobotCommandExecutor::new(
+                    base_path,
+                    self.command_configs.clone(),
+                    robot_client,
+                    speaker.clone(),
+                ) {
+                    nodes.push(Box::new(e));
+                }
             }
         }
 
