@@ -47,7 +47,7 @@ pub struct TeleopPluginConfig {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct RobotTeleopConfig {
-    pub robot_config_path: String,
+    pub robot_config_path: Option<String>,
     robot_config_full_path: Option<PathBuf>,
     #[serde(default)]
     pub initial_mode: String,
@@ -73,8 +73,11 @@ impl RobotTeleopConfig {
         let path = path.as_ref();
         let mut config: RobotTeleopConfig =
             toml::from_str(s).map_err(|e| Error::TomlParseFailure(path.to_owned(), e))?;
-        config.robot_config_full_path =
-            Some(resolve_relative_path(path, &config.robot_config_path)?);
+        config.robot_config_full_path = config
+            .robot_config_path
+            .as_ref()
+            .map(|robot_config_path| resolve_relative_path(path, robot_config_path))
+            .transpose()?;
         for plugin_config in config.plugins.values_mut() {
             resolve_plugin_path(&mut plugin_config.path, path)?;
             if let Some(args_path) = plugin_config.args_from_path.take() {

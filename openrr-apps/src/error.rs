@@ -23,7 +23,7 @@ pub enum Error {
     DuplicateInstance(String),
     #[error("openrr-apps: Config {:?} requires ros feature.", .0)]
     ConfigRequireRos(String),
-    #[error("openrr-apps: arci: {:?}", .0)]
+    #[error("openrr-apps: urdf: {:?}", .0)]
     Urdf(#[from] urdf_rs::UrdfError),
     #[error("openrr-apps: arci: {:?}", .0)]
     Arci(#[from] arci::Error),
