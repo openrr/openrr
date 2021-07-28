@@ -46,13 +46,23 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    let teleop_config_path = args.config_path.ok_or(Error::NoConfigPath)?;
-    let teleop_config = if let Some(overwrite) = &args.teleop_config {
-        let s = &fs::read_to_string(&teleop_config_path)?;
-        let s = &openrr_config::overwrite_str(s, overwrite)?;
-        RobotTeleopConfig::from_str(s, teleop_config_path.clone())?
-    } else {
-        RobotTeleopConfig::new(teleop_config_path.clone())?
+    let teleop_config = match (&args.config_path, &args.teleop_config) {
+        (Some(teleop_config_path), Some(overwrite)) => {
+            let s = &fs::read_to_string(&teleop_config_path)?;
+            let s = &openrr_config::overwrite_str(s, overwrite)?;
+            RobotTeleopConfig::from_str(s, teleop_config_path)?
+        }
+        (Some(teleop_config_path), None) => RobotTeleopConfig::new(teleop_config_path)?,
+        (None, overwrite) => {
+            let mut config = RobotTeleopConfig::default();
+            config.control_nodes_config.move_base_mode = Some("base".into());
+            if let Some(overwrite) = overwrite {
+                let s = &toml::to_string(&config)?;
+                let s = &openrr_config::overwrite_str(s, overwrite)?;
+                config = toml::from_str(s)?;
+            }
+            config
+        }
     };
     let robot_config_path = teleop_config.robot_config_full_path();
     let robot_config = match (robot_config_path, &args.robot_config) {
@@ -91,7 +101,7 @@ async fn main() -> Result<()> {
     let speaker = client.speakers().values().next().unwrap();
 
     let nodes = teleop_config.control_nodes_config.create_control_nodes(
-        teleop_config_path,
+        args.config_path,
         client.clone(),
         speaker.clone(),
         client.joint_trajectory_clients(),
