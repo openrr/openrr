@@ -8,6 +8,7 @@ use arci::TransformResolver;
 use arci_ros::RosTransformResolver;
 
 const TF_RETRY_RATE: f64 = 10.0;
+const TF_MAX_RETRY: usize = 10;
 const TIME_OFFSET_SECS: f64 = 0.1;
 
 fn main() -> Result<(), Error> {
@@ -19,7 +20,7 @@ fn main() -> Result<(), Error> {
     let to = &args[2];
 
     arci_ros::init("arc_ros_example_resolve_transformation");
-    let resolver = RosTransformResolver::new(TF_RETRY_RATE);
+    let resolver = RosTransformResolver::new(TF_RETRY_RATE, TF_MAX_RETRY);
     let rate = arci_ros::rate(1.0);
     while arci_ros::is_ok() {
         match resolver.resolve_transformation(
