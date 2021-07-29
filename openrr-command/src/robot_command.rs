@@ -296,8 +296,8 @@ impl RobotCommandExecutor {
             }
             RobotCommand::Speak { name, message } => {
                 // TODO: Parse quotations and comments
-                // Currently '"Foo bar" # hoge' is parsed as message in below command.
-                // 'openrr_apps_robot_command speak "Foo bar" # hoge'
+                // Currently '"Foo bar" # buzz' is parsed as message in below command.
+                // 'openrr_apps_robot_command speak "Foo bar" # buzz'
                 client.speak(name, &message.join(" "))?.await?;
             }
             RobotCommand::ExecuteCommand { command } => {

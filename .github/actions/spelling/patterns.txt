@@ -1,0 +1,26 @@
+# See https://github.com/check-spelling/check-spelling/wiki/Configuration-Examples:-patterns
+
+# ignore long runs of a single character:
+\b([A-Za-z])\g{-1}{3,}\b
+
+# GitHub
+\bhttps://github\.com/.+
+
+# YouTube
+https?://(?:(?:www\.|)youtube\.com|youtu.be)/(?:channel/|embed/|playlist\?list=|watch\?v=|v/|)[-a-zA-Z0-9?&=_]*
+<\s*youtube\s+id=['"][-a-zA-Z0-9?_]*['"]
+\bimg\.youtube\.com/vi/[-a-zA-Z0-9?&=_]*
+
+# VSCode
+\bhttps://marketplace\.visualstudio\.com/items\?itemName=[\w\.-]+
+
+# gifs
+\bhttps://j\.gifs\.com/.+\.gif
+
+# codecov
+\bhttps://codecov.io/.+token=\w+
+
+# docs.rs
+https://docs\.rs/.+
+
+set\ -euo\ pipefail
