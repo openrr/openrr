@@ -1,3 +1,3 @@
-This directory is basicly copy of rosrust/tests/.
+This directory is basically copy of rosrust/tests/.
 rosrust version is 0.9.5.
 Modified for clippy, and remove subscriber_test.rs.

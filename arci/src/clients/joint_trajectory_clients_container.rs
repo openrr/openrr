@@ -205,7 +205,7 @@ mod tests {
     }
 
     #[test]
-    fn test_container_jointname() {
+    fn test_container_joint_name() {
         struct Dummy {
             name: Vec<String>,
         }

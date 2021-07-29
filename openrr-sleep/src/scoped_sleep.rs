@@ -15,7 +15,7 @@ impl ScopedSleep {
     ///     // not sleep yet
     ///     assert!(now.elapsed() < std::time::Duration::from_millis(20));
     /// }
-    /// // sleeped
+    /// // slept
     /// assert!(now.elapsed() > std::time::Duration::from_millis(20));
     /// ```
     pub fn new(sleep_duration: std::time::Duration) -> Self {
@@ -35,7 +35,7 @@ impl ScopedSleep {
     ///     // not sleep yet
     ///     assert!(now.elapsed() < std::time::Duration::from_millis(10));
     /// }
-    /// // sleeped
+    /// // slept
     /// assert!(now.elapsed() > std::time::Duration::from_millis(10));
     /// ```
     pub fn from_secs(sleep_duration_sec: f64) -> Self {
