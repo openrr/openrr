@@ -8,13 +8,15 @@ use tracing::{debug, warn};
 
 pub struct RosTransformResolver {
     retry_rate: f64,
+    max_retry: usize,
     tf_listener: TfListener,
 }
 
 impl RosTransformResolver {
-    pub fn new(retry_rate: f64) -> Self {
+    pub fn new(retry_rate: f64, max_retry: usize) -> Self {
         Self {
             retry_rate,
+            max_retry,
             tf_listener: TfListener::new(),
         }
     }
@@ -27,7 +29,6 @@ impl TransformResolver for RosTransformResolver {
         to: &str,
         time: std::time::SystemTime,
     ) -> Result<nalgebra::Isometry3<f64>, arci::Error> {
-        const MAX_RETRY: usize = 10;
         let ros_now = rosrust::now();
         let system_now = SystemTime::now();
 
@@ -42,9 +43,12 @@ impl TransformResolver for RosTransformResolver {
         };
         let rate = rate(self.retry_rate);
         let mut last_error = None;
-        for i in 0..=MAX_RETRY {
+        for i in 0..=self.max_retry {
             if i != 0 {
-                warn!("Retrying {} -> {} ({} / {}) ...", from, to, i, MAX_RETRY);
+                warn!(
+                    "Retrying {} -> {} ({} / {}) ...",
+                    from, to, i, self.max_retry
+                );
             }
             let result = self.tf_listener.lookup_transform(from, to, ros_time);
             match result {
