@@ -112,6 +112,7 @@ pipefail
 playstation
 plugin
 png
+portpicker
 powershell
 powf
 println

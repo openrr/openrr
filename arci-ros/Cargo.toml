@@ -35,3 +35,4 @@ k = "0.25"
 
 [target.'cfg(unix)'.dev-dependencies]
 nix = "0.22.0"
+portpicker = "0.1.1"

@@ -1,8 +1,12 @@
-use std::sync::{
-    mpsc::{Receiver, Sender},
-    Arc, Mutex,
+use std::{
+    sync::{
+        mpsc::{Receiver, Sender},
+        Arc, Mutex,
+    },
+    time::SystemTime,
 };
 
+use rosrust::Time;
 type MessageBuffer<T> = Arc<Mutex<Option<T>>>;
 
 fn set_message_buffer<T>(buffer: &MessageBuffer<T>, message: T) {
@@ -261,4 +265,43 @@ macro_rules! define_action_client {
             $action_base
         );
     };
+}
+
+pub fn convert_system_time_to_ros_time(time: &SystemTime) -> Time {
+    let ros_now = rosrust::now();
+    let system_now = SystemTime::now();
+
+    // compare time to avoid SystemTimeError
+    // https://doc.rust-lang.org/std/time/struct.SystemTime.html#method.duration_since
+    if system_now < *time {
+        Time::from_nanos(
+            time.duration_since(system_now).unwrap().as_nanos() as i64 + ros_now.nanos() as i64,
+        )
+    } else {
+        Time::from_nanos(
+            ros_now.nanos() as i64 - system_now.duration_since(*time).unwrap().as_nanos() as i64,
+        )
+    }
+}
+
+pub fn convert_ros_time_to_system_time(time: &Time) -> SystemTime {
+    let ros_now = rosrust::now();
+    let system_now = SystemTime::now();
+    let ros_time_nanos = time.nanos() as u64;
+    let ros_now_nanos = ros_now.nanos() as u64;
+    // from_nanos needs u64 as input
+    // https://doc.rust-lang.org/stable/std/time/struct.Duration.html#method.from_nanos
+    if ros_now_nanos < ros_time_nanos {
+        system_now
+            .checked_add(std::time::Duration::from_nanos(
+                ros_time_nanos - ros_now_nanos,
+            ))
+            .unwrap()
+    } else {
+        system_now
+            .checked_sub(std::time::Duration::from_nanos(
+                ros_now_nanos - ros_time_nanos,
+            ))
+            .unwrap()
+    }
 }
