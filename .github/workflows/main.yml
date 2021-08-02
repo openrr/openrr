@@ -2,9 +2,9 @@ name: Build and Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
     - cron: '0 15 * * *'
 
@@ -108,7 +108,7 @@ jobs:
       - run: cargo install cargo-hack
       - run: cargo hack check --all --feature-powerset --optional-deps --exclude arci-ros2
 
-  # TODO: revert nightyly-2021-07-01
+  # TODO: revert nightly-2021-07-01
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
