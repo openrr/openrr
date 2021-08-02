@@ -581,7 +581,7 @@ axis_map = [
     ["LeftStickY", "LeftStickY"],
 ]
         "#;
-        let v: &Value = &toml::from_str(&s).unwrap();
+        let v: &Value = &toml::from_str(s).unwrap();
         {
             let v = &mut v.clone();
             overwrite(v, r#"gil_gamepad_config.map.axis_map[0][0] = "DPadN""#).unwrap();
