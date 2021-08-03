@@ -14,7 +14,7 @@ fn test() {
     test_convert_system_time_to_ros_time();
 }
 fn test_convert_ros_time_to_system_time() {
-    const ALLOWABLE_ERROR_NANOSECONDS: u128 = 1_000;
+    const ALLOWABLE_ERROR_NANOSECONDS: u128 = 1_000_000;
 
     let ros_diff = rosrust::Duration::from_seconds(1);
     let system_time_diff = std::time::Duration::from_secs(1);
@@ -32,8 +32,8 @@ fn test_convert_ros_time_to_system_time() {
             && system_time_actual_diff_nanos
                 < system_time_diff.as_nanos() + ALLOWABLE_ERROR_NANOSECONDS,
         "actual {} expected {} < < {}",
-        system_time_diff.as_nanos() - ALLOWABLE_ERROR_NANOSECONDS,
         system_time_actual_diff_nanos,
+        system_time_diff.as_nanos() - ALLOWABLE_ERROR_NANOSECONDS,
         system_time_diff.as_nanos() + ALLOWABLE_ERROR_NANOSECONDS
     );
 
@@ -45,8 +45,8 @@ fn test_convert_ros_time_to_system_time() {
             && system_time_actual_diff_nanos
                 < system_time_diff.as_nanos() + ALLOWABLE_ERROR_NANOSECONDS,
         "actual {} expected {} < < {}",
-        system_time_diff.as_nanos() - ALLOWABLE_ERROR_NANOSECONDS,
         system_time_actual_diff_nanos,
+        system_time_diff.as_nanos() - ALLOWABLE_ERROR_NANOSECONDS,
         system_time_diff.as_nanos() + ALLOWABLE_ERROR_NANOSECONDS
     );
 }
