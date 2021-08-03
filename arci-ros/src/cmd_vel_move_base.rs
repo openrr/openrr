@@ -18,12 +18,8 @@ impl RosCmdVelMoveBase {
 
 impl MoveBase for RosCmdVelMoveBase {
     fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error> {
-        let mut twist_msg = msg::geometry_msgs::Twist::default();
-        twist_msg.linear.x = velocity.x;
-        twist_msg.linear.y = velocity.y;
-        twist_msg.angular.z = velocity.theta;
         self.vel_publisher
-            .send(twist_msg)
+            .send((*velocity).into())
             .map_err(|e| arci::Error::Connection {
                 message: format!("rosrust publish error: {:?}", e),
             })

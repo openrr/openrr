@@ -10,6 +10,7 @@ ros_nalgebra::rosmsg_include!(
     geometry_msgs / PoseStamped,
     geometry_msgs / PoseWithCovarianceStamped,
     geometry_msgs / Twist,
+    geometry_msgs / Vector3,
     move_base_msgs / MoveBaseActionGoal,
     move_base_msgs / MoveBaseActionResult,
     sensor_msgs / JointState,
