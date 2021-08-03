@@ -8,7 +8,8 @@
 mod cmd_vel_move_base;
 mod error;
 mod joy_gamepad;
-mod msg;
+pub mod msg;
+mod msg_utils;
 mod ros_control_action_client;
 mod ros_control_client;
 mod ros_localization_client;
