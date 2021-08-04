@@ -157,19 +157,23 @@ where
         let step_length = self.step_length;
         let max_try = self.max_try;
         let current_angles = using_joints.joint_positions();
+
         if !self.is_feasible(using_joints, start_angles, objects) {
+            let collision_link_names = self.colliding_link_names(objects);
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::Collision {
                 part: CollisionPart::Start,
-                collision_link_names: self.colliding_link_names(objects),
+                collision_link_names,
             });
         } else if !self.is_feasible(using_joints, goal_angles, objects) {
+            let collision_link_names = self.colliding_link_names(objects);
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::Collision {
                 part: CollisionPart::End,
-                collision_link_names: self.colliding_link_names(objects),
+                collision_link_names,
             });
         }
+
         let mut path = match rrt::dual_rrt_connect(
             start_angles,
             goal_angles,
@@ -211,19 +215,23 @@ where
         let step_length = self.step_length;
         let max_try = self.max_try;
         let current_angles = using_joints.joint_positions();
+
         if !self.is_feasible_with_self(using_joints, start_angles) {
+            let collision_link_names = self.colliding_link_names_with_self();
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::SelfCollision {
                 part: CollisionPart::Start,
-                collision_link_names: self.colliding_link_names_with_self(),
+                collision_link_names,
             });
         } else if !self.is_feasible_with_self(using_joints, goal_angles) {
+            let collision_link_names = self.colliding_link_names_with_self();
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::SelfCollision {
                 part: CollisionPart::End,
-                collision_link_names: self.colliding_link_names_with_self(),
+                collision_link_names,
             });
         }
+
         let mut path = match rrt::dual_rrt_connect(
             start_angles,
             goal_angles,
