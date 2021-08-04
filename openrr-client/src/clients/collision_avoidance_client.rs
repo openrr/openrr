@@ -1,4 +1,7 @@
+use std::{path::Path, sync::Arc};
+
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
+use openrr_planner::{CollisionChecker, JointPathPlannerBuilder};
 
 // TODO: speed limit
 fn trajectory_from_positions(
@@ -100,5 +103,72 @@ where
             ));
         }
         self.client.send_joint_trajectory(trajs)
+    }
+}
+
+pub fn create_collision_avoidance_client<P: AsRef<Path>>(
+    urdf_path: P,
+    self_collision_check_pairs: Vec<(String, String)>,
+    collision_check_prediction: f64,
+    client: Arc<dyn JointTrajectoryClient>,
+) -> CollisionAvoidanceClient<Arc<dyn JointTrajectoryClient>> {
+    let urdf_robot = urdf_rs::read_file(urdf_path.as_ref()).unwrap();
+    let collision_checker =
+        CollisionChecker::from_urdf_robot(&urdf_robot, collision_check_prediction);
+    let planner_builder = JointPathPlannerBuilder::new(urdf_robot.clone(), collision_checker)
+        .self_collision_pairs(self_collision_check_pairs);
+    CollisionAvoidanceClient::new(
+        client,
+        k::Chain::<f64>::from(&urdf_robot),
+        planner_builder.finalize(),
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_create_collision_avoidance_client() {
+        let urdf_path = Path::new("sample.urdf");
+        let urdf_robot = urdf_rs::read_file(urdf_path).unwrap();
+        let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
+        let client = arci::DummyJointTrajectoryClient::new(
+            robot
+                .iter_joints()
+                .map(|joint| joint.name.clone())
+                .collect(),
+        );
+        client
+            .send_joint_positions(vec![0.0; 8], std::time::Duration::new(0, 0))
+            .unwrap()
+            .await
+            .unwrap();
+
+        let collision_avoidance_client = create_collision_avoidance_client(
+            urdf_path,
+            vec![("root".to_owned(), "l_shoulder_roll".to_owned())],
+            0.0001,
+            Arc::new(client),
+        );
+
+        assert_eq!(
+            *collision_avoidance_client
+                .current_joint_positions()
+                .unwrap(),
+            vec![0.0; 8]
+        );
+
+        // No collision case
+        assert!(collision_avoidance_client
+            .send_joint_positions(vec![0.0; 8], std::time::Duration::new(1, 0),)
+            .is_ok());
+        // Collision occurs in the reference position
+        assert!(collision_avoidance_client
+            .send_joint_positions(
+                vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                std::time::Duration::new(1, 0),
+            )
+            .is_err());
     }
 }
