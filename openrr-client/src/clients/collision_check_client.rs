@@ -98,7 +98,7 @@ mod tests {
                 .collect(),
         );
         client
-            .send_joint_positions(vec![0.0; 9], std::time::Duration::new(0, 0))
+            .send_joint_positions(vec![0.0; 8], std::time::Duration::new(0, 0))
             .unwrap()
             .await
             .unwrap();
@@ -113,15 +113,15 @@ mod tests {
 
         assert_eq!(
             *collision_check_client.current_joint_positions().unwrap(),
-            vec![0.0; 9]
+            vec![0.0; 8]
         );
 
         assert!(collision_check_client
-            .send_joint_positions(vec![0.0; 9], std::time::Duration::new(1, 0),)
+            .send_joint_positions(vec![0.0; 8], std::time::Duration::new(1, 0),)
             .is_ok());
         assert!(collision_check_client
             .send_joint_positions(
-                vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 std::time::Duration::new(1, 0),
             )
             .is_err());

@@ -165,16 +165,12 @@ fn test_create_self_collision_checker() {
     );
 
     assert!(self_collision_checker
-        .check_joint_positions(
-            &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            std::time::Duration::new(1, 0),
-        )
+        .check_joint_positions(&[0.0; 8], &[0.0; 8], std::time::Duration::new(1, 0),)
         .is_ok());
     assert!(self_collision_checker
         .check_joint_positions(
-            &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            &[1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            &[0.0; 8],
+            &[1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             std::time::Duration::new(1, 0),
         )
         .is_err());
