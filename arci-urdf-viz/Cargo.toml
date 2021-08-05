@@ -13,7 +13,6 @@ documentation = "https://docs.rs/arci-urdf-viz"
 [dependencies]
 anyhow = "1.0"
 arci = "0.0.6"
-nalgebra = "0.26"
 openrr-planner = { version = "0.0.6", default-features = false }
 openrr-sleep = "0.0.6"
 schemars = "0.8.3"

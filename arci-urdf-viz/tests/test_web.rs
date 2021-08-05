@@ -1,5 +1,5 @@
 mod web_server;
-use arci::{Localization, MoveBase, Navigation};
+use arci::{nalgebra, Localization, MoveBase, Navigation};
 use arci_urdf_viz::*;
 use assert_approx_eq::assert_approx_eq;
 use url::Url;

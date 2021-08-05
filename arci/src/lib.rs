@@ -13,6 +13,6 @@ mod waits;
 
 // re-export
 pub use async_trait::async_trait;
-pub use nalgebra::{Isometry2, Isometry3, UnitQuaternion, Vector2, Vector3};
+pub use nalgebra::{self, Isometry2, Isometry3, UnitQuaternion, Vector2, Vector3};
 
 pub use crate::{clients::*, error::*, traits::*, waits::*};
