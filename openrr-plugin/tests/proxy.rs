@@ -3,10 +3,9 @@ use std::{sync::Arc, time::Duration};
 use arci::{
     BaseVelocity, DummyJointTrajectoryClient, DummyLocalization, DummyMoveBase, DummyNavigation,
     DummySpeaker, Isometry2, JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker,
-    TrajectoryPoint,
+    TrajectoryPoint, Vector2,
 };
 use assert_approx_eq::assert_approx_eq;
-use nalgebra::Vector2;
 use openrr_plugin::{
     JointTrajectoryClientProxy, LocalizationProxy, MoveBaseProxy, NavigationProxy, SpeakerProxy,
 };

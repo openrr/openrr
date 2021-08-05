@@ -21,6 +21,7 @@ use abi_stable::{
     StableAbi,
 };
 use anyhow::format_err;
+use arci::nalgebra;
 use num_traits::Float;
 
 use crate::{

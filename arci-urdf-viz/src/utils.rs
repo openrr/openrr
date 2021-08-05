@@ -1,6 +1,6 @@
 use std::fmt;
 
-use nalgebra as na;
+use arci::nalgebra as na;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use url::Url;
 
@@ -102,11 +102,11 @@ pub(crate) fn euler_angles_from_quaternion(q: &[f64; 4]) -> (f64, f64, f64) {
 }
 
 pub(crate) fn quaternion_from_euler_angles(r: f64, p: f64, y: f64) -> [f64; 4] {
-    let na_q = nalgebra::UnitQuaternion::from_euler_angles(r, p, y);
+    let na_q = na::UnitQuaternion::from_euler_angles(r, p, y);
     from_nalgebra(&na_q)
 }
 
-fn from_nalgebra(na_q: &nalgebra::UnitQuaternion<f64>) -> [f64; 4] {
+fn from_nalgebra(na_q: &na::UnitQuaternion<f64>) -> [f64; 4] {
     let mut q = [0.0; 4];
     q[0] = na_q.w;
     q[1] = na_q.i;
@@ -115,8 +115,8 @@ fn from_nalgebra(na_q: &nalgebra::UnitQuaternion<f64>) -> [f64; 4] {
     q
 }
 
-fn to_nalgebra(q: &[f64; 4]) -> nalgebra::UnitQuaternion<f64> {
-    nalgebra::UnitQuaternion::from_quaternion(nalgebra::Quaternion::new(q[0], q[1], q[2], q[3]))
+fn to_nalgebra(q: &[f64; 4]) -> na::UnitQuaternion<f64> {
+    na::UnitQuaternion::from_quaternion(na::Quaternion::new(q[0], q[1], q[2], q[3]))
 }
 
 #[cfg(test)]

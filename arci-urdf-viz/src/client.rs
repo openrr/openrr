@@ -9,10 +9,9 @@ use std::{
 
 use anyhow::format_err;
 use arci::{
-    BaseVelocity, JointPositionLimit, JointPositionLimiter, JointTrajectoryClient,
+    nalgebra as na, BaseVelocity, JointPositionLimit, JointPositionLimiter, JointTrajectoryClient,
     JointVelocityLimiter, Localization, MoveBase, Navigation, TrajectoryPoint, WaitFuture,
 };
-use nalgebra as na;
 use openrr_sleep::ScopedSleep;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
