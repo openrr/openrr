@@ -1,0 +1,24 @@
+[package]
+name = "fuzz"
+version = "0.0.0"
+edition = "2018"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+
+[dependencies]
+easyfuzz = { version = "0.1", git = "https://github.com/taiki-e/easyfuzz.git", branch = "main" }
+
+anyhow = "1"
+toml = "0.5"
+toml-query = "0.10"
+tracing = { version = "0.1", features = ["log"] }
+
+[[bin]]
+name = "fuzz_target_1"
+path = "fuzz_targets/fuzz_target_1.rs"
+test = false
+doc = false

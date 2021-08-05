@@ -98,7 +98,7 @@ pub fn overwrite_str(doc: &str, scripts: &str) -> Result<String> {
 }
 
 #[derive(Debug)]
-struct Script {
+pub(crate) struct Script {
     query: String,
     operation: Operation,
 }
@@ -133,7 +133,7 @@ fn parse_string_literal(
     false
 }
 
-fn parse_scripts(s: &str) -> Result<Vec<Script>> {
+pub(crate) fn parse_scripts(s: &str) -> Result<Vec<Script>> {
     fn push_script(
         cur_query: &mut Option<String>,
         buf: &mut String,
