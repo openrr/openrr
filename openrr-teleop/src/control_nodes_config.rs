@@ -118,3 +118,27 @@ impl ControlNodesConfig {
         nodes
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_gen() {
+        // JoyJointTeleopConfig
+        let config = JoyJointTeleopNodeConfig{
+            mode :String::from("a"),
+            joint_step :1.0_f64,
+            step_duration_secs :0.001_f64
+        };
+        let _joy_tconfig = JoyJointTeleopConfig{
+            client_name :String::from("b"),
+            config
+        };
+
+        // IkNodeTeleopConfig
+        let _iknode_tconfig = IkNodeTeleopConfig{
+
+        };
+    }
+}
