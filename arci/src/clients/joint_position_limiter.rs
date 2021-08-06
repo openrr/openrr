@@ -11,6 +11,7 @@ use crate::{
     waits::WaitFuture,
 };
 
+#[derive(Debug, Clone)]
 pub struct JointPositionLimiter<C>
 where
     C: JointTrajectoryClient,

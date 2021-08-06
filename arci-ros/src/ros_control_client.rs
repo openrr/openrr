@@ -493,10 +493,7 @@ mod tests {
     fn test_new_joint_position_limiter() {
         use arci::{DummyJointTrajectoryClient, JointPositionLimit, JointPositionLimiter};
 
-        let client = DummyJointTrajectoryClient::new(vec![
-            String::from("a".to_owned()),
-            String::from("b".to_owned()),
-        ]);
+        let client = DummyJointTrajectoryClient::new(vec!["a".to_owned(), "b".to_owned()]);
         let limits = vec![
             JointPositionLimit::new(-5.0, 5.0),
             JointPositionLimit::new(-5.0, 5.0),
@@ -504,15 +501,10 @@ mod tests {
 
         let result = new_joint_position_limiter(client, Some(limits.clone()), None);
         assert!(result.is_ok());
-        let result = result.unwrap();
+        let _result = result.unwrap();
 
-        let client = DummyJointTrajectoryClient::new(vec![
-            String::from("a".to_owned()),
-            String::from("b".to_owned()),
-        ]);
-        let correct = JointPositionLimiter::new(client, limits);
-        //result.limits.iter();
-        /* How check private field? */
+        let client = DummyJointTrajectoryClient::new(vec!["a".to_owned(), "b".to_owned()]);
+        let _correct = JointPositionLimiter::new(client, limits);
     }
 
     #[test]
@@ -520,10 +512,7 @@ mod tests {
     fn test_new_joint_position_limiter_error() {
         use arci::DummyJointTrajectoryClient;
 
-        let client = DummyJointTrajectoryClient::new(vec![
-            String::from("a".to_owned()),
-            String::from("b".to_owned()),
-        ]);
+        let client = DummyJointTrajectoryClient::new(vec!["a".to_owned(), "b".to_owned()]);
 
         let _ = new_joint_position_limiter(client, None, None);
     }
