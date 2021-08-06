@@ -1,3 +1,4 @@
+mod dummy_gamepad;
 mod dummy_localization;
 mod dummy_move_base;
 mod dummy_navigation;
@@ -9,6 +10,7 @@ mod joint_velocity_limiter;
 mod lazy;
 mod partial_joint_trajectory_client;
 
+pub use dummy_gamepad::*;
 pub use dummy_localization::*;
 pub use dummy_move_base::*;
 pub use dummy_navigation::*;
