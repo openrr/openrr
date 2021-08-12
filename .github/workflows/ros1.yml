@@ -2,9 +2,9 @@ name: ros1
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
     - cron: '0 15 * * *'
 

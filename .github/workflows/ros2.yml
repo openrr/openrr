@@ -2,9 +2,9 @@ name: ros2
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   CARGO_INCREMENTAL: 0
