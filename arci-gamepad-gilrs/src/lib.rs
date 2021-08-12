@@ -229,6 +229,7 @@ impl GilGamepad {
         let is_running_cloned = is_running.clone();
         std::thread::spawn(move || {
             let mut gil = gilrs::Gilrs::new().unwrap();
+            let mut selected_gamepad_id = None;
             // TODO: On MacOS `gamepads()` does not works.
             #[cfg(not(target_os = "macos"))]
             {
@@ -237,6 +238,7 @@ impl GilGamepad {
                     info!("{} is {:?}", gamepad.name(), gamepad.power_info());
                     if id == Into::<usize>::into(connected_id) {
                         is_found = true;
+                        selected_gamepad_id = Some(connected_id);
                     }
                 }
                 if !is_found {
@@ -244,6 +246,14 @@ impl GilGamepad {
                 }
             }
             while is_running_cloned.load(Ordering::Relaxed) {
+                if let Some(gamepad_id) = selected_gamepad_id {
+                    let gamepad = gil.gamepad(gamepad_id);
+                    if !gamepad.is_connected() {
+                        error!("gamepad [{}] is disconnected", gamepad.name());
+                        is_running_cloned.store(false, Ordering::Relaxed);
+                        break;
+                    }
+                }
                 // gil.next_event is no block. We have to polling it.
                 match gil.next_event() {
                     Some(gilrs::Event {
