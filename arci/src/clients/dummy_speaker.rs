@@ -9,6 +9,7 @@ pub struct DummySpeaker {
 }
 
 impl DummySpeaker {
+    /// Creates a new `DummySpeaker`.
     pub fn new() -> Self {
         Self::default()
     }
