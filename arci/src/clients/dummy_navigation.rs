@@ -12,6 +12,7 @@ pub struct DummyNavigation {
 }
 
 impl DummyNavigation {
+    /// Creates a new `DummyNavigation`.
     pub fn new() -> Self {
         Self {
             goal_pose: Mutex::new(Isometry2::new(Vector2::new(0.0, 0.0), 0.0)),

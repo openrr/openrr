@@ -14,6 +14,7 @@ pub struct DummyJointTrajectoryClient {
 }
 
 impl DummyJointTrajectoryClient {
+    /// Creates a new `DummyJointTrajectoryClient` with the given joint names.
     pub fn new(joint_names: Vec<String>) -> Self {
         let dof = joint_names.len();
         let positions = Arc::new(Mutex::new(vec![0.0; dof]));

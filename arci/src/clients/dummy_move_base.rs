@@ -12,6 +12,7 @@ pub struct DummyMoveBase {
 }
 
 impl DummyMoveBase {
+    /// Creates a new `DummyMoveBase`.
     pub fn new() -> Self {
         Self {
             current_velocity: Mutex::new(BaseVelocity::default()),
