@@ -3,6 +3,7 @@ use arci_gamepad_gilrs::*;
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt::init();
     let g = GilGamepad::new(0, Map::default());
     loop {
         let ev = g.next_event().await;
