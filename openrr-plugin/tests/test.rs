@@ -1,13 +1,18 @@
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::Arc,
+    time::{Duration, SystemTime},
+};
 
 use arci::{
-    BaseVelocity, DummyJointTrajectoryClient, DummyLocalization, DummyMoveBase, DummyNavigation,
-    DummySpeaker, Isometry2, JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker,
-    TrajectoryPoint, Vector2,
+    gamepad::GamepadEvent, BaseVelocity, DummyGamepad, DummyJointTrajectoryClient,
+    DummyLocalization, DummyMoveBase, DummyNavigation, DummySpeaker, DummyTransformResolver,
+    Gamepad, Isometry2, JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker,
+    TrajectoryPoint, TransformResolver, Vector2,
 };
 use assert_approx_eq::assert_approx_eq;
 use openrr_plugin::{
-    JointTrajectoryClientProxy, LocalizationProxy, MoveBaseProxy, NavigationProxy, SpeakerProxy,
+    GamepadProxy, JointTrajectoryClientProxy, LocalizationProxy, MoveBaseProxy, NavigationProxy,
+    SpeakerProxy, TransformResolverProxy,
 };
 
 #[tokio::test]
@@ -110,10 +115,12 @@ async fn navigation() {
         .unwrap()
         .await
         .unwrap();
-    let goal_pose2 = nav.current_goal_pose().unwrap();
-    assert_approx_eq!(goal_pose2.translation.x, 1.0);
-    assert_approx_eq!(goal_pose2.translation.y, 2.0);
-    assert_approx_eq!(goal_pose2.rotation.angle(), 3.0);
+    let pose = nav.current_goal_pose().unwrap();
+    assert_approx_eq!(pose.translation.x, 1.0);
+    assert_approx_eq!(pose.translation.y, 2.0);
+    assert_approx_eq!(pose.rotation.angle(), 3.0);
+    proxy.cancel().unwrap();
+    assert!(nav.is_canceled());
 }
 
 #[tokio::test]
@@ -126,13 +133,43 @@ async fn localization() {
 }
 
 #[tokio::test]
-#[ignore]
 async fn transform_resolver() {
-    todo!()
+    let resolver = Arc::new(DummyTransformResolver::default());
+    let proxy = TransformResolverProxy::new(resolver);
+
+    let transformation = proxy
+        .resolve_transformation("", "", SystemTime::UNIX_EPOCH)
+        .unwrap();
+    assert_eq!(transformation, transformation.inverse())
 }
 
 #[tokio::test]
-#[ignore]
 async fn gamepad() {
-    todo!()
+    let gamepad = Arc::new(DummyGamepad::with_all_events());
+    let proxy = GamepadProxy::new(gamepad.clone());
+
+    for expected in &gamepad.events {
+        match (expected, proxy.next_event().await) {
+            (GamepadEvent::ButtonPressed(expected), GamepadEvent::ButtonPressed(actual)) => {
+                assert_eq!(*expected, actual);
+            }
+            (GamepadEvent::ButtonReleased(expected), GamepadEvent::ButtonReleased(actual)) => {
+                assert_eq!(*expected, actual);
+            }
+            (
+                GamepadEvent::AxisChanged(expected_axis, expected_val),
+                GamepadEvent::AxisChanged(actual_axis, actual_val),
+            ) => {
+                assert_eq!(*expected_axis, actual_axis);
+                assert_approx_eq!(*expected_val, actual_val);
+            }
+            (GamepadEvent::Unknown, GamepadEvent::Unknown) => {}
+            (expected, actual) => panic!(
+                "event mismatch, expected: {:?}, actual: {:?}",
+                expected, actual
+            ),
+        }
+    }
+    proxy.stop();
+    assert!(gamepad.is_stopped());
 }
