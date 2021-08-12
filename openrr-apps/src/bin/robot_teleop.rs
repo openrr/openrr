@@ -4,9 +4,7 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use anyhow::{format_err, Result};
 use arci_gamepad_gilrs::GilGamepad;
-use openrr_apps::{
-    utils::init_tracing, BuiltinGamepad, Error, GamepadKind, RobotConfig, RobotTeleopConfig,
-};
+use openrr_apps::{utils::init_tracing, BuiltinGamepad, Error, GamepadKind, RobotTeleopConfig};
 use openrr_client::ArcRobotClient;
 use openrr_plugin::PluginProxy;
 use openrr_teleop::ControlNodeSwitcher;
@@ -46,52 +44,15 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    let teleop_config = match (&args.config_path, &args.teleop_config) {
-        (Some(teleop_config_path), Some(overwrite)) => {
-            let s = &fs::read_to_string(&teleop_config_path)?;
-            let s = &openrr_config::overwrite_str(s, overwrite)?;
-            RobotTeleopConfig::from_str(s, teleop_config_path)?
-        }
-        (Some(teleop_config_path), None) => RobotTeleopConfig::new(teleop_config_path)?,
-        (None, overwrite) => {
-            let mut config = RobotTeleopConfig::default();
-            config.control_nodes_config.move_base_mode = Some("base".into());
-            if let Some(overwrite) = overwrite {
-                let s = &toml::to_string(&config)?;
-                let s = &openrr_config::overwrite_str(s, overwrite)?;
-                config = toml::from_str(s)?;
-            }
-            config
-        }
-    };
+    let teleop_config = openrr_apps::utils::resolve_teleop_config(
+        args.config_path.as_deref(),
+        args.teleop_config.as_deref(),
+    )?;
     let robot_config_path = teleop_config.robot_config_full_path();
-    let robot_config = match (robot_config_path, &args.robot_config) {
-        (Some(config_path), Some(overwrite)) => {
-            let s = &fs::read_to_string(&config_path)?;
-            let s = &openrr_config::overwrite_str(s, overwrite)?;
-            RobotConfig::from_str(s, config_path)?
-        }
-        (Some(config_path), None) => RobotConfig::new(config_path)?,
-        (None, overwrite) => {
-            let mut config = RobotConfig::default();
-            config
-                .urdf_viz_clients_configs
-                .push(arci_urdf_viz::UrdfVizWebClientConfig {
-                    name: "all".into(),
-                    joint_names: None,
-                    wrap_with_joint_position_limiter: false,
-                    wrap_with_joint_velocity_limiter: false,
-                    joint_velocity_limits: None,
-                    joint_position_limits: None,
-                });
-            if let Some(overwrite) = overwrite {
-                let s = &toml::to_string(&config)?;
-                let s = &openrr_config::overwrite_str(s, overwrite)?;
-                config = toml::from_str(s)?;
-            }
-            config
-        }
-    };
+    let robot_config = openrr_apps::utils::resolve_robot_config(
+        robot_config_path.as_deref(),
+        args.robot_config.as_deref(),
+    )?;
 
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &robot_config);
     #[cfg(feature = "ros")]
