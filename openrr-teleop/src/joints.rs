@@ -119,6 +119,11 @@ where
             GamepadEvent::AxisChanged(Axis::RightStickY, v) => {
                 self.velocity = self.joint_step * v * AXIS_GAIN;
             }
+            GamepadEvent::Disconnected => {
+                self.is_sending = false;
+                self.is_turbo = false;
+                self.velocity = 0.0;
+            }
             _ => {}
         }
     }

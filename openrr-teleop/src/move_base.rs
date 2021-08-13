@@ -67,6 +67,13 @@ where
             GamepadEvent::ButtonReleased(Button::LeftTrigger2) => {
                 self.is_turbo = false;
             }
+            GamepadEvent::Disconnected => {
+                self.is_enabled = false;
+                self.is_turbo = false;
+                self.vel.x = 0.0;
+                self.vel.y = 0.0;
+                self.vel.theta = 0.0;
+            }
             _ => {}
         }
     }

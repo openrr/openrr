@@ -102,6 +102,10 @@ where
             GamepadEvent::ButtonReleased(Button::West) => {
                 self.is_sending = false;
             }
+            GamepadEvent::Disconnected => {
+                self.is_trigger_holding = false;
+                self.is_sending = false;
+            }
             _ => {}
         }
     }
