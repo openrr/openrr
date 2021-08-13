@@ -220,14 +220,48 @@ pub struct IkNodeConfig {
     pub step_duration_secs: f64,
 }
 
-fn default_move_step_angular() -> [f64; 3] {
+const fn default_move_step_angular() -> [f64; 3] {
     [0.05, 0.05, 0.17]
 }
 
-fn default_move_step_linear() -> [f64; 3] {
+const fn default_move_step_linear() -> [f64; 3] {
     [0.01, 0.01, 0.01]
 }
 
-fn default_step_duration_secs() -> f64 {
+const fn default_step_duration_secs() -> f64 {
     0.1
+}
+
+#[cfg(test)]
+mod tests {
+    use assert_approx_eq::*;
+
+    use super::*;
+
+    #[test]
+    fn test_default_move_step_angular() {
+        let def = default_move_step_angular();
+
+        assert_eq!(def.len(), 3_usize);
+        assert_approx_eq!(def[0], 0.05_f64);
+        assert_approx_eq!(def[1], 0.05_f64);
+        assert_approx_eq!(def[2], 0.17_f64);
+    }
+
+    #[test]
+    fn test_default_move_step_linear() {
+        let def = default_move_step_linear();
+
+        assert_eq!(def.len(), 3_usize);
+        assert_approx_eq!(def[0], 0.01_f64);
+        assert_approx_eq!(def[1], 0.01_f64);
+        assert_approx_eq!(def[2], 0.01_f64);
+    }
+
+    #[test]
+    fn test_default_step_duration_secs() {
+        let def = default_step_duration_secs();
+
+        assert_approx_eq!(def, 0.1_f64);
+    }
 }
