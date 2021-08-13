@@ -167,10 +167,31 @@ pub struct JoyJointTeleopNodeConfig {
     pub step_duration_secs: f64,
 }
 
-fn default_joint_step() -> f64 {
+const fn default_joint_step() -> f64 {
     0.02
 }
 
-fn default_step_duration_secs() -> f64 {
+const fn default_step_duration_secs() -> f64 {
     0.1
+}
+
+#[cfg(test)]
+mod tests {
+    use assert_approx_eq::*;
+
+    use super::*;
+
+    #[test]
+    fn test_default_joint_step() {
+        let def = default_joint_step();
+
+        assert_approx_eq!(def, 0.02_f64);
+    }
+
+    #[test]
+    fn test_default_step_duration_secs() {
+        let def = default_step_duration_secs();
+
+        assert_approx_eq!(def, 0.1_f64);
+    }
 }
