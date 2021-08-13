@@ -254,3 +254,6 @@ vels
 Cpanic
 rtry
 xzy
+charset
+editorconfig
+yml
