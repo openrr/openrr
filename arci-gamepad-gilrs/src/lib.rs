@@ -248,18 +248,14 @@ impl GilGamepad {
             while is_running_cloned.load(Ordering::Relaxed) {
                 if let Some(gamepad_id) = selected_gamepad_id {
                     let gamepad = gil.gamepad(gamepad_id);
-                    if gamepad.is_connected() {
-                        if !is_connected {
-                            info!("gamepad [{}] is connected", gamepad.name());
-                            is_connected = true;
-                            tx.send(GamepadEvent::Connected).unwrap();
-                        }
-                    } else {
-                        if is_connected {
-                            error!("gamepad [{}] is disconnected", gamepad.name());
-                            is_connected = false;
-                            tx.send(GamepadEvent::Disconnected).unwrap();
-                        }
+                    if is_connected && !gamepad.is_connected() {
+                        error!("gamepad [{}] is disconnected", gamepad.name());
+                        is_connected = false;
+                        tx.send(GamepadEvent::Disconnected).unwrap();
+                    } else if !is_connected && gamepad.is_connected() {
+                        info!("gamepad [{}] is connected", gamepad.name());
+                        is_connected = true;
+                        tx.send(GamepadEvent::Connected).unwrap();
                     }
                 }
                 // gil.next_event is no block. We have to polling it.
