@@ -18,9 +18,7 @@ use arci::{gamepad::*, *};
 use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-#[cfg(not(target_os = "macos"))]
-use tracing::info;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize, Clone)]
