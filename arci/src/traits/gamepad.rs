@@ -43,6 +43,8 @@ pub enum GamepadEvent {
     ButtonPressed(Button),
     ButtonReleased(Button),
     AxisChanged(Axis, f64),
+    Connected,
+    Disconnected,
     Unknown,
 }
 

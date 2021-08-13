@@ -795,6 +795,8 @@ pub(crate) enum RGamepadEvent {
     ButtonPressed(RButton),
     ButtonReleased(RButton),
     AxisChanged(RAxis, RF64),
+    Connected,
+    Disconnected,
     Unknown,
 }
 
@@ -804,6 +806,8 @@ impl From<arci::gamepad::GamepadEvent> for RGamepadEvent {
             arci::gamepad::GamepadEvent::ButtonPressed(b) => Self::ButtonPressed(b.into()),
             arci::gamepad::GamepadEvent::ButtonReleased(b) => Self::ButtonReleased(b.into()),
             arci::gamepad::GamepadEvent::AxisChanged(a, v) => Self::AxisChanged(a.into(), v.into()),
+            arci::gamepad::GamepadEvent::Connected => Self::Connected,
+            arci::gamepad::GamepadEvent::Disconnected => Self::Disconnected,
             arci::gamepad::GamepadEvent::Unknown => Self::Unknown,
         }
     }
@@ -815,6 +819,8 @@ impl From<RGamepadEvent> for arci::gamepad::GamepadEvent {
             RGamepadEvent::ButtonPressed(b) => Self::ButtonPressed(b.into()),
             RGamepadEvent::ButtonReleased(b) => Self::ButtonReleased(b.into()),
             RGamepadEvent::AxisChanged(a, v) => Self::AxisChanged(a.into(), v.into()),
+            RGamepadEvent::Connected => Self::Connected,
+            RGamepadEvent::Disconnected => Self::Disconnected,
             RGamepadEvent::Unknown => Self::Unknown,
         }
     }
