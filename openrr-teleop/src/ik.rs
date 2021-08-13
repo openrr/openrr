@@ -153,6 +153,11 @@ where
             GamepadEvent::ButtonReleased(Button::DPadLeft) => {
                 self.angular_velocity.z = 0.0;
             }
+            GamepadEvent::Disconnected => {
+                self.is_sending = false;
+                self.is_turbo = false;
+                self.clear_velocity();
+            }
             _ => {}
         }
     }
