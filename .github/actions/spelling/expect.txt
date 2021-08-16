@@ -254,3 +254,13 @@ vels
 Cpanic
 rtry
 xzy
+alloc
+codegen
+dbg
+dst
+grpc
+gzip
+oneof
+protobuf
+rpc
+uri

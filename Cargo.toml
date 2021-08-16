@@ -17,6 +17,7 @@ members = [
     "openrr-gui",
     "openrr-planner",
     "openrr-plugin",
+    "openrr-remote",
     "openrr-sleep",
     "openrr-teleop",
     "openrr-plugin/examples/plugin",
@@ -24,13 +25,13 @@ members = [
 
 [patch.crates-io]
 
-arci-speak-cmd = { path = "arci-speak-cmd" }
-arci-speak-audio = { path = "arci-speak-audio" }
 arci = { path = "arci" }
 arci-gamepad-gilrs = { path = "arci-gamepad-gilrs" }
 arci-gamepad-keyboard = { path = "arci-gamepad-keyboard" }
 arci-ros = { path = "arci-ros" }
 arci-ros2 = { path = "arci-ros2" }
+arci-speak-audio = { path = "arci-speak-audio" }
+arci-speak-cmd = { path = "arci-speak-cmd" }
 arci-urdf-viz = { path = "arci-urdf-viz" }
 openrr = { path = "openrr" }
 openrr-apps = { path = "openrr-apps" }
@@ -40,5 +41,6 @@ openrr-config = { path = "openrr-config" }
 openrr-gui = { path = "openrr-gui" }
 openrr-planner = { path = "openrr-planner" }
 openrr-plugin = { path = "openrr-plugin" }
+openrr-remote = { path = "openrr-remote" }
 openrr-sleep = { path = "openrr-sleep" }
 openrr-teleop = { path = "openrr-teleop" }
