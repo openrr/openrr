@@ -100,8 +100,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use arci::DummyMoveBase;
     use assert_approx_eq::*;
+    use openrr_test::DummyMoveBase;
 
     use super::*;
 

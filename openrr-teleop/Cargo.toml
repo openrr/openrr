@@ -29,4 +29,5 @@ tracing = { version = "0.1", features = ["log"] }
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
+openrr-test = { path = "../openrr-test" }
 tokio = { version = "1.0", features = ["full"] }

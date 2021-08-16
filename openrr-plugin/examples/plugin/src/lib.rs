@@ -1,8 +1,9 @@
 use std::{sync::Mutex, time::Duration};
 
-use arci::{DummyLocalization, DummyMoveBase, DummyNavigation, Error, TrajectoryPoint, WaitFuture};
+use arci::{Error, TrajectoryPoint, WaitFuture};
 use openrr_client::PrintSpeaker;
 use openrr_plugin::Plugin;
+use openrr_test::{DummyLocalization, DummyMoveBase, DummyNavigation};
 use serde::Deserialize;
 
 openrr_plugin::export_plugin!(MyPlugin);

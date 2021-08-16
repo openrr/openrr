@@ -1,6 +1,4 @@
-use nalgebra::Isometry3;
-
-use crate::{Error, TransformResolver};
+use arci::{Error, Isometry3, TransformResolver};
 
 /// Dummy TransformResolver for debug or tests.
 #[derive(Debug)]

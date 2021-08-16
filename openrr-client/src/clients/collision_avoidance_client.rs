@@ -126,6 +126,8 @@ pub fn create_collision_avoidance_client<P: AsRef<Path>>(
 
 #[cfg(test)]
 mod tests {
+    use openrr_test::DummyJointTrajectoryClient;
+
     use super::*;
 
     #[tokio::test]
@@ -133,7 +135,7 @@ mod tests {
         let urdf_path = Path::new("sample.urdf");
         let urdf_robot = urdf_rs::read_file(urdf_path).unwrap();
         let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
-        let client = arci::DummyJointTrajectoryClient::new(
+        let client = DummyJointTrajectoryClient::new(
             robot
                 .iter_joints()
                 .map(|joint| joint.name.clone())

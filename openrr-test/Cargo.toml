@@ -1,0 +1,18 @@
+[package]
+name = "openrr-test"
+version = "0.0.6"
+authors = ["Takashi Ogura <ogura@smilerobotics.com>"]
+edition = "2018"
+license = "Apache-2.0"
+description = "openrr test library"
+keywords = ["robotics", "robot"]
+categories = ["algorithms", "science::robotics"]
+repository = "https://github.com/openrr/openrr"
+documentation = "https://docs.rs/openrr-test"
+
+[dependencies]
+arci = "0.0.6"
+
+[dev-dependencies]
+assert_approx_eq = "1.1.0"
+tokio = { version = "1.0", features = ["full"] }

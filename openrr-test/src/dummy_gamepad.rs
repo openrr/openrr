@@ -1,8 +1,9 @@
 use std::{future, sync::Mutex};
 
-use async_trait::async_trait;
-
-use crate::gamepad::{Axis, Button, Gamepad, GamepadEvent};
+use arci::{
+    async_trait,
+    gamepad::{Axis, Button, Gamepad, GamepadEvent},
+};
 
 /// Dummy Gamepad for debug or tests.
 #[derive(Debug)]

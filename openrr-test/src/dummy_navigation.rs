@@ -1,8 +1,6 @@
 use std::sync::Mutex;
 
-use nalgebra::{Isometry2, Vector2};
-
-use crate::{error::Error, traits::Navigation, WaitFuture};
+use arci::{Error, Isometry2, Navigation, Vector2, WaitFuture};
 
 /// Dummy Navigation for debug or tests.
 #[derive(Debug)]

@@ -1,9 +1,6 @@
 use std::sync::Mutex;
 
-use crate::{
-    error::Error,
-    traits::{BaseVelocity, MoveBase},
-};
+use arci::{BaseVelocity, Error, MoveBase};
 
 /// Dummy MoveBase for debug or tests.
 #[derive(Debug, Default)]

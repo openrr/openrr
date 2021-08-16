@@ -1,10 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use crate::{
-    error::Error,
-    traits::{JointTrajectoryClient, TrajectoryPoint},
-    waits::WaitFuture,
-};
+use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
 
 /// Dummy JointTrajectoryClient for debug or tests.
 pub struct DummyJointTrajectoryClient {

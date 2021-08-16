@@ -2,9 +2,10 @@ use std::time::Duration;
 
 use arci::{
     utils::{get_joint_index, move_joint_until_stop},
-    DummyJointTrajectoryClient, Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture,
+    Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture,
 };
 use assert_approx_eq::assert_approx_eq;
+use openrr_test::DummyJointTrajectoryClient;
 
 struct TestJointTrajectoryClient {
     joint_names: Vec<String>,

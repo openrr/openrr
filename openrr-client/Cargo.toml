@@ -28,4 +28,5 @@ urdf-rs = "0.6"
 
 [dev-dependencies]
 assert_approx_eq = "1.1"
+openrr-test = { path = "../openrr-test" }
 tokio = { version = "1.0", features = ["full"] }

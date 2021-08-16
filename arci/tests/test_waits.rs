@@ -1,8 +1,8 @@
 use arci::{
-    CompleteCondition, DummyJointTrajectoryClient, EachJointDiffCondition, JointTrajectoryClient,
-    TotalJointDiffCondition,
+    CompleteCondition, EachJointDiffCondition, JointTrajectoryClient, TotalJointDiffCondition,
 };
 use assert_approx_eq::assert_approx_eq;
+use openrr_test::DummyJointTrajectoryClient;
 
 #[tokio::test]
 async fn test_total_condition() {

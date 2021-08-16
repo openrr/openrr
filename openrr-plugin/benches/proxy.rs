@@ -105,9 +105,10 @@ Found 15 outliers among 100 measurements (15.00%)
 use std::{env, path::PathBuf, process::Command, time::Duration};
 
 use anyhow::Result;
-use arci::{DummyJointTrajectoryClient, JointTrajectoryClient};
+use arci::JointTrajectoryClient;
 use criterion::{criterion_group, criterion_main, Criterion};
 use openrr_plugin::{JointTrajectoryClientProxy, PluginProxy};
+use openrr_test::DummyJointTrajectoryClient;
 
 fn no_proxy_joint_names(c: &mut Criterion) {
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();

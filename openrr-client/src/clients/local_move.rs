@@ -90,9 +90,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use arci::{DummyMoveBase, DummyNavigation};
     use assert_approx_eq::assert_approx_eq;
     use na::Vector2;
+    use openrr_test::{DummyMoveBase, DummyNavigation};
 
     use super::*;
 

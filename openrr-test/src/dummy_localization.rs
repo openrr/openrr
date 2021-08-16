@@ -1,6 +1,4 @@
-use nalgebra::{Isometry2, Vector2};
-
-use crate::{error::Error, traits::Localization};
+use arci::{Error, Isometry2, Localization, Vector2};
 
 /// Dummy Localization for debug or tests.
 #[derive(Debug)]

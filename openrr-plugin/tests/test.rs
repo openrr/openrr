@@ -4,15 +4,17 @@ use std::{
 };
 
 use arci::{
-    gamepad::GamepadEvent, BaseVelocity, DummyGamepad, DummyJointTrajectoryClient,
-    DummyLocalization, DummyMoveBase, DummyNavigation, DummySpeaker, DummyTransformResolver,
-    Gamepad, Isometry2, JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker,
-    TrajectoryPoint, TransformResolver, Vector2,
+    gamepad::GamepadEvent, BaseVelocity, Gamepad, Isometry2, JointTrajectoryClient, Localization,
+    MoveBase, Navigation, Speaker, TrajectoryPoint, TransformResolver, Vector2,
 };
 use assert_approx_eq::assert_approx_eq;
 use openrr_plugin::{
     GamepadProxy, JointTrajectoryClientProxy, LocalizationProxy, MoveBaseProxy, NavigationProxy,
     SpeakerProxy, TransformResolverProxy,
+};
+use openrr_test::{
+    DummyGamepad, DummyJointTrajectoryClient, DummyLocalization, DummyMoveBase, DummyNavigation,
+    DummySpeaker, DummyTransformResolver,
 };
 
 #[tokio::test]

@@ -13,6 +13,7 @@ MEMBERS=(
 
   # depend on arci
   "openrr-plugin"
+  "openrr-test"
 
   # depend on arci and openrr-planner
   "openrr-client"

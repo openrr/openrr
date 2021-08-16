@@ -148,9 +148,10 @@ mod tests {
     use std::sync::Arc;
 
     use assert_approx_eq::assert_approx_eq;
+    use openrr_test::DummyJointTrajectoryClient;
 
     use super::*;
-    use crate::DummyJointTrajectoryClient;
+
     #[test]
     #[should_panic]
     fn mismatch_size() {

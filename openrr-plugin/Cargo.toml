@@ -21,6 +21,7 @@ tokio = { version = "1", features = ["sync", "rt-multi-thread"] }
 assert_approx_eq = "1"
 criterion = "0.3"
 fs = { package = "fs-err", version = "2" }
+openrr-test = { path = "../openrr-test" }
 tokio = { version = "1", features = ["full"] }
 
 [[bench]]
