@@ -1,0 +1,28 @@
+[package]
+name = "openrr-remote"
+version = "0.0.6"
+authors = ["Taiki Endo <taiki@smilerobotics.com>"]
+edition = "2018"
+license = "Apache-2.0"
+description = "Remote execution support for arci"
+keywords = ["robotics", "robot"]
+categories = ["science::robotics"]
+repository = "https://github.com/openrr/openrr"
+documentation = "https://docs.rs/openrr-remote"
+
+[build-dependencies]
+tonic-build = "0.5"
+
+[dependencies]
+arci = "0.0.6"
+paste = "1"
+prost = "0.8"
+prost-types = "0.8"
+tokio = { version = "1", features = ["rt-multi-thread"] }
+tonic = "0.5"
+tracing = "0.1"
+
+[dev-dependencies]
+anyhow = "1"
+assert_approx_eq = "1"
+tokio = { version = "1", features = ["full"] }

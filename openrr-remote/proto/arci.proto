@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package arci;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+service JointTrajectoryClient {
+  rpc JointNames(google.protobuf.Empty) returns (JointNamesResponse) {}
+  rpc CurrentJointPositions(google.protobuf.Empty)
+      returns (JointPositionsResponse) {}
+  rpc SendJointPositions(JointPositionsRequest)
+      returns (google.protobuf.Empty) {}
+  rpc SendJointTrajectory(JointTrajectoryRequest)
+      returns (google.protobuf.Empty) {}
+}
+
+service Speaker {
+  rpc Speak(google.protobuf.StringValue) returns (google.protobuf.Empty);
+}
+
+service MoveBase {
+  rpc SendVelocity(BaseVelocity) returns (google.protobuf.Empty);
+  rpc CurrentVelocity(google.protobuf.Empty) returns (BaseVelocity);
+}
+
+service Navigation {
+  rpc SendGoalPose(GoalPoseRequest) returns (google.protobuf.Empty);
+  rpc Cancel(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+service Localization {
+  rpc CurrentPose(google.protobuf.StringValue) returns (Isometry2);
+}
+
+service TransformResolver {
+  rpc ResolveTransformation(ResolveTransformationRequest) returns (Isometry3);
+}
+
+service Gamepad {
+  rpc NextEvent(google.protobuf.Empty) returns (GamepadEvent);
+  rpc Stop(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+message JointNamesResponse {
+  repeated string names = 1;
+}
+
+message JointPositionsResponse {
+  repeated double positions = 1;
+}
+
+message JointPositionsRequest {
+  repeated double positions = 1;
+  google.protobuf.Duration duration = 2;
+}
+
+message JointTrajectoryRequest {
+  repeated TrajectoryPoint trajectory = 1;
+}
+
+message TrajectoryPoint {
+  repeated double positions = 1;
+  repeated double velocities = 2;
+  google.protobuf.Duration time_from_start = 3;
+}
+
+message BaseVelocity {
+  double x = 1;
+  double y = 2;
+  double theta = 3;
+}
+
+message GoalPoseRequest {
+  Isometry2 goal = 1;
+  string frame_id = 2;
+  google.protobuf.Duration timeout = 3;
+}
+
+message Isometry2 {
+  UnitComplex rotation = 1;
+  Translation2 translation = 2;
+}
+
+message UnitComplex {
+  double re = 1;
+  double im = 2;
+}
+
+message Translation2 {
+  double x = 1;
+  double y = 2;
+}
+
+message ResolveTransformationRequest {
+  string from = 1;
+  string to = 2;
+  google.protobuf.Timestamp time = 3;
+}
+
+message Isometry3 {
+  UnitQuaternion rotation = 1;
+  Translation3 translation = 2;
+}
+
+message UnitQuaternion {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+  double w = 4;
+}
+
+message Translation3 {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message GamepadEvent {
+  oneof Event {
+    google.protobuf.Empty unknown = 1;
+    Button button_pressed = 2;
+    Button button_released = 3;
+    AxisChanged axis_changed = 4;
+    google.protobuf.Empty connected = 5;
+    google.protobuf.Empty disconnected = 6;
+  }
+}
+
+enum Button {
+  BUTTON_SOUTH = 0;
+  BUTTON_EAST = 1;
+  BUTTON_NORTH = 2;
+  BUTTON_WEST = 3;
+  BUTTON_LEFT_TRIGGER = 4;
+  BUTTON_LEFT_TRIGGER2 = 5;
+  BUTTON_RIGHT_TRIGGER = 6;
+  BUTTON_RIGHT_TRIGGER2 = 7;
+  BUTTON_SELECT = 8;
+  BUTTON_START = 9;
+  BUTTON_MODE = 10;
+  BUTTON_LEFT_THUMB = 11;
+  BUTTON_RIGHT_THUMB = 12;
+  BUTTON_D_PAD_UP = 13;
+  BUTTON_D_PAD_DOWN = 14;
+  BUTTON_D_PAD_LEFT = 15;
+  BUTTON_D_PAD_RIGHT = 16;
+  BUTTON_UNKNOWN = 17;
+}
+
+message AxisChanged {
+  Axis axis = 1;
+  double value = 2;
+}
+
+enum Axis {
+  AXIS_LEFT_STICK_X = 0;
+  AXIS_LEFT_STICK_Y = 1;
+  AXIS_LEFT_TRIGGER = 2;
+  AXIS_RIGHT_STICK_X = 3;
+  AXIS_RIGHT_STICK_Y = 4;
+  AXIS_RIGHT_TRIGGER = 5;
+  AXIS_D_PAD_X = 6;
+  AXIS_D_PAD_Y = 7;
+  AXIS_UNKNOWN = 8;
+}

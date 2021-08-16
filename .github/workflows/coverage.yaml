@@ -29,8 +29,9 @@ jobs:
           sudo apt-get install -y \
             ros-noetic-ros-base ros-noetic-joy \
             ros-foxy-ros-core ros-foxy-geometry-msgs ros-foxy-nav2-msgs
+      # rustfmt is for openrr-remote (tonic-build)
       # TODO: revert nightly-2021-07-01
-      - run: rustup toolchain install nightly-2021-07-01 --component llvm-tools-preview && rustup default nightly-2021-07-01
+      - run: rustup toolchain install nightly-2021-07-01 --component rustfmt,llvm-tools-preview && rustup default nightly-2021-07-01
       - run: cargo install cargo-llvm-cov --version 0.1.0-alpha.4
       - name: Generate code coverage
         run: |
