@@ -40,7 +40,7 @@ jobs:
           source /opt/ros/foxy/setup.bash
           # for test of arci-ros (roscore, rostopic)
           source /opt/ros/noetic/setup.bash
-          cargo llvm-cov --verbose --all-features --workspace --lcov --output-path lcov.info
+          cargo llvm-cov --verbose --all-features --workspace --doctests --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
