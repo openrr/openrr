@@ -10,14 +10,14 @@ where
     T: JointTrajectoryClient,
 {
     pub client: T,
-    pub collision_checker: Arc<SelfCollisionChecker>,
+    pub collision_checker: Arc<SelfCollisionChecker<f64>>,
 }
 
 impl<T> CollisionCheckClient<T>
 where
     T: JointTrajectoryClient,
 {
-    pub fn new(client: T, collision_checker: Arc<SelfCollisionChecker>) -> Self {
+    pub fn new(client: T, collision_checker: Arc<SelfCollisionChecker<f64>>) -> Self {
         Self {
             client,
             collision_checker,
