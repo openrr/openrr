@@ -67,7 +67,7 @@ impl SelfCollisionChecker {
                         .check_self(&self.collision_check_robot, &self.collision_pairs);
                     if let Some(names) = self_checker.next() {
                         return Err(Error::Collision {
-                            part: CollisionPart::Start,
+                            point: UnfeasibleTrajectory::StartPoint,
                             collision_link_names: vec![names.0, names.1],
                         });
                     }
@@ -95,7 +95,7 @@ impl SelfCollisionChecker {
                 .next()
             {
                 return Err(Error::Collision {
-                    part: CollisionPart::Start,
+                    point: UnfeasibleTrajectory::StartPoint,
                     collision_link_names: vec![names.0, names.1],
                 });
             }
