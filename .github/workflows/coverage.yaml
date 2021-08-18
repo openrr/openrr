@@ -32,14 +32,13 @@ jobs:
       # rustfmt is for openrr-remote (tonic-build)
       # TODO: revert nightly-2021-07-01
       - run: rustup toolchain install nightly-2021-07-01 --component rustfmt,llvm-tools-preview && rustup default nightly-2021-07-01
-      - run: cargo install cargo-llvm-cov --version 0.1.0-alpha.4
+      - run: cargo install cargo-llvm-cov
       - name: Generate code coverage
         run: |
           # for test of arci-ros2
           source /opt/ros/foxy/setup.bash
           # for test of arci-ros (roscore, rostopic)
           source /opt/ros/noetic/setup.bash
-          RUST_LOG=cargo_llvm_cov=trace \
           cargo llvm-cov --verbose --all-features --workspace --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
