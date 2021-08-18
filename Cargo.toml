@@ -21,6 +21,7 @@ members = [
     "openrr-sleep",
     "openrr-teleop",
     "openrr-plugin/examples/plugin",
+    "tools/codegen",
 ]
 
 [patch.crates-io]
