@@ -40,7 +40,7 @@ where
     collision_check_clients:
         HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>>,
     ik_clients: HashMap<String, ArcIkClient>,
-    self_collision_checkers: HashMap<String, Arc<SelfCollisionChecker>>,
+    self_collision_checkers: HashMap<String, Arc<SelfCollisionChecker<f64>>>,
     ik_solvers: HashMap<String, Arc<IkSolverWithChain>>,
     speakers: HashMap<String, Arc<dyn Speaker>>,
     localization: Option<L>,
@@ -236,7 +236,7 @@ where
         &self.all_joint_trajectory_clients
     }
 
-    pub fn self_collision_checkers(&self) -> &HashMap<String, Arc<SelfCollisionChecker>> {
+    pub fn self_collision_checkers(&self) -> &HashMap<String, Arc<SelfCollisionChecker<f64>>> {
         &self.self_collision_checkers
     }
 

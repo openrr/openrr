@@ -1,5 +1,7 @@
 use std::{path::Path, sync::Arc, time::Duration};
 
+use k::nalgebra as na;
+use na::RealField;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
@@ -9,29 +11,36 @@ use crate::{
     TrajectoryPoint,
 };
 
-pub struct SelfCollisionChecker {
-    pub using_joints: k::Chain<f64>,
-    pub collision_check_robot: Arc<k::Chain<f64>>,
-    pub collision_checker: CollisionChecker<f64>,
+pub struct SelfCollisionChecker<N>
+where
+    N: RealField + k::SubsetOf<f64>,
+{
+    pub using_joints: k::Chain<N>,
+    pub collision_check_robot: Arc<k::Chain<N>>,
+    pub collision_checker: CollisionChecker<N>,
     pub collision_pairs: Vec<(String, String)>,
-    pub time_interpolate_rate: f64,
+
+    pub time_interpolate_rate: N,
 }
 
-impl SelfCollisionChecker {
+impl<N> SelfCollisionChecker<N>
+where
+    N: RealField + k::SubsetOf<f64> + num_traits::Float,
+{
     #[track_caller]
     pub fn new(
         joint_names: Vec<String>,
-        collision_check_robot: Arc<k::Chain<f64>>,
-        collision_checker: CollisionChecker<f64>,
+        collision_check_robot: Arc<k::Chain<N>>,
+        collision_checker: CollisionChecker<N>,
         collision_pairs: Vec<(String, String)>,
-        time_interpolate_rate: f64,
+        time_interpolate_rate: N,
     ) -> Self {
         assert!(
-            time_interpolate_rate > 0.0 && time_interpolate_rate <= 1.0,
+            time_interpolate_rate > na::convert(0.0) && time_interpolate_rate <= na::convert(1.0),
             "time_interpolate_rate must be 0.0~1.0 but {}",
             time_interpolate_rate
         );
-        let using_joints = k::Chain::<f64>::from_nodes(
+        let using_joints = k::Chain::<N>::from_nodes(
             joint_names
                 .into_iter()
                 .map(|joint_name| collision_check_robot.find(&joint_name).unwrap().clone())
@@ -48,14 +57,15 @@ impl SelfCollisionChecker {
 
     pub fn check_joint_positions(
         &self,
-        current: &[f64],
-        positions: &[f64],
+        current: &[N],
+        positions: &[N],
         duration: std::time::Duration,
     ) -> Result<()> {
         match interpolate(
             &[current.to_vec(), positions.to_vec()],
-            duration.as_secs_f64(),
-            duration.as_secs_f64() * self.time_interpolate_rate,
+            num_traits::NumCast::from::<f64>(duration.as_secs_f64()).unwrap(),
+            self.time_interpolate_rate
+                .mul(num_traits::NumCast::from::<f64>(duration.as_secs_f64()).unwrap()),
         ) {
             Some(interpolated) => {
                 debug!("interpolated len={}", interpolated.len());
@@ -86,7 +96,7 @@ impl SelfCollisionChecker {
         }
     }
 
-    pub fn check_joint_trajectory(&self, trajectory: &[TrajectoryPoint<f64>]) -> Result<()> {
+    pub fn check_joint_trajectory(&self, trajectory: &[TrajectoryPoint<N>]) -> Result<()> {
         for v in trajectory {
             self.using_joints.set_joint_positions(&v.position)?;
             if let Some(names) = self
@@ -136,7 +146,7 @@ pub fn create_self_collision_checker<P: AsRef<Path>>(
     joint_names: Vec<String>,
     config: &SelfCollisionCheckerConfig,
     full_chain: Arc<k::Chain<f64>>,
-) -> SelfCollisionChecker {
+) -> SelfCollisionChecker<f64> {
     SelfCollisionChecker::new(
         joint_names,
         full_chain,
