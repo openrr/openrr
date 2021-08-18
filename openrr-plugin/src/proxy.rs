@@ -2,12 +2,10 @@
 //! used in arci and openrr-plugin. The types defined by this module will never
 //! appear in the public API, and the conversion is done internally.
 
-use std::{
-    convert::{TryFrom, TryInto},
-    future::Future,
-    sync::Arc,
-    time::SystemTime,
-};
+#[path = "gen/proxy.rs"]
+mod impls;
+
+use std::{convert::TryFrom, future::Future, sync::Arc, time::SystemTime};
 
 use abi_stable::{
     declare_root_module_statics,
@@ -17,17 +15,15 @@ use abi_stable::{
     prefix_type::PrefixTypeTrait,
     rtry, sabi_trait,
     sabi_types::VersionStrings,
-    std_types::{RBox, RBoxError, RDuration, ROk, ROption, RStr, RString, RVec},
+    std_types::{RBox, RBoxError, RDuration, ROk, ROption, RString, RVec},
     StableAbi,
 };
 use anyhow::format_err;
 use arci::nalgebra;
 use num_traits::Float;
 
-use crate::{
-    GamepadProxy, JointTrajectoryClientProxy, LocalizationProxy, MoveBaseProxy, NavigationProxy,
-    Plugin, PluginProxy, SpeakerProxy, TransformResolverProxy,
-};
+pub(crate) use self::impls::*;
+use crate::PluginProxy;
 
 type RResult<T, E = RError> = abi_stable::std_types::RResult<T, E>;
 
@@ -371,67 +367,7 @@ where
 }
 
 // =============================================================================
-// arci::JointTrajectoryClient
-
-/// FFI-safe equivalent of [`Box<dyn arci::JointTrajectoryClient>`](arci::JointTrajectoryClient).
-pub(crate) type JointTrajectoryClientTraitObject = RJointTrajectoryClientTrait_TO<RBox<()>>;
-
-#[sabi_trait]
-pub(crate) trait RJointTrajectoryClientTrait: Send + Sync + 'static {
-    fn joint_names(&self) -> RVec<RString>;
-    fn current_joint_positions(&self) -> RResult<RVec<RF64>>;
-    fn send_joint_positions(
-        &self,
-        positions: RVec<RF64>,
-        duration: RDuration,
-    ) -> RResult<RBlockingWait>;
-    fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait>;
-}
-
-impl<T> RJointTrajectoryClientTrait for T
-where
-    T: ?Sized + arci::JointTrajectoryClient,
-{
-    fn joint_names(&self) -> RVec<RString> {
-        arci::JointTrajectoryClient::joint_names(self)
-            .into_iter()
-            .map(|s| s.into())
-            .collect()
-    }
-
-    fn current_joint_positions(&self) -> RResult<RVec<RF64>> {
-        ROk(
-            rtry!(arci::JointTrajectoryClient::current_joint_positions(self))
-                .into_iter()
-                .map(RF64::from)
-                .collect(),
-        )
-    }
-
-    fn send_joint_positions(
-        &self,
-        positions: RVec<RF64>,
-        duration: RDuration,
-    ) -> RResult<RBlockingWait> {
-        ROk(rtry!(arci::JointTrajectoryClient::send_joint_positions(
-            self,
-            positions.into_iter().map(f64::from).collect(),
-            duration.into(),
-        ))
-        .into())
-    }
-
-    fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait> {
-        ROk(rtry!(arci::JointTrajectoryClient::send_joint_trajectory(
-            self,
-            trajectory
-                .into_iter()
-                .map(arci::TrajectoryPoint::from)
-                .collect(),
-        ))
-        .into())
-    }
-}
+// arci::TrajectoryPoint
 
 /// FFI-safe equivalent of [`arci::TrajectoryPoint`].
 #[repr(C)]
@@ -469,53 +405,7 @@ impl From<RTrajectoryPoint> for arci::TrajectoryPoint {
 }
 
 // =============================================================================
-// arci::Speaker
-
-/// FFI-safe equivalent of [`Box<dyn arci::Speaker>`](arci::Speaker).
-pub(crate) type SpeakerTraitObject = RSpeakerTrait_TO<RBox<()>>;
-
-#[sabi_trait]
-pub(crate) trait RSpeakerTrait: Send + Sync + 'static {
-    fn speak(&self, message: RStr<'_>) -> RResult<RBlockingWait>;
-}
-
-impl<T> RSpeakerTrait for T
-where
-    T: ?Sized + arci::Speaker + 'static,
-{
-    fn speak(&self, message: RStr<'_>) -> RResult<RBlockingWait> {
-        ROk(rtry!(arci::Speaker::speak(self, message.into())).into())
-    }
-}
-
-// =============================================================================
-// arci::MoveBase
-
-/// FFI-safe equivalent of [`Box<dyn arci::MoveBase>`](arci::MoveBase).
-pub(crate) type MoveBaseTraitObject = RMoveBaseTrait_TO<RBox<()>>;
-
-#[sabi_trait]
-pub(crate) trait RMoveBaseTrait: Send + Sync + 'static {
-    fn send_velocity(&self, velocity: RBaseVelocity) -> RResult<()>;
-    fn current_velocity(&self) -> RResult<RBaseVelocity>;
-}
-
-impl<T> RMoveBaseTrait for T
-where
-    T: ?Sized + arci::MoveBase + 'static,
-{
-    fn send_velocity(&self, velocity: RBaseVelocity) -> RResult<()> {
-        rtry!(arci::MoveBase::send_velocity(
-            self,
-            &arci::BaseVelocity::from(velocity)
-        ));
-        ROk(())
-    }
-
-    fn current_velocity(&self) -> RResult<RBaseVelocity> {
-        ROk(rtry!(arci::MoveBase::current_velocity(self)).into())
-    }
-}
+// arci::RBaseVelocity
 
 /// FFI-safe equivalent of [`arci::BaseVelocity`].
 #[repr(C)]
@@ -547,126 +437,42 @@ impl From<RBaseVelocity> for arci::BaseVelocity {
 }
 
 // =============================================================================
-// arci::Navigation
+// arci::gamepad::GamepadEvent
 
-/// FFI-safe equivalent of [`Box<dyn arci::Navigation>`](arci::Navigation).
-pub(crate) type NavigationTraitObject = RNavigationTrait_TO<RBox<()>>;
-
-#[sabi_trait]
-pub(crate) trait RNavigationTrait: Send + Sync + 'static {
-    fn send_goal_pose(
-        &self,
-        goal: RIsometry2F64,
-        frame_id: RStr<'_>,
-        timeout: RDuration,
-    ) -> RResult<RBlockingWait>;
-
-    fn cancel(&self) -> RResult<()>;
+#[repr(C)]
+#[derive(StableAbi)]
+pub(crate) enum RGamepadEvent {
+    ButtonPressed(RButton),
+    ButtonReleased(RButton),
+    AxisChanged(RAxis, RF64),
+    Connected,
+    Disconnected,
+    Unknown,
 }
 
-impl<T> RNavigationTrait for T
-where
-    T: ?Sized + arci::Navigation + 'static,
-{
-    fn send_goal_pose(
-        &self,
-        goal: RIsometry2F64,
-        frame_id: RStr<'_>,
-        timeout: RDuration,
-    ) -> RResult<RBlockingWait> {
-        ROk(rtry!(arci::Navigation::send_goal_pose(
-            self,
-            goal.into(),
-            frame_id.into(),
-            timeout.into(),
-        ))
-        .into())
-    }
-
-    fn cancel(&self) -> RResult<()> {
-        rtry!(arci::Navigation::cancel(self));
-        ROk(())
+impl From<arci::gamepad::GamepadEvent> for RGamepadEvent {
+    fn from(e: arci::gamepad::GamepadEvent) -> Self {
+        match e {
+            arci::gamepad::GamepadEvent::ButtonPressed(b) => Self::ButtonPressed(b.into()),
+            arci::gamepad::GamepadEvent::ButtonReleased(b) => Self::ButtonReleased(b.into()),
+            arci::gamepad::GamepadEvent::AxisChanged(a, v) => Self::AxisChanged(a.into(), v.into()),
+            arci::gamepad::GamepadEvent::Connected => Self::Connected,
+            arci::gamepad::GamepadEvent::Disconnected => Self::Disconnected,
+            arci::gamepad::GamepadEvent::Unknown => Self::Unknown,
+        }
     }
 }
 
-// =============================================================================
-// arci::Localization
-
-/// FFI-safe equivalent of [`Box<dyn arci::Localization>`](arci::Localization).
-pub(crate) type LocalizationTraitObject = RLocalizationTrait_TO<RBox<()>>;
-
-#[sabi_trait]
-pub(crate) trait RLocalizationTrait: Send + Sync + 'static {
-    fn current_pose(&self, frame_id: RStr<'_>) -> RResult<RIsometry2F64>;
-}
-
-impl<T> RLocalizationTrait for T
-where
-    T: arci::Localization + 'static,
-{
-    fn current_pose(&self, frame_id: RStr<'_>) -> RResult<RIsometry2F64> {
-        ROk(rtry!(arci::Localization::current_pose(self, frame_id.into())).into())
-    }
-}
-
-// =============================================================================
-// arci::TransformResolver
-
-/// FFI-safe equivalent of [`Box<dyn arci::TransformResolver>`](arci::TransformResolver).
-pub(crate) type TransformResolverTraitObject = RTransformResolverTrait_TO<RBox<()>>;
-
-#[sabi_trait]
-pub(crate) trait RTransformResolverTrait: Send + Sync + 'static {
-    fn resolve_transformation(
-        &self,
-        from: RStr<'_>,
-        to: RStr<'_>,
-        time: RSystemTime,
-    ) -> RResult<RIsometry3F64>;
-}
-
-impl<T> RTransformResolverTrait for T
-where
-    T: ?Sized + arci::TransformResolver + 'static,
-{
-    fn resolve_transformation(
-        &self,
-        from: RStr<'_>,
-        to: RStr<'_>,
-        time: RSystemTime,
-    ) -> RResult<RIsometry3F64> {
-        ROk(rtry!(arci::TransformResolver::resolve_transformation(
-            self,
-            from.into(),
-            to.into(),
-            rtry!(time.try_into()),
-        ))
-        .into())
-    }
-}
-
-// =============================================================================
-// arci::Gamepad
-
-/// FFI-safe equivalent of [`Arc<dyn arci::Gamepad>`](arci::Gamepad).
-pub(crate) type GamepadTraitObject = RGamepadTrait_TO<RBox<()>>;
-
-#[sabi_trait]
-pub(crate) trait RGamepadTrait: Send + Sync + Clone + 'static {
-    fn next_event(&self) -> RGamepadEvent;
-    fn stop(&self);
-}
-
-impl<T> RGamepadTrait for Arc<T>
-where
-    T: ?Sized + arci::Gamepad + 'static,
-{
-    fn next_event(&self) -> RGamepadEvent {
-        block_in_place(arci::Gamepad::next_event(&**self)).into()
-    }
-
-    fn stop(&self) {
-        arci::Gamepad::stop(&**self);
+impl From<RGamepadEvent> for arci::gamepad::GamepadEvent {
+    fn from(e: RGamepadEvent) -> Self {
+        match e {
+            RGamepadEvent::ButtonPressed(b) => Self::ButtonPressed(b.into()),
+            RGamepadEvent::ButtonReleased(b) => Self::ButtonReleased(b.into()),
+            RGamepadEvent::AxisChanged(a, v) => Self::AxisChanged(a.into(), v.into()),
+            RGamepadEvent::Connected => Self::Connected,
+            RGamepadEvent::Disconnected => Self::Disconnected,
+            RGamepadEvent::Unknown => Self::Unknown,
+        }
     }
 }
 
@@ -789,119 +595,96 @@ impl From<RAxis> for arci::gamepad::Axis {
     }
 }
 
-#[repr(C)]
-#[derive(StableAbi)]
-pub(crate) enum RGamepadEvent {
-    ButtonPressed(RButton),
-    ButtonReleased(RButton),
-    AxisChanged(RAxis, RF64),
-    Connected,
-    Disconnected,
-    Unknown,
+// =============================================================================
+// arci::JointTrajectoryClient
+
+/// FFI-safe equivalent of [`Box<dyn arci::JointTrajectoryClient>`](arci::JointTrajectoryClient).
+pub(crate) type JointTrajectoryClientTraitObject = RJointTrajectoryClientTrait_TO<RBox<()>>;
+
+#[sabi_trait]
+pub(crate) trait RJointTrajectoryClientTrait: Send + Sync + 'static {
+    fn joint_names(&self) -> RVec<RString>;
+    fn current_joint_positions(&self) -> RResult<RVec<RF64>>;
+    fn send_joint_positions(
+        &self,
+        positions: RVec<RF64>,
+        duration: RDuration,
+    ) -> RResult<RBlockingWait>;
+    fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait>;
 }
 
-impl From<arci::gamepad::GamepadEvent> for RGamepadEvent {
-    fn from(e: arci::gamepad::GamepadEvent) -> Self {
-        match e {
-            arci::gamepad::GamepadEvent::ButtonPressed(b) => Self::ButtonPressed(b.into()),
-            arci::gamepad::GamepadEvent::ButtonReleased(b) => Self::ButtonReleased(b.into()),
-            arci::gamepad::GamepadEvent::AxisChanged(a, v) => Self::AxisChanged(a.into(), v.into()),
-            arci::gamepad::GamepadEvent::Connected => Self::Connected,
-            arci::gamepad::GamepadEvent::Disconnected => Self::Disconnected,
-            arci::gamepad::GamepadEvent::Unknown => Self::Unknown,
-        }
+impl<T> RJointTrajectoryClientTrait for T
+where
+    T: ?Sized + arci::JointTrajectoryClient,
+{
+    fn joint_names(&self) -> RVec<RString> {
+        arci::JointTrajectoryClient::joint_names(self)
+            .into_iter()
+            .map(|s| s.into())
+            .collect()
     }
-}
 
-impl From<RGamepadEvent> for arci::gamepad::GamepadEvent {
-    fn from(e: RGamepadEvent) -> Self {
-        match e {
-            RGamepadEvent::ButtonPressed(b) => Self::ButtonPressed(b.into()),
-            RGamepadEvent::ButtonReleased(b) => Self::ButtonReleased(b.into()),
-            RGamepadEvent::AxisChanged(a, v) => Self::AxisChanged(a.into(), v.into()),
-            RGamepadEvent::Connected => Self::Connected,
-            RGamepadEvent::Disconnected => Self::Disconnected,
-            RGamepadEvent::Unknown => Self::Unknown,
-        }
+    fn current_joint_positions(&self) -> RResult<RVec<RF64>> {
+        ROk(
+            rtry!(arci::JointTrajectoryClient::current_joint_positions(self))
+                .into_iter()
+                .map(RF64::from)
+                .collect(),
+        )
+    }
+
+    fn send_joint_positions(
+        &self,
+        positions: RVec<RF64>,
+        duration: RDuration,
+    ) -> RResult<RBlockingWait> {
+        ROk(rtry!(arci::JointTrajectoryClient::send_joint_positions(
+            self,
+            positions.into_iter().map(f64::from).collect(),
+            duration.into(),
+        ))
+        .into())
+    }
+
+    fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait> {
+        ROk(rtry!(arci::JointTrajectoryClient::send_joint_trajectory(
+            self,
+            trajectory
+                .into_iter()
+                .map(arci::TrajectoryPoint::from)
+                .collect(),
+        ))
+        .into())
     }
 }
 
 // =============================================================================
-// Plugin
+// arci::Gamepad
 
-/// FFI-safe equivalent of [`Box<dyn Plugin>`](Plugin).
-pub(crate) type PluginTraitObject = RPluginTrait_TO<RBox<()>>;
+/// FFI-safe equivalent of [`Arc<dyn arci::Gamepad>`](arci::Gamepad).
+pub(crate) type GamepadTraitObject = RGamepadTrait_TO<RBox<()>>;
 
 #[sabi_trait]
-pub(crate) trait RPluginTrait: Send + Sync + 'static {
-    fn name(&self) -> RString;
-    fn new_joint_trajectory_client(
-        &self,
-        args: RString,
-    ) -> RResult<ROption<JointTrajectoryClientProxy>>;
-    fn new_speaker(&self, args: RString) -> RResult<ROption<SpeakerProxy>>;
-    fn new_move_base(&self, args: RString) -> RResult<ROption<MoveBaseProxy>>;
-    fn new_navigation(&self, args: RString) -> RResult<ROption<NavigationProxy>>;
-    fn new_localization(&self, args: RString) -> RResult<ROption<LocalizationProxy>>;
-    fn new_transform_resolver(&self, args: RString) -> RResult<ROption<TransformResolverProxy>>;
-    fn new_gamepad(&self, args: RString) -> RResult<ROption<GamepadProxy>>;
+pub(crate) trait RGamepadTrait: Send + Sync + Clone + 'static {
+    fn next_event(&self) -> RGamepadEvent;
+    fn stop(&self);
 }
 
-impl<P> RPluginTrait for P
+impl<T> RGamepadTrait for Arc<T>
 where
-    P: ?Sized + Plugin,
+    T: ?Sized + arci::Gamepad + 'static,
 {
-    fn name(&self) -> RString {
-        Plugin::name(self).into()
+    fn next_event(&self) -> RGamepadEvent {
+        block_in_place(arci::Gamepad::next_event(&**self)).into()
     }
 
-    fn new_joint_trajectory_client(
-        &self,
-        args: RString,
-    ) -> RResult<ROption<JointTrajectoryClientProxy>> {
-        ROk(
-            rtry!(Plugin::new_joint_trajectory_client(self, args.into()))
-                .map(JointTrajectoryClientProxy::new)
-                .into(),
-        )
-    }
-
-    fn new_speaker(&self, args: RString) -> RResult<ROption<SpeakerProxy>> {
-        ROk(rtry!(Plugin::new_speaker(self, args.into()))
-            .map(SpeakerProxy::new)
-            .into())
-    }
-
-    fn new_move_base(&self, args: RString) -> RResult<ROption<MoveBaseProxy>> {
-        ROk(rtry!(Plugin::new_move_base(self, args.into()))
-            .map(MoveBaseProxy::new)
-            .into())
-    }
-
-    fn new_navigation(&self, args: RString) -> RResult<ROption<NavigationProxy>> {
-        ROk(rtry!(Plugin::new_navigation(self, args.into()))
-            .map(NavigationProxy::new)
-            .into())
-    }
-
-    fn new_localization(&self, args: RString) -> RResult<ROption<LocalizationProxy>> {
-        ROk(rtry!(Plugin::new_localization(self, args.into()))
-            .map(LocalizationProxy::new)
-            .into())
-    }
-
-    fn new_transform_resolver(&self, args: RString) -> RResult<ROption<TransformResolverProxy>> {
-        ROk(rtry!(Plugin::new_transform_resolver(self, args.into()))
-            .map(TransformResolverProxy::new)
-            .into())
-    }
-
-    fn new_gamepad(&self, args: RString) -> RResult<ROption<GamepadProxy>> {
-        ROk(rtry!(Plugin::new_gamepad(self, args.into()))
-            .map(GamepadProxy::new)
-            .into())
+    fn stop(&self) {
+        arci::Gamepad::stop(&**self);
     }
 }
+
+// =============================================================================
+// PluginMod
 
 // Not public API.
 #[doc(hidden)]

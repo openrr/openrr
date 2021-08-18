@@ -107,6 +107,7 @@ use std::{env, path::PathBuf, process::Command, time::Duration};
 use anyhow::Result;
 use arci::{DummyJointTrajectoryClient, JointTrajectoryClient};
 use criterion::{criterion_group, criterion_main, Criterion};
+use fs_err as fs;
 use openrr_plugin::{JointTrajectoryClientProxy, PluginProxy};
 
 fn no_proxy_joint_names(c: &mut Criterion) {

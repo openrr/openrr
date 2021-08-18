@@ -1,0 +1,13 @@
+[package]
+name = "openrr-internal-codegen"
+version = "0.0.0"
+edition = "2018"
+publish = false
+
+[dependencies]
+anyhow = "1"
+fs-err = "2"
+heck = "0.3"
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "1", features = ["full", "visit-mut"] }

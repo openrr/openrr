@@ -7,25 +7,19 @@
 
 mod proxy;
 
-use std::{
-    convert::TryInto,
-    fmt,
-    path::Path,
-    sync::Arc,
-    time::{Duration, SystemTime},
-};
+#[path = "gen/api.rs"]
+mod api;
+
+use std::{fmt, path::Path, sync::Arc, time::Duration};
 
 use abi_stable::{erased_types::TU_Opaque, library::lib_header_from_path, StableAbi};
-use arci::{async_trait, Isometry2, Isometry3, WaitFuture};
+use arci::{async_trait, WaitFuture};
 
+pub use crate::api::*;
 // This is not a public API. Use export_plugin! macro for plugin exporting.
 #[doc(hidden)]
 pub use crate::proxy::PluginMod_Ref;
-use crate::proxy::{
-    GamepadTraitObject, JointTrajectoryClientTraitObject, LocalizationTraitObject,
-    MoveBaseTraitObject, NavigationTraitObject, PluginTraitObject, SpeakerTraitObject,
-    TransformResolverTraitObject,
-};
+use crate::proxy::{GamepadTraitObject, JointTrajectoryClientTraitObject};
 
 /// Exports the plugin that will instantiated with the specified expression.
 ///
@@ -63,82 +57,7 @@ macro_rules! export_plugin {
     };
 }
 
-/// The plugin trait.
-pub trait Plugin: Send + Sync + 'static {
-    /// Returns the name of this plugin.
-    ///
-    /// NOTE: This is *not* a unique identifier.
-    fn name(&self) -> String;
-
-    /// Creates a new instance of [`arci::JointTrajectoryClient`] with the specified arguments.
-    fn new_joint_trajectory_client(
-        &self,
-        args: String,
-    ) -> Result<Option<Box<dyn arci::JointTrajectoryClient>>, arci::Error> {
-        let _ = args;
-        Ok(None)
-    }
-
-    /// Creates a new instance of [`arci::Speaker`] with the specified arguments.
-    fn new_speaker(&self, args: String) -> Result<Option<Box<dyn arci::Speaker>>, arci::Error> {
-        let _ = args;
-        Ok(None)
-    }
-
-    /// Creates a new instance of [`arci::MoveBase`] with the specified arguments.
-    fn new_move_base(&self, args: String) -> Result<Option<Box<dyn arci::MoveBase>>, arci::Error> {
-        let _ = args;
-        Ok(None)
-    }
-
-    /// Creates a new instance of [`arci::Navigation`] with the specified arguments.
-    fn new_navigation(
-        &self,
-        args: String,
-    ) -> Result<Option<Box<dyn arci::Navigation>>, arci::Error> {
-        let _ = args;
-        Ok(None)
-    }
-
-    /// Creates a new instance of [`arci::Localization`] with the specified arguments.
-    fn new_localization(
-        &self,
-        args: String,
-    ) -> Result<Option<Box<dyn arci::Localization>>, arci::Error> {
-        let _ = args;
-        Ok(None)
-    }
-
-    /// Creates a new instance of [`arci::TransformResolver`] with the specified arguments.
-    fn new_transform_resolver(
-        &self,
-        args: String,
-    ) -> Result<Option<Box<dyn arci::TransformResolver>>, arci::Error> {
-        let _ = args;
-        Ok(None)
-    }
-
-    /// Creates a new instance of [`arci::Gamepad`] with the specified arguments.
-    fn new_gamepad(&self, args: String) -> Result<Option<Box<dyn arci::Gamepad>>, arci::Error> {
-        let _ = args;
-        Ok(None)
-    }
-}
-
-/// FFI-safe equivalent of [`Box<dyn Plugin>`](Plugin).
-#[repr(C)]
-#[derive(StableAbi)]
-pub struct PluginProxy(PluginTraitObject);
-
 impl PluginProxy {
-    /// Creates a new `PluginProxy`.
-    pub fn new<P>(plugin: P) -> Self
-    where
-        P: Plugin,
-    {
-        Self(PluginTraitObject::from_value(plugin, TU_Opaque))
-    }
-
     /// Loads a plugin from the specified path.
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self, arci::Error> {
         let path = path.as_ref();
@@ -159,67 +78,6 @@ impl PluginProxy {
     /// NOTE: This is *not* a unique identifier.
     pub fn name(&self) -> String {
         self.0.name().into()
-    }
-
-    /// Creates a new instance of [`arci::JointTrajectoryClient`] with the specified arguments.
-    pub fn new_joint_trajectory_client(
-        &self,
-        args: String,
-    ) -> Result<Option<JointTrajectoryClientProxy>, arci::Error> {
-        Ok(self
-            .0
-            .new_joint_trajectory_client(args.into())
-            .into_result()?
-            .into_option())
-    }
-
-    /// Creates a new instance of [`arci::Speaker`] with the specified arguments.
-    pub fn new_speaker(&self, args: String) -> Result<Option<SpeakerProxy>, arci::Error> {
-        Ok(self.0.new_speaker(args.into()).into_result()?.into_option())
-    }
-
-    /// Creates a new instance of [`arci::MoveBase`] with the specified arguments.
-    pub fn new_move_base(&self, args: String) -> Result<Option<MoveBaseProxy>, arci::Error> {
-        Ok(self
-            .0
-            .new_move_base(args.into())
-            .into_result()?
-            .into_option())
-    }
-
-    /// Creates a new instance of [`arci::Navigation`] with the specified arguments.
-    pub fn new_navigation(&self, args: String) -> Result<Option<NavigationProxy>, arci::Error> {
-        Ok(self
-            .0
-            .new_navigation(args.into())
-            .into_result()?
-            .into_option())
-    }
-
-    /// Creates a new instance of [`arci::Localization`] with the specified arguments.
-    pub fn new_localization(&self, args: String) -> Result<Option<LocalizationProxy>, arci::Error> {
-        Ok(self
-            .0
-            .new_localization(args.into())
-            .into_result()?
-            .into_option())
-    }
-
-    /// Creates a new instance of [`arci::TransformResolver`] with the specified arguments.
-    pub fn new_transform_resolver(
-        &self,
-        args: String,
-    ) -> Result<Option<TransformResolverProxy>, arci::Error> {
-        Ok(self
-            .0
-            .new_transform_resolver(args.into())
-            .into_result()?
-            .into_option())
-    }
-
-    /// Creates a new instance of [`arci::Gamepad`] with the specified arguments.
-    pub fn new_gamepad(&self, args: String) -> Result<Option<GamepadProxy>, arci::Error> {
-        Ok(self.0.new_gamepad(args.into()).into_result()?.into_option())
     }
 }
 
@@ -296,186 +154,6 @@ impl arci::JointTrajectoryClient for JointTrajectoryClientProxy {
 impl fmt::Debug for JointTrajectoryClientProxy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("JointTrajectoryClientProxy").finish()
-    }
-}
-
-// =============================================================================
-// arci::Speaker
-
-/// FFI-safe equivalent of [`Box<dyn arci::Speaker>`](arci::Speaker).
-#[repr(C)]
-#[derive(StableAbi)]
-pub struct SpeakerProxy(SpeakerTraitObject);
-
-impl SpeakerProxy {
-    /// Creates a new `SpeakerProxy`.
-    pub fn new<T>(speaker: T) -> Self
-    where
-        T: arci::Speaker + 'static,
-    {
-        Self(SpeakerTraitObject::from_value(speaker, TU_Opaque))
-    }
-}
-
-impl arci::Speaker for SpeakerProxy {
-    fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
-        Ok(self.0.speak(message.into()).into_result()?.into())
-    }
-}
-
-impl fmt::Debug for SpeakerProxy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("SpeakerProxy").finish()
-    }
-}
-
-// =============================================================================
-// arci::MoveBase
-
-/// FFI-safe equivalent of [`Box<dyn arci::MoveBase>`](arci::MoveBase).
-#[repr(C)]
-#[derive(StableAbi)]
-pub struct MoveBaseProxy(MoveBaseTraitObject);
-
-impl MoveBaseProxy {
-    /// Creates a new `MoveBaseProxy`.
-    pub fn new<T>(base: T) -> Self
-    where
-        T: arci::MoveBase + 'static,
-    {
-        Self(MoveBaseTraitObject::from_value(base, TU_Opaque))
-    }
-}
-
-impl arci::MoveBase for MoveBaseProxy {
-    fn send_velocity(&self, velocity: &arci::BaseVelocity) -> Result<(), arci::Error> {
-        self.0.send_velocity((*velocity).into()).into_result()?;
-        Ok(())
-    }
-
-    fn current_velocity(&self) -> Result<arci::BaseVelocity, arci::Error> {
-        Ok(self.0.current_velocity().into_result()?.into())
-    }
-}
-
-impl fmt::Debug for MoveBaseProxy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("MoveBaseProxy").finish()
-    }
-}
-
-// =============================================================================
-// arci::Navigation
-
-/// FFI-safe equivalent of [`Box<dyn arci::Navigation>`](arci::Navigation).
-#[repr(C)]
-#[derive(StableAbi)]
-pub struct NavigationProxy(NavigationTraitObject);
-
-impl NavigationProxy {
-    /// Creates a new `NavigationProxy`.
-    pub fn new<T>(nav: T) -> Self
-    where
-        T: arci::Navigation + 'static,
-    {
-        Self(NavigationTraitObject::from_value(nav, TU_Opaque))
-    }
-}
-
-impl arci::Navigation for NavigationProxy {
-    fn send_goal_pose(
-        &self,
-        goal: Isometry2<f64>,
-        frame_id: &str,
-        timeout: Duration,
-    ) -> Result<WaitFuture, arci::Error> {
-        Ok(self
-            .0
-            .send_goal_pose(goal.into(), frame_id.into(), timeout.into())
-            .into_result()?
-            .into())
-    }
-
-    fn cancel(&self) -> Result<(), arci::Error> {
-        self.0.cancel().into_result()?;
-        Ok(())
-    }
-}
-
-impl fmt::Debug for NavigationProxy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("NavigationProxy").finish()
-    }
-}
-
-// =============================================================================
-// arci::Localization
-
-/// FFI-safe equivalent of [`Box<dyn arci::Localization>`](arci::Localization).
-#[repr(C)]
-#[derive(StableAbi)]
-pub struct LocalizationProxy(LocalizationTraitObject);
-
-impl LocalizationProxy {
-    /// Creates a new `LocalizationProxy`.
-    pub fn new<T>(loc: T) -> Self
-    where
-        T: arci::Localization + 'static,
-    {
-        Self(LocalizationTraitObject::from_value(loc, TU_Opaque))
-    }
-}
-
-impl arci::Localization for LocalizationProxy {
-    fn current_pose(&self, frame_id: &str) -> Result<Isometry2<f64>, arci::Error> {
-        Ok(self.0.current_pose(frame_id.into()).into_result()?.into())
-    }
-}
-
-impl fmt::Debug for LocalizationProxy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("LocalizationProxy").finish()
-    }
-}
-
-// =============================================================================
-// arci::TransformResolver
-
-/// FFI-safe equivalent of [`Box<dyn arci::TransformResolver>`](arci::TransformResolver).
-#[repr(C)]
-#[derive(StableAbi)]
-pub struct TransformResolverProxy(TransformResolverTraitObject);
-
-impl TransformResolverProxy {
-    /// Creates a new `TransformResolverProxy`.
-    pub fn new<T>(resolver: T) -> Self
-    where
-        T: arci::TransformResolver + 'static,
-    {
-        Self(TransformResolverTraitObject::from_value(
-            resolver, TU_Opaque,
-        ))
-    }
-}
-
-impl arci::TransformResolver for TransformResolverProxy {
-    fn resolve_transformation(
-        &self,
-        from: &str,
-        to: &str,
-        time: SystemTime,
-    ) -> Result<Isometry3<f64>, arci::Error> {
-        Ok(self
-            .0
-            .resolve_transformation(from.into(), to.into(), time.try_into()?)
-            .into_result()?
-            .into())
-    }
-}
-
-impl fmt::Debug for TransformResolverProxy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("TransformResolverProxy").finish()
     }
 }
 

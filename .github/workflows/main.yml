@@ -96,6 +96,19 @@ jobs:
   #     - run: tools/update-schema.sh
   #     - run: git diff --exit-code
 
+  # TODO: revert nightly-2021-07-01
+  # When this job failed, run tools/gen-code.sh and commit result changes.
+  codegen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        run: |
+          rustup toolchain install nightly-2021-07-01 --component rustfmt --allow-downgrade
+          rustup default nightly-2021-07-01
+      - run: tools/gen-code.sh
+      - run: git diff --exit-code
+
   # Check all feature combinations work properly.
   features:
     name: Check features
