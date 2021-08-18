@@ -19,9 +19,9 @@ use std::io;
 use thiserror::Error;
 
 #[derive(Debug)]
-pub enum CollisionPart {
-    Start,
-    End,
+pub enum UnfeasibleTrajectory {
+    StartPoint,
+    GoalPoint,
 }
 
 /// Error for `openrr_planner`
@@ -32,14 +32,14 @@ pub enum Error {
     Other { error: String },
     #[error("Node name {} not found", .0)]
     NotFound(String),
-    #[error("Collision error: {collision_link_names:?} is colliding ({part:?})")]
+    #[error("Collision error: {collision_link_names:?} is colliding ({point:?})")]
     Collision {
-        part: CollisionPart,
+        point: UnfeasibleTrajectory,
         collision_link_names: Vec<String>,
     },
-    #[error("Self Collision error: {collision_link_names:?} is colliding ({part:?})")]
+    #[error("Self Collision error: {collision_link_names:?} is colliding ({point:?})")]
     SelfCollision {
-        part: CollisionPart,
+        point: UnfeasibleTrajectory,
         collision_link_names: Vec<(String, String)>,
     },
     #[error("Interpolation error: {:?}", .0)]
