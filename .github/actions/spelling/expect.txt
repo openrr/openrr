@@ -272,3 +272,4 @@ tempdir
 tempfile
 zsh
 DISTRO
+ctrl
