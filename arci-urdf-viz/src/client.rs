@@ -261,18 +261,30 @@ impl UrdfVizWebClient {
             }
 
             let bomb = Bomb(inner);
-            while !bomb.0.is_dropping() {
+            'outer: while !bomb.0.is_dropping() {
                 const DT: f64 = 0.02;
+
+                macro_rules! continue_on_err {
+                    ($expr:expr $(,)?) => {
+                        match $expr {
+                            Ok(x) => x,
+                            Err(_e) => {
+                                continue 'outer;
+                            }
+                        }
+                    };
+                }
+
                 let _guard = ScopedSleep::from_secs(DT);
                 let velocity = bomb.0.velocity.lock().unwrap();
-                let mut pose = get_robot_origin(&bomb.0.base_url).unwrap();
+                let mut pose = continue_on_err!(get_robot_origin(&bomb.0.base_url));
                 let mut rpy = euler_angles_from_quaternion(&pose.quaternion);
                 let yaw = rpy.2;
                 pose.position[0] += (velocity.x * yaw.cos() - velocity.y * yaw.sin()) * DT;
                 pose.position[1] += (velocity.x * yaw.sin() + velocity.y * yaw.cos()) * DT;
                 rpy.2 += velocity.theta * DT;
                 pose.quaternion = quaternion_from_euler_angles(rpy.0, rpy.1, rpy.2);
-                send_robot_origin(&bomb.0.base_url, pose).unwrap();
+                continue_on_err!(send_robot_origin(&bomb.0.base_url, pose));
             }
         });
     }
@@ -317,7 +329,7 @@ impl UrdfVizWebClient {
                     }
                 };
 
-                macro_rules! tri {
+                macro_rules! continue_on_err {
                     ($expr:expr $(,)?) => {
                         match $expr {
                             Ok(x) => x,
@@ -340,7 +352,7 @@ impl UrdfVizWebClient {
                             names: bomb.0.joint_names.clone(),
                             positions: target.positions.clone(),
                         };
-                        tri!(send_joint_positions(&bomb.0.base_url, target_state));
+                        continue_on_err!(send_joint_positions(&bomb.0.base_url, target_state));
 
                         let elapsed = start_time.elapsed();
                         if UNIT_DURATION > elapsed {
@@ -350,10 +362,10 @@ impl UrdfVizWebClient {
                         continue;
                     }
 
-                    let current = tri!(get_joint_positions(&bomb.0.base_url)).positions;
+                    let current = continue_on_err!(get_joint_positions(&bomb.0.base_url)).positions;
                     let duration_sec = duration.as_secs_f64();
                     let unit_sec = UNIT_DURATION.as_secs_f64();
-                    let trajectories = tri!(openrr_planner::interpolate(
+                    let trajectories = continue_on_err!(openrr_planner::interpolate(
                         &[current, target.positions.to_vec()],
                         duration_sec,
                         unit_sec,
@@ -375,7 +387,7 @@ impl UrdfVizWebClient {
                             names: bomb.0.joint_names.clone(),
                             positions: traj.position,
                         };
-                        tri!(send_joint_positions(&bomb.0.base_url, target_state));
+                        continue_on_err!(send_joint_positions(&bomb.0.base_url, target_state));
                         let elapsed = start_time.elapsed();
                         if UNIT_DURATION > elapsed {
                             let sleep_duration = UNIT_DURATION - elapsed;
@@ -487,6 +499,11 @@ impl MoveBase for UrdfVizWebClient {
         if !self.0.threads.lock().unwrap().has_send_velocity_thread {
             panic!("send_velocity called without run_send_velocity_thread being called first");
         }
+
+        // Check that the connection works.
+        // TODO: We use this trick because currently there is no way to tell the
+        // main thread when an error has occurred in send_velocity_thread.
+        get_robot_origin(&self.0.base_url)?;
 
         *self.0.velocity.lock().expect("failed to lock velocity") = velocity.to_owned();
         Ok(())
