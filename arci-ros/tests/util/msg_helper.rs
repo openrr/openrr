@@ -11,6 +11,7 @@ use std::sync::mpsc;
 ///
 /// If subscriber can't be construct, this function is panic.
 ///
+#[allow(dead_code)]
 pub(crate) fn subscribe_helper<T: rosrust::Message>(
     topic_name: &str,
 ) -> (mpsc::Receiver<T>, rosrust::Subscriber) {
