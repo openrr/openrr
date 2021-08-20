@@ -1,6 +1,9 @@
+#[cfg(unix)]
 use arci::gamepad::{Gamepad, GamepadEvent};
+#[cfg(unix)]
 use arci_gamepad_keyboard::*;
 
+#[cfg(unix)]
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
@@ -15,3 +18,6 @@ async fn main() {
         }
     }
 }
+
+#[cfg(windows)]
+fn main() {}
