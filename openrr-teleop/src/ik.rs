@@ -242,15 +242,15 @@ pub struct IkNodeConfig {
     pub step_duration_secs: f64,
 }
 
-pub(crate) const fn default_move_step_angular() -> [f64; 3] {
+const fn default_move_step_angular() -> [f64; 3] {
     [0.05, 0.05, 0.17]
 }
 
-pub(crate) const fn default_move_step_linear() -> [f64; 3] {
+const fn default_move_step_linear() -> [f64; 3] {
     [0.01, 0.01, 0.01]
 }
 
-pub(crate) const fn default_step_duration_secs() -> f64 {
+const fn default_step_duration_secs() -> f64 {
     0.1
 }
 
