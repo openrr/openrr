@@ -4,7 +4,10 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use anyhow::{format_err, Result};
 use arci_gamepad_gilrs::GilGamepad;
-use openrr_apps::{utils::init_tracing, BuiltinGamepad, Error, GamepadKind, RobotTeleopConfig};
+use openrr_apps::{
+    utils::{init_tracing, init_tracing_with_file_appender, LogConfig},
+    BuiltinGamepad, Error, GamepadKind, RobotTeleopConfig,
+};
 use openrr_client::ArcRobotClient;
 use openrr_plugin::PluginProxy;
 use openrr_teleop::ControlNodeSwitcher;
@@ -29,11 +32,13 @@ pub struct RobotTeleopArgs {
     /// Prints the default setting as TOML.
     #[structopt(long)]
     show_default_config: bool,
+    /// Path to log directory for tracing FileAppender.
+    #[structopt(long, parse(from_os_str))]
+    log_directory: Option<PathBuf>,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    init_tracing();
     let args = RobotTeleopArgs::from_args();
 
     if args.show_default_config {
@@ -43,6 +48,20 @@ async fn main() -> Result<()> {
         );
         return Ok(());
     }
+
+    if args.log_directory.is_none() {
+        init_tracing();
+    }
+    #[cfg(not(feature = "ros"))]
+    let _guard = args.log_directory.map(|log_directory| {
+        init_tracing_with_file_appender(
+            LogConfig {
+                directory: log_directory,
+                ..Default::default()
+            },
+            env!("CARGO_BIN_NAME").to_string(),
+        )
+    });
 
     let teleop_config = openrr_apps::utils::resolve_teleop_config(
         args.config_path.as_deref(),
@@ -57,6 +76,20 @@ async fn main() -> Result<()> {
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &robot_config);
     #[cfg(feature = "ros")]
     let use_ros = robot_config.has_ros_clients();
+    #[cfg(feature = "ros")]
+    let _guard = args.log_directory.map(|log_directory| {
+        init_tracing_with_file_appender(
+            LogConfig {
+                directory: log_directory,
+                ..Default::default()
+            },
+            if use_ros {
+                arci_ros::name()
+            } else {
+                env!("CARGO_BIN_NAME").to_string()
+            },
+        )
+    });
     let client: Arc<ArcRobotClient> = Arc::new(robot_config.create_robot_client()?);
 
     let speaker = client.speakers().values().next().unwrap();

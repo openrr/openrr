@@ -266,3 +266,5 @@ rpc
 uri
 codegen
 api
+tempdir
+tempfile
