@@ -1,7 +1,10 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use openrr_apps::{utils::init_tracing, Error, RobotConfig};
+use openrr_apps::{
+    utils::{init_tracing, init_tracing_with_file_appender, LogConfig},
+    Error, RobotConfig,
+};
 use openrr_client::BoxRobotClient;
 use openrr_command::{RobotCommand, RobotCommandExecutor};
 use structopt::StructOpt;
@@ -23,12 +26,28 @@ struct RobotCommandArgs {
     /// Prints the default setting as TOML.
     #[structopt(long)]
     show_default_config: bool,
+    /// Path to log directory for tracing FileAppender.
+    #[structopt(long, parse(from_os_str))]
+    log_directory: Option<PathBuf>,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    init_tracing();
     let args = RobotCommandArgs::from_args();
+    if args.log_directory.is_none() {
+        init_tracing();
+    }
+    #[cfg(not(feature = "ros"))]
+    let _guard = args.log_directory.as_ref().map(|log_directory| {
+        init_tracing_with_file_appender(
+            LogConfig {
+                directory: log_directory.to_path_buf(),
+                ..Default::default()
+            },
+            env!("CARGO_BIN_NAME").to_string(),
+        )
+    });
+
     info!("ParsedArgs {:?}", args);
 
     if args.show_default_config {
@@ -42,6 +61,20 @@ async fn main() -> Result<()> {
         openrr_apps::utils::resolve_robot_config(config_path.as_deref(), args.config.as_deref())?;
 
     openrr_apps::utils::init_with_anonymize(env!("CARGO_BIN_NAME"), &robot_config);
+    #[cfg(feature = "ros")]
+    let _guard = args.log_directory.map(|log_directory| {
+        init_tracing_with_file_appender(
+            LogConfig {
+                directory: log_directory,
+                ..Default::default()
+            },
+            if robot_config.has_ros_clients() {
+                arci_ros::name()
+            } else {
+                env!("CARGO_BIN_NAME").to_string()
+            },
+        )
+    });
     let client: BoxRobotClient = robot_config.create_robot_client()?;
     let executor = RobotCommandExecutor {};
     Ok(executor.execute(&client, &command).await?)

@@ -20,7 +20,7 @@ pub mod ros_transform_resolver;
 pub mod rosrust_utils;
 
 // re-export
-pub use rosrust::{init, is_ok, rate};
+pub use rosrust::{init, is_ok, name, rate};
 
 pub use crate::{
     cmd_vel_move_base::*, error::Error, joy_gamepad::*, ros_control_action_client::*,
