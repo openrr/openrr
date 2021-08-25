@@ -61,11 +61,11 @@ where
         positions: &[N],
         duration: std::time::Duration,
     ) -> Result<()> {
+        let duration_f64 = num_traits::NumCast::from::<f64>(duration.as_secs_f64()).unwrap();
         match interpolate(
             &[current.to_vec(), positions.to_vec()],
-            num_traits::NumCast::from::<f64>(duration.as_secs_f64()).unwrap(),
-            self.time_interpolate_rate
-                .mul(num_traits::NumCast::from::<f64>(duration.as_secs_f64()).unwrap()),
+            duration_f64,
+            self.time_interpolate_rate.mul(duration_f64),
         ) {
             Some(interpolated) => {
                 debug!("interpolated len={}", interpolated.len());
