@@ -15,7 +15,6 @@ pub struct SelfCollisionChecker<N>
 where
     N: RealField + k::SubsetOf<f64>,
 {
-    pub using_joints: k::Chain<N>,
     pub collision_check_robot: Arc<k::Chain<N>>,
     pub collision_detector: CollisionDetector<N>,
     pub collision_pairs: Vec<(String, String)>,
@@ -29,7 +28,6 @@ where
 {
     #[track_caller]
     pub fn new(
-        joint_names: Vec<String>,
         collision_check_robot: Arc<k::Chain<N>>,
         collision_detector: CollisionDetector<N>,
         collision_pairs: Vec<(String, String)>,
@@ -40,14 +38,8 @@ where
             "time_interpolate_rate must be 0.0~1.0 but {}",
             time_interpolate_rate
         );
-        let using_joints = k::Chain::<N>::from_nodes(
-            joint_names
-                .into_iter()
-                .map(|joint_name| collision_check_robot.find(&joint_name).unwrap().clone())
-                .collect(),
-        );
+
         Self {
-            using_joints,
             collision_check_robot,
             collision_detector,
             collision_pairs,
@@ -61,6 +53,21 @@ where
         positions: &[N],
         duration: std::time::Duration,
     ) -> Result<()> {
+        self.check_partial_joint_positions(
+            &self.collision_check_robot,
+            current,
+            positions,
+            duration,
+        )
+    }
+
+    pub fn check_partial_joint_positions(
+        &self,
+        using_joints: &k::Chain<N>,
+        current: &[N],
+        positions: &[N],
+        duration: std::time::Duration,
+    ) -> Result<()> {
         let duration_f64 = num_traits::NumCast::from::<f64>(duration.as_secs_f64()).unwrap();
         match interpolate(
             &[current.to_vec(), positions.to_vec()],
@@ -70,7 +77,7 @@ where
             Some(interpolated) => {
                 debug!("interpolated len={}", interpolated.len());
                 for v in interpolated {
-                    self.using_joints.set_joint_positions_clamped(&v.position);
+                    using_joints.set_joint_positions_clamped(&v.position);
                     self.collision_check_robot.update_transforms();
                     let mut self_checker = self
                         .collision_detector
@@ -97,8 +104,16 @@ where
     }
 
     pub fn check_joint_trajectory(&self, trajectory: &[TrajectoryPoint<N>]) -> Result<()> {
+        self.check_partial_joint_trajectory(&self.collision_check_robot, trajectory)
+    }
+
+    pub fn check_partial_joint_trajectory(
+        &self,
+        using_joints: &k::Chain<N>,
+        trajectory: &[TrajectoryPoint<N>],
+    ) -> Result<()> {
         for v in trajectory {
-            self.using_joints.set_joint_positions(&v.position)?;
+            using_joints.set_joint_positions(&v.position)?;
             if let Some(names) = self
                 .collision_detector
                 .check_self(&self.collision_check_robot, &self.collision_pairs)
@@ -143,12 +158,10 @@ impl Default for SelfCollisionCheckerConfig {
 pub fn create_self_collision_checker<P: AsRef<Path>>(
     urdf_path: P,
     self_collision_check_pairs: &[String],
-    joint_names: Vec<String>,
     config: &SelfCollisionCheckerConfig,
     full_chain: Arc<k::Chain<f64>>,
 ) -> SelfCollisionChecker<f64> {
     SelfCollisionChecker::new(
-        joint_names,
         full_chain,
         CollisionDetector::from_urdf_robot(
             &urdf_rs::utils::read_urdf_or_xacro(urdf_path).unwrap(),
@@ -166,12 +179,8 @@ fn test_create_self_collision_checker() {
     let self_collision_checker = create_self_collision_checker(
         "sample.urdf",
         &["root:l_shoulder_roll".into()],
-        robot
-            .iter_joints()
-            .map(|joint| joint.name.clone())
-            .collect(),
         &SelfCollisionCheckerConfig::default(),
-        robot,
+        robot.clone(),
     );
 
     assert!(self_collision_checker
@@ -181,6 +190,26 @@ fn test_create_self_collision_checker() {
         .check_joint_positions(
             &[0.0; 8],
             &[1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            std::time::Duration::new(1, 0),
+        )
+        .is_err());
+
+    let nodes = robot.iter().take(2).map(|node| (*node).clone()).collect();
+    let using_joints = k::Chain::<f64>::from_nodes(nodes);
+
+    assert!(self_collision_checker
+        .check_partial_joint_positions(
+            &using_joints,
+            &[0.0],
+            &[0.0],
+            std::time::Duration::new(1, 0),
+        )
+        .is_ok());
+    assert!(self_collision_checker
+        .check_partial_joint_positions(
+            &using_joints,
+            &[0.0],
+            &[1.57],
             std::time::Duration::new(1, 0),
         )
         .is_err());
