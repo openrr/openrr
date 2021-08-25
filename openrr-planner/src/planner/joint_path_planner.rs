@@ -20,7 +20,7 @@ use na::RealField;
 use ncollide3d::shape::Compound;
 use tracing::*;
 
-use crate::{collision::CollisionChecker, errors::*, funcs::*};
+use crate::{collision::CollisionDetector, errors::*, funcs::*};
 
 /// Collision Avoidance Path Planner
 pub struct JointPathPlanner<N>
@@ -29,8 +29,8 @@ where
 {
     /// Instance of `k::HasLinks` to check the collision
     pub collision_check_robot: k::Chain<N>,
-    /// Collision checker
-    pub collision_checker: CollisionChecker<N>,
+    /// Collision detector
+    pub collision_detector: CollisionDetector<N>,
     /// Unit length for searching
     ///
     /// If the value is large, the path become sparse.
@@ -52,14 +52,14 @@ where
     /// Create `JointPathPlanner`
     pub fn new(
         collision_check_robot: k::Chain<N>,
-        collision_checker: CollisionChecker<N>,
+        collision_detector: CollisionDetector<N>,
         step_length: N,
         max_try: usize,
         num_smoothing: usize,
     ) -> Self {
         JointPathPlanner {
             collision_check_robot,
-            collision_checker,
+            collision_detector,
             step_length,
             max_try,
             num_smoothing,
@@ -88,7 +88,7 @@ where
     pub fn has_any_colliding(&self, objects: &Compound<N>) -> bool {
         for shape in objects.shapes() {
             if self
-                .collision_checker
+                .collision_detector
                 .check_env(&self.collision_check_robot, &*shape.1, &shape.0)
                 .next()
                 .is_some()
@@ -104,7 +104,7 @@ where
         let mut ret = Vec::new();
         for shape in objects.shapes() {
             let mut colliding_names = self
-                .collision_checker
+                .collision_detector
                 .check_env(&self.collision_check_robot, &*shape.1, &shape.0)
                 .collect();
             ret.append(&mut colliding_names);
@@ -125,7 +125,7 @@ where
 
     /// Check if there are any colliding links
     pub fn has_any_colliding_with_self(&self) -> bool {
-        self.collision_checker
+        self.collision_detector
             .check_self(&self.collision_check_robot, &self.self_collision_pairs)
             .next()
             .is_some()
@@ -133,7 +133,7 @@ where
 
     /// Get the names of colliding links
     pub fn colliding_link_names_with_self(&self) -> Vec<(String, String)> {
-        self.collision_checker
+        self.collision_detector
             .check_self(&self.collision_check_robot, &self.self_collision_pairs)
             .collect()
     }
@@ -276,7 +276,7 @@ where
     N: RealField,
 {
     collision_check_robot: k::Chain<N>,
-    collision_checker: CollisionChecker<N>,
+    collision_detector: CollisionDetector<N>,
     step_length: N,
     max_try: usize,
     num_smoothing: usize,
@@ -292,12 +292,12 @@ where
     /// Create from components
     ///
     /// There are also some utility functions to create from urdf
-    pub fn new(urdf_robot: urdf_rs::Robot, collision_checker: CollisionChecker<N>) -> Self {
+    pub fn new(urdf_robot: urdf_rs::Robot, collision_detector: CollisionDetector<N>) -> Self {
         let collision_check_robot = (&urdf_robot).into();
         let urdf_robot = Some(urdf_robot);
         JointPathPlannerBuilder {
             collision_check_robot,
-            collision_checker,
+            collision_detector,
             step_length: na::convert(0.1),
             max_try: 5000,
             num_smoothing: 100,
@@ -334,11 +334,11 @@ where
 
     pub fn finalize(mut self) -> JointPathPlanner<N> {
         if let Some(margin) = self.collision_check_margin {
-            self.collision_checker.prediction = margin;
+            self.collision_detector.prediction = margin;
         }
         let mut planner = JointPathPlanner::new(
             self.collision_check_robot,
-            self.collision_checker,
+            self.collision_detector,
             self.step_length,
             self.max_try,
             self.num_smoothing,
@@ -360,33 +360,33 @@ where
     {
         let robot = urdf_rs::utils::read_urdf_or_xacro(file.as_ref())?;
         let default_margin = na::convert(0.0);
-        let collision_checker = CollisionChecker::from_urdf_robot_with_base_dir(
+        let collision_detector = CollisionDetector::from_urdf_robot_with_base_dir(
             &robot,
             file.as_ref().parent(),
             default_margin,
         );
         Ok(get_joint_path_planner_builder_from_urdf(
             robot,
-            collision_checker,
+            collision_detector,
         ))
     }
 
     /// Try to create `JointPathPlannerBuilder` instance from `urdf_rs::Robot` instance
     pub fn from_urdf_robot<P>(robot: urdf_rs::Robot) -> JointPathPlannerBuilder<N> {
         let default_margin = na::convert(0.0);
-        let collision_checker = CollisionChecker::from_urdf_robot(&robot, default_margin);
-        get_joint_path_planner_builder_from_urdf(robot, collision_checker)
+        let collision_detector = CollisionDetector::from_urdf_robot(&robot, default_margin);
+        get_joint_path_planner_builder_from_urdf(robot, collision_detector)
     }
 }
 
 fn get_joint_path_planner_builder_from_urdf<N>(
     urdf_robot: urdf_rs::Robot,
-    collision_checker: CollisionChecker<N>,
+    collision_detector: CollisionDetector<N>,
 ) -> JointPathPlannerBuilder<N>
 where
     N: RealField + k::SubsetOf<f64> + num_traits::Float,
 {
-    JointPathPlannerBuilder::new(urdf_robot, collision_checker)
+    JointPathPlannerBuilder::new(urdf_robot, collision_detector)
 }
 
 #[cfg(test)]
@@ -399,14 +399,14 @@ mod tests {
     #[test]
     fn collision_check() {
         let urdf_robot = urdf_rs::read_file("sample.urdf").unwrap();
-        let checker = CollisionChecker::from_urdf_robot(&urdf_robot, 0.01);
+        let detector = CollisionDetector::from_urdf_robot(&urdf_robot, 0.01);
 
         let target = Cuboid::new(Vector3::new(0.5, 1.0, 0.5));
         let target_pose = Isometry3::new(Vector3::new(0.9, 0.0, 0.0), na::zero());
 
         let robot = k::Chain::<f32>::from(&urdf_robot);
 
-        let names: Vec<String> = checker.check_env(&robot, &target, &target_pose).collect();
+        let names: Vec<String> = detector.check_env(&robot, &target, &target_pose).collect();
         assert_eq!(
             names,
             vec![
@@ -419,7 +419,7 @@ mod tests {
         );
         let angles = vec![-1.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
         robot.set_joint_positions(&angles).unwrap();
-        let names: Vec<String> = checker.check_env(&robot, &target, &target_pose).collect();
+        let names: Vec<String> = detector.check_env(&robot, &target, &target_pose).collect();
         assert_eq!(
             names,
             vec![
@@ -430,7 +430,7 @@ mod tests {
             ]
         );
         let target_pose = Isometry3::new(Vector3::new(0.7, 0.0, 0.0), na::zero());
-        let names: Vec<String> = checker.check_env(&robot, &target, &target_pose).collect();
+        let names: Vec<String> = detector.check_env(&robot, &target, &target_pose).collect();
         assert_eq!(
             names,
             vec![

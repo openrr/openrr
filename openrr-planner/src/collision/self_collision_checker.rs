@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::{
-    collision::parse_colon_separated_pairs, errors::*, interpolate, CollisionChecker,
+    collision::parse_colon_separated_pairs, errors::*, interpolate, CollisionDetector,
     TrajectoryPoint,
 };
 
@@ -17,7 +17,7 @@ where
 {
     pub using_joints: k::Chain<N>,
     pub collision_check_robot: Arc<k::Chain<N>>,
-    pub collision_checker: CollisionChecker<N>,
+    pub collision_detector: CollisionDetector<N>,
     pub collision_pairs: Vec<(String, String)>,
 
     pub time_interpolate_rate: N,
@@ -31,7 +31,7 @@ where
     pub fn new(
         joint_names: Vec<String>,
         collision_check_robot: Arc<k::Chain<N>>,
-        collision_checker: CollisionChecker<N>,
+        collision_detector: CollisionDetector<N>,
         collision_pairs: Vec<(String, String)>,
         time_interpolate_rate: N,
     ) -> Self {
@@ -49,7 +49,7 @@ where
         Self {
             using_joints,
             collision_check_robot,
-            collision_checker,
+            collision_detector,
             collision_pairs,
             time_interpolate_rate,
         }
@@ -73,7 +73,7 @@ where
                     self.using_joints.set_joint_positions_clamped(&v.position);
                     self.collision_check_robot.update_transforms();
                     let mut self_checker = self
-                        .collision_checker
+                        .collision_detector
                         .check_self(&self.collision_check_robot, &self.collision_pairs);
                     if let Some(names) = self_checker.next() {
                         return Err(Error::Collision {
@@ -100,7 +100,7 @@ where
         for v in trajectory {
             self.using_joints.set_joint_positions(&v.position)?;
             if let Some(names) = self
-                .collision_checker
+                .collision_detector
                 .check_self(&self.collision_check_robot, &self.collision_pairs)
                 .next()
             {
@@ -150,7 +150,7 @@ pub fn create_self_collision_checker<P: AsRef<Path>>(
     SelfCollisionChecker::new(
         joint_names,
         full_chain,
-        CollisionChecker::from_urdf_robot(
+        CollisionDetector::from_urdf_robot(
             &urdf_rs::utils::read_urdf_or_xacro(urdf_path).unwrap(),
             config.prediction,
         ),

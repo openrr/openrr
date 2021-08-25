@@ -266,7 +266,7 @@ impl CollisionAvoidApp {
                             let pairs: Vec<_> = self
                                 .planner
                                 .path_planner
-                                .collision_checker
+                                .collision_detector
                                 .check_self(
                                     &self.planner.path_planner.collision_check_robot,
                                     &self.self_collision_pairs,

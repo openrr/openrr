@@ -37,7 +37,7 @@ pub struct EnvCollisionNames<'a, 'b, T>
 where
     T: RealField,
 {
-    checker: &'a CollisionChecker<T>,
+    detector: &'a CollisionDetector<T>,
     target_shape: &'b dyn Shape<T>,
     target_pose: &'b na::Isometry3<T>,
     joints: Vec<&'b k::Node<T>>,
@@ -49,7 +49,7 @@ where
     T: RealField + k::SubsetOf<f64>,
 {
     pub fn new(
-        checker: &'a CollisionChecker<T>,
+        detector: &'a CollisionDetector<T>,
         robot: &'b k::Chain<T>,
         target_shape: &'b dyn Shape<T>,
         target_pose: &'b na::Isometry3<T>,
@@ -57,7 +57,7 @@ where
         robot.update_transforms();
         let joints = robot.iter().collect();
         Self {
-            checker,
+            detector,
             target_shape,
             target_pose,
             joints,
@@ -80,7 +80,7 @@ where
         self.index += 1;
         let trans = joint.world_transform().unwrap();
         let joint_name = &joint.joint().name;
-        match self.checker.name_collision_model_map.get(joint_name) {
+        match self.detector.name_collision_model_map.get(joint_name) {
             Some(obj_vec) => {
                 for obj in obj_vec {
                     // proximity and prediction does not work for meshes.
@@ -90,7 +90,7 @@ where
                         self.target_pose,
                         self.target_shape,
                     );
-                    if dist < self.checker.prediction {
+                    if dist < self.detector.prediction {
                         debug!("name: {}, dist={}", joint_name, dist);
                         return Some(joint_name.to_owned());
                     }
@@ -104,12 +104,12 @@ where
     }
 }
 
-/// Check collision inside robot links (self collision checker)
+/// Check collision inside robot links
 pub struct SelfCollisionPairs<'a, T>
 where
     T: RealField,
 {
-    checker: &'a CollisionChecker<T>,
+    detector: &'a CollisionDetector<T>,
     collision_check_robot: &'a k::Chain<T>,
     self_collision_pairs: &'a [(String, String)],
     index: usize,
@@ -121,13 +121,13 @@ where
     T: RealField + k::SubsetOf<f64>,
 {
     pub fn new(
-        checker: &'a CollisionChecker<T>,
+        detector: &'a CollisionDetector<T>,
         collision_check_robot: &'a k::Chain<T>,
         self_collision_pairs: &'a [(String, String)],
     ) -> Self {
         collision_check_robot.update_transforms();
         Self {
-            checker,
+            detector,
             collision_check_robot,
             self_collision_pairs,
             index: 0,
@@ -153,8 +153,8 @@ where
         }
         let (j1, j2) = &self.self_collision_pairs[self.index];
         self.index += 1;
-        let obj_vec1_opt = self.checker.name_collision_model_map.get(j1);
-        let obj_vec2_opt = self.checker.name_collision_model_map.get(j2);
+        let obj_vec1_opt = self.detector.name_collision_model_map.get(j1);
+        let obj_vec2_opt = self.detector.name_collision_model_map.get(j2);
         if obj_vec1_opt.is_none() {
             warn!("Collision model {} not found", j1);
             return self.next();
@@ -186,7 +186,7 @@ where
                 let dist =
                     query::distance(&(trans1 * obj1.1), &*obj1.0, &(trans2 * obj2.1), &*obj2.0);
                 debug!("name: {}, name: {} dist={}", j1, j2, dist);
-                if dist < self.checker.prediction {
+                if dist < self.detector.prediction {
                     return Some((j1.to_owned(), j2.to_owned()));
                 }
                 let elapsed = last_time.elapsed();
@@ -206,8 +206,8 @@ where
 }
 
 #[derive(Clone)]
-/// Collision checker for a robot
-pub struct CollisionChecker<T>
+/// Collision detector
+pub struct CollisionDetector<T>
 where
     T: RealField,
 {
@@ -217,25 +217,25 @@ where
     pub self_collision_pairs: Vec<(String, String)>,
 }
 
-impl<T> CollisionChecker<T>
+impl<T> CollisionDetector<T>
 where
     T: RealField + k::SubsetOf<f64>,
 {
-    /// Create CollisionChecker from HashMap
+    /// Create CollisionDetector from HashMap
     pub fn new(name_collision_model_map: NameShapeMap<T>, prediction: T) -> Self {
-        CollisionChecker {
+        CollisionDetector {
             name_collision_model_map,
             prediction,
             self_collision_pairs: Vec::new(),
         }
     }
 
-    /// Create CollisionChecker from urdf_rs::Robot
+    /// Create CollisionDetector from urdf_rs::Robot
     pub fn from_urdf_robot(urdf_robot: &urdf_rs::Robot, prediction: T) -> Self {
         Self::from_urdf_robot_with_base_dir(urdf_robot, None, prediction)
     }
 
-    /// Create CollisionChecker from urdf_rs::Robot with base_dir support
+    /// Create CollisionDetector from urdf_rs::Robot with base_dir support
     ///
     /// base_dir: mesh files are loaded from this dir if the path does not start with "package://"
     pub fn from_urdf_robot_with_base_dir(
@@ -261,7 +261,7 @@ where
                 }
             }
         }
-        CollisionChecker {
+        CollisionDetector {
             name_collision_model_map,
             prediction,
             self_collision_pairs: Vec::new(),
