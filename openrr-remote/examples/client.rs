@@ -4,7 +4,7 @@ use arci::{
     Gamepad, JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker, TransformResolver,
 };
 use openrr_remote::{
-    RemoteGamepadSender, RemoteJointTrajectorySender, RemoteLocalizationSender,
+    RemoteGamepadSender, RemoteJointTrajectoryClientSender, RemoteLocalizationSender,
     RemoteMoveBaseSender, RemoteNavigationSender, RemoteSpeakerSender,
     RemoteTransformResolverSender,
 };
@@ -13,7 +13,7 @@ use openrr_remote::{
 async fn main() -> anyhow::Result<()> {
     const ENDPOINT: &str = "http://[::1]:50051";
 
-    let client = RemoteJointTrajectorySender::connect(ENDPOINT).await?;
+    let client = RemoteJointTrajectoryClientSender::connect(ENDPOINT).await?;
     let speaker = RemoteSpeakerSender::connect(ENDPOINT).await?;
     let base = RemoteMoveBaseSender::connect(ENDPOINT).await?;
     let nav = RemoteNavigationSender::connect(ENDPOINT).await?;

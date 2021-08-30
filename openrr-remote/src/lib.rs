@@ -9,6 +9,9 @@ mod pb {
     include!("generated/arci.rs");
 }
 
+#[path = "gen/impls.rs"]
+mod impls;
+
 use std::{
     convert::TryInto,
     future::Future,
@@ -17,84 +20,9 @@ use std::{
 };
 
 use arci::nalgebra;
-use paste::paste;
-use pb::{
-    gamepad_server, joint_trajectory_client_server as joint_trajectory_server, localization_server,
-    move_base_server, navigation_server, speaker_server, transform_resolver_server,
-};
 use tracing::error;
 
-macro_rules! remote_types {
-    ($trait_name:ident {
-        client: $client_name:ident,
-        server: $server_name:ident $(,)?
-    }) => {
-        #[derive(Debug, Clone)]
-        pub struct $client_name {
-            client: paste!(pb::[<$trait_name:snake _client>]::[<$trait_name Client>]<tonic::transport::Channel>),
-        }
-
-        impl $client_name {
-            /// Attempt to create a new sender by connecting to a given endpoint.
-            pub async fn connect<D>(dst: D) -> Result<Self, arci::Error>
-            where
-                D: TryInto<tonic::transport::Endpoint>,
-                D::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
-            {
-                paste! {
-                    let client = pb::[<$trait_name:snake _client>]::[<$trait_name Client>]::connect(dst)
-                        .await
-                        .map_err(|e| arci::Error::Connection {
-                            message: e.to_string(),
-                        })?;
-                    Ok(Self { client })
-                }
-            }
-
-            /// Create a new sender.
-            pub fn new(channel: tonic::transport::Channel) -> Self {
-                paste! {
-                    Self {
-                        client: pb::[<$trait_name:snake _client>]::[<$trait_name Client>]::new(channel),
-                    }
-                }
-            }
-        }
-
-        #[derive(Debug)]
-        pub struct $server_name<T> {
-            inner: T,
-        }
-
-        impl<T> $server_name<T>
-        where
-            T: arci::$trait_name + 'static,
-        {
-            /// Create a new receiver.
-            pub fn new(inner: T) -> Self {
-                Self { inner }
-            }
-
-            /// Convert this receiver into a tower service.
-            pub fn into_service(self) -> paste!(pb::[<$trait_name:snake _server>]::[<$trait_name Server>]<Self>) {
-                paste! {
-                    pb::[<$trait_name:snake _server>]::[<$trait_name Server>]::new(self)
-                }
-            }
-
-            pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
-                tonic::transport::Server::builder()
-                    .add_service(self.into_service())
-                    .serve(addr)
-                    .await
-                    .map_err(|e| arci::Error::Connection {
-                        message: e.to_string(),
-                    })?;
-                Ok(())
-            }
-        }
-    };
-}
+pub use crate::impls::*;
 
 fn block_in_place<T>(f: impl Future<Output = T>) -> T {
     tokio::task::block_in_place(|| tokio::runtime::Handle::current().block_on(f))
@@ -115,12 +43,7 @@ fn wait_from_handle(
 // =============================================================================
 // arci::JointTrajectoryClient
 
-remote_types!(JointTrajectoryClient {
-    client: RemoteJointTrajectorySender,
-    server: RemoteJointTrajectoryReceiver,
-});
-
-impl arci::JointTrajectoryClient for RemoteJointTrajectorySender {
+impl arci::JointTrajectoryClient for RemoteJointTrajectoryClientSender {
     fn joint_names(&self) -> Vec<String> {
         let mut client = self.client.clone();
         block_in_place(client.joint_names(()))
@@ -169,7 +92,8 @@ impl arci::JointTrajectoryClient for RemoteJointTrajectorySender {
 }
 
 #[tonic::async_trait]
-impl<C> joint_trajectory_server::JointTrajectoryClient for RemoteJointTrajectoryReceiver<C>
+impl<C> pb::joint_trajectory_client_server::JointTrajectoryClient
+    for RemoteJointTrajectoryClientReceiver<C>
 where
     C: arci::JointTrajectoryClient + 'static,
 {
@@ -225,247 +149,7 @@ where
 }
 
 // =============================================================================
-// arci::Speaker
-
-remote_types!(Speaker {
-    client: RemoteSpeakerSender,
-    server: RemoteSpeakerReceiver,
-});
-
-impl arci::Speaker for RemoteSpeakerSender {
-    fn speak(&self, message: &str) -> Result<arci::WaitFuture, arci::Error> {
-        let mut client = self.client.clone();
-        let message = message.to_owned();
-        Ok(wait_from_handle(tokio::spawn(async move {
-            client.speak(message).await
-        })))
-    }
-}
-
-#[tonic::async_trait]
-impl<C> speaker_server::Speaker for RemoteSpeakerReceiver<C>
-where
-    C: arci::Speaker + 'static,
-{
-    async fn speak(
-        &self,
-        request: tonic::Request<prost::alloc::string::String>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        arci::Speaker::speak(&self.inner, &request.into_inner())
-            .map_err(|e| tonic::Status::unknown(e.to_string()))?
-            .await
-            .map_err(|e| tonic::Status::unknown(e.to_string()))?;
-        Ok(tonic::Response::new(()))
-    }
-}
-
-// =============================================================================
-// arci::MoveBase
-
-remote_types!(MoveBase {
-    client: RemoteMoveBaseSender,
-    server: RemoteMoveBaseReceiver,
-});
-
-impl arci::MoveBase for RemoteMoveBaseSender {
-    fn send_velocity(&self, velocity: &arci::BaseVelocity) -> Result<(), arci::Error> {
-        let mut client = self.client.clone();
-        block_in_place(client.send_velocity(pb::BaseVelocity::from(*velocity)))
-            .map_err(|e| arci::Error::Other(e.into()))?;
-        Ok(())
-    }
-
-    fn current_velocity(&self) -> Result<arci::BaseVelocity, arci::Error> {
-        let mut client = self.client.clone();
-        Ok(block_in_place(client.current_velocity(()))
-            .map_err(|e| arci::Error::Other(e.into()))?
-            .into_inner()
-            .into())
-    }
-}
-
-#[tonic::async_trait]
-impl<C> move_base_server::MoveBase for RemoteMoveBaseReceiver<C>
-where
-    C: arci::MoveBase + 'static,
-{
-    async fn send_velocity(
-        &self,
-        request: tonic::Request<pb::BaseVelocity>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        let request = request.into_inner();
-        arci::MoveBase::send_velocity(&self.inner, &request.into())
-            .map_err(|e| tonic::Status::unknown(e.to_string()))?;
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn current_velocity(
-        &self,
-        _: tonic::Request<()>,
-    ) -> Result<tonic::Response<pb::BaseVelocity>, tonic::Status> {
-        let v = arci::MoveBase::current_velocity(&self.inner)
-            .map_err(|e| tonic::Status::unknown(e.to_string()))?
-            .into();
-        Ok(tonic::Response::new(v))
-    }
-}
-
-// =============================================================================
-// arci::Navigation
-
-remote_types!(Navigation {
-    client: RemoteNavigationSender,
-    server: RemoteNavigationReceiver,
-});
-
-impl arci::Navigation for RemoteNavigationSender {
-    fn send_goal_pose(
-        &self,
-        goal: arci::Isometry2<f64>,
-        frame_id: &str,
-        timeout: std::time::Duration,
-    ) -> Result<arci::WaitFuture, arci::Error> {
-        let mut client = self.client.clone();
-        let frame_id = frame_id.to_owned();
-        Ok(wait_from_handle(tokio::spawn(async move {
-            client
-                .send_goal_pose(pb::GoalPoseRequest {
-                    goal: Some(goal.into()),
-                    frame_id,
-                    timeout: Some(timeout.into()),
-                })
-                .await
-        })))
-    }
-
-    fn cancel(&self) -> Result<(), arci::Error> {
-        let mut client = self.client.clone();
-        block_in_place(client.cancel(())).map_err(|e| arci::Error::Other(e.into()))?;
-        Ok(())
-    }
-}
-
-#[tonic::async_trait]
-impl<C> navigation_server::Navigation for RemoteNavigationReceiver<C>
-where
-    C: arci::Navigation + 'static,
-{
-    async fn send_goal_pose(
-        &self,
-        request: tonic::Request<pb::GoalPoseRequest>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        let request = request.into_inner();
-        arci::Navigation::send_goal_pose(
-            &self.inner,
-            request.goal.unwrap().into(),
-            &request.frame_id,
-            request.timeout.unwrap().try_into().unwrap(),
-        )
-        .map_err(|e| tonic::Status::unknown(e.to_string()))?
-        .await
-        .map_err(|e| tonic::Status::unknown(e.to_string()))?;
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn cancel(&self, _: tonic::Request<()>) -> Result<tonic::Response<()>, tonic::Status> {
-        arci::Navigation::cancel(&self.inner).map_err(|e| tonic::Status::unknown(e.to_string()))?;
-        Ok(tonic::Response::new(()))
-    }
-}
-
-// =============================================================================
-// arci::Localization
-
-remote_types!(Localization {
-    client: RemoteLocalizationSender,
-    server: RemoteLocalizationReceiver,
-});
-
-impl arci::Localization for RemoteLocalizationSender {
-    fn current_pose(&self, frame_id: &str) -> Result<arci::Isometry2<f64>, arci::Error> {
-        let mut client = self.client.clone();
-        let frame_id = frame_id.to_owned();
-        Ok(block_in_place(client.current_pose(frame_id))
-            .map_err(|e| arci::Error::Other(e.into()))?
-            .into_inner()
-            .into())
-    }
-}
-
-#[tonic::async_trait]
-impl<C> localization_server::Localization for RemoteLocalizationReceiver<C>
-where
-    C: arci::Localization + 'static,
-{
-    async fn current_pose(
-        &self,
-        request: tonic::Request<String>,
-    ) -> Result<tonic::Response<pb::Isometry2>, tonic::Status> {
-        let p = arci::Localization::current_pose(&self.inner, &request.into_inner())
-            .map_err(|e| tonic::Status::unknown(e.to_string()))?
-            .into();
-        Ok(tonic::Response::new(p))
-    }
-}
-
-// =============================================================================
-// arci::TransformResolver
-
-remote_types!(TransformResolver {
-    client: RemoteTransformResolverSender,
-    server: RemoteTransformResolverReceiver,
-});
-
-impl arci::TransformResolver for RemoteTransformResolverSender {
-    fn resolve_transformation(
-        &self,
-        from: &str,
-        to: &str,
-        time: SystemTime,
-    ) -> Result<arci::Isometry3<f64>, arci::Error> {
-        let mut client = self.client.clone();
-        Ok(block_in_place(
-            client.resolve_transformation(pb::ResolveTransformationRequest {
-                from: from.to_owned(),
-                to: to.to_owned(),
-                time: Some(time.into()),
-            }),
-        )
-        .map_err(|e| arci::Error::Other(e.into()))?
-        .into_inner()
-        .into())
-    }
-}
-
-#[tonic::async_trait]
-impl<C> transform_resolver_server::TransformResolver for RemoteTransformResolverReceiver<C>
-where
-    C: arci::TransformResolver + 'static,
-{
-    async fn resolve_transformation(
-        &self,
-        request: tonic::Request<pb::ResolveTransformationRequest>,
-    ) -> Result<tonic::Response<pb::Isometry3>, tonic::Status> {
-        let request = request.into_inner();
-        let p = arci::TransformResolver::resolve_transformation(
-            &self.inner,
-            &request.from,
-            &request.to,
-            request.time.unwrap().try_into().unwrap(),
-        )
-        .map_err(|e| tonic::Status::unknown(e.to_string()))?
-        .into();
-        Ok(tonic::Response::new(p))
-    }
-}
-
-// =============================================================================
 // arci::Gamepad
-
-remote_types!(Gamepad {
-    client: RemoteGamepadSender,
-    server: RemoteGamepadReceiver,
-});
 
 #[arci::async_trait]
 impl arci::Gamepad for RemoteGamepadSender {
@@ -489,7 +173,7 @@ impl arci::Gamepad for RemoteGamepadSender {
 }
 
 #[tonic::async_trait]
-impl<C> gamepad_server::Gamepad for RemoteGamepadReceiver<C>
+impl<C> pb::gamepad_server::Gamepad for RemoteGamepadReceiver<C>
 where
     C: arci::Gamepad + 'static,
 {
@@ -610,6 +294,26 @@ impl From<pb::Isometry3> for arci::Isometry3<f64> {
                 rotation.w, rotation.x, rotation.y, rotation.z,
             )),
         )
+    }
+}
+
+impl From<(arci::Isometry2<f64>, &str, Duration)> for pb::GoalPoseRequest {
+    fn from((goal, frame_id, timeout): (arci::Isometry2<f64>, &str, Duration)) -> Self {
+        Self {
+            goal: Some(goal.into()),
+            frame_id: frame_id.into(),
+            timeout: Some(timeout.into()),
+        }
+    }
+}
+
+impl From<(&str, &str, SystemTime)> for pb::ResolveTransformationRequest {
+    fn from((from, to, time): (&str, &str, SystemTime)) -> Self {
+        Self {
+            from: from.into(),
+            to: to.into(),
+            time: Some(time.into()),
+        }
     }
 }
 

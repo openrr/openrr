@@ -15,7 +15,6 @@ tonic-build = "0.5"
 
 [dependencies]
 arci = "0.0.6"
-paste = "1"
 prost = "0.8"
 prost-types = "0.8"
 tokio = { version = "1", features = ["rt-multi-thread"] }

@@ -16,8 +16,8 @@ use arci::{
 };
 use assert_approx_eq::assert_approx_eq;
 use openrr_remote::{
-    RemoteGamepadReceiver, RemoteGamepadSender, RemoteJointTrajectoryReceiver,
-    RemoteJointTrajectorySender, RemoteLocalizationReceiver, RemoteLocalizationSender,
+    RemoteGamepadReceiver, RemoteGamepadSender, RemoteJointTrajectoryClientReceiver,
+    RemoteJointTrajectoryClientSender, RemoteLocalizationReceiver, RemoteLocalizationSender,
     RemoteMoveBaseReceiver, RemoteMoveBaseSender, RemoteNavigationReceiver, RemoteNavigationSender,
     RemoteSpeakerReceiver, RemoteSpeakerSender, RemoteTransformResolverReceiver,
     RemoteTransformResolverSender,
@@ -35,14 +35,15 @@ async fn joint_trajectory_client() -> Result<()> {
 
     // Launch server
     {
-        let client = RemoteJointTrajectoryReceiver::new(DummyJointTrajectoryClient::new(vec![
-            "a".to_owned()
-        ]));
+        let client =
+            RemoteJointTrajectoryClientReceiver::new(DummyJointTrajectoryClient::new(vec![
+                "a".to_owned()
+            ]));
         tokio::spawn(client.serve(addr));
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
 
-    let client = RemoteJointTrajectorySender::connect(endpoint).await?;
+    let client = RemoteJointTrajectoryClientSender::connect(endpoint).await?;
     assert_eq!(client.joint_names(), vec!["a".to_owned()]);
     assert_eq!(client.current_joint_positions()?, vec![0.0]);
     client
@@ -245,9 +246,10 @@ async fn multiple() -> Result<()> {
     let recv_gamepad = Arc::new(DummyGamepad::with_all_events());
     // Launch server
     {
-        let client = RemoteJointTrajectoryReceiver::new(DummyJointTrajectoryClient::new(vec![
-            "a".to_owned()
-        ]));
+        let client =
+            RemoteJointTrajectoryClientReceiver::new(DummyJointTrajectoryClient::new(vec![
+                "a".to_owned()
+            ]));
         let speaker = RemoteSpeakerReceiver::new(recv_speaker.clone());
         let base = RemoteMoveBaseReceiver::new(DummyMoveBase::new());
         let nav = RemoteNavigationReceiver::new(recv_nav.clone());
@@ -268,7 +270,7 @@ async fn multiple() -> Result<()> {
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
 
-    let client = RemoteJointTrajectorySender::connect(endpoint.clone()).await?;
+    let client = RemoteJointTrajectoryClientSender::connect(endpoint.clone()).await?;
     let speaker = RemoteSpeakerSender::connect(endpoint.clone()).await?;
     let base = RemoteMoveBaseSender::connect(endpoint.clone()).await?;
     let nav = RemoteNavigationSender::connect(endpoint.clone()).await?;
