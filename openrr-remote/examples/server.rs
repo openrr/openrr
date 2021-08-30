@@ -1,5 +1,5 @@
 use openrr_remote::{
-    RemoteGamepadReceiver, RemoteJointTrajectoryReceiver, RemoteLocalizationReceiver,
+    RemoteGamepadReceiver, RemoteJointTrajectoryClientReceiver, RemoteLocalizationReceiver,
     RemoteMoveBaseReceiver, RemoteNavigationReceiver, RemoteSpeakerReceiver,
     RemoteTransformResolverReceiver,
 };
@@ -147,7 +147,7 @@ async fn main() -> anyhow::Result<()> {
     let addr = "[::1]:50051".parse()?;
     println!("Server listening on {}", addr);
 
-    let client = RemoteJointTrajectoryReceiver::new(DebugJointTrajectoryClient::default());
+    let client = RemoteJointTrajectoryClientReceiver::new(DebugJointTrajectoryClient::default());
     let speaker = RemoteSpeakerReceiver::new(DebugSpeaker::default());
     let base = RemoteMoveBaseReceiver::new(DebugMoveBase::default());
     let nav = RemoteNavigationReceiver::new(DebugNavigation::default());
