@@ -71,7 +71,7 @@ General CLI to access `arci` robot clients. It supports not only sending joint t
 
 To format use nightly rustfmt,
 
-```rust
+```bash
 cargo +nightly fmt
 ```
 

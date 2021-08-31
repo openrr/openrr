@@ -13,8 +13,10 @@ This starts as a copy of [`gear`](https://github.com/openrr/gear) crate.
 
 ### [minimum code example](examples/minimum.rs)
 
-```rust
-use nalgebra as na;
+```rust,no_run
+use k::nalgebra as na;
+use ncollide3d::shape::Compound;
+use openrr_planner::FromUrdf;
 
 fn main() {
     // Create path planner with loading urdf file and set end link name
@@ -23,35 +25,28 @@ fn main() {
         .collision_check_margin(0.01)
         .finalize();
     // Create inverse kinematics solver
-    let solver = openrr_planner::JacobianIkSolverBuilder::<f64>::new()
-        .num_max_try(1000)
-        .allowable_target_distance(0.01)
-        .move_epsilon(0.0001)
-        .finalize();
-    let solver = openrr_planner::RandomInitializeIKSolver::new(solver, 100);
+    let solver = openrr_planner::JacobianIkSolver::default();
+    let solver = openrr_planner::RandomInitializeIkSolver::new(solver, 100);
     // Create path planner with IK solver
-    let mut planner = openrr_planner::JointPathPlannerWithIK::new(planner, solver);
-    // Create kinematic chain from the end of the link
-    let mut arm = planner.create_arm("l_wrist2").unwrap();
-
+    let mut planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);
+    let target_name = "l_tool_fixed";
     // Create obstacles
-    let obstacles =
-        openrr_planner::create_compound_from_urdf("obstacles.urdf").expect("obstacle file not found");
+    let obstacles = Compound::from_urdf_file("obstacles.urdf").expect("obstacle file not found");
 
     // Set IK target transformation
     let mut ik_target_pose = na::Isometry3::from_parts(
         na::Translation3::new(0.40, 0.20, 0.3),
         na::UnitQuaternion::from_euler_angles(0.0, -0.1, 0.0),
     );
-    // Plan the path, path is the vector of joint angles for root to "l_wrist2"
+    // Plan the path, path is the vector of joint angles for root to target_name
     let plan1 = planner
-        .plan_with_ik(&mut arm, &ik_target_pose, &obstacles)
+        .plan_with_ik(target_name, &ik_target_pose, &obstacles)
         .unwrap();
     println!("plan1 = {:?}", plan1);
     ik_target_pose.translation.vector[2] += 0.50;
     // plan the path from previous result
     let plan2 = planner
-        .plan_with_ik(&mut arm, &ik_target_pose, &obstacles)
+        .plan_with_ik(target_name, &ik_target_pose, &obstacles)
         .unwrap();
     println!("plan2 = {:?}", plan2);
 }

@@ -1,42 +1,4 @@
-//! [`arci::Gamepad`] implementation for keyboard.
-//!
-//! Currently, this crate only supports Unix-like operating systems.
-//!
-//! # Key mappings
-//!
-//! ```text
-//! LeftStick:
-//!    q    w    e
-//!    a    s    d
-//!    z    x    c
-//!
-//! RightStick:
-//!    u    i    o
-//!    j    k    l
-//!    m    ,    .
-//!
-//! 5 : ^ (DPadUp)
-//! r : < (DPadLeft)
-//! t : > (DPadRight)
-//! f : v (DPadDown)
-//!
-//! y : △ (North)
-//! g : □ (West)
-//! h : ○ (East)
-//! b : x (South)
-//!
-//! 1 : L1 (LeftTrigger)
-//! 2 : L2 (LeftTrigger2)
-//! 3 : L3 (LeftThumb)
-//!
-//! 8 : R1 (RightTrigger)
-//! 9 : R2 (RightTrigger2)
-//! 0 : R3 (RightThumb)
-//!
-//! 6 : Select
-//! 7 : Start
-//! ```
-
+#![doc = include_str!("../README.md")]
 #![cfg(unix)]
 #![warn(missing_docs, rust_2018_idioms)]
 // This lint is unable to correctly determine if an atomic is sufficient to replace the mutex use.
