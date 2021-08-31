@@ -13,12 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-//! # Motion Planning Library for Robotics
-//!
-//! Get the collision free trajectory of joint angles. `ncollide3d` is used to check the
-//! collision between the robot and the environment.
-//!
 
+#![doc = include_str!("../README.md")]
 #![warn(rust_2018_idioms)]
 // This lint is unable to correctly determine if an atomic is sufficient to replace the mutex use.
 // https://github.com/rust-lang/rust-clippy/issues/4295

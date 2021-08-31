@@ -1,4 +1,4 @@
-//! [`arci`] implementation using ROS2.
+#![doc = include_str!("../README.md")]
 #![warn(rust_2018_idioms)]
 #![cfg(feature = "ros2")]
 #![warn(
