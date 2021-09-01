@@ -89,7 +89,7 @@ where
         for shape in objects.shapes() {
             if self
                 .collision_detector
-                .check_env(&self.collision_check_robot, &*shape.1, &shape.0)
+                .detect_env(&self.collision_check_robot, &*shape.1, &shape.0)
                 .next()
                 .is_some()
             {
@@ -105,7 +105,7 @@ where
         for shape in objects.shapes() {
             let mut colliding_names = self
                 .collision_detector
-                .check_env(&self.collision_check_robot, &*shape.1, &shape.0)
+                .detect_env(&self.collision_check_robot, &*shape.1, &shape.0)
                 .collect();
             ret.append(&mut colliding_names);
         }
@@ -126,7 +126,7 @@ where
     /// Check if there are any colliding links
     pub fn has_any_colliding_with_self(&self) -> bool {
         self.collision_detector
-            .check_self(&self.collision_check_robot, &self.self_collision_pairs)
+            .detect_self(&self.collision_check_robot, &self.self_collision_pairs)
             .next()
             .is_some()
     }
@@ -134,7 +134,7 @@ where
     /// Get the names of colliding links
     pub fn colliding_link_names_with_self(&self) -> Vec<(String, String)> {
         self.collision_detector
-            .check_self(&self.collision_check_robot, &self.self_collision_pairs)
+            .detect_self(&self.collision_check_robot, &self.self_collision_pairs)
             .collect()
     }
 
@@ -406,7 +406,7 @@ mod tests {
 
         let robot = k::Chain::<f32>::from(&urdf_robot);
 
-        let names: Vec<String> = detector.check_env(&robot, &target, &target_pose).collect();
+        let names: Vec<String> = detector.detect_env(&robot, &target, &target_pose).collect();
         assert_eq!(
             names,
             vec![
@@ -419,7 +419,7 @@ mod tests {
         );
         let angles = vec![-1.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
         robot.set_joint_positions(&angles).unwrap();
-        let names: Vec<String> = detector.check_env(&robot, &target, &target_pose).collect();
+        let names: Vec<String> = detector.detect_env(&robot, &target, &target_pose).collect();
         assert_eq!(
             names,
             vec![
@@ -430,7 +430,7 @@ mod tests {
             ]
         );
         let target_pose = Isometry3::new(Vector3::new(0.7, 0.0, 0.0), na::zero());
-        let names: Vec<String> = detector.check_env(&robot, &target, &target_pose).collect();
+        let names: Vec<String> = detector.detect_env(&robot, &target, &target_pose).collect();
         assert_eq!(
             names,
             vec![

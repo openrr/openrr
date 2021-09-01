@@ -267,7 +267,7 @@ impl CollisionAvoidApp {
                                 .planner
                                 .path_planner
                                 .collision_detector
-                                .check_self(
+                                .detect_self(
                                     &self.planner.path_planner.collision_check_robot,
                                     &self.self_collision_pairs,
                                 )

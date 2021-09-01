@@ -32,7 +32,7 @@ use crate::errors::*;
 
 type NameShapeMap<T> = HashMap<String, Vec<(ShapeHandle<T>, na::Isometry3<T>)>>;
 
-/// Check collision between robot and object
+/// Lists collisions between a robot and an object
 pub struct EnvCollisionNames<'a, 'b, T>
 where
     T: RealField,
@@ -104,13 +104,13 @@ where
     }
 }
 
-/// Check collision inside robot links
+/// Lists collisions inside robot links
 pub struct SelfCollisionPairs<'a, T>
 where
     T: RealField,
 {
     detector: &'a CollisionDetector<T>,
-    collision_check_robot: &'a k::Chain<T>,
+    robot: &'a k::Chain<T>,
     self_collision_pairs: &'a [(String, String)],
     index: usize,
     used_duration: HashMap<String, Duration>,
@@ -122,13 +122,13 @@ where
 {
     pub fn new(
         detector: &'a CollisionDetector<T>,
-        collision_check_robot: &'a k::Chain<T>,
+        robot: &'a k::Chain<T>,
         self_collision_pairs: &'a [(String, String)],
     ) -> Self {
-        collision_check_robot.update_transforms();
+        robot.update_transforms();
         Self {
             detector,
-            collision_check_robot,
+            robot,
             self_collision_pairs,
             index: 0,
             used_duration: HashMap::new(),
@@ -163,8 +163,8 @@ where
             warn!("Collision model {} not found", j2);
             return self.next();
         }
-        let node1_opt = self.collision_check_robot.find(j1);
-        let node2_opt = self.collision_check_robot.find(j2);
+        let node1_opt = self.robot.find(j1);
+        let node2_opt = self.robot.find(j2);
         if node1_opt.is_none() {
             warn!("self_colliding: joint {} not found", j1);
             return self.next();
@@ -212,7 +212,7 @@ where
     T: RealField,
 {
     name_collision_model_map: NameShapeMap<T>,
-    /// margin length for collision check
+    /// margin length for collision detection
     pub prediction: T,
     pub self_collision_pairs: Vec<(String, String)>,
 }
@@ -268,12 +268,12 @@ where
         }
     }
 
-    /// Check collision between environmental object and returns the names of the link(joint) names
+    /// Detects collisions of a robot with an environmental object and returns the names of the link(joint) names
     ///
     /// robot: robot model
-    /// target_shape: Check collision with this shape and the robot
-    /// target_pose: Check collision with this shape in this pose and the robot
-    pub fn check_env<'a>(
+    /// target_shape: shape of the environmental object
+    /// target_pose: pose of the environmental object
+    pub fn detect_env<'a>(
         &'a self,
         robot: &'a k::Chain<T>,
         target_shape: &'a dyn Shape<T>,
@@ -283,17 +283,17 @@ where
         EnvCollisionNames::new(self, robot, target_shape, target_pose)
     }
 
-    /// Check self collision and return the names of the link(joint) names
+    /// Detects self collisions and returns the names of the link(joint) names
     ///
     /// robot: robot model
     /// self_collision_pairs: pairs of the names of the link(joint)
-    pub fn check_self<'a>(
+    pub fn detect_self<'a>(
         &'a self,
-        collision_check_robot: &'a k::Chain<T>,
+        robot: &'a k::Chain<T>,
         self_collision_pairs: &'a [(String, String)],
     ) -> SelfCollisionPairs<'a, T> {
-        collision_check_robot.update_transforms();
-        SelfCollisionPairs::new(self, collision_check_robot, self_collision_pairs)
+        robot.update_transforms();
+        SelfCollisionPairs::new(self, robot, self_collision_pairs)
     }
 }
 
