@@ -81,7 +81,7 @@ where
                     self.collision_check_robot.update_transforms();
                     let mut self_checker = self
                         .collision_detector
-                        .check_self(&self.collision_check_robot, &self.collision_pairs);
+                        .detect_self(&self.collision_check_robot, &self.collision_pairs);
                     if let Some(names) = self_checker.next() {
                         return Err(Error::Collision {
                             point: UnfeasibleTrajectory::StartPoint,
@@ -116,7 +116,7 @@ where
             using_joints.set_joint_positions(&v.position)?;
             if let Some(names) = self
                 .collision_detector
-                .check_self(&self.collision_check_robot, &self.collision_pairs)
+                .detect_self(&self.collision_check_robot, &self.collision_pairs)
                 .next()
             {
                 return Err(Error::Collision {
