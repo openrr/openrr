@@ -214,7 +214,6 @@ where
     name_collision_model_map: NameShapeMap<T>,
     /// margin length for collision detection
     pub prediction: T,
-    pub self_collision_pairs: Vec<(String, String)>,
 }
 
 impl<T> CollisionDetector<T>
@@ -226,7 +225,6 @@ where
         CollisionDetector {
             name_collision_model_map,
             prediction,
-            self_collision_pairs: Vec::new(),
         }
     }
 
@@ -264,7 +262,6 @@ where
         CollisionDetector {
             name_collision_model_map,
             prediction,
-            self_collision_pairs: Vec::new(),
         }
     }
 
