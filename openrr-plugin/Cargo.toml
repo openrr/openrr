@@ -11,7 +11,7 @@ repository = "https://github.com/openrr/openrr"
 documentation = "https://docs.rs/openrr-plugin"
 
 [dependencies]
-abi_stable = "0.9.3"
+abi_stable = "0.10.1"
 anyhow = "1"
 arci = "0.0.6"
 num-traits = "0.2"
