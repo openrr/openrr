@@ -9,7 +9,7 @@ use std::{convert::TryFrom, future::Future, sync::Arc, time::SystemTime};
 
 use abi_stable::{
     declare_root_module_statics,
-    erased_types::TU_Opaque,
+    erased_types::TD_Opaque,
     library::RootModule,
     package_version_strings,
     prefix_type::PrefixTypeTrait,
@@ -324,7 +324,7 @@ pub(crate) struct RBlockingWait(RBoxWait);
 
 impl RBlockingWait {
     fn from_fn(f: impl FnOnce() -> RResult<()> + Send + 'static) -> Self {
-        Self(RBoxWait::from_value(f, TU_Opaque))
+        Self(RBoxWait::from_value(f, TD_Opaque))
     }
 }
 

@@ -14,7 +14,7 @@ documentation = "https://docs.rs/arci-ros2"
 crate-type = ["lib", "staticlib", "cdylib"]
 
 [dependencies]
-abi_stable = "0.9"
+abi_stable = "0.10"
 anyhow = "1.0"
 arci = "0.0.6"
 once_cell = "1"
