@@ -13,83 +13,35 @@ use super::control_node::ControlNode;
 const AXIS_GAIN: f64 = 2.0;
 const JOINT_POSITION_TURBO_GAIN: f64 = 2.0;
 
-pub struct JoyJointTeleopNode<J, S>
-where
-    J: JointTrajectoryClient,
-    S: Speaker,
-{
-    joint_trajectory_client: J,
-    speaker: S,
-    mode: String,
+struct JoyJointTeleopNodeInner {
     submode: String,
-    joint_step: f64,
     velocity: f64,
     dof: usize,
-    step_duration: Duration,
     joint_index: usize,
+    joint_step: f64,
     is_turbo: bool,
     is_sending: bool,
 }
 
-impl<J, S> JoyJointTeleopNode<J, S>
-where
-    J: JointTrajectoryClient,
-    S: Speaker,
-{
-    pub fn new(
-        mode: String,
-        joint_trajectory_client: J,
-        joint_step: f64,
-        step_duration: Duration,
-        speaker: S,
-    ) -> Self {
-        let dof = joint_trajectory_client.joint_names().len();
+impl JoyJointTeleopNodeInner {
+    fn new(joint_step: f64, dof: usize) -> Self {
         Self {
-            joint_trajectory_client,
-            speaker,
-            mode,
             dof,
             submode: "0".to_string(),
-            joint_step,
             velocity: 0.0,
-            step_duration,
             joint_index: 0,
+            joint_step,
             is_turbo: false,
             is_sending: false,
         }
     }
 
-    pub fn new_from_config(
-        config: JoyJointTeleopNodeConfig,
-        joint_trajectory_client: J,
-        speaker: S,
-    ) -> Self {
-        Self::new(
-            config.mode,
-            joint_trajectory_client,
-            config.joint_step,
-            Duration::from_secs_f64(config.step_duration_secs),
-            speaker,
-        )
-    }
-}
-
-#[async_trait]
-impl<N, S> ControlNode for JoyJointTeleopNode<N, S>
-where
-    N: JointTrajectoryClient,
-    S: Speaker,
-{
-    fn set_event(&mut self, event: GamepadEvent) {
+    fn set_event(&mut self, event: GamepadEvent) -> Option<&str> {
         match event {
             GamepadEvent::ButtonPressed(Button::East) => {
                 self.joint_index = (self.joint_index + 1) % self.dof;
                 self.submode = format!("{}", self.joint_index);
-                // do not wait
-                let _ = self
-                    .speaker
-                    .speak(&format!("{}{}", self.mode, self.submode()))
-                    .unwrap();
+                return Some(&self.submode);
             }
             GamepadEvent::ButtonPressed(Button::LeftTrigger2) => {
                 self.is_turbo = true;
@@ -126,20 +78,92 @@ where
             }
             _ => {}
         }
+        None
+    }
+
+    fn get_target_positions(&self, mut current_positions: Vec<f64>) -> Vec<f64> {
+        current_positions[self.joint_index] += self.velocity
+            * if self.is_turbo {
+                JOINT_POSITION_TURBO_GAIN
+            } else {
+                1.0
+            };
+        current_positions
+    }
+}
+
+pub struct JoyJointTeleopNode<J, S>
+where
+    J: JointTrajectoryClient,
+    S: Speaker,
+{
+    joint_trajectory_client: J,
+    speaker: S,
+    mode: String,
+    step_duration: Duration,
+    inner: JoyJointTeleopNodeInner,
+}
+
+impl<J, S> JoyJointTeleopNode<J, S>
+where
+    J: JointTrajectoryClient,
+    S: Speaker,
+{
+    pub fn new(
+        mode: String,
+        joint_trajectory_client: J,
+        joint_step: f64,
+        step_duration: Duration,
+        speaker: S,
+    ) -> Self {
+        let dof = joint_trajectory_client.joint_names().len();
+        Self {
+            joint_trajectory_client,
+            speaker,
+            mode,
+            step_duration,
+            inner: JoyJointTeleopNodeInner::new(joint_step, dof),
+        }
+    }
+
+    pub fn new_from_config(
+        config: JoyJointTeleopNodeConfig,
+        joint_trajectory_client: J,
+        speaker: S,
+    ) -> Self {
+        Self::new(
+            config.mode,
+            joint_trajectory_client,
+            config.joint_step,
+            Duration::from_secs_f64(config.step_duration_secs),
+            speaker,
+        )
+    }
+}
+
+#[async_trait]
+impl<N, S> ControlNode for JoyJointTeleopNode<N, S>
+where
+    N: JointTrajectoryClient,
+    S: Speaker,
+{
+    fn set_event(&mut self, event: GamepadEvent) {
+        if let Some(submode) = self.inner.set_event(event) {
+            // do not wait
+            let _ = self
+                .speaker
+                .speak(&format!("{}{}", self.mode, submode))
+                .unwrap();
+        }
     }
 
     async fn proc(&self) {
-        if self.is_sending {
-            let mut pos = self
+        if self.inner.is_sending {
+            let pos = self
                 .joint_trajectory_client
                 .current_joint_positions()
                 .unwrap();
-            pos[self.joint_index] += self.velocity
-                * if self.is_turbo {
-                    JOINT_POSITION_TURBO_GAIN
-                } else {
-                    1.0
-                };
+            let pos = self.inner.get_target_positions(pos);
             // do not wait
             let _ = self
                 .joint_trajectory_client
@@ -153,7 +177,7 @@ where
     }
 
     fn submode(&self) -> &str {
-        &self.submode
+        &self.inner.submode
     }
 }
 
