@@ -34,7 +34,7 @@ impl TransformResolver for RosTransformResolver {
         let mut last_error = None;
         for i in 0..=self.max_retry {
             if i != 0 {
-                warn!(
+                debug!(
                     "Retrying {} -> {} ({} / {}) ...",
                     from, to, i, self.max_retry
                 );
@@ -60,7 +60,10 @@ impl TransformResolver for RosTransformResolver {
             rate.sleep();
         }
         match last_error {
-            Some(e) => Err(anyhow::anyhow!("{:?}", e).into()),
+            Some(e) => {
+                warn!("{:?}", e);
+                Err(anyhow::anyhow!("{:?}", e).into())
+            }
             None => Err(anyhow::anyhow!("Broken Logic").into()),
         }
     }
