@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, sync::Mutex, time::Duration};
 
 use arci::{
     gamepad::{Button, GamepadEvent},
@@ -33,7 +33,7 @@ impl JointsPoseSenderInner {
         }
     }
 
-    fn set_event(&mut self, event: arci::gamepad::GamepadEvent) -> Option<&str> {
+    fn handle_event(&mut self, event: arci::gamepad::GamepadEvent) -> Option<&str> {
         match event {
             GamepadEvent::ButtonPressed(Button::East) => {
                 self.pose_index = (self.pose_index + 1) % self.joints_poses.len();
@@ -80,7 +80,7 @@ where
     joint_trajectory_clients: HashMap<String, J>,
     speaker: S,
     duration: Duration,
-    inner: JointsPoseSenderInner,
+    inner: Mutex<JointsPoseSenderInner>,
 }
 
 impl<S, J> JointsPoseSender<S, J>
@@ -100,7 +100,7 @@ where
             joint_trajectory_clients,
             speaker,
             duration,
-            inner: JointsPoseSenderInner::new(joints_poses),
+            inner: Mutex::new(JointsPoseSenderInner::new(joints_poses)),
         }
     }
 
@@ -126,8 +126,8 @@ where
     S: Speaker,
     J: JointTrajectoryClient,
 {
-    fn set_event(&mut self, event: arci::gamepad::GamepadEvent) {
-        if let Some(submode) = self.inner.set_event(event) {
+    fn handle_event(&self, event: arci::gamepad::GamepadEvent) {
+        if let Some(submode) = self.inner.lock().unwrap().handle_event(event) {
             // do not wait
             let _ = self
                 .speaker
@@ -137,23 +137,27 @@ where
     }
 
     async fn proc(&self) {
-        let (name, target) = self.inner.get_target_name_positions();
+        let inner = self.inner.lock().unwrap();
+        let (name, target) = inner.get_target_name_positions();
         let client = self.joint_trajectory_clients.get(&name).unwrap();
-        if self.inner.is_sending && self.inner.is_trigger_holding {
-            let _ = client.send_joint_positions(target, self.duration).unwrap();
-        } else {
-            let _ = client
-                .send_joint_positions(client.current_joint_positions().unwrap(), self.duration)
-                .unwrap();
-        }
+        let _ = client
+            .send_joint_positions(
+                if inner.is_sending && inner.is_trigger_holding {
+                    target
+                } else {
+                    client.current_joint_positions().unwrap()
+                },
+                self.duration,
+            )
+            .unwrap();
     }
 
     fn mode(&self) -> &str {
         &self.mode
     }
 
-    fn submode(&self) -> &str {
-        &self.inner.submode
+    fn submode(&self) -> String {
+        self.inner.lock().unwrap().submode.to_owned()
     }
 }
 

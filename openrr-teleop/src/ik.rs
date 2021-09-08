@@ -1,4 +1,7 @@
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use arci::{
     gamepad::{Axis, Button, GamepadEvent},
@@ -35,7 +38,7 @@ impl IkNodeInner {
         }
     }
 
-    fn set_event(&mut self, event: GamepadEvent) {
+    fn handle_event(&mut self, event: GamepadEvent) {
         match event {
             GamepadEvent::ButtonPressed(Button::LeftTrigger2) => {
                 self.is_turbo = true;
@@ -125,7 +128,7 @@ where
     submode: String,
     step_duration: Duration,
     ik_solver_with_chain: Arc<IkSolverWithChain>,
-    inner: IkNodeInner,
+    inner: Mutex<IkNodeInner>,
 }
 
 impl<J, S> IkNode<J, S>
@@ -149,7 +152,7 @@ where
             submode: "".to_string(),
             step_duration,
             ik_solver_with_chain,
-            inner: IkNodeInner::new(move_step_linear, move_step_angular),
+            inner: Mutex::new(IkNodeInner::new(move_step_linear, move_step_angular)),
         }
     }
 
@@ -177,14 +180,20 @@ where
     N: JointTrajectoryClient,
     S: Speaker,
 {
-    fn set_event(&mut self, event: GamepadEvent) {
-        self.inner.set_event(event);
+    fn handle_event(&self, event: GamepadEvent) {
+        self.inner.lock().unwrap().handle_event(event);
     }
 
     async fn proc(&self) {
-        if self.inner.is_sending {
-            let angular_velocity = self.inner.angular_velocity;
-            let linear_velocity = self.inner.get_linear_velocity();
+        let (is_sending, angular_velocity, linear_velocity) = {
+            let inner = self.inner.lock().unwrap();
+            (
+                inner.is_sending,
+                inner.angular_velocity,
+                inner.get_linear_velocity(),
+            )
+        };
+        if is_sending {
             let current_positions = self
                 .joint_trajectory_client
                 .current_joint_positions()
@@ -216,8 +225,8 @@ where
         &self.mode
     }
 
-    fn submode(&self) -> &str {
-        &self.submode
+    fn submode(&self) -> String {
+        self.submode.to_owned()
     }
 }
 
