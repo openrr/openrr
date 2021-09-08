@@ -10,37 +10,23 @@ const BASE_LINEAR_VEL_AXIS_GAIN: f64 = 0.5;
 const BASE_ANGULAR_VEL_AXIS_GAIN: f64 = 1.5;
 const BASE_TURBO_GAIN: f64 = 2.0;
 
-pub struct MoveBaseNode<T: MoveBase> {
-    move_base: T,
-    mode: String,
-    submode: String,
+struct MoveBaseNodeInner {
     vel: BaseVelocity,
     is_enabled: bool,
     is_turbo: bool,
 }
 
-impl<T> MoveBaseNode<T>
-where
-    T: MoveBase,
-{
-    pub fn new(mode: String, move_base: T) -> Self {
+impl MoveBaseNodeInner {
+    fn new() -> Self {
         Self {
-            move_base,
-            mode,
-            submode: "".to_string(),
             vel: BaseVelocity::default(),
             is_enabled: false,
             is_turbo: false,
         }
     }
-}
 
-#[async_trait]
-impl<T> ControlNode for MoveBaseNode<T>
-where
-    T: MoveBase,
-{
-    fn set_event(&mut self, ev: GamepadEvent) {
+    fn set_event(&mut self, ev: GamepadEvent) -> bool {
+        let mut should_stop = false;
         match ev {
             GamepadEvent::AxisChanged(Axis::LeftStickX, v) => {
                 self.vel.y = v * BASE_LINEAR_VEL_AXIS_GAIN
@@ -56,10 +42,8 @@ where
             }
             GamepadEvent::ButtonReleased(Button::RightTrigger2) => {
                 self.is_enabled = false;
-                // stop immediately
-                self.move_base
-                    .send_velocity(&BaseVelocity::default())
-                    .unwrap();
+                self.vel = BaseVelocity::default();
+                should_stop = true;
             }
             GamepadEvent::ButtonPressed(Button::LeftTrigger2) => {
                 self.is_turbo = true;
@@ -70,22 +54,66 @@ where
             GamepadEvent::Disconnected => {
                 self.is_enabled = false;
                 self.is_turbo = false;
-                self.vel.x = 0.0;
-                self.vel.y = 0.0;
-                self.vel.theta = 0.0;
+                self.vel = BaseVelocity::default();
+                should_stop = true;
             }
             _ => {}
+        }
+        should_stop
+    }
+
+    fn get_target_velocity(&self) -> Option<BaseVelocity> {
+        if self.is_enabled {
+            if self.is_turbo {
+                let turbo_vel = self.vel * BASE_TURBO_GAIN;
+                Some(turbo_vel)
+            } else {
+                Some(self.vel)
+            }
+        } else {
+            None
+        }
+    }
+}
+
+pub struct MoveBaseNode<T: MoveBase> {
+    move_base: T,
+    mode: String,
+    submode: String,
+    inner: MoveBaseNodeInner,
+}
+
+impl<T> MoveBaseNode<T>
+where
+    T: MoveBase,
+{
+    pub fn new(mode: String, move_base: T) -> Self {
+        Self {
+            move_base,
+            mode,
+            submode: "".to_string(),
+            inner: MoveBaseNodeInner::new(),
+        }
+    }
+}
+
+#[async_trait]
+impl<T> ControlNode for MoveBaseNode<T>
+where
+    T: MoveBase,
+{
+    fn set_event(&mut self, ev: GamepadEvent) {
+        if self.inner.set_event(ev) {
+            // stop immediately
+            self.move_base
+                .send_velocity(&BaseVelocity::default())
+                .unwrap();
         }
     }
 
     async fn proc(&self) {
-        if self.is_enabled {
-            if self.is_turbo {
-                let turbo_vel = self.vel * BASE_TURBO_GAIN;
-                self.move_base.send_velocity(&turbo_vel).unwrap();
-            } else {
-                self.move_base.send_velocity(&self.vel).unwrap();
-            }
+        if let Some(v) = self.inner.get_target_velocity() {
+            self.move_base.send_velocity(&v).unwrap();
         }
     }
 
@@ -118,11 +146,11 @@ mod tests {
         assert_eq!(node.mode, mode);
         assert_eq!(node.submode, String::from(""));
         assert_eq!(
-            format!("{:?}", node.vel),
+            format!("{:?}", node.inner.vel),
             format!("{:?}", BaseVelocity::default())
         );
-        assert!(!node.is_enabled);
-        assert!(!node.is_turbo);
+        assert!(!node.inner.is_enabled);
+        assert!(!node.inner.is_turbo);
     }
 
     #[test]
@@ -147,76 +175,84 @@ mod tests {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            vel: BaseVelocity {
-                x: X,
-                y: Y,
-                theta: THETA,
+            inner: MoveBaseNodeInner {
+                vel: BaseVelocity {
+                    x: X,
+                    y: Y,
+                    theta: THETA,
+                },
+                is_enabled: false,
+                is_turbo: false,
             },
-            is_enabled: false,
-            is_turbo: false,
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {:?}", node.vel, current);
+        println!("{:?} {:?}", node.inner.vel, current);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            vel: BaseVelocity {
-                x: 1.2,
-                y: 3.5,
-                theta: 1.8,
+            inner: MoveBaseNodeInner {
+                vel: BaseVelocity {
+                    x: 1.2,
+                    y: 3.5,
+                    theta: 1.8,
+                },
+                is_enabled: false,
+                is_turbo: true,
             },
-            is_enabled: false,
-            is_turbo: true,
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {:?}", node.vel, current);
+        println!("{:?} {:?}", node.inner.vel, current);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            vel: BaseVelocity {
-                x: 1.2,
-                y: 3.5,
-                theta: 1.8,
+            inner: MoveBaseNodeInner {
+                vel: BaseVelocity {
+                    x: 1.2,
+                    y: 3.5,
+                    theta: 1.8,
+                },
+                is_enabled: true,
+                is_turbo: false,
             },
-            is_enabled: true,
-            is_turbo: false,
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, X);
         assert_approx_eq!(current.y, Y);
         assert_approx_eq!(current.theta, THETA);
-        println!("{:?} {:?}", node.vel, current);
+        println!("{:?} {:?}", node.inner.vel, current);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            vel: BaseVelocity {
-                x: 1.2_f64,
-                y: 3.5,
-                theta: 1.8,
+            inner: MoveBaseNodeInner {
+                vel: BaseVelocity {
+                    x: 1.2_f64,
+                    y: 3.5,
+                    theta: 1.8,
+                },
+                is_enabled: true,
+                is_turbo: true,
             },
-            is_enabled: true,
-            is_turbo: true,
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, X * 2.0);
         assert_approx_eq!(current.y, Y * 2.0);
         assert_approx_eq!(current.theta, THETA * 2.0);
-        println!("{:?} {:?}", node.vel, current);
+        println!("{:?} {:?}", node.inner.vel, current);
     }
 }
