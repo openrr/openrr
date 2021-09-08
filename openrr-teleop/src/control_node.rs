@@ -5,8 +5,8 @@ use auto_impl::auto_impl;
 #[async_trait]
 #[auto_impl(Box)]
 pub trait ControlNode: Send + Sync {
-    fn set_event(&mut self, event: GamepadEvent);
+    fn handle_event(&self, event: GamepadEvent);
     async fn proc(&self);
     fn mode(&self) -> &str;
-    fn submode(&self) -> &str;
+    fn submode(&self) -> String;
 }

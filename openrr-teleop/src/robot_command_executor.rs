@@ -1,4 +1,7 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 
 use arci::{
     gamepad::{Button, GamepadEvent},
@@ -36,7 +39,7 @@ impl RobotCommandExecutorInner {
         }
     }
 
-    fn set_event(&mut self, event: arci::gamepad::GamepadEvent) -> Option<&str> {
+    fn handle_event(&mut self, event: arci::gamepad::GamepadEvent) -> Option<&str> {
         match event {
             GamepadEvent::ButtonPressed(Button::East) => {
                 self.command_index = (self.command_index + 1) % self.commands.len();
@@ -78,7 +81,7 @@ where
     base_path: PathBuf,
     robot_client: Arc<ArcRobotClient>,
     speaker: S,
-    inner: RobotCommandExecutorInner,
+    inner: Mutex<RobotCommandExecutorInner>,
 }
 
 impl<S> RobotCommandExecutor<S>
@@ -98,7 +101,7 @@ where
                 base_path,
                 robot_client,
                 speaker,
-                inner: RobotCommandExecutorInner::new(commands),
+                inner: Mutex::new(RobotCommandExecutorInner::new(commands)),
             })
         }
     }
@@ -109,8 +112,8 @@ impl<S> ControlNode for RobotCommandExecutor<S>
 where
     S: Speaker,
 {
-    fn set_event(&mut self, event: arci::gamepad::GamepadEvent) {
-        if let Some(submode) = self.inner.set_event(event) {
+    fn handle_event(&self, event: arci::gamepad::GamepadEvent) {
+        if let Some(submode) = self.inner.lock().unwrap().handle_event(event) {
             // do not wait
             let _ = self
                 .speaker
@@ -120,40 +123,45 @@ where
     }
 
     async fn proc(&self) {
-        if self.inner.is_trigger_holding && self.inner.is_sending {
-            let command = self.inner.get_command();
-            let executor = openrr_command::RobotCommandExecutor {};
-            match resolve_relative_path(&self.base_path, command.file_path.clone()) {
-                Ok(path) => {
-                    match load_command_file_and_filter(path) {
-                        Ok(commands) => {
-                            let commands_len = commands.len() as f64;
-                            for (i, command) in commands.iter().enumerate() {
-                                let command_parsed_iter = command.split_whitespace();
-                                // Parse the command
-                                let read_opt = RobotCommand::from_iter(command_parsed_iter);
-                                // Execute the parsed command
-                                info!("Executing {} {}/{}", command, i, commands_len);
+        let command = {
+            let inner = self.inner.lock().unwrap();
+            if inner.is_trigger_holding && inner.is_sending {
+                inner.get_command().clone()
+            } else {
+                return;
+            }
+        };
+        let executor = openrr_command::RobotCommandExecutor {};
+        match resolve_relative_path(&self.base_path, command.file_path.clone()) {
+            Ok(path) => {
+                match load_command_file_and_filter(path) {
+                    Ok(commands) => {
+                        let commands_len = commands.len() as f64;
+                        for (i, command) in commands.iter().enumerate() {
+                            let command_parsed_iter = command.split_whitespace();
+                            // Parse the command
+                            let read_opt = RobotCommand::from_iter(command_parsed_iter);
+                            // Execute the parsed command
+                            info!("Executing {} {}/{}", command, i, commands_len);
 
-                                match executor.execute(&self.robot_client, &read_opt).await {
-                                    Ok(_) => {
-                                        info!("finished command {}", command);
-                                    }
-                                    Err(e) => {
-                                        error!("failed command {} {:?}", command, e);
-                                        break;
-                                    }
+                            match executor.execute(&self.robot_client, &read_opt).await {
+                                Ok(_) => {
+                                    info!("finished command {}", command);
+                                }
+                                Err(e) => {
+                                    error!("failed command {} {:?}", command, e);
+                                    break;
                                 }
                             }
                         }
-                        Err(e) => {
-                            error!("failed to load file {:?}", e);
-                        }
+                    }
+                    Err(e) => {
+                        error!("failed to load file {:?}", e);
                     }
                 }
-                Err(e) => {
-                    error!("failed to resolve_relative_path {:?}", e);
-                }
+            }
+            Err(e) => {
+                error!("failed to resolve_relative_path {:?}", e);
             }
         }
     }
@@ -162,8 +170,8 @@ where
         MODE
     }
 
-    fn submode(&self) -> &str {
-        &self.inner.submode
+    fn submode(&self) -> String {
+        self.inner.lock().unwrap().submode.to_owned()
     }
 }
 

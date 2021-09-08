@@ -1,3 +1,5 @@
+use std::sync::Mutex;
+
 use arci::{
     gamepad::{Axis, Button, GamepadEvent},
     BaseVelocity, MoveBase,
@@ -25,7 +27,7 @@ impl MoveBaseNodeInner {
         }
     }
 
-    fn set_event(&mut self, ev: GamepadEvent) -> bool {
+    fn handle_event(&mut self, ev: GamepadEvent) -> bool {
         let mut should_stop = false;
         match ev {
             GamepadEvent::AxisChanged(Axis::LeftStickX, v) => {
@@ -80,7 +82,7 @@ pub struct MoveBaseNode<T: MoveBase> {
     move_base: T,
     mode: String,
     submode: String,
-    inner: MoveBaseNodeInner,
+    inner: Mutex<MoveBaseNodeInner>,
 }
 
 impl<T> MoveBaseNode<T>
@@ -92,7 +94,7 @@ where
             move_base,
             mode,
             submode: "".to_string(),
-            inner: MoveBaseNodeInner::new(),
+            inner: Mutex::new(MoveBaseNodeInner::new()),
         }
     }
 }
@@ -102,8 +104,8 @@ impl<T> ControlNode for MoveBaseNode<T>
 where
     T: MoveBase,
 {
-    fn set_event(&mut self, ev: GamepadEvent) {
-        if self.inner.set_event(ev) {
+    fn handle_event(&self, ev: GamepadEvent) {
+        if self.inner.lock().unwrap().handle_event(ev) {
             // stop immediately
             self.move_base
                 .send_velocity(&BaseVelocity::default())
@@ -112,7 +114,7 @@ where
     }
 
     async fn proc(&self) {
-        if let Some(v) = self.inner.get_target_velocity() {
+        if let Some(v) = self.inner.lock().unwrap().get_target_velocity() {
             self.move_base.send_velocity(&v).unwrap();
         }
     }
@@ -121,8 +123,8 @@ where
         &self.mode
     }
 
-    fn submode(&self) -> &str {
-        &self.submode
+    fn submode(&self) -> String {
+        self.submode.to_owned()
     }
 }
 
@@ -146,11 +148,11 @@ mod tests {
         assert_eq!(node.mode, mode);
         assert_eq!(node.submode, String::from(""));
         assert_eq!(
-            format!("{:?}", node.inner.vel),
+            format!("{:?}", node.inner.lock().unwrap().vel),
             format!("{:?}", BaseVelocity::default())
         );
-        assert!(!node.inner.is_enabled);
-        assert!(!node.inner.is_turbo);
+        assert!(!node.inner.lock().unwrap().is_enabled);
+        assert!(!node.inner.lock().unwrap().is_turbo);
     }
 
     #[test]
@@ -162,7 +164,7 @@ mod tests {
         let base_mode = node.mode();
         assert_eq!(base_mode, mode);
         let base_sub_mode = node.submode();
-        assert_eq!(base_sub_mode, &String::from(""));
+        assert_eq!(base_sub_mode, String::from(""));
     }
 
     #[tokio::test]
@@ -175,7 +177,7 @@ mod tests {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            inner: MoveBaseNodeInner {
+            inner: Mutex::new(MoveBaseNodeInner {
                 vel: BaseVelocity {
                     x: X,
                     y: Y,
@@ -183,20 +185,20 @@ mod tests {
                 },
                 is_enabled: false,
                 is_turbo: false,
-            },
+            }),
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {:?}", node.inner.vel, current);
+        println!("{:?} {:?}", node.inner.lock().unwrap().vel, current);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            inner: MoveBaseNodeInner {
+            inner: Mutex::new(MoveBaseNodeInner {
                 vel: BaseVelocity {
                     x: 1.2,
                     y: 3.5,
@@ -204,20 +206,20 @@ mod tests {
                 },
                 is_enabled: false,
                 is_turbo: true,
-            },
+            }),
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {:?}", node.inner.vel, current);
+        println!("{:?} {:?}", node.inner.lock().unwrap().vel, current);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            inner: MoveBaseNodeInner {
+            inner: Mutex::new(MoveBaseNodeInner {
                 vel: BaseVelocity {
                     x: 1.2,
                     y: 3.5,
@@ -225,20 +227,20 @@ mod tests {
                 },
                 is_enabled: true,
                 is_turbo: false,
-            },
+            }),
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, X);
         assert_approx_eq!(current.y, Y);
         assert_approx_eq!(current.theta, THETA);
-        println!("{:?} {:?}", node.inner.vel, current);
+        println!("{:?} {:?}", node.inner.lock().unwrap().vel, current);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            inner: MoveBaseNodeInner {
+            inner: Mutex::new(MoveBaseNodeInner {
                 vel: BaseVelocity {
                     x: 1.2_f64,
                     y: 3.5,
@@ -246,13 +248,13 @@ mod tests {
                 },
                 is_enabled: true,
                 is_turbo: true,
-            },
+            }),
         };
         node.proc().await;
         let current = node.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, X * 2.0);
         assert_approx_eq!(current.y, Y * 2.0);
         assert_approx_eq!(current.theta, THETA * 2.0);
-        println!("{:?} {:?}", node.inner.vel, current);
+        println!("{:?} {:?}", node.inner.lock().unwrap().vel, current);
     }
 }

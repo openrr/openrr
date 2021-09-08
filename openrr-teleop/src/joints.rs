@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Mutex, time::Duration};
 
 use arci::{
     gamepad::{Axis, Button, GamepadEvent},
@@ -36,7 +36,7 @@ impl JoyJointTeleopNodeInner {
         }
     }
 
-    fn set_event(&mut self, event: GamepadEvent) -> Option<&str> {
+    fn handle_event(&mut self, event: GamepadEvent) -> Option<&str> {
         match event {
             GamepadEvent::ButtonPressed(Button::East) => {
                 self.joint_index = (self.joint_index + 1) % self.dof;
@@ -101,7 +101,7 @@ where
     speaker: S,
     mode: String,
     step_duration: Duration,
-    inner: JoyJointTeleopNodeInner,
+    inner: Mutex<JoyJointTeleopNodeInner>,
 }
 
 impl<J, S> JoyJointTeleopNode<J, S>
@@ -122,7 +122,7 @@ where
             speaker,
             mode,
             step_duration,
-            inner: JoyJointTeleopNodeInner::new(joint_step, dof),
+            inner: Mutex::new(JoyJointTeleopNodeInner::new(joint_step, dof)),
         }
     }
 
@@ -147,8 +147,8 @@ where
     N: JointTrajectoryClient,
     S: Speaker,
 {
-    fn set_event(&mut self, event: GamepadEvent) {
-        if let Some(submode) = self.inner.set_event(event) {
+    fn handle_event(&self, event: GamepadEvent) {
+        if let Some(submode) = self.inner.lock().unwrap().handle_event(event) {
             // do not wait
             let _ = self
                 .speaker
@@ -158,12 +158,13 @@ where
     }
 
     async fn proc(&self) {
-        if self.inner.is_sending {
+        let inner = self.inner.lock().unwrap();
+        if inner.is_sending {
             let pos = self
                 .joint_trajectory_client
                 .current_joint_positions()
                 .unwrap();
-            let pos = self.inner.get_target_positions(pos);
+            let pos = inner.get_target_positions(pos);
             // do not wait
             let _ = self
                 .joint_trajectory_client
@@ -176,8 +177,8 @@ where
         &self.mode
     }
 
-    fn submode(&self) -> &str {
-        &self.inner.submode
+    fn submode(&self) -> String {
+        self.inner.lock().unwrap().submode.to_owned()
     }
 }
 

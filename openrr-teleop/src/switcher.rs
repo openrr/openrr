@@ -104,7 +104,7 @@ where
                     self.stop();
                 }
                 _ => {
-                    self.control_nodes.lock().await[self.current_index()].set_event(ev);
+                    self.control_nodes.lock().await[self.current_index()].handle_event(ev);
                 }
             }
         }
