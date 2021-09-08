@@ -14,94 +14,27 @@ use super::control_node::ControlNode;
 
 const IK_POSITION_TURBO_GAIN: f64 = 2.0;
 
-pub struct IkNode<J, S>
-where
-    J: JointTrajectoryClient,
-    S: Speaker,
-{
-    joint_trajectory_client: J,
-    speaker: S,
-    mode: String,
-    submode: String,
+struct IkNodeInner {
     linear_velocity: Vector3<f64>,
     angular_velocity: Vector3<f64>,
     move_step_linear: [f64; 3],
     move_step_angular: [f64; 3],
-    step_duration: Duration,
-    ik_solver_with_chain: Arc<IkSolverWithChain>,
     is_turbo: bool,
     is_sending: bool,
 }
 
-impl<J, S> IkNode<J, S>
-where
-    J: JointTrajectoryClient,
-    S: Speaker,
-{
-    pub fn new(
-        mode: String,
-        joint_trajectory_client: J,
-        move_step_linear: [f64; 3],
-        move_step_angular: [f64; 3],
-        step_duration: Duration,
-        speaker: S,
-        ik_solver_with_chain: Arc<IkSolverWithChain>,
-    ) -> Self {
+impl IkNodeInner {
+    fn new(move_step_linear: [f64; 3], move_step_angular: [f64; 3]) -> Self {
         Self {
-            joint_trajectory_client,
-            speaker,
-            mode,
-            submode: "".to_string(),
             linear_velocity: Vector3::new(0.0, 0.0, 0.0),
             angular_velocity: Vector3::new(0.0, 0.0, 0.0),
             move_step_linear,
             move_step_angular,
-            step_duration,
-            ik_solver_with_chain,
             is_turbo: false,
             is_sending: false,
         }
     }
 
-    pub fn new_from_config(
-        config: IkNodeConfig,
-        joint_trajectory_client: J,
-        speaker: S,
-        ik_solver_with_chain: Arc<IkSolverWithChain>,
-    ) -> Self {
-        Self::new(
-            config.mode,
-            joint_trajectory_client,
-            config.move_step_linear,
-            config.move_step_angular,
-            Duration::from_secs_f64(config.step_duration_secs),
-            speaker,
-            ik_solver_with_chain,
-        )
-    }
-}
-
-impl<N, S> IkNode<N, S>
-where
-    N: JointTrajectoryClient,
-    S: Speaker,
-{
-    fn clear_velocity(&mut self) {
-        self.linear_velocity.x = 0.0;
-        self.linear_velocity.y = 0.0;
-        self.linear_velocity.z = 0.0;
-        self.angular_velocity.x = 0.0;
-        self.angular_velocity.y = 0.0;
-        self.angular_velocity.z = 0.0;
-    }
-}
-
-#[async_trait]
-impl<N, S> ControlNode for IkNode<N, S>
-where
-    N: JointTrajectoryClient,
-    S: Speaker,
-{
     fn set_event(&mut self, event: GamepadEvent) {
         match event {
             GamepadEvent::ButtonPressed(Button::LeftTrigger2) => {
@@ -162,8 +95,96 @@ where
         }
     }
 
+    fn clear_velocity(&mut self) {
+        self.linear_velocity.x = 0.0;
+        self.linear_velocity.y = 0.0;
+        self.linear_velocity.z = 0.0;
+        self.angular_velocity.x = 0.0;
+        self.angular_velocity.y = 0.0;
+        self.angular_velocity.z = 0.0;
+    }
+
+    fn get_linear_velocity(&self) -> Vector3<f64> {
+        self.linear_velocity
+            * if self.is_turbo {
+                IK_POSITION_TURBO_GAIN
+            } else {
+                1.0
+            }
+    }
+}
+
+pub struct IkNode<J, S>
+where
+    J: JointTrajectoryClient,
+    S: Speaker,
+{
+    joint_trajectory_client: J,
+    speaker: S,
+    mode: String,
+    submode: String,
+    step_duration: Duration,
+    ik_solver_with_chain: Arc<IkSolverWithChain>,
+    inner: IkNodeInner,
+}
+
+impl<J, S> IkNode<J, S>
+where
+    J: JointTrajectoryClient,
+    S: Speaker,
+{
+    pub fn new(
+        mode: String,
+        joint_trajectory_client: J,
+        move_step_linear: [f64; 3],
+        move_step_angular: [f64; 3],
+        step_duration: Duration,
+        speaker: S,
+        ik_solver_with_chain: Arc<IkSolverWithChain>,
+    ) -> Self {
+        Self {
+            joint_trajectory_client,
+            speaker,
+            mode,
+            submode: "".to_string(),
+            step_duration,
+            ik_solver_with_chain,
+            inner: IkNodeInner::new(move_step_linear, move_step_angular),
+        }
+    }
+
+    pub fn new_from_config(
+        config: IkNodeConfig,
+        joint_trajectory_client: J,
+        speaker: S,
+        ik_solver_with_chain: Arc<IkSolverWithChain>,
+    ) -> Self {
+        Self::new(
+            config.mode,
+            joint_trajectory_client,
+            config.move_step_linear,
+            config.move_step_angular,
+            Duration::from_secs_f64(config.step_duration_secs),
+            speaker,
+            ik_solver_with_chain,
+        )
+    }
+}
+
+#[async_trait]
+impl<N, S> ControlNode for IkNode<N, S>
+where
+    N: JointTrajectoryClient,
+    S: Speaker,
+{
+    fn set_event(&mut self, event: GamepadEvent) {
+        self.inner.set_event(event);
+    }
+
     async fn proc(&self) {
-        if self.is_sending {
+        if self.inner.is_sending {
+            let angular_velocity = self.inner.angular_velocity;
+            let linear_velocity = self.inner.get_linear_velocity();
             let current_positions = self
                 .joint_trajectory_client
                 .current_joint_positions()
@@ -173,19 +194,11 @@ where
             let current_pose = self.ik_solver_with_chain.end_transform();
             let rotated = current_pose
                 * k::UnitQuaternion::from_euler_angles(
-                    self.angular_velocity.x,
-                    self.angular_velocity.y,
-                    self.angular_velocity.z,
+                    angular_velocity.x,
+                    angular_velocity.y,
+                    angular_velocity.z,
                 );
-            let target_pose = rotated
-                * Translation3::from(
-                    self.linear_velocity
-                        * if self.is_turbo {
-                            IK_POSITION_TURBO_GAIN
-                        } else {
-                            1.0
-                        },
-                );
+            let target_pose = rotated * Translation3::from(linear_velocity);
             if self.ik_solver_with_chain.solve(&target_pose).is_ok() {
                 let pos = self.ik_solver_with_chain.joint_positions();
                 self.joint_trajectory_client
