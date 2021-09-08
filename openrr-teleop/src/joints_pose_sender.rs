@@ -11,20 +11,76 @@ use serde::{Deserialize, Serialize};
 
 use crate::ControlNode;
 
+struct JointsPoseSenderInner {
+    joints_poses: Vec<JointsPose>,
+    submode: String,
+    pose_index: usize,
+    is_trigger_holding: bool,
+    is_sending: bool,
+}
+
+impl JointsPoseSenderInner {
+    fn new(joints_poses: Vec<JointsPose>) -> Self {
+        Self {
+            submode: format!(
+                " {} {}",
+                joints_poses[0].client_name, joints_poses[0].pose_name
+            ),
+            joints_poses,
+            pose_index: 0,
+            is_trigger_holding: false,
+            is_sending: false,
+        }
+    }
+
+    fn set_event(&mut self, event: arci::gamepad::GamepadEvent) -> Option<&str> {
+        match event {
+            GamepadEvent::ButtonPressed(Button::East) => {
+                self.pose_index = (self.pose_index + 1) % self.joints_poses.len();
+                let joints_pose = &self.joints_poses[self.pose_index];
+                self.submode = format!(" {} {}", joints_pose.client_name, joints_pose.pose_name);
+                return Some(&self.submode);
+            }
+            GamepadEvent::ButtonPressed(Button::RightTrigger2) => {
+                self.is_trigger_holding = true;
+            }
+            GamepadEvent::ButtonReleased(Button::RightTrigger2) => {
+                self.is_trigger_holding = false;
+                self.is_sending = false;
+            }
+            GamepadEvent::ButtonPressed(Button::West) => {
+                self.is_sending = true;
+            }
+            GamepadEvent::ButtonReleased(Button::West) => {
+                self.is_sending = false;
+            }
+            GamepadEvent::Disconnected => {
+                self.is_trigger_holding = false;
+                self.is_sending = false;
+            }
+            _ => {}
+        }
+        None
+    }
+
+    fn get_target_name_positions(&self) -> (String, Vec<f64>) {
+        let joints_pose = &self.joints_poses[self.pose_index];
+        (
+            joints_pose.client_name.to_owned(),
+            joints_pose.positions.to_owned(),
+        )
+    }
+}
 pub struct JointsPoseSender<S, J>
 where
     S: Speaker,
     J: JointTrajectoryClient,
 {
     mode: String,
-    joints_poses: Vec<JointsPose>,
     joint_trajectory_clients: HashMap<String, J>,
     speaker: S,
-    submode: String,
-    pose_index: usize,
-    is_trigger_holding: bool,
-    is_sending: bool,
     duration: Duration,
+    inner: JointsPoseSenderInner,
 }
 
 impl<S, J> JointsPoseSender<S, J>
@@ -41,17 +97,10 @@ where
     ) -> Self {
         Self {
             mode,
-            submode: format!(
-                " {} {}",
-                joints_poses[0].client_name, joints_poses[0].pose_name
-            ),
-            joints_poses,
             joint_trajectory_clients,
             speaker,
-            pose_index: 0,
-            is_trigger_holding: false,
-            is_sending: false,
             duration,
+            inner: JointsPoseSenderInner::new(joints_poses),
         }
     }
 
@@ -78,48 +127,20 @@ where
     J: JointTrajectoryClient,
 {
     fn set_event(&mut self, event: arci::gamepad::GamepadEvent) {
-        match event {
-            GamepadEvent::ButtonPressed(Button::East) => {
-                self.pose_index = (self.pose_index + 1) % self.joints_poses.len();
-                let joints_pose = &self.joints_poses[self.pose_index];
-                self.submode = format!(" {} {}", joints_pose.client_name, joints_pose.pose_name);
-                // do not wait
-                let _ = self
-                    .speaker
-                    .speak(&format!("{}{}", self.mode, self.submode()))
-                    .unwrap();
-            }
-            GamepadEvent::ButtonPressed(Button::RightTrigger2) => {
-                self.is_trigger_holding = true;
-            }
-            GamepadEvent::ButtonReleased(Button::RightTrigger2) => {
-                self.is_trigger_holding = false;
-                self.is_sending = false;
-            }
-            GamepadEvent::ButtonPressed(Button::West) => {
-                self.is_sending = true;
-            }
-            GamepadEvent::ButtonReleased(Button::West) => {
-                self.is_sending = false;
-            }
-            GamepadEvent::Disconnected => {
-                self.is_trigger_holding = false;
-                self.is_sending = false;
-            }
-            _ => {}
+        if let Some(submode) = self.inner.set_event(event) {
+            // do not wait
+            let _ = self
+                .speaker
+                .speak(&format!("{}{}", self.mode, submode))
+                .unwrap();
         }
     }
 
     async fn proc(&self) {
-        let joints_pose = &self.joints_poses[self.pose_index];
-        let client = self
-            .joint_trajectory_clients
-            .get(&joints_pose.client_name)
-            .unwrap();
-        if self.is_sending && self.is_trigger_holding {
-            let _ = client
-                .send_joint_positions(joints_pose.positions.to_owned(), self.duration)
-                .unwrap();
+        let (name, target) = self.inner.get_target_name_positions();
+        let client = self.joint_trajectory_clients.get(&name).unwrap();
+        if self.inner.is_sending && self.inner.is_trigger_holding {
+            let _ = client.send_joint_positions(target, self.duration).unwrap();
         } else {
             let _ = client
                 .send_joint_positions(client.current_joint_positions().unwrap(), self.duration)
@@ -132,7 +153,7 @@ where
     }
 
     fn submode(&self) -> &str {
-        &self.submode
+        &self.inner.submode
     }
 }
 
