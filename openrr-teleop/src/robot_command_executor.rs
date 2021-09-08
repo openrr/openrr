@@ -16,64 +16,33 @@ use crate::ControlNode;
 
 const MODE: &str = "command";
 
-pub struct RobotCommandExecutor<S>
-where
-    S: Speaker,
-{
-    base_path: PathBuf,
+struct RobotCommandExecutorInner {
     commands: Vec<RobotCommandConfig>,
-    robot_client: Arc<ArcRobotClient>,
-    speaker: S,
     submode: String,
     command_index: usize,
     is_trigger_holding: bool,
     is_sending: bool,
 }
 
-impl<S> RobotCommandExecutor<S>
-where
-    S: Speaker,
-{
-    pub fn new(
-        base_path: PathBuf,
-        commands: Vec<RobotCommandConfig>,
-        robot_client: Arc<ArcRobotClient>,
-        speaker: S,
-    ) -> Option<Self> {
-        if commands.is_empty() {
-            None
-        } else {
-            let submode = commands[0].name.clone();
-            Some(Self {
-                base_path,
-                commands,
-                robot_client,
-                speaker,
-                submode,
-                command_index: 0,
-                is_trigger_holding: false,
-                is_sending: false,
-            })
+impl RobotCommandExecutorInner {
+    fn new(commands: Vec<RobotCommandConfig>) -> Self {
+        let submode = commands[0].name.clone();
+        Self {
+            commands,
+            submode,
+            command_index: 0,
+            is_trigger_holding: false,
+            is_sending: false,
         }
     }
-}
 
-#[async_trait]
-impl<S> ControlNode for RobotCommandExecutor<S>
-where
-    S: Speaker,
-{
-    fn set_event(&mut self, event: arci::gamepad::GamepadEvent) {
+    fn set_event(&mut self, event: arci::gamepad::GamepadEvent) -> Option<&str> {
         match event {
             GamepadEvent::ButtonPressed(Button::East) => {
                 self.command_index = (self.command_index + 1) % self.commands.len();
                 let command = &self.commands[self.command_index];
                 self.submode = command.name.clone();
-                // do not wait
-                let _ = self
-                    .speaker
-                    .speak(&format!("{} {}", MODE, self.submode()))
-                    .unwrap();
+                return Some(&self.submode);
             }
             GamepadEvent::ButtonPressed(Button::RightTrigger2) => {
                 self.is_trigger_holding = true;
@@ -94,11 +63,65 @@ where
             }
             _ => {}
         }
+        None
+    }
+
+    fn get_command(&self) -> &RobotCommandConfig {
+        &self.commands[self.command_index]
+    }
+}
+
+pub struct RobotCommandExecutor<S>
+where
+    S: Speaker,
+{
+    base_path: PathBuf,
+    robot_client: Arc<ArcRobotClient>,
+    speaker: S,
+    inner: RobotCommandExecutorInner,
+}
+
+impl<S> RobotCommandExecutor<S>
+where
+    S: Speaker,
+{
+    pub fn new(
+        base_path: PathBuf,
+        commands: Vec<RobotCommandConfig>,
+        robot_client: Arc<ArcRobotClient>,
+        speaker: S,
+    ) -> Option<Self> {
+        if commands.is_empty() {
+            None
+        } else {
+            Some(Self {
+                base_path,
+                robot_client,
+                speaker,
+                inner: RobotCommandExecutorInner::new(commands),
+            })
+        }
+    }
+}
+
+#[async_trait]
+impl<S> ControlNode for RobotCommandExecutor<S>
+where
+    S: Speaker,
+{
+    fn set_event(&mut self, event: arci::gamepad::GamepadEvent) {
+        if let Some(submode) = self.inner.set_event(event) {
+            // do not wait
+            let _ = self
+                .speaker
+                .speak(&format!("{} {}", MODE, submode))
+                .unwrap();
+        }
     }
 
     async fn proc(&self) {
-        if self.is_trigger_holding && self.is_sending {
-            let command = &self.commands[self.command_index];
+        if self.inner.is_trigger_holding && self.inner.is_sending {
+            let command = self.inner.get_command();
             let executor = openrr_command::RobotCommandExecutor {};
             match resolve_relative_path(&self.base_path, command.file_path.clone()) {
                 Ok(path) => {
@@ -140,7 +163,7 @@ where
     }
 
     fn submode(&self) -> &str {
-        &self.submode
+        &self.inner.submode
     }
 }
 
