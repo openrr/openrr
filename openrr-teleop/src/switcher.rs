@@ -15,24 +15,26 @@ use tracing::{debug, warn};
 
 use super::control_node::ControlNode;
 
-pub struct ControlNodeSwitcher<N, S>
+pub struct ControlNodeSwitcher<S>
 where
-    N: ControlNode,
     S: Speaker,
 {
     current_index: Arc<Mutex<usize>>,
-    control_nodes: Arc<TokioMutex<Vec<Arc<N>>>>,
+    control_nodes: Arc<TokioMutex<Vec<Arc<dyn ControlNode>>>>,
     speaker: S,
     is_running: Arc<AtomicBool>,
 }
 
-impl<N, S> ControlNodeSwitcher<N, S>
+impl<S> ControlNodeSwitcher<S>
 where
-    N: 'static + ControlNode,
     S: Speaker,
 {
     #[track_caller]
-    pub fn new(control_nodes: Vec<Arc<N>>, speaker: S, initial_node_index: usize) -> Self {
+    pub fn new(
+        control_nodes: Vec<Arc<dyn ControlNode>>,
+        speaker: S,
+        initial_node_index: usize,
+    ) -> Self {
         assert!(!control_nodes.is_empty());
         Self {
             current_index: Arc::new(Mutex::new(initial_node_index)),
