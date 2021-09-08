@@ -13,7 +13,7 @@ use openrr_command::{load_command_file_and_filter, RobotCommand};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use structopt::StructOpt;
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 use crate::ControlNode;
 
@@ -138,6 +138,10 @@ where
                     Ok(commands) => {
                         let commands_len = commands.len() as f64;
                         for (i, command) in commands.iter().enumerate() {
+                            if !self.inner.lock().unwrap().is_trigger_holding {
+                                warn!("Remaining commands are canceled.");
+                                return;
+                            }
                             let command_parsed_iter = command.split_whitespace();
                             // Parse the command
                             let read_opt = RobotCommand::from_iter(command_parsed_iter);

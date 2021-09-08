@@ -21,7 +21,7 @@ where
     S: Speaker,
 {
     current_index: Arc<Mutex<usize>>,
-    control_nodes: Arc<TokioMutex<Vec<N>>>,
+    control_nodes: Arc<TokioMutex<Vec<Arc<N>>>>,
     speaker: S,
     is_running: Arc<AtomicBool>,
 }
@@ -32,7 +32,7 @@ where
     S: Speaker,
 {
     #[track_caller]
-    pub fn new(control_nodes: Vec<N>, speaker: S, initial_node_index: usize) -> Self {
+    pub fn new(control_nodes: Vec<Arc<N>>, speaker: S, initial_node_index: usize) -> Self {
         assert!(!control_nodes.is_empty());
         Self {
             current_index: Arc::new(Mutex::new(initial_node_index)),
@@ -86,8 +86,8 @@ where
             let mut interval = tokio::time::interval(Duration::from_millis(50));
             while is_running.load(Ordering::Relaxed) {
                 debug!("tick");
-                let index = *index.lock().unwrap();
-                nodes.lock().await[index].proc().await;
+                let node = { nodes.lock().await[*index.lock().unwrap()].clone() };
+                node.proc().await;
                 interval.tick().await;
             }
             gamepad_cloned.stop();
@@ -104,7 +104,8 @@ where
                     self.stop();
                 }
                 _ => {
-                    self.control_nodes.lock().await[self.current_index()].handle_event(ev);
+                    let node = { self.control_nodes.lock().await[self.current_index()].clone() };
+                    node.handle_event(ev);
                 }
             }
         }
