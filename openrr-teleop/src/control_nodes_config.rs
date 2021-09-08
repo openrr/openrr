@@ -56,23 +56,20 @@ impl ControlNodesConfig {
         ik_solver_with_chain_map: &HashMap<String, Arc<IkSolverWithChain>>,
         move_base: Option<Arc<dyn MoveBase>>,
         joints_poses: Vec<JointsPose>,
-    ) -> Vec<Arc<Box<dyn ControlNode>>> {
-        let mut nodes: Vec<Arc<Box<dyn ControlNode>>> = vec![];
+    ) -> Vec<Arc<dyn ControlNode>> {
+        let mut nodes: Vec<Arc<dyn ControlNode>> = vec![];
 
         for joy_joint_teleop_config in &self.joy_joint_teleop_configs {
-            nodes.push(Arc::new(Box::new(JoyJointTeleopNode::new_from_config(
+            nodes.push(Arc::new(JoyJointTeleopNode::new_from_config(
                 joy_joint_teleop_config.config.clone(),
                 joint_trajectory_client_map[&joy_joint_teleop_config.client_name].clone(),
                 speaker.clone(),
-            ))));
+            )));
         }
 
         if let Some(mode) = &self.move_base_mode {
             if let Some(m) = move_base {
-                nodes.push(Arc::new(Box::new(MoveBaseNode::new(
-                    mode.clone(),
-                    m.clone(),
-                ))));
+                nodes.push(Arc::new(MoveBaseNode::new(mode.clone(), m.clone())));
             }
         }
 
@@ -84,7 +81,7 @@ impl ControlNodesConfig {
                 speaker.clone(),
                 ik_solver_with_chain_map[&ik_node_teleop_config.solver_name].clone(),
             );
-            nodes.push(Arc::new(Box::new(ik_node)));
+            nodes.push(Arc::new(ik_node));
         }
 
         if !joints_poses.is_empty() {
@@ -96,12 +93,12 @@ impl ControlNodesConfig {
                         joint_trajectory_client_map[&joints_pose.client_name].clone(),
                     );
                 }
-                nodes.push(Arc::new(Box::new(JointsPoseSender::new_from_config(
+                nodes.push(Arc::new(JointsPoseSender::new_from_config(
                     sender_config.clone(),
                     joints_poses,
                     joint_trajectory_clients,
                     speaker.clone(),
-                ))));
+                )));
             }
         }
 
@@ -113,7 +110,7 @@ impl ControlNodesConfig {
                     robot_client,
                     speaker.clone(),
                 ) {
-                    nodes.push(Arc::new(Box::new(e)));
+                    nodes.push(Arc::new(e));
                 }
             }
         }
