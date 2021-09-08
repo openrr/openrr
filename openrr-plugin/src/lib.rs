@@ -11,7 +11,7 @@ mod api;
 
 use std::{fmt, path::Path, sync::Arc, time::Duration};
 
-use abi_stable::{erased_types::TU_Opaque, library::lib_header_from_path, StableAbi};
+use abi_stable::{erased_types::TD_Opaque, library::lib_header_from_path, StableAbi};
 use arci::{async_trait, WaitFuture};
 
 pub use crate::api::*;
@@ -103,7 +103,7 @@ impl JointTrajectoryClientProxy {
         T: arci::JointTrajectoryClient + 'static,
     {
         Self(JointTrajectoryClientTraitObject::from_value(
-            client, TU_Opaque,
+            client, TD_Opaque,
         ))
     }
 }
@@ -171,7 +171,7 @@ impl GamepadProxy {
     where
         T: arci::Gamepad + 'static,
     {
-        Self(GamepadTraitObject::from_value(Arc::new(gamepad), TU_Opaque))
+        Self(GamepadTraitObject::from_value(Arc::new(gamepad), TD_Opaque))
     }
 }
 

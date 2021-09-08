@@ -76,7 +76,7 @@ impl PluginProxy {
     {
         Self(crate::proxy::PluginTraitObject::from_value(
             inner,
-            abi_stable::erased_types::TU_Opaque,
+            abi_stable::erased_types::TD_Opaque,
         ))
     }
 }
@@ -154,7 +154,7 @@ impl LocalizationProxy {
     {
         Self(crate::proxy::LocalizationTraitObject::from_value(
             inner,
-            abi_stable::erased_types::TU_Opaque,
+            abi_stable::erased_types::TD_Opaque,
         ))
     }
 }
@@ -180,7 +180,7 @@ impl MoveBaseProxy {
     {
         Self(crate::proxy::MoveBaseTraitObject::from_value(
             inner,
-            abi_stable::erased_types::TU_Opaque,
+            abi_stable::erased_types::TD_Opaque,
         ))
     }
 }
@@ -214,7 +214,7 @@ impl NavigationProxy {
     {
         Self(crate::proxy::NavigationTraitObject::from_value(
             inner,
-            abi_stable::erased_types::TU_Opaque,
+            abi_stable::erased_types::TD_Opaque,
         ))
     }
 }
@@ -253,7 +253,7 @@ impl SpeakerProxy {
     {
         Self(crate::proxy::SpeakerTraitObject::from_value(
             inner,
-            abi_stable::erased_types::TU_Opaque,
+            abi_stable::erased_types::TD_Opaque,
         ))
     }
 }
@@ -279,7 +279,7 @@ impl TransformResolverProxy {
     {
         Self(crate::proxy::TransformResolverTraitObject::from_value(
             inner,
-            abi_stable::erased_types::TU_Opaque,
+            abi_stable::erased_types::TD_Opaque,
         ))
     }
 }

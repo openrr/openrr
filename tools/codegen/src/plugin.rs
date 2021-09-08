@@ -308,7 +308,7 @@ fn gen_proxy_type(trait_name: &Ident, prefix_path: TokenStream) -> TokenStream {
             {
                 Self(crate::proxy::#trait_object_name::from_value(
                     inner,
-                    abi_stable::erased_types::TU_Opaque,
+                    abi_stable::erased_types::TD_Opaque,
                 ))
             }
         }

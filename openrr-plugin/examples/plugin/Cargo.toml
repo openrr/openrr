@@ -9,7 +9,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-abi_stable = "0.9"
+abi_stable = "0.10"
 arci = "0.0.6"
 arci-gamepad-keyboard = "0.0.6"
 openrr-client = "0.0.6"
