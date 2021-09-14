@@ -90,6 +90,50 @@ impl Default for SpeakConfig {
     }
 }
 
+impl SpeakConfig {
+    pub fn build(&self) -> Box<dyn Speaker> {
+        match self {
+            #[cfg(feature = "ros")]
+            SpeakConfig::RosEspeak { config } => self.create_ros_espeak_client(&config.topic),
+            #[cfg(not(feature = "ros"))]
+            SpeakConfig::RosEspeak { .. } => unreachable!(),
+            SpeakConfig::Audio { ref map } => self.create_audio_speaker(map.clone()),
+            SpeakConfig::Command => self.create_local_command_speaker(),
+            SpeakConfig::Print => self.create_print_speaker(),
+        }
+    }
+
+    fn create_print_speaker(&self) -> Box<dyn Speaker> {
+        Box::new(arci::Lazy::new(move || {
+            debug!("create_print_speaker: creating PrintSpeaker");
+            Ok(PrintSpeaker::new())
+        }))
+    }
+
+    fn create_local_command_speaker(&self) -> Box<dyn Speaker> {
+        Box::new(arci::Lazy::new(move || {
+            debug!("create_local_command_speaker: creating LocalCommand");
+            Ok(LocalCommand::new())
+        }))
+    }
+
+    fn create_audio_speaker(&self, hash_map: HashMap<String, PathBuf>) -> Box<dyn Speaker> {
+        Box::new(arci::Lazy::new(move || {
+            debug!("create_audio_speaker: creating AudioSpeaker");
+            Ok(AudioSpeaker::new(hash_map))
+        }))
+    }
+
+    #[cfg(feature = "ros")]
+    fn create_ros_espeak_client(&self, topic: &str) -> Box<dyn Speaker> {
+        let topic = topic.to_string();
+        Box::new(arci::Lazy::new(move || {
+            debug!("create_ros_espeak_client: creating RosEspeakClient");
+            Ok(RosEspeakClient::new(&topic))
+        }))
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct PluginConfig {
@@ -623,36 +667,6 @@ impl RobotConfig {
         )?)))
     }
 
-    fn create_print_speaker(&self) -> Box<dyn Speaker> {
-        Box::new(arci::Lazy::new(move || {
-            debug!("create_print_speaker: creating PrintSpeaker");
-            Ok(PrintSpeaker::new())
-        }))
-    }
-
-    fn create_local_command_speaker(&self) -> Box<dyn Speaker> {
-        Box::new(arci::Lazy::new(move || {
-            debug!("create_local_command_speaker: creating LocalCommand");
-            Ok(LocalCommand::new())
-        }))
-    }
-
-    fn create_audio_speaker(&self, hash_map: HashMap<String, PathBuf>) -> Box<dyn Speaker> {
-        Box::new(arci::Lazy::new(move || {
-            debug!("create_audio_speaker: creating AudioSpeaker");
-            Ok(AudioSpeaker::new(hash_map))
-        }))
-    }
-
-    #[cfg(feature = "ros")]
-    fn create_ros_espeak_client(&self, topic: &str) -> Box<dyn Speaker> {
-        let topic = topic.to_string();
-        Box::new(arci::Lazy::new(move || {
-            debug!("create_ros_espeak_client: creating RosEspeakClient");
-            Ok(RosEspeakClient::new(&topic))
-        }))
-    }
-
     fn create_speakers(
         &self,
         plugins: &mut PluginMap,
@@ -663,21 +677,7 @@ impl RobotConfig {
             .iter()
             .filter(|(name, _)| self.speakers.as_ref().map_or(true, |v| v.contains(name)))
         {
-            speakers.insert(
-                name.to_owned(),
-                match speak_config {
-                    #[cfg(feature = "ros")]
-                    SpeakConfig::RosEspeak { config } => {
-                        self.create_ros_espeak_client(&config.topic)
-                    }
-                    #[cfg(not(feature = "ros"))]
-                    SpeakConfig::RosEspeak { .. } => unreachable!(),
-                    SpeakConfig::Audio { ref map } => self.create_audio_speaker(map.clone()),
-                    SpeakConfig::Command => self.create_local_command_speaker(),
-                    SpeakConfig::Print => self.create_print_speaker(),
-                }
-                .into(),
-            );
+            speakers.insert(name.to_owned(), speak_config.build().into());
         }
 
         for (plugin_name, config) in &self.plugins {
@@ -709,7 +709,7 @@ impl RobotConfig {
         if self.speakers.is_none() && speakers.is_empty() {
             speakers.insert(
                 Self::DEFAULT_SPEAKER_NAME.to_owned(),
-                self.create_print_speaker().into(),
+                SpeakConfig::default().build().into(),
             );
         }
         Ok(speakers)
