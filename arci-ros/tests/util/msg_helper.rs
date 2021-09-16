@@ -5,10 +5,13 @@ use std::sync::mpsc;
 /// # subscribe ROS message helper
 ///
 /// using for inspect specific massage type.
-/// Message is displayed on screen and sent to ``mspc reciver``
+/// Message is displayed on screen and sent to ``mpsc receiver``
 ///
+/// # Panic!
 ///
+/// If subscriber can't be construct, this function is panic.
 ///
+#[allow(dead_code)]
 pub(crate) fn subscribe_helper<T: rosrust::Message>(
     topic_name: &str,
 ) -> (mpsc::Receiver<T>, rosrust::Subscriber) {

@@ -103,14 +103,14 @@ fn test_sub_helper() {
         println!("{}, {:?}", count, vel);
     }
 
-    // subscribe(reciving from mpsc)
+    // subscribe(receiving from mpsc)
     let mut rv_count = 0_usize;
     while let Ok(rv) = rx.recv() {
         if rv_count == 49 {
             break;
         } else {
             assert_approx_eq!(rv.linear.x, 0.001 * (rv_count as f64));
-            println!("mpsc reciver {:?}", rv);
+            println!("mpsc receiver {:?}", rv);
         }
         rv_count += 1;
     }
