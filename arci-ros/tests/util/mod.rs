@@ -9,6 +9,7 @@ use std::{
 pub use child_process_terminator::ChildProcessTerminator;
 
 mod child_process_terminator;
+pub(crate) mod msg_helper;
 
 fn rostopic_listing_succeeds() -> bool {
     Command::new("rostopic")

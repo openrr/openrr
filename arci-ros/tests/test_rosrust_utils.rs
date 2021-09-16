@@ -77,3 +77,41 @@ fn test_convert_system_time_to_ros_time() {
         ALLOWABLE_ERROR
     );
 }
+
+#[test]
+fn test_sub_helper() {
+    use arci::{BaseVelocity, MoveBase};
+    use arci_ros::{msg::geometry_msgs::Twist, RosCmdVelMoveBase};
+    use assert_approx_eq::assert_approx_eq;
+    use util::{msg_helper::subscribe_helper, *};
+
+    println!("test subscriber helper is running!");
+
+    let topic = "sub_test_twist".to_owned();
+    let _roscore = run_roscore_for(Language::Rust, Feature::Subscriber);
+    arci_ros::init("ros_message_helper_test");
+
+    let (rx, _sub) = subscribe_helper::<Twist>(&topic);
+    let c = RosCmdVelMoveBase::new(&topic);
+    let mut vel = BaseVelocity::default();
+
+    // publish message
+    for count in 0..50 {
+        vel.x = 0.001 * (count as f64);
+        c.send_velocity(&vel).unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(100));
+        println!("{}, {:?}", count, vel);
+    }
+
+    // subscribe(reciving from mpsc)
+    let mut rv_count = 0_usize;
+    while let Ok(rv) = rx.recv() {
+        if rv_count == 49 {
+            break;
+        } else {
+            assert_approx_eq!(rv.linear.x, 0.001 * (rv_count as f64));
+            println!("mpsc reciver {:?}", rv);
+        }
+        rv_count += 1;
+    }
+}
