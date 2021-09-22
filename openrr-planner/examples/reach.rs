@@ -19,6 +19,7 @@ use k::nalgebra as na;
 use ncollide3d::shape::Compound;
 use openrr_planner::FromUrdf;
 use structopt::StructOpt;
+use urdf_rs::Robot;
 use urdf_viz::{kiss3d::window::Window, Action, Key, Modifiers, WindowEvent};
 
 struct CollisionAvoidApp {
@@ -37,6 +38,7 @@ struct CollisionAvoidApp {
     ignore_rotation_y: bool,
     ignore_rotation_z: bool,
     self_collision_pairs: Vec<(String, String)>,
+    urdf_robot: Robot,
 }
 
 impl CollisionAvoidApp {
@@ -57,11 +59,8 @@ impl CollisionAvoidApp {
         let solver = openrr_planner::RandomInitializeIkSolver::new(solver, 100);
         let planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);
         let (mut viewer, mut window) = urdf_viz::Viewer::new("openrr_planner: example reach");
-        viewer.add_robot_with_base_dir(
-            &mut window,
-            planner.urdf_robot().as_ref().unwrap(),
-            robot_path.parent(),
-        );
+        let urdf_robot = urdf_rs::read_file(&robot_path).unwrap();
+        viewer.add_robot_with_base_dir(&mut window, &urdf_robot, robot_path.parent());
         viewer.add_axis_cylinders(&mut window, "origin", 1.0);
 
         let urdf_obstacles =
@@ -93,6 +92,7 @@ impl CollisionAvoidApp {
             ignore_rotation_y,
             ignore_rotation_z,
             self_collision_pairs,
+            urdf_robot,
         }
     }
 
@@ -285,7 +285,7 @@ impl CollisionAvoidApp {
                         }
                         Key::V => {
                             is_collide_show = !is_collide_show;
-                            let ref_robot = self.planner.urdf_robot().as_ref().unwrap();
+                            let ref_robot = &self.urdf_robot;
                             self.viewer.remove_robot(&mut window, ref_robot);
                             self.viewer.add_robot_with_base_dir_and_collision_flag(
                                 &mut window,
