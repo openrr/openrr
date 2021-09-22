@@ -96,7 +96,6 @@ where
                 &config.self_collision_check_pairs,
                 &config.collision_check_clients_configs,
                 &all_joint_trajectory_clients,
-                full_chain_for_collision_checker.clone(),
             );
 
             let mut self_collision_checkers = HashMap::new();
@@ -554,7 +553,6 @@ pub fn create_collision_check_clients<P: AsRef<Path>>(
     self_collision_check_pairs: &[String],
     configs: &[CollisionCheckClientConfig],
     name_to_joint_trajectory_client: &HashMap<String, Arc<dyn JointTrajectoryClient>>,
-    full_chain: Arc<k::Chain<f64>>,
 ) -> HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>> {
     let mut clients = HashMap::new();
     for config in configs {
@@ -565,7 +563,6 @@ pub fn create_collision_check_clients<P: AsRef<Path>>(
                 self_collision_check_pairs,
                 &config.self_collision_checker_config,
                 name_to_joint_trajectory_client[&config.client_name].clone(),
-                full_chain.clone(),
             )),
         );
     }
