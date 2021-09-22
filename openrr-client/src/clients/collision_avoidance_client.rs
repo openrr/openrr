@@ -1,7 +1,7 @@
 use std::{path::Path, sync::Arc};
 
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
-use openrr_planner::{CollisionDetector, JointPathPlannerBuilder};
+use openrr_planner::JointPathPlannerBuilder;
 
 // TODO: speed limit
 fn trajectory_from_positions(
@@ -109,14 +109,13 @@ where
 pub fn create_collision_avoidance_client<P: AsRef<Path>>(
     urdf_path: P,
     self_collision_check_pairs: Vec<(String, String)>,
-    collision_check_prediction: f64,
+    collision_check_margin: f64,
     client: Arc<dyn JointTrajectoryClient>,
 ) -> CollisionAvoidanceClient<Arc<dyn JointTrajectoryClient>> {
     let urdf_robot = urdf_rs::read_file(urdf_path.as_ref()).unwrap();
-    let collision_detector =
-        CollisionDetector::from_urdf_robot(&urdf_robot, collision_check_prediction);
-    let planner_builder = JointPathPlannerBuilder::new(urdf_robot.clone(), collision_detector)
-        .self_collision_pairs(self_collision_check_pairs);
+    let planner_builder = JointPathPlannerBuilder::from_urdf_robot(urdf_robot.clone())
+        .self_collision_pairs(self_collision_check_pairs)
+        .collision_check_margin(collision_check_margin);
     CollisionAvoidanceClient::new(
         client,
         k::Chain::<f64>::from(&urdf_robot),

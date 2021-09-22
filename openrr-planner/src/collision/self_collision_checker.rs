@@ -174,10 +174,11 @@ pub fn create_self_collision_checker<P: AsRef<Path>>(
 
 #[test]
 fn test_create_self_collision_checker() {
-    let urdf_robot = urdf_rs::read_file("sample.urdf").unwrap();
+    let urdf_path = Path::new("sample.urdf");
+    let urdf_robot = urdf_rs::read_file(urdf_path).unwrap();
     let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
     let self_collision_checker = create_self_collision_checker(
-        "sample.urdf",
+        urdf_path,
         &["root:l_shoulder_roll".into()],
         &SelfCollisionCheckerConfig::default(),
         robot.clone(),

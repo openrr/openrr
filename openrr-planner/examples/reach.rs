@@ -67,11 +67,15 @@ impl CollisionAvoidApp {
             urdf_rs::utils::read_urdf_or_xacro(obstacle_path).expect("obstacle file not found");
         let obstacles = Compound::from_urdf_robot(&urdf_obstacles);
         viewer.add_robot(&mut window, &urdf_obstacles);
-        println!("robot={}", planner.path_planner.collision_check_robot);
+        println!(
+            "robot={}",
+            planner.path_planner.robot_collision_detector.robot
+        );
         let arm = {
             let end_link = planner
                 .path_planner
-                .collision_check_robot
+                .robot_collision_detector
+                .robot
                 .find(end_link_name)
                 .unwrap_or_else(|| panic!("{} not found", end_link_name));
             k::SerialChain::from_end(end_link)
@@ -101,15 +105,17 @@ impl CollisionAvoidApp {
         let ja = self
             .planner
             .path_planner
-            .collision_check_robot
+            .robot_collision_detector
+            .robot
             .joint_positions();
         self.planner
             .path_planner
-            .collision_check_robot
+            .robot_collision_detector
+            .robot
             .set_joint_positions(&ja)
             .unwrap();
         self.viewer
-            .update(&self.planner.path_planner.collision_check_robot);
+            .update(&self.planner.path_planner.robot_collision_detector.robot);
     }
 
     fn update_ik_target(&mut self) {
@@ -266,9 +272,10 @@ impl CollisionAvoidApp {
                             let pairs: Vec<_> = self
                                 .planner
                                 .path_planner
+                                .robot_collision_detector
                                 .collision_detector
                                 .detect_self(
-                                    &self.planner.path_planner.collision_check_robot,
+                                    &self.planner.path_planner.robot_collision_detector.robot,
                                     &self.self_collision_pairs,
                                 )
                                 .collect();
@@ -294,7 +301,7 @@ impl CollisionAvoidApp {
                                 is_collide_show,
                             );
                             self.viewer
-                                .update(&self.planner.path_planner.collision_check_robot);
+                                .update(&self.planner.path_planner.robot_collision_detector.robot);
                         }
                         Key::X => {
                             println!("start reachable region calculation");
