@@ -347,12 +347,7 @@ where
         planner.self_collision_pairs = self.self_collision_pairs;
         planner
     }
-}
 
-impl<N> JointPathPlannerBuilder<N>
-where
-    N: RealField + k::SubsetOf<f64> + num_traits::Float,
-{
     /// Try to create `JointPathPlannerBuilder` instance from URDF file and end link name
     pub fn from_urdf_file<P>(file: P) -> Result<JointPathPlannerBuilder<N>>
     where
