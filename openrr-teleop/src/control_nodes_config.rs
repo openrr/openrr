@@ -66,7 +66,7 @@ impl ControlNodesConfig {
                     .get(&joy_joint_teleop_config.client_name)
                     .ok_or_else(|| {
                         Error::NoMapKey(
-                            format!("joy_joint_teleop_configs[{} l.{}]", file!(), line!()),
+                            format!("joint_trajectory_client_map(required from joy_joint_teleop_configs)[{} l.{}]", file!(), line!()),
                             joy_joint_teleop_config.client_name.to_string(),
                         )
                     })?
@@ -89,7 +89,7 @@ impl ControlNodesConfig {
                     .ok_or_else(|| {
                         Error::NoMapKey(
                             format!(
-                                "joint_trajectory_client_map(from ik_node_teleop_configs)[{} l.{}]",
+                                "joint_trajectory_client_map(required from ik_node_teleop_configs)[{} l.{}]",
                                 file!(),
                                 line!()
                             ),
@@ -105,7 +105,7 @@ impl ControlNodesConfig {
                     .ok_or_else(|| {
                         Error::NoMapKey(
                             format!(
-                                "ik_solver_with_chain_map(from ik_node_teleop_configs)[{} l.{}]",
+                                "ik_solver_with_chain_map(required from ik_node_teleop_configs)[{} l.{}]",
                                 file!(),
                                 line!()
                             ),
@@ -128,7 +128,7 @@ impl ControlNodesConfig {
                             .ok_or_else(|| {
                                 Error::NoMapKey(
                                     format!(
-                                        "joint_trajectory_client_map(form joint pose)[{} l.{}]",
+                                        "joint_trajectory_client_map(required form joint pose)[{} l.{}]",
                                         file!(),
                                         line!()
                                     ),
@@ -181,42 +181,42 @@ mod tests {
     #[test]
     fn test_gen() {
         // JoyJointTeleopConfig
-        let config = JoyJointTeleopNodeConfig {
+        let joy_joint_teleop_node_config = JoyJointTeleopNodeConfig {
             mode: String::from("a"),
             joint_step: 1.0_f64,
             step_duration_secs: 0.1_f64,
         };
-        let _joy_tconfig = JoyJointTeleopConfig {
+        let _joy_joint_teleop_config = JoyJointTeleopConfig {
             client_name: String::from("b"),
-            config,
+            config: joy_joint_teleop_node_config,
         };
 
         // IkNodeTeleopConfig
-        let config = IkNodeConfig {
+        let ik_node_config = IkNodeConfig {
             mode: String::from("c"),
             move_step_angular: [1.0_f64, 1.0, 1.0],
             move_step_linear: [1.0_f64, 1.0, 1.0],
             step_duration_secs: 0.1_f64,
         };
 
-        let _ik_node_tconfig = IkNodeTeleopConfig {
+        let _ik_node_teleop_config = IkNodeTeleopConfig {
             solver_name: String::from("d"),
             joint_trajectory_client_name: String::from("f"),
-            config,
+            config: ik_node_config,
         };
     }
 
     #[test]
     fn test_control_node_config_create_error() {
-        let jj_config = JoyJointTeleopConfig {
+        let joy_joint_teleop_config = JoyJointTeleopConfig {
             client_name: String::from("jj config"),
             config: JoyJointTeleopNodeConfig {
-                mode: String::from("jjt config"),
+                mode: String::from("joy joint teleop node config"),
                 joint_step: 1.0_f64,
                 step_duration_secs: 0.1_f64,
             },
         };
-        let ik_config = IkNodeTeleopConfig {
+        let ik_node_teleop_config = IkNodeTeleopConfig {
             solver_name: String::from("ik config solver"),
             joint_trajectory_client_name: String::from("ik trajectory"),
             config: IkNodeConfig {
@@ -226,16 +226,16 @@ mod tests {
                 step_duration_secs: 0.1_f64,
             },
         };
-        let rc_config = RobotCommandConfig {
+        let robot_command_config = RobotCommandConfig {
             name: String::from("rc config"),
             file_path: String::from("sample path"),
         };
         let ctrl_node_config = ControlNodesConfig {
             move_base_mode: Some(String::from("a")),
-            joy_joint_teleop_configs: vec![jj_config],
-            ik_node_teleop_configs: vec![ik_config],
+            joy_joint_teleop_configs: vec![joy_joint_teleop_config],
+            ik_node_teleop_configs: vec![ik_node_teleop_config],
             joints_pose_sender_config: None,
-            command_configs: vec![rc_config],
+            command_configs: vec![robot_command_config],
         };
 
         // Check create control node(Error:No HashMap item[Key=jj config])
@@ -277,10 +277,10 @@ mod tests {
             None,
         );
         let robot_client = robot_client.unwrap();
-        let jtc: Arc<dyn JointTrajectoryClient> =
+        let joint_trajectory_client: Arc<dyn JointTrajectoryClient> =
             Arc::new(DummyJointTrajectoryClient::new(vec!["a".to_owned()]));
-        let mut jt_map = HashMap::new();
-        jt_map.insert("jj config".to_owned(), jtc);
+        let mut joint_trajectory_map = HashMap::new();
+        joint_trajectory_map.insert("jj config".to_owned(), joint_trajectory_client);
 
         let chain = k::Chain::<f64>::from_urdf_file("../openrr-planner/sample.urdf").unwrap();
         let end_link = chain.find("l_tool_fixed").unwrap();
@@ -297,11 +297,12 @@ mod tests {
         let mut ik_map = HashMap::new();
         ik_map.insert("ik config solver".to_owned(), Arc::new(ik_solver));
 
+        // the 5th argument `joint_trajectory_client_map` had to have keys same with the items in `ik_node_teleop_configs`
         let nodes = ctrl_node_config.create_control_nodes(
             None,
             Arc::new(robot_client),
             speaker,
-            &jt_map,
+            &joint_trajectory_map,
             &ik_map,
             Some(Arc::new(DummyMoveBase::default())),
             Vec::new(),
@@ -313,15 +314,15 @@ mod tests {
 
     #[test]
     fn test_control_node_config_create_ok() {
-        let jj_config = JoyJointTeleopConfig {
+        let joy_joint_teleop_config = JoyJointTeleopConfig {
             client_name: String::from("jj config"),
             config: JoyJointTeleopNodeConfig {
-                mode: String::from("jjt config"),
+                mode: String::from("joy joint teleop node config"),
                 joint_step: 1.0_f64,
                 step_duration_secs: 0.1_f64,
             },
         };
-        let ik_config = IkNodeTeleopConfig {
+        let ik_node_teleop_config = IkNodeTeleopConfig {
             solver_name: String::from("ik config solver"),
             joint_trajectory_client_name: String::from("jj config"),
             config: IkNodeConfig {
@@ -331,16 +332,16 @@ mod tests {
                 step_duration_secs: 0.1_f64,
             },
         };
-        let rc_config = RobotCommandConfig {
+        let robot_command_config = RobotCommandConfig {
             name: String::from("rc config"),
             file_path: String::from("sample path"),
         };
         let ctrl_node_config = ControlNodesConfig {
             move_base_mode: Some(String::from("a")),
-            joy_joint_teleop_configs: vec![jj_config],
-            ik_node_teleop_configs: vec![ik_config],
+            joy_joint_teleop_configs: vec![joy_joint_teleop_config],
+            ik_node_teleop_configs: vec![ik_node_teleop_config],
             joints_pose_sender_config: None,
-            command_configs: vec![rc_config],
+            command_configs: vec![robot_command_config],
         };
 
         // Check create control node(Ok)
@@ -356,10 +357,10 @@ mod tests {
         assert!(robot_client.is_ok());
         let robot_client = robot_client.unwrap();
 
-        let jtc: Arc<dyn JointTrajectoryClient> =
+        let joint_trajectory_client: Arc<dyn JointTrajectoryClient> =
             Arc::new(DummyJointTrajectoryClient::new(vec!["a".to_owned()]));
-        let mut jt_map = HashMap::new();
-        jt_map.insert("jj config".to_owned(), jtc);
+        let mut joint_trajectory_map = HashMap::new();
+        joint_trajectory_map.insert("jj config".to_owned(), joint_trajectory_client);
 
         let chain = k::Chain::<f64>::from_urdf_file("../openrr-planner/sample.urdf").unwrap();
         let end_link = chain.find("l_tool_fixed").unwrap();
@@ -380,7 +381,7 @@ mod tests {
             None,
             Arc::new(robot_client),
             speaker,
-            &jt_map,
+            &joint_trajectory_map,
             &ik_map,
             Some(Arc::new(DummyMoveBase::default())),
             Vec::new(),
