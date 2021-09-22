@@ -276,7 +276,6 @@ where
         target_shape: &'a dyn Shape<T>,
         target_pose: &'a na::Isometry3<T>,
     ) -> EnvCollisionNames<'a, 'a, T> {
-        robot.update_transforms();
         EnvCollisionNames::new(self, robot, target_shape, target_pose)
     }
 
@@ -289,7 +288,6 @@ where
         robot: &'a k::Chain<T>,
         self_collision_pairs: &'a [(String, String)],
     ) -> SelfCollisionPairs<'a, T> {
-        robot.update_transforms();
         SelfCollisionPairs::new(self, robot, self_collision_pairs)
     }
 }
