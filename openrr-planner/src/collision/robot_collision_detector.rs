@@ -110,14 +110,8 @@ where
 #[serde(deny_unknown_fields)]
 /// Configuration struct for RobotCollisionDetector
 pub struct RobotCollisionDetectorConfig {
-    #[serde(default = "default_urdf_file_name")]
-    pub urdf_file_name: String,
     #[serde(default = "default_prediction")]
     pub prediction: f64,
-}
-
-fn default_urdf_file_name() -> String {
-    "sample.urdf".to_string()
 }
 
 fn default_prediction() -> f64 {
@@ -125,28 +119,24 @@ fn default_prediction() -> f64 {
 }
 
 impl RobotCollisionDetectorConfig {
-    pub fn new(urdf_file_name: String, prediction: f64) -> Self {
-        RobotCollisionDetectorConfig {
-            urdf_file_name,
-            prediction,
-        }
+    pub fn new(prediction: f64) -> Self {
+        RobotCollisionDetectorConfig { prediction }
     }
 }
 
 impl Default for RobotCollisionDetectorConfig {
     fn default() -> Self {
         Self {
-            urdf_file_name: default_urdf_file_name(),
             prediction: default_prediction(),
         }
     }
 }
 
-pub fn create_robot_collision_detector(
+pub fn create_robot_collision_detector<P: AsRef<Path>>(
+    urdf_path: P,
     config: RobotCollisionDetectorConfig,
     self_collision_pairs: Vec<(String, String)>,
 ) -> RobotCollisionDetector<f64> {
-    let urdf_path = Path::new(&config.urdf_file_name);
     let urdf_robot = urdf_rs::read_file(urdf_path).unwrap();
     let robot = k::Chain::<f64>::from(&urdf_robot);
     let collision_detector = CollisionDetector::from_urdf_robot(&urdf_robot, config.prediction);
@@ -156,8 +146,10 @@ pub fn create_robot_collision_detector(
 
 #[test]
 fn test_robot_collision_detector() {
+    let urdf_path = Path::new("sample.urdf");
     let self_collision_pairs = vec![("root".into(), "l_shoulder_roll".into())];
     let robot_collision_detector = create_robot_collision_detector(
+        urdf_path,
         RobotCollisionDetectorConfig::default(),
         self_collision_pairs,
     );
