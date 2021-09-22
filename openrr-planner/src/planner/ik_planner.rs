@@ -63,10 +63,6 @@ where
         }
     }
 
-    pub fn urdf_robot(&self) -> &Option<urdf_rs::Robot> {
-        &self.path_planner.urdf_robot
-    }
-
     /// Just solve IK and do not plan
     pub fn solve_ik(
         &mut self,

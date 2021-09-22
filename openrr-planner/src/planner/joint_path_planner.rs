@@ -39,8 +39,6 @@ where
     pub max_try: usize,
     /// Num of path smoothing trials
     pub num_smoothing: usize,
-    /// The robot instance which is used to create the robot model
-    pub urdf_robot: Option<urdf_rs::Robot>,
     /// Optional self collision check node names
     pub self_collision_pairs: Vec<(String, String)>,
 }
@@ -63,7 +61,6 @@ where
             step_length,
             max_try,
             num_smoothing,
-            urdf_robot: None,
             self_collision_pairs: vec![],
         }
     }
@@ -281,7 +278,6 @@ where
     max_try: usize,
     num_smoothing: usize,
     collision_check_margin: Option<N>,
-    urdf_robot: Option<urdf_rs::Robot>,
     self_collision_pairs: Vec<(String, String)>,
 }
 
@@ -294,7 +290,6 @@ where
     /// There are also some utility functions to create from urdf
     pub fn new(urdf_robot: urdf_rs::Robot, collision_detector: CollisionDetector<N>) -> Self {
         let collision_check_robot = (&urdf_robot).into();
-        let urdf_robot = Some(urdf_robot);
         JointPathPlannerBuilder {
             collision_check_robot,
             collision_detector,
@@ -302,7 +297,6 @@ where
             max_try: 5000,
             num_smoothing: 100,
             collision_check_margin: None,
-            urdf_robot,
             self_collision_pairs: vec![],
         }
     }
@@ -343,7 +337,6 @@ where
             self.max_try,
             self.num_smoothing,
         );
-        planner.urdf_robot = self.urdf_robot;
         planner.self_collision_pairs = self.self_collision_pairs;
         planner
     }
