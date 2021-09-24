@@ -94,15 +94,18 @@ async fn main() -> Result<()> {
 
     let speaker = client.speakers().values().next().unwrap();
 
-    let nodes = teleop_config.control_nodes_config.create_control_nodes(
-        args.config_path,
-        client.clone(),
-        speaker.clone(),
-        client.joint_trajectory_clients(),
-        client.ik_solvers(),
-        Some(client.clone()),
-        robot_config.openrr_clients_config.joints_poses,
-    );
+    let nodes = teleop_config
+        .control_nodes_config
+        .create_control_nodes(
+            args.config_path,
+            client.clone(),
+            speaker.clone(),
+            client.joint_trajectory_clients(),
+            client.ik_solvers(),
+            Some(client.clone()),
+            robot_config.openrr_clients_config.joints_poses,
+        )
+        .unwrap();
     if nodes.is_empty() {
         panic!("No valid nodes");
     }

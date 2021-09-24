@@ -16,6 +16,8 @@ pub enum Error {
     NoIkClient(String),
     #[error("openrr-client: No JointsPose {} {} is found.", .0, .1)]
     NoJointsPose(String, String),
+    #[error("openrr-client: No HashMap item is found. HashMap={}, Key={}", .0, .1)]
+    NoMapKey(String, String),
     #[error("openrr-client: No JointTrajectoryClient={} is found.", .0)]
     NoJointTrajectoryClient(String),
     #[error("openrr-client: No ParentDirectory {:?} is found.", .0)]
