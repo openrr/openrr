@@ -13,7 +13,7 @@ use tracing::{debug, info};
 
 /// Implement arci::Navigation for ROS2
 pub struct Ros2Navigation {
-    action_client: r2r::ActionClient<NavigateToPose::Action>,
+    action_client: Arc<Mutex<r2r::ActionClient<NavigateToPose::Action>>>,
     /// r2r::Node to handle the action
     node: Arc<Mutex<r2r::Node>>,
 }
@@ -23,16 +23,22 @@ unsafe impl Sync for Ros2Navigation {}
 
 impl Ros2Navigation {
     /// Create instance from ROS2 context and name of action
+    ///
+    /// TODO: Multiple Navigation is not supported now
     pub fn new(ctx: r2r::Context, action_name: &str) -> Self {
         // TODO: Use unique name
-        let mut node = r2r::Node::create(ctx, "nav2_node", "arci_ros2").unwrap();
-        let action_client = node
-            .create_action_client::<NavigateToPose::Action>(action_name)
-            .unwrap();
-        while !node.action_server_available(&action_client).unwrap() {
-            std::thread::sleep(std::time::Duration::from_millis(500));
-            debug!("waiting action server..");
-        }
+        let mut node = r2r::Node::create(ctx, "nav2_node", "arci_ros2")
+            .expect("failed to create navigation node");
+        let action_client = Arc::new(Mutex::new(
+            node.create_action_client::<NavigateToPose::Action>(action_name)
+                .unwrap(),
+        ));
+        block_in_place(
+            node.is_available(&*action_client.lock().unwrap())
+                .expect("failed to wait navigation action"),
+        )
+        .expect("failed to find action");
+
         debug!("waiting action server..Done");
         Self {
             action_client,
@@ -56,6 +62,10 @@ fn to_pose_msg(pose: &Isometry2<f64>) -> msg::Pose {
             w: q.coords.w,
         },
     }
+}
+
+fn block_in_place<T>(f: impl std::future::Future<Output = T>) -> T {
+    tokio::task::block_in_place(|| tokio::runtime::Handle::current().block_on(f))
 }
 
 impl Navigation for Ros2Navigation {
@@ -82,31 +92,36 @@ impl Navigation for Ros2Navigation {
         };
 
         let has_reached = Arc::new(Mutex::new(None));
-
-        let cb = Box::new(move |r: NavigateToPose::SendGoal::Response| {
-            debug!("got response {:?}", r);
-        });
-
-        let feedback_cb = Box::new(move |fb: NavigateToPose::Feedback| {
-            debug!("got feedback {:?}", fb);
-        });
-
         let has_reached_set = has_reached.clone();
-        let result_cb = Box::new(move |r: NavigateToPose::Result| {
-            info!("final result {:?}", r);
-            *has_reached_set.lock().unwrap() = Some(r);
+        let action_client = self.action_client.clone();
+        let (_goal, result, _feedback) = block_in_place(async move {
+            action_client
+                .lock()
+                .unwrap()
+                .send_goal_request(goal)
+                .expect("failed to send goal")
+                .await
+                .expect("goal rejected by server")
         });
-        self.action_client
-            .send_goal_request(goal, cb, feedback_cb, result_cb)
-            .unwrap();
+
         let spin_node = self.node.clone();
         let start_time = std::time::Instant::now();
-        let wait = WaitFuture::new(async move {
-            const SLEEP_DURATION: std::time::Duration = std::time::Duration::from_micros(100);
+        std::thread::spawn(move || {
+            const SLEEP_DURATION: Duration = Duration::from_millis(100);
             while has_reached.lock().unwrap().is_none() && start_time.elapsed() < timeout {
                 spin_node.lock().unwrap().spin_once(SLEEP_DURATION);
                 std::thread::sleep(SLEEP_DURATION);
             }
+        });
+
+        let wait = WaitFuture::new(async move {
+            match result.await {
+                Ok((_status, r)) => {
+                    info!("final result {:?}", r);
+                    *has_reached_set.lock().unwrap() = Some(r);
+                }
+                Err(e) => println!("failed {:?}", e),
+            };
             // TODO: Handle the result and timeout
             Ok(())
         });
