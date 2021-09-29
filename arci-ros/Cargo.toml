@@ -34,5 +34,5 @@ k = "0.25"
 # for tests/utils (using same version of rosrust 0.9.5)
 
 [target.'cfg(unix)'.dev-dependencies]
-nix = "0.22.0"
+nix = "0.23.0"
 portpicker = "0.1.1"
