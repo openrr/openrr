@@ -16,34 +16,77 @@ pub struct Ros2Navigation {
     action_client: Arc<Mutex<r2r::ActionClient<NavigateToPose::Action>>>,
     /// r2r::Node to handle the action
     node: Arc<Mutex<r2r::Node>>,
+    is_plugin: bool,
 }
 
 // TODO:
-unsafe impl Sync for Ros2Navigation {}
+//unsafe impl Sync for Ros2Navigation {}
 
 impl Ros2Navigation {
     /// Create instance from ROS2 context and name of action
-    ///
-    /// TODO: Multiple Navigation is not supported now
     pub fn new(ctx: r2r::Context, action_name: &str) -> Self {
+        Self::new_inner(ctx, action_name, false)
+    }
+
+    /// Create instance from ROS2 context and name of action for plugin
+    pub fn new_for_plugin(ctx: r2r::Context, action_name: &str) -> Self {
+        Self::new_inner(ctx, action_name, true)
+    }
+
+    fn new_inner(ctx: r2r::Context, action_name: &str, is_plugin: bool) -> Self {
         // TODO: Use unique name
-        let mut node = r2r::Node::create(ctx, "nav2_node", "arci_ros2")
-            .expect("failed to create navigation node");
+        let mut node = r2r::Node::create(
+            ctx,
+            &format!("arci_ros2_nav2_node{}", rand::random::<u32>()),
+            "",
+        )
+        .expect("failed to create navigation node");
+        println!("aaa");
         let action_client = Arc::new(Mutex::new(
             node.create_action_client::<NavigateToPose::Action>(action_name)
                 .unwrap(),
         ));
+        let arc_node = Arc::new(Mutex::new(node));
+        let spin_node = arc_node.clone();
+        std::thread::spawn(move || {
+            const SLEEP_DURATION: Duration = Duration::from_millis(100);
+            spin_node.lock().unwrap().spin_once(SLEEP_DURATION);
+            std::thread::sleep(SLEEP_DURATION);
+        });
+        let is_available_node = arc_node.clone();
+        let is_available_client = action_client.clone();
+        // TODO: It seems that `is_available` is not working (It blocks forever)
+        /*
         block_in_place(
-            node.is_available(&*action_client.lock().unwrap())
+            is_plugin,
+            is_available_node
+                .lock()
+                .unwrap()
+                .is_available(&*is_available_client.lock().unwrap())
                 .expect("failed to wait navigation action"),
         )
-        .expect("failed to find action");
-
+        .unwrap();
+        */
+        //.expect("failed to find action");
+        println!("bbb");
         debug!("waiting action server..Done");
         Self {
             action_client,
-            node: Arc::new(Mutex::new(node)),
+            node: arc_node,
+            is_plugin,
         }
+    }
+}
+
+fn block_in_place<T>(is_plugin: bool, f: impl std::future::Future<Output = T>) -> T {
+    if is_plugin {
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(f)
+    } else {
+        tokio::task::block_in_place(|| tokio::runtime::Handle::current().block_on(f))
     }
 }
 
@@ -62,10 +105,6 @@ fn to_pose_msg(pose: &Isometry2<f64>) -> msg::Pose {
             w: q.coords.w,
         },
     }
-}
-
-fn block_in_place<T>(f: impl std::future::Future<Output = T>) -> T {
-    tokio::task::block_in_place(|| tokio::runtime::Handle::current().block_on(f))
 }
 
 impl Navigation for Ros2Navigation {
@@ -94,7 +133,10 @@ impl Navigation for Ros2Navigation {
         let has_reached = Arc::new(Mutex::new(None));
         let has_reached_set = has_reached.clone();
         let action_client = self.action_client.clone();
-        let (_goal, result, _feedback) = block_in_place(async move {
+
+        std::thread::sleep(std::time::Duration::from_micros(1000));
+        let (_goal, result, _feedback) = block_in_place(self.is_plugin, async move {
+            println!("ccc");
             action_client
                 .lock()
                 .unwrap()
@@ -104,17 +146,8 @@ impl Navigation for Ros2Navigation {
                 .expect("goal rejected by server")
         });
 
-        let spin_node = self.node.clone();
-        let start_time = std::time::Instant::now();
-        std::thread::spawn(move || {
-            const SLEEP_DURATION: Duration = Duration::from_millis(100);
-            while has_reached.lock().unwrap().is_none() && start_time.elapsed() < timeout {
-                spin_node.lock().unwrap().spin_once(SLEEP_DURATION);
-                std::thread::sleep(SLEEP_DURATION);
-            }
-        });
-
         let wait = WaitFuture::new(async move {
+            println!("ddd");
             match result.await {
                 Ok((_status, r)) => {
                     info!("final result {:?}", r);

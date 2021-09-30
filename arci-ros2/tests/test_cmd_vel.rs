@@ -1,8 +1,10 @@
 #![cfg(feature = "ros2")]
 
+use futures::stream::StreamExt;
+
 #[tokio::test]
 async fn test_pub() {
-    use std::sync::mpsc;
+    //use std::sync::mpsc;
 
     use arci::{BaseVelocity, MoveBase};
     use arci_ros2::{r2r, Ros2CmdVelMoveBase};
@@ -12,14 +14,8 @@ async fn test_pub() {
     let ctx = r2r::Context::create().unwrap();
     let c = Ros2CmdVelMoveBase::new(ctx.clone(), "/cmd_vel_test");
     let mut node = r2r::Node::create(ctx, "recv", "arci_ros2_test").unwrap();
-    let (tx, rx) = mpsc::channel::<Twist>();
 
-    let _sub = node.subscribe(
-        "/cmd_vel_test",
-        Box::new(move |v: Twist| {
-            tx.send(v).unwrap();
-        }),
-    );
+    let mut sub = node.subscribe::<Twist>("/cmd_vel_test").unwrap();
 
     let mut count = 0;
     let mut vel = BaseVelocity::default();
@@ -27,7 +23,7 @@ async fn test_pub() {
         vel.x = 0.001 * (count as f64);
         c.send_velocity(&vel).unwrap();
         node.spin_once(std::time::Duration::from_millis(10));
-        let v = rx.recv().unwrap();
+        let v = sub.next().await.unwrap();
         assert_approx_eq!(v.linear.x, vel.x);
         assert_approx_eq!(v.linear.y, vel.y);
         assert_approx_eq!(v.linear.z, 0.0);
@@ -44,7 +40,7 @@ async fn test_pub() {
         vel.theta = -0.003 * (count as f64);
         c.send_velocity(&vel).unwrap();
         node.spin_once(std::time::Duration::from_millis(10));
-        let v = rx.recv().unwrap();
+        let v = sub.next().await.unwrap();
         assert_approx_eq!(v.linear.x, vel.x);
         assert_approx_eq!(v.linear.y, vel.y);
         assert_approx_eq!(v.linear.z, 0.0);

@@ -37,6 +37,9 @@ Read [here](https://navigation.ros.org/getting_started/index.html) and install n
 ros2 launch nav2_bringup tb3_simulation_launch.py
 ```
 
+When the start process of Gazebo has been finished, set the initial robot pose with rviz.
+See https://navigation.ros.org/getting_started/index.html for details.
+
 ### Run command line tools
 
 #### Send navigation goal via command line

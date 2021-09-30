@@ -22,7 +22,7 @@ impl openrr_plugin::Plugin for Ros2Plugin {
     ) -> Result<Option<Box<dyn arci::Navigation>>, arci::Error> {
         let config: Ros2NavigationConfig = toml::from_str(&args).map_err(anyhow::Error::from)?;
         let ctx = r2r::Context::create().unwrap();
-        Ok(Some(Box::new(Ros2Navigation::new(
+        Ok(Some(Box::new(Ros2Navigation::new_for_plugin(
             ctx,
             &config.action_name,
         ))))
