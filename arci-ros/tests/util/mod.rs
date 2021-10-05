@@ -25,7 +25,7 @@ fn await_roscore() {
     }
 }
 
-fn run_roscore(port: u32) -> ChildProcessTerminator {
+pub fn run_roscore(port: u32) -> ChildProcessTerminator {
     println!("Running roscore on port: {}", port);
     env::set_var("ROS_MASTER_URI", format!("http://localhost:{}", port));
     while !portpicker::is_free(port as u16) {
@@ -39,6 +39,7 @@ fn run_roscore(port: u32) -> ChildProcessTerminator {
     roscore
 }
 
+#[allow(dead_code)]
 pub fn run_roscore_for(language: Language, feature: Feature) -> ChildProcessTerminator {
     run_roscore(generate_port(language, feature))
 }
@@ -54,6 +55,7 @@ pub enum Language {
 }
 
 impl Language {
+    #[allow(dead_code)]
     fn get_offset(&self) -> u32 {
         match self {
             Language::None => 1,
@@ -78,6 +80,7 @@ pub enum Feature {
 }
 
 impl Feature {
+    #[allow(dead_code)]
     fn get_offset(&self) -> u32 {
         match self {
             Feature::Client => 100,
@@ -91,6 +94,7 @@ impl Feature {
     }
 }
 
+#[allow(dead_code)]
 fn generate_port(language: Language, feature: Feature) -> u32 {
     11400 + language.get_offset() + feature.get_offset()
 }
