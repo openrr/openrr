@@ -7,7 +7,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let ctx = r2r::Context::create().unwrap();
     let n = Ros2Navigation::new(ctx, "/navigate_to_pose");
     n.send_goal_pose(
-        Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
+        Isometry2::new(Vector2::new(0.6, 0.2), 1.0),
         "map",
         std::time::Duration::from_secs_f64(10.0),
     )?
