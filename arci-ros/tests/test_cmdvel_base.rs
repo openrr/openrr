@@ -1,6 +1,6 @@
 #![cfg(target_os = "linux")]
 use arci::{BaseVelocity, MoveBase};
-
+use portpicker::pick_unused_port;
 mod msg {
     rosrust::rosmsg_include!(geometry_msgs / Twist);
 }
@@ -14,7 +14,7 @@ async fn test_cmd_vel() {
     use assert_approx_eq::assert_approx_eq;
 
     println!("test cmd vel init");
-    let _roscore = util::run_roscore_for(util::Language::None, util::Feature::Publisher);
+    let _roscore = util::run_roscore(pick_unused_port().expect("No ports free").into());
 
     let topic_name = String::from("test_twist");
     arci_ros::init("arci_ros_cmd_vel_test");
