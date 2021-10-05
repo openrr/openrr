@@ -71,7 +71,7 @@ impl Ros2Navigation {
             .unwrap();
         let frame_id = frame_id.to_string();
         let spin_node = node.clone();
-        let spin_handle = tokio::task::spawn_blocking(move || loop {
+        let spin_handle = spawn_blocking(self.is_plugin, move || loop {
             spin_node
                 .lock()
                 .unwrap()
@@ -154,6 +154,21 @@ fn block_in_place<T>(is_plugin: bool, f: impl std::future::Future<Output = T>) -
             .block_on(f)
     } else {
         tokio::task::block_in_place(|| tokio::runtime::Handle::current().block_on(f))
+    }
+}
+
+fn spawn_blocking(
+    is_plugin: bool,
+    f: impl FnOnce() -> () + Send + 'static,
+) -> tokio::task::JoinHandle<()> {
+    if is_plugin {
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .spawn_blocking(f)
+    } else {
+        tokio::task::spawn_blocking(f)
     }
 }
 
