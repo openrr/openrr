@@ -1,7 +1,9 @@
+use std::time::Duration;
+
 use arci::{Isometry3, TransformResolver};
 use nalgebra::{Quaternion, Translation3, UnitQuaternion};
 use rosrust::rate;
-use tf_rosrust::TfListener;
+use tf_rosrust::{TfBuffer, TfListener};
 use tracing::{debug, warn};
 
 use crate::convert_system_time_to_ros_time;
@@ -13,11 +15,13 @@ pub struct RosTransformResolver {
 }
 
 impl RosTransformResolver {
-    pub fn new(retry_rate: f64, max_retry: usize) -> Self {
+    pub fn new(cache_duration: Duration, retry_rate: f64, max_retry: usize) -> Self {
         Self {
             retry_rate,
             max_retry,
-            tf_listener: TfListener::new(),
+            tf_listener: TfListener::new_with_buffer(TfBuffer::new_with_duration(
+                cache_duration.into(),
+            )),
         }
     }
 }
