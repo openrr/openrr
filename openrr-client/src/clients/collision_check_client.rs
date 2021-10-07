@@ -10,8 +10,6 @@ where
     T: JointTrajectoryClient,
 {
     pub client: T,
-    /// using_joints must be a part of collision_checker.collision_check_robot.
-    pub using_joints: k::Chain<f64>,
     pub collision_checker: Arc<SelfCollisionChecker<f64>>,
 }
 
@@ -19,14 +17,9 @@ impl<T> CollisionCheckClient<T>
 where
     T: JointTrajectoryClient,
 {
-    pub fn new(
-        client: T,
-        using_joints: k::Chain<f64>,
-        collision_checker: Arc<SelfCollisionChecker<f64>>,
-    ) -> Self {
+    pub fn new(client: T, collision_checker: Arc<SelfCollisionChecker<f64>>) -> Self {
         Self {
             client,
-            using_joints,
             collision_checker,
         }
     }
@@ -50,12 +43,7 @@ where
         duration: std::time::Duration,
     ) -> Result<WaitFuture, Error> {
         self.collision_checker
-            .check_partial_joint_positions(
-                &self.using_joints,
-                &self.current_joint_positions()?,
-                &positions,
-                duration,
-            )
+            .check_joint_positions(&self.current_joint_positions()?, &positions, duration)
             .map_err(|e| Error::Other(e.into()))?;
         self.client.send_joint_positions(positions, duration)
     }
@@ -68,7 +56,7 @@ where
             })
             .collect::<Vec<_>>();
         self.collision_checker
-            .check_partial_joint_trajectory(&self.using_joints, &position_trajectory)
+            .check_joint_trajectory(&position_trajectory)
             .map_err(|e| Error::Other(e.into()))?;
         self.client.send_joint_trajectory(trajectory)
     }
@@ -81,14 +69,13 @@ pub fn create_collision_check_client<P: AsRef<Path>>(
     client: Arc<dyn JointTrajectoryClient>,
     full_chain: Arc<k::Chain<f64>>,
 ) -> CollisionCheckClient<Arc<dyn JointTrajectoryClient>> {
-    let nodes = full_chain.iter().map(|node| (*node).clone()).collect();
-    let using_joints = k::Chain::<f64>::from_nodes(nodes);
+    let joint_names = client.joint_names();
     CollisionCheckClient::new(
         client,
-        using_joints,
         Arc::new(create_self_collision_checker(
             urdf_path,
             self_collision_check_pairs,
+            joint_names,
             config,
             full_chain,
         )),
