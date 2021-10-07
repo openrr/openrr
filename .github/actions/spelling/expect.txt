@@ -204,6 +204,7 @@ thiserror
 timestamped
 timestep
 tmpdir
+tmpfile
 tmppath
 todo
 tokio
