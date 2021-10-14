@@ -3,7 +3,9 @@
 mod util;
 use std::time::SystemTime;
 
-use arci_ros::{convert_ros_time_to_system_time, convert_system_time_to_ros_time};
+use arci_ros::{
+    convert_ros_time_to_system_time, convert_system_time_to_ros_time, subscribe_with_channel,
+};
 
 #[test]
 fn test() {
@@ -78,25 +80,25 @@ fn test_convert_system_time_to_ros_time() {
     );
 }
 
-#[test]
-fn test_sub_helper() {
+fn test_subscribe_with_channel() {
     use arci::{BaseVelocity, MoveBase};
     use arci_ros::{msg::geometry_msgs::Twist, RosCmdVelMoveBase};
     use assert_approx_eq::assert_approx_eq;
-    use util::{msg_helper::subscribe_helper, *};
+    use portpicker::pick_unused_port;
 
     println!("test subscriber helper is running!");
 
     let topic = "sub_test_twist".to_owned();
-    let _roscore = run_roscore_for(Language::Rust, Feature::Subscriber);
+    let _roscore = util::run_roscore(pick_unused_port().expect("No ports free").into());
     arci_ros::init("ros_message_helper_test");
 
-    let (rx, _sub) = subscribe_helper::<Twist>(&topic);
+    let (rx, _sub) = subscribe_with_channel::<Twist>(&topic, 1);
     let c = RosCmdVelMoveBase::new(&topic);
     let mut vel = BaseVelocity::default();
+    const NUMBER_OF_TEST_MESSAGES: usize = 50;
 
     // publish message
-    for count in 0..50 {
+    for count in 0..NUMBER_OF_TEST_MESSAGES {
         vel.x = 0.001 * (count as f64);
         c.send_velocity(&vel).unwrap();
         std::thread::sleep(std::time::Duration::from_millis(100));
@@ -106,12 +108,12 @@ fn test_sub_helper() {
     // subscribe(receiving from mpsc)
     let mut rv_count = 0_usize;
     while let Ok(rv) = rx.recv() {
-        if rv_count == 49 {
-            break;
-        } else {
-            assert_approx_eq!(rv.linear.x, 0.001 * (rv_count as f64));
-            println!("mpsc receiver {:?}", rv);
-        }
+        assert_approx_eq!(rv.linear.x, 0.001 * (rv_count as f64));
+        println!("subscribe(receiving from mpsc): {:?}", rv);
+
         rv_count += 1;
+        if rv_count >= NUMBER_OF_TEST_MESSAGES {
+            break;
+        }
     }
 }
