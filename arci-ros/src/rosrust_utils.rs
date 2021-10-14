@@ -337,3 +337,28 @@ pub fn convert_ros_time_to_system_time(time: &Time) -> SystemTime {
             .unwrap()
     }
 }
+
+/// # subscribe ROS message helper
+///
+/// using for inspect specific massage type.
+/// Message is displayed on screen and sent to ``mpsc receiver``
+///
+/// # Panic!
+///
+/// If subscriber can't be construct, this function is panic.
+///
+pub fn subscribe_with_channel<T: rosrust::Message>(
+    topic_name: &str,
+    queue_size: usize,
+) -> (std::sync::mpsc::Receiver<T>, rosrust::Subscriber) {
+    use std::sync::mpsc;
+
+    let (tx, rx) = mpsc::channel::<T>();
+
+    let sub = rosrust::subscribe(topic_name, queue_size, move |v: T| {
+        tx.send(v).unwrap();
+    })
+    .unwrap();
+
+    (rx, sub)
+}
