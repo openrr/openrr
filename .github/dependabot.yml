@@ -7,9 +7,11 @@ updates:
     commit-message:
       prefix: ''
     ignore:
-      # These dependencies need to be updated at the same time.
+      # These dependencies need to be updated at the same time with urdf-viz.
       - dependency-name: k
       - dependency-name: nalgebra
       - dependency-name: ncollide3d
-      - dependency-name: urdf-viz
+      # These dependencies need to be updated at the same time with tonic.
+      - dependency-name: prost
+      - dependency-name: prost-types
     labels: []
