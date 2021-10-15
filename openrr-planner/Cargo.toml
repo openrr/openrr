@@ -8,7 +8,6 @@ description = "Collision avoidance path planning for robotics"
 keywords = ["pathplanning", "robotics", "robot"]
 categories = ["algorithms", "science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/openrr-planner"
 
 [features]
 default = ["assimp"]

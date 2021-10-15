@@ -8,7 +8,6 @@ description = "arci::Gamepad implementation for keyboard"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "http://docs.rs/arci-gamepad-keyboard"
 
 [dependencies]
 arci = "0.0.6"

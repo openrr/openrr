@@ -8,7 +8,6 @@ description = "arci implementation using urdf-viz"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/arci-urdf-viz"
 
 [dependencies]
 anyhow = "1.0"

@@ -8,7 +8,6 @@ description = "applications using openrr"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/openrr-apps"
 
 [features]
 default = ["assimp", "gui", "ros"]

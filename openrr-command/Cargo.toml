@@ -8,7 +8,6 @@ description = "openrr command line tool library"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/openrr-command"
 
 [features]
 default = ["assimp"]

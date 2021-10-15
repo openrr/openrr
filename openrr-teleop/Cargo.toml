@@ -8,7 +8,6 @@ description = "openrr teleoperation library"
 keywords = ["robotics", "robot"]
 categories = ["algorithms", "science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/openrr-teleop"
 
 [features]
 default = ["assimp"]

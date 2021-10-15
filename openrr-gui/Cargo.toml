@@ -8,7 +8,6 @@ description = "openrr GUI library"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics", "gui"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/openrr-gui"
 
 [features]
 default = ["assimp"]

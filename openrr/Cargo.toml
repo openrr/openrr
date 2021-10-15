@@ -9,7 +9,6 @@ description = "Open Rust Robotics framework"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/openrr"
 readme = "../README.md"
 
 [features]

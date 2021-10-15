@@ -8,7 +8,6 @@ description = "Remote execution support for arci"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/openrr-remote"
 
 [build-dependencies]
 tonic-build = "0.5"

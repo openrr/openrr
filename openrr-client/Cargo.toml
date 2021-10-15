@@ -8,7 +8,6 @@ description = "openrr useful client libraries"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/openrr-client"
 
 [features]
 default = ["assimp"]

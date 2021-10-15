@@ -8,7 +8,6 @@ description = "Abstract Robot Control Interface"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/arci"
 
 [dependencies]
 anyhow = "1.0"
