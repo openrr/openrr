@@ -8,7 +8,6 @@ description = "Experimental plugin support for arci"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/openrr-plugin"
 
 [dependencies]
 abi_stable = "0.10"

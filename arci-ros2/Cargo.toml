@@ -8,7 +8,6 @@ description = "arci implementation using ROS2"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
-documentation = "https://docs.rs/arci-ros2"
 
 [lib]
 crate-type = ["lib", "staticlib", "cdylib"]
