@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    fmt, fs,
+    env, fmt, fs,
     iter::FromIterator,
     path::{Path, PathBuf},
     sync::Arc,
@@ -215,17 +215,10 @@ pub(crate) fn resolve_plugin_path(
 ) -> Result<(), Error> {
     *plugin_path = openrr_client::resolve_relative_path(base_path, &plugin_path)?;
     if plugin_path.extension().is_none() {
-        plugin_path.set_extension(PLUGIN_EXT);
+        plugin_path.set_extension(env::consts::DLL_EXTENSION);
     }
     Ok(())
 }
-
-#[cfg(target_os = "linux")]
-const PLUGIN_EXT: &str = "so";
-#[cfg(target_os = "macos")]
-const PLUGIN_EXT: &str = "dylib";
-#[cfg(windows)]
-const PLUGIN_EXT: &str = "dll";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
