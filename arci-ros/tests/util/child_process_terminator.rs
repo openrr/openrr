@@ -6,6 +6,7 @@ use nix::{
 };
 
 #[must_use]
+#[derive(Debug)]
 pub struct ChildProcessTerminator(pub Child);
 
 impl ChildProcessTerminator {

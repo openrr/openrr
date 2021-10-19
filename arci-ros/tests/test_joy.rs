@@ -4,9 +4,9 @@ use std::collections::HashMap;
 
 use arci::{gamepad::GamepadEvent, Gamepad};
 use arci_ros::JoyGamepad;
-use portpicker::pick_unused_port;
 
 mod util;
+use util::run_roscore_and_rosrust_init_once;
 mod msg {
     rosrust::rosmsg_include!(sensor_msgs / Joy);
 }
@@ -14,9 +14,7 @@ use msg::sensor_msgs::Joy;
 
 #[tokio::test]
 async fn test_joy() {
-    let _roscore = util::run_roscore(pick_unused_port().expect("No ports free").into());
-
-    rosrust::init("test_joy_gamepad");
+    let _roscore = run_roscore_and_rosrust_init_once("test_joy_gamepad");
 
     let mut button_map = HashMap::new();
     button_map.insert(0, arci::gamepad::Button::West);

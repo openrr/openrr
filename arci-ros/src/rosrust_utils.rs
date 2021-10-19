@@ -346,6 +346,7 @@ pub fn convert_ros_time_to_system_time(time: &Time) -> SystemTime {
 /// # Panic!
 ///
 /// If subscriber can't be construct, this function is panic.
+/// Or if ``Roscore`` is not up, could be panic.
 ///
 pub fn subscribe_with_channel<T: rosrust::Message>(
     topic_name: &str,
