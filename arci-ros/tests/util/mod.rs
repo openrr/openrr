@@ -2,6 +2,7 @@ use std::{
     env,
     process::{Command, Output},
     str::from_utf8,
+    sync::{Arc, Once, RwLock, Weak},
     thread::sleep,
     time::Duration,
 };
@@ -9,7 +10,6 @@ use std::{
 pub use child_process_terminator::ChildProcessTerminator;
 
 mod child_process_terminator;
-pub(crate) mod msg_helper;
 
 fn rostopic_listing_succeeds() -> bool {
     Command::new("rostopic")
@@ -120,4 +120,86 @@ pub fn assert_success_and_output_containing(output: Output, expected: &str) {
         expected,
         from_utf8(&stdout).unwrap_or("not valid UTF-8")
     );
+}
+
+/// # initialize roscore, rosrust
+///
+/// ``roscore`` and rosrust is running only one.
+/// This function enable to run test using roscore.
+/// To strict call once its parts.
+///
+/// # Example
+///
+/// Need to be bound to a variable to maintain running ``roscore``.
+/// Thus, return should not drop.
+///
+/// ```
+/// let rosrust_init_name = String::from("ros_rust");
+///
+/// // Important action
+/// let _roscore = run_roscore_and_rosrust_init_once(&rosrust_init_name);
+///
+/// ```
+///
+/* think that ``OnceCell`` 's method get ``panic!`` in rare cases.
+ * Therefore using ``unwrap`` for error handling.
+ */
+pub fn run_roscore_and_rosrust_init_once(init_name: &str) -> Arc<ChildProcessTerminator> {
+    use once_cell::sync::{Lazy, OnceCell};
+
+    static ONCE: Once = Once::new();
+    static PORT: Lazy<u32> = Lazy::new(|| {
+        portpicker::pick_unused_port()
+            .expect("No ports free")
+            .into()
+    });
+
+    // static memory is not guaranteed to be dropped.
+    // if it isn't be dropped, ``roscore`` do not down and is running after test.
+    // Therefore, having weak reference(which cannot live without strong reference).
+    static ROSCORE_STATIC: OnceCell<RwLock<Weak<ChildProcessTerminator>>> = OnceCell::new();
+    // keep strong reference at least one
+    let mut roscore_strong: Option<Arc<ChildProcessTerminator>> = None;
+
+    ONCE.call_once(|| {
+        let roscore_terminator = run_roscore(*PORT);
+
+        roscore_strong = Some(Arc::new(roscore_terminator));
+        ROSCORE_STATIC
+            .set(RwLock::new(Arc::downgrade(
+                roscore_strong.as_ref().unwrap(),
+            )))
+            .unwrap();
+        arci_ros::init(init_name);
+    });
+
+    if let Some(roscore_arc) = roscore_strong {
+        // In current time, ``once_call`` is running.
+        // So ``roscore`` is initialized.
+        return roscore_arc;
+    } else {
+        // Try upgrade to ``Arc``, it success if roscore is still alive.
+        let roscore_lock = ROSCORE_STATIC.get().unwrap().try_read();
+        if let Ok(roscore_read) = roscore_lock {
+            let roscore_live = roscore_read.upgrade();
+            if let Some(roscore_arc) = roscore_live {
+                return roscore_arc;
+            }
+        }
+    }
+
+    // If roscore have already stopped, try to make roscore up.
+    // ``roscore`` runner should be only one so we must execute exclusive control.
+    // At here, exclusive control is realized by ``RwLock::write`` .
+    let mut roscore_write = ROSCORE_STATIC.get().unwrap().write().unwrap();
+    let roscore_live = roscore_write.upgrade();
+    if let Some(roscore_arc) = roscore_live {
+        return roscore_arc;
+    }
+
+    let roscore_terminator = run_roscore(*PORT);
+    roscore_strong = Some(Arc::new(roscore_terminator));
+    *roscore_write = Arc::downgrade(roscore_strong.as_ref().unwrap());
+
+    roscore_strong.unwrap()
 }

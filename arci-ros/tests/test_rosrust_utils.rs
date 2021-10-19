@@ -1,21 +1,18 @@
 #![cfg(target_os = "linux")]
 
 mod util;
-use std::time::SystemTime;
+
+use std::{result::Result::Ok, time::SystemTime};
 
 use arci_ros::{
     convert_ros_time_to_system_time, convert_system_time_to_ros_time, subscribe_with_channel,
 };
+use util::run_roscore_and_rosrust_init_once;
 
 #[test]
-fn test() {
-    let _ros_core = util::run_roscore_for(util::Language::None, util::Feature::Publisher);
-    // to avoid calling rosrust::init multiple times, call all tests from this function.
-    rosrust::init("test_rosrust_utils");
-    test_convert_ros_time_to_system_time();
-    test_convert_system_time_to_ros_time();
-}
 fn test_convert_ros_time_to_system_time() {
+    let _roscore = run_roscore_and_rosrust_init_once("test_convert_ros_time_to_system_time");
+
     const ALLOWABLE_ERROR_NANOSECONDS: u128 = 1_000_000;
 
     let ros_diff = rosrust::Duration::from_seconds(1);
@@ -53,8 +50,12 @@ fn test_convert_ros_time_to_system_time() {
     );
 }
 
+#[test]
 fn test_convert_system_time_to_ros_time() {
-    const ALLOWABLE_ERROR: f64 = 1.0 / 1_000_000.0;
+    let _roscore =
+        run_roscore_and_rosrust_init_once(&"test_convert_system_time_to_ros_time".to_owned());
+
+    const ALLOWABLE_ERROR: f64 = 1e-5;
     let system_time_diff = std::time::Duration::from_secs(1);
 
     let ros_time = rosrust::now();
@@ -80,17 +81,15 @@ fn test_convert_system_time_to_ros_time() {
     );
 }
 
+#[test]
 fn test_subscribe_with_channel() {
     use arci::{BaseVelocity, MoveBase};
     use arci_ros::{msg::geometry_msgs::Twist, RosCmdVelMoveBase};
     use assert_approx_eq::assert_approx_eq;
-    use portpicker::pick_unused_port;
 
     println!("test subscriber helper is running!");
-
     let topic = "sub_test_twist".to_owned();
-    let _roscore = util::run_roscore(pick_unused_port().expect("No ports free").into());
-    arci_ros::init("ros_message_helper_test");
+    let _roscore = run_roscore_and_rosrust_init_once(&"test_subscribe_with_channel".to_owned());
 
     let (rx, _sub) = subscribe_with_channel::<Twist>(&topic, 1);
     let c = RosCmdVelMoveBase::new(&topic);

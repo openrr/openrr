@@ -1,30 +1,22 @@
 #![cfg(target_os = "linux")]
 use arci::{BaseVelocity, MoveBase};
-use portpicker::pick_unused_port;
 mod msg {
     rosrust::rosmsg_include!(geometry_msgs / Twist);
 }
 use msg::geometry_msgs::Twist;
 mod util;
+use arci_ros::subscribe_with_channel;
+use util::run_roscore_and_rosrust_init_once;
 
 #[tokio::test]
 async fn test_cmd_vel() {
-    use std::sync::mpsc;
-
     use assert_approx_eq::assert_approx_eq;
 
     println!("test cmd vel init");
-    let _roscore = util::run_roscore(pick_unused_port().expect("No ports free").into());
+    let _roscore = run_roscore_and_rosrust_init_once("arci_ros_cmd_vel_test");
 
     let topic_name = String::from("test_twist");
-    arci_ros::init("arci_ros_cmd_vel_test");
-    let (tx, rx) = mpsc::channel::<Twist>();
-
-    let _sub = rosrust::subscribe(&topic_name, 1, move |v: Twist| {
-        println!("{:?}", v);
-        tx.send(v).unwrap();
-    })
-    .unwrap();
+    let (rx, _sub) = subscribe_with_channel::<Twist>(&topic_name, 1);
 
     let c = arci_ros::RosCmdVelMoveBase::new(&topic_name);
     let mut vel = BaseVelocity::default();
