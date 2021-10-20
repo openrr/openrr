@@ -81,7 +81,11 @@ pub fn create_collision_check_client<P: AsRef<Path>>(
     client: Arc<dyn JointTrajectoryClient>,
     full_chain: Arc<k::Chain<f64>>,
 ) -> CollisionCheckClient<Arc<dyn JointTrajectoryClient>> {
-    let nodes = full_chain.iter().map(|node| (*node).clone()).collect();
+    let joint_names = client.joint_names();
+    let nodes = joint_names
+        .iter()
+        .map(|joint_name| (*full_chain.find(joint_name).unwrap()).clone())
+        .collect();
     let using_joints = k::Chain::<f64>::from_nodes(nodes);
     CollisionCheckClient::new(
         client,
