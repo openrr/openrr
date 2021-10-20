@@ -143,4 +143,55 @@ mod tests {
             )
             .is_err());
     }
+
+    #[tokio::test]
+    async fn test_create_collision_check_client_for_partial_joints() {
+        let urdf_path = Path::new("sample.urdf");
+        let urdf_robot = urdf_rs::read_file(urdf_path).unwrap();
+        let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
+        let client = arci::DummyJointTrajectoryClient::new(
+            robot
+                .iter_joints()
+                .take(2)
+                .map(|joint| joint.name.clone())
+                .collect(),
+        );
+        client
+            .send_joint_positions(vec![0.0; 2], std::time::Duration::new(0, 0))
+            .unwrap()
+            .await
+            .unwrap();
+
+        let collision_check_client = create_collision_check_client(
+            urdf_path,
+            &["root:l_shoulder_roll".into()],
+            &SelfCollisionCheckerConfig::default(),
+            Arc::new(client),
+            robot,
+        );
+
+        assert_eq!(
+            *collision_check_client.current_joint_positions().unwrap(),
+            vec![0.0; 2]
+        );
+
+        assert!(collision_check_client
+            .send_joint_positions(vec![0.0; 2], std::time::Duration::new(1, 0),)
+            .is_ok());
+        assert!(collision_check_client
+            .send_joint_positions(vec![1.57, 0.0], std::time::Duration::new(1, 0),)
+            .is_err());
+
+        let point_ok = TrajectoryPoint::new([0.0; 2].to_vec(), std::time::Duration::new(1, 0));
+        let trajectory_ok = vec![point_ok];
+        assert!(collision_check_client
+            .send_joint_trajectory(trajectory_ok)
+            .is_ok());
+
+        let point_err = TrajectoryPoint::new([1.57, 0.0].to_vec(), std::time::Duration::new(2, 0));
+        let trajectory_err = vec![point_err];
+        assert!(collision_check_client
+            .send_joint_trajectory(trajectory_err)
+            .is_err());
+    }
 }
