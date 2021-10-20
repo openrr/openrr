@@ -1,4 +1,4 @@
-name: Build and Test
+name: CI
 
 on:
   push:
@@ -10,8 +10,10 @@ on:
 
 env:
   CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  RUSTUP_MAX_RETRIES: 10
 
 jobs:
   windows:
@@ -83,6 +85,99 @@ jobs:
       - name: cargo test (openrr-apps without ros)
         working-directory: openrr-apps
         run: cargo test --no-default-features --features gui,assimp
+
+  ros1_arci_ros:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            distro: melodic
+          - os: ubuntu-20.04
+            distro: noetic
+    runs-on: ${{ matrix.os }}
+    container:
+      image: docker://ros:${{ matrix.distro }}-ros-base
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          apt-get update
+          apt-get -y install curl
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: cargo everything
+        shell: bash -ieo pipefail {0}
+        working-directory: arci-ros
+        run: |
+          source /opt/ros/${{ matrix.distro }}/setup.bash
+          rosdep install -y -i --from-paths .
+          cargo test
+
+  ros1_openrr_apps:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            distro: melodic
+          - os: ubuntu-20.04
+            distro: noetic
+    runs-on: ${{ matrix.os }}
+    container:
+      image: docker://ros:${{ matrix.distro }}-ros-base
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          apt-get update
+          apt-get -y install curl
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - run: ci/ubuntu-install-dependencies.sh
+      - name: cargo test
+        shell: bash -ieo pipefail {0}
+        working-directory: openrr-apps
+        run: |
+          cargo test --no-default-features --features ros,assimp
+
+  ros2_arci_ros2:
+    runs-on: ubuntu-20.04
+    container:
+      image: docker://ros:foxy
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          apt-get update
+          apt-get -y install curl libclang-dev
+          apt-get -y install ros-foxy-geometry-msgs ros-foxy-nav2-msgs
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: cargo build
+        shell: bash -ieo pipefail {0}
+        working-directory: arci-ros2
+        run: |
+          source /opt/ros/foxy/setup.bash
+          cargo build --features ros2 --examples
+      - name: cargo test
+        shell: bash -ieo pipefail {0}
+        working-directory: arci-ros2
+        run: |
+          source /opt/ros/foxy/setup.bash
+          cargo test --features ros2
 
   # TODO(taiki-e): Some configs use HashMap and the order of the default values
   #                will change every time because HashMap order is not stable.
