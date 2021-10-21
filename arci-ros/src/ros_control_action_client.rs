@@ -31,12 +31,17 @@ pub struct RosControlActionClient(Arc<RosControlActionClientInner>);
 struct RosControlActionClientInner {
     joint_names: Vec<String>,
     joint_state_subscriber_handler: SubscriberHandler<JointTrajectoryControllerState>,
+    send_partial_joints_goal: bool,
     action_client: SimpleActionClient,
     complete_condition: Mutex<Arc<dyn CompleteCondition>>,
 }
 
 impl RosControlActionClient {
-    pub fn new(joint_names: Vec<String>, controller_name: &str) -> Self {
+    pub fn new(
+        joint_names: Vec<String>,
+        controller_name: &str,
+        send_partial_joints_goal: bool,
+    ) -> Self {
         let joint_state_topic_name = format!("{}/state", controller_name);
         let joint_state_subscriber_handler = SubscriberHandler::new(&joint_state_topic_name, 1);
         joint_state_subscriber_handler.wait_message(100);
@@ -46,6 +51,7 @@ impl RosControlActionClient {
         Self(Arc::new(RosControlActionClientInner {
             joint_names,
             joint_state_subscriber_handler,
+            send_partial_joints_goal,
             action_client,
             complete_condition: Mutex::new(Arc::new(TotalJointDiffCondition::default())),
         }))
@@ -78,6 +84,7 @@ impl JointTrajectoryClient for RosControlActionClient {
             self.get_joint_state()?,
             &positions,
             duration,
+            self.0.send_partial_joints_goal,
         )?;
 
         let goal = msg::control_msgs::FollowJointTrajectoryGoal {
@@ -114,6 +121,7 @@ impl JointTrajectoryClient for RosControlActionClient {
             self,
             self.get_joint_state()?,
             &trajectory,
+            self.0.send_partial_joints_goal,
         )?;
         let goal = msg::control_msgs::FollowJointTrajectoryGoal {
             trajectory: traj,

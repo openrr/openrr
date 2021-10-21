@@ -8,10 +8,7 @@ use arci::{
     CompleteCondition, EachJointDiffCondition, JointTrajectoryClient, SetCompleteCondition,
     TotalJointDiffCondition, TrajectoryPoint, WaitFuture,
 };
-use msg::{
-    control_msgs::JointTrajectoryControllerState,
-    trajectory_msgs::{JointTrajectory, JointTrajectoryPoint},
-};
+use msg::{control_msgs::JointTrajectoryControllerState, trajectory_msgs::JointTrajectory};
 use once_cell::sync::Lazy;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -256,26 +253,13 @@ impl JointTrajectoryClient for RosControlClient {
         positions: Vec<f64>,
         duration: Duration,
     ) -> Result<WaitFuture, arci::Error> {
-        let traj = if self.0.send_partial_joints_goal {
-            JointTrajectory {
-                points: vec![JointTrajectoryPoint {
-                    positions: positions.clone(),
-                    // add zero velocity to use cubic interpolation in trajectory_controller
-                    velocities: vec![0.0; self.joint_names().len()],
-                    time_from_start: duration.into(),
-                    ..Default::default()
-                }],
-                joint_names: self.joint_names(),
-                ..Default::default()
-            }
-        } else {
-            create_joint_trajectory_message_for_send_joint_positions(
-                self,
-                self.get_joint_state()?,
-                &positions,
-                duration,
-            )?
-        };
+        let traj = create_joint_trajectory_message_for_send_joint_positions(
+            self,
+            self.get_joint_state()?,
+            &positions,
+            duration,
+            self.0.send_partial_joints_goal,
+        )?;
         self.0.trajectory_publisher.send(traj).unwrap();
         let this = self.clone();
         Ok(WaitFuture::new(async move {
@@ -291,31 +275,12 @@ impl JointTrajectoryClient for RosControlClient {
         &self,
         trajectory: Vec<TrajectoryPoint>,
     ) -> Result<WaitFuture, arci::Error> {
-        let traj = if self.0.send_partial_joints_goal {
-            JointTrajectory {
-                points: trajectory
-                    .iter()
-                    .map(|tp| JointTrajectoryPoint {
-                        positions: tp.positions.clone(),
-                        velocities: if let Some(velocities) = &tp.velocities {
-                            velocities.clone()
-                        } else {
-                            vec![]
-                        },
-                        time_from_start: tp.time_from_start.into(),
-                        ..Default::default()
-                    })
-                    .collect(),
-                joint_names: self.joint_names(),
-                ..Default::default()
-            }
-        } else {
-            create_joint_trajectory_message_for_send_joint_trajectory(
-                self,
-                self.get_joint_state()?,
-                &trajectory,
-            )?
-        };
+        let traj = create_joint_trajectory_message_for_send_joint_trajectory(
+            self,
+            self.get_joint_state()?,
+            &trajectory,
+            self.0.send_partial_joints_goal,
+        )?;
         self.0.trajectory_publisher.send(traj).unwrap();
         let this = self.clone();
         Ok(WaitFuture::new(async move {
