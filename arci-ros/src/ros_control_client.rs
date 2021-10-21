@@ -20,7 +20,7 @@ use crate::{
         create_joint_trajectory_message_for_send_joint_positions,
         create_joint_trajectory_message_for_send_joint_trajectory,
         extract_current_joint_positions_from_state, wrap_joint_trajectory_client,
-        JointStateProvider, JointTrajectoryClientWrapperConfig,
+        JointStateProvider, JointTrajectoryClientWrapperConfig, LazyJointStateProvider,
     },
     SubscriberHandler,
 };
@@ -50,11 +50,6 @@ const fn default_complete_timeout_sec() -> f64 {
     10.0
 }
 
-type StateSubscriber = Lazy<
-    SubscriberHandler<JointTrajectoryControllerState>,
-    Box<dyn FnOnce() -> SubscriberHandler<JointTrajectoryControllerState> + Send + Sync>,
->;
-
 pub fn create_joint_trajectory_clients(
     configs: Vec<RosControlClientConfig>,
     urdf_robot: Option<&urdf_rs::Robot>,
@@ -75,7 +70,8 @@ fn create_joint_trajectory_clients_inner(
     lazy: bool,
 ) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
     let mut clients = HashMap::new();
-    let mut state_topic_name_to_subscriber: HashMap<String, Arc<StateSubscriber>> = HashMap::new();
+    let mut state_topic_name_to_subscriber: HashMap<String, Arc<LazyJointStateProvider>> =
+        HashMap::new();
     for config in configs {
         if urdf_robot.is_none() {
             config.wrapper_config.check_urdf_is_not_necessary()?;
@@ -85,16 +81,15 @@ fn create_joint_trajectory_clients_inner(
         } else {
             RosControlClient::state_topic_name(&config.controller_name)
         };
-        let joint_state_subscriber_handler = if let Some(joint_state_subscriber_handler) =
+        let joint_state_provider = if let Some(joint_state_provider) =
             state_topic_name_to_subscriber.get(&state_topic_name)
         {
-            joint_state_subscriber_handler.clone()
+            joint_state_provider.clone()
         } else {
-            let joint_state_subscriber_handler =
-                RosControlClient::create_joint_state_subscriber_handler(&state_topic_name);
-            state_topic_name_to_subscriber
-                .insert(state_topic_name, joint_state_subscriber_handler.clone());
-            joint_state_subscriber_handler
+            let joint_state_provider =
+                RosControlClient::create_joint_state_provider(&state_topic_name);
+            state_topic_name_to_subscriber.insert(state_topic_name, joint_state_provider.clone());
+            joint_state_provider
         };
 
         let RosControlClientConfig {
@@ -108,11 +103,11 @@ fn create_joint_trajectory_clients_inner(
         let joint_names_clone = joint_names.clone();
         let create_client = move || {
             rosrust::ros_debug!("create_joint_trajectory_clients_inner: creating RosControlClient");
-            let mut client = RosControlClient::new_with_joint_state_subscriber_handler(
+            let mut client = RosControlClient::new_with_joint_state_provider(
                 joint_names_clone,
                 &controller_name,
                 send_partial_joints_goal,
-                joint_state_subscriber_handler,
+                joint_state_provider,
             );
             client.set_complete_condition(Box::new(EachJointDiffCondition::new(
                 complete_allowable_errors,
@@ -132,31 +127,46 @@ fn create_joint_trajectory_clients_inner(
     Ok(clients)
 }
 
+struct JointStateProviderFromJointTrajectoryControllerState(
+    SubscriberHandler<JointTrajectoryControllerState>,
+);
+
+impl JointStateProviderFromJointTrajectoryControllerState {
+    fn new(subscriber_handler: SubscriberHandler<JointTrajectoryControllerState>) -> Self {
+        subscriber_handler.wait_message(100);
+        Self(subscriber_handler)
+    }
+}
+
+impl JointStateProvider for JointStateProviderFromJointTrajectoryControllerState {
+    fn get_joint_state(&self) -> Result<(Vec<String>, Vec<f64>), arci::Error> {
+        let state = self
+            .0
+            .get()?
+            .ok_or_else(|| arci::Error::Other(Error::NoJointStateAvailable.into()))?;
+        Ok((state.joint_names, state.actual.positions))
+    }
+}
+
 #[derive(Clone)]
 pub struct RosControlClient(Arc<RosControlClientInner>);
 
 struct RosControlClientInner {
     joint_names: Vec<String>,
-    trajectory_publisher: rosrust::Publisher<JointTrajectory>,
     send_partial_joints_goal: bool,
-    joint_state_subscriber_handler: Arc<StateSubscriber>,
+    joint_state_provider: Arc<LazyJointStateProvider>,
     complete_condition: Mutex<Arc<dyn CompleteCondition>>,
+    trajectory_publisher: rosrust::Publisher<JointTrajectory>,
 }
 
 impl RosControlClient {
-    pub fn new_with_joint_state_subscriber_handler(
+    pub fn new_with_joint_state_provider(
         joint_names: Vec<String>,
         controller_name: &str,
         send_partial_joints_goal: bool,
-        joint_state_subscriber_handler: Arc<StateSubscriber>,
+        joint_state_provider: Arc<LazyJointStateProvider>,
     ) -> Self {
-        joint_state_subscriber_handler.wait_message(100);
-
-        let state_joint_names = joint_state_subscriber_handler
-            .get()
-            .unwrap()
-            .unwrap()
-            .joint_names;
+        let (state_joint_names, _) = joint_state_provider.get_joint_state().unwrap();
         for joint_name in &joint_names {
             if !state_joint_names.iter().any(|name| **name == *joint_name) {
                 panic!(
@@ -179,7 +189,7 @@ impl RosControlClient {
             joint_names,
             trajectory_publisher,
             send_partial_joints_goal,
-            joint_state_subscriber_handler,
+            joint_state_provider,
             complete_condition: Mutex::new(Arc::new(TotalJointDiffCondition::default())),
         }))
     }
@@ -202,12 +212,14 @@ impl RosControlClient {
         format!("{}/state", controller_name)
     }
 
-    fn create_joint_state_subscriber_handler(
+    fn create_joint_state_provider(
         joint_state_topic_name: impl Into<String>,
-    ) -> Arc<StateSubscriber> {
+    ) -> Arc<LazyJointStateProvider> {
         let joint_state_topic_name = joint_state_topic_name.into();
         Arc::new(Lazy::new(Box::new(move || {
-            SubscriberHandler::new(&joint_state_topic_name, 1)
+            Box::new(JointStateProviderFromJointTrajectoryControllerState::new(
+                SubscriberHandler::new(&joint_state_topic_name, 1),
+            ))
         })))
     }
 
@@ -217,29 +229,19 @@ impl RosControlClient {
         joint_state_topic_name: &str,
         send_partial_joints_goal: bool,
     ) -> Self {
-        let joint_state_subscriber_handler =
-            Self::create_joint_state_subscriber_handler(joint_state_topic_name);
-        Self::new_with_joint_state_subscriber_handler(
+        let joint_state_provider = Self::create_joint_state_provider(joint_state_topic_name);
+        Self::new_with_joint_state_provider(
             joint_names,
             controller_name,
             send_partial_joints_goal,
-            joint_state_subscriber_handler,
+            joint_state_provider,
         )
-    }
-
-    pub fn joint_state_subscriber_handler(&self) -> &Arc<StateSubscriber> {
-        &self.0.joint_state_subscriber_handler
     }
 }
 
 impl JointStateProvider for RosControlClient {
     fn get_joint_state(&self) -> Result<(Vec<String>, Vec<f64>), arci::Error> {
-        let state = self
-            .0
-            .joint_state_subscriber_handler
-            .get()?
-            .ok_or_else(|| arci::Error::Other(Error::NoJointStateAvailable.into()))?;
-        Ok((state.joint_names, state.actual.positions))
+        self.0.joint_state_provider.get_joint_state()
     }
 }
 
