@@ -21,6 +21,7 @@ use crate::{
         create_joint_trajectory_message_for_send_joint_trajectory,
         extract_current_joint_positions_from_state, wrap_joint_trajectory_client,
         JointStateProvider, JointTrajectoryClientWrapperConfig, LazyJointStateProvider,
+        RosControlClientBuilder,
     },
     SubscriberHandler,
 };
@@ -50,6 +51,69 @@ const fn default_complete_timeout_sec() -> f64 {
     10.0
 }
 
+impl RosControlClientBuilder for RosControlClientConfig {
+    fn build_joint_state_provider(
+        &self,
+        joint_state_topic_name: impl Into<String>,
+    ) -> Arc<LazyJointStateProvider> {
+        RosControlClient::create_joint_state_provider(joint_state_topic_name)
+    }
+
+    fn build_joint_trajectory_client(
+        &self,
+        lazy: bool,
+        joint_state_provider: Arc<LazyJointStateProvider>,
+    ) -> Result<Arc<dyn JointTrajectoryClient>, arci::Error> {
+        let config = self.clone();
+        let create_client = move || {
+            let RosControlClientConfig {
+                joint_names,
+                controller_name,
+                send_partial_joints_goal,
+                complete_allowable_errors,
+                complete_timeout_sec,
+                ..
+            } = config;
+            rosrust::ros_debug!("create_joint_trajectory_clients_inner: creating RosControlClient");
+            let mut client = RosControlClient::new_with_joint_state_provider(
+                joint_names,
+                &controller_name,
+                send_partial_joints_goal,
+                joint_state_provider,
+            );
+            client.set_complete_condition(Box::new(EachJointDiffCondition::new(
+                complete_allowable_errors,
+                complete_timeout_sec,
+            )));
+            Ok(client)
+        };
+        Ok(if lazy {
+            Arc::new(arci::Lazy::with_joint_names(
+                create_client,
+                self.joint_names.clone(),
+            ))
+        } else {
+            Arc::new(create_client().unwrap())
+        })
+    }
+
+    fn state_topic(&self) -> String {
+        if let Some(s) = &self.state_topic_name {
+            s.clone()
+        } else {
+            RosControlClient::state_topic_name(&self.controller_name)
+        }
+    }
+
+    fn wrapper_config(&self) -> &JointTrajectoryClientWrapperConfig {
+        &self.wrapper_config
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+}
+
 pub fn create_joint_trajectory_clients(
     configs: Vec<RosControlClientConfig>,
     urdf_robot: Option<&urdf_rs::Robot>,
@@ -76,51 +140,18 @@ fn create_joint_trajectory_clients_inner(
         if urdf_robot.is_none() {
             config.wrapper_config.check_urdf_is_not_necessary()?;
         }
-        let state_topic_name = if let Some(s) = config.state_topic_name {
-            s
-        } else {
-            RosControlClient::state_topic_name(&config.controller_name)
-        };
+        let state_topic_name = config.state_topic();
         let joint_state_provider = if let Some(joint_state_provider) =
             state_topic_name_to_subscriber.get(&state_topic_name)
         {
             joint_state_provider.clone()
         } else {
-            let joint_state_provider =
-                RosControlClient::create_joint_state_provider(&state_topic_name);
+            let joint_state_provider = config.build_joint_state_provider(&state_topic_name);
             state_topic_name_to_subscriber.insert(state_topic_name, joint_state_provider.clone());
             joint_state_provider
         };
 
-        let RosControlClientConfig {
-            joint_names,
-            controller_name,
-            send_partial_joints_goal,
-            complete_allowable_errors,
-            complete_timeout_sec,
-            ..
-        } = config;
-        let joint_names_clone = joint_names.clone();
-        let create_client = move || {
-            rosrust::ros_debug!("create_joint_trajectory_clients_inner: creating RosControlClient");
-            let mut client = RosControlClient::new_with_joint_state_provider(
-                joint_names_clone,
-                &controller_name,
-                send_partial_joints_goal,
-                joint_state_provider,
-            );
-            client.set_complete_condition(Box::new(EachJointDiffCondition::new(
-                complete_allowable_errors,
-                complete_timeout_sec,
-            )));
-            Ok(client)
-        };
-        let client: Arc<dyn JointTrajectoryClient> = if lazy {
-            Arc::new(arci::Lazy::with_joint_names(create_client, joint_names))
-        } else {
-            Arc::new(create_client().unwrap())
-        };
-
+        let client = config.build_joint_trajectory_client(lazy, joint_state_provider)?;
         let client = wrap_joint_trajectory_client(config.wrapper_config, client, urdf_robot)?;
         clients.insert(config.name, client);
     }
