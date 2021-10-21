@@ -319,9 +319,8 @@ impl UrdfVizWebClient {
             let bomb = Bomb(inner);
             'outer: while !bomb.0.is_dropping() {
                 const UNIT_DURATION: Duration = Duration::from_millis(10);
-                let (trajectory, sender) = match {
-                    mem::take(&mut *bomb.0.send_joint_positions_target.lock().unwrap())
-                } {
+                let prev = mem::take(&mut *bomb.0.send_joint_positions_target.lock().unwrap());
+                let (trajectory, sender) = match prev {
                     SendJointPositionsTarget::Some { trajectory, sender } => (trajectory, sender),
                     SendJointPositionsTarget::None | SendJointPositionsTarget::Abort => {
                         sleep(UNIT_DURATION);
