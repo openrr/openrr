@@ -1,11 +1,111 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use anyhow::format_err;
 use arci::{
-    Error, JointPositionLimit, JointPositionLimiter, JointTrajectoryClient, JointVelocityLimiter,
+    copy_joint_positions, Error, JointPositionLimit, JointPositionLimiter, JointTrajectoryClient,
+    JointVelocityLimiter, TrajectoryPoint,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::msg::{
+    control_msgs::JointTrajectoryControllerState,
+    trajectory_msgs::{JointTrajectory, JointTrajectoryPoint},
+};
+
+pub(crate) fn extract_current_joint_positions_from_message(
+    client: &dyn JointTrajectoryClient,
+    state: JointTrajectoryControllerState,
+) -> Result<Vec<f64>, arci::Error> {
+    // TODO: cache index map and use it
+    let mut result = vec![0.0; client.joint_names().len()];
+    copy_joint_positions(
+        &state.joint_names,
+        &state.actual.positions,
+        &client.joint_names(),
+        &mut result,
+    )?;
+    Ok(result)
+}
+
+pub(crate) fn create_joint_trajectory_message_for_send_joint_positions(
+    client: &dyn JointTrajectoryClient,
+    state: JointTrajectoryControllerState,
+    positions: &[f64],
+    duration: Duration,
+) -> Result<JointTrajectory, arci::Error> {
+    let partial_names = client.joint_names();
+    if partial_names.len() != positions.len() {
+        return Err(arci::Error::LengthMismatch {
+            model: partial_names.len(),
+            input: positions.len(),
+        });
+    }
+    // TODO: cache index map and use it
+    let full_names = state.joint_names;
+    let full_dof = full_names.len();
+
+    let mut full_positions = state.actual.positions;
+    copy_joint_positions(&partial_names, positions, &full_names, &mut full_positions)?;
+
+    let point_with_full_positions = JointTrajectoryPoint {
+        positions: full_positions,
+        // add zero velocity to use cubic interpolation in trajectory_controller
+        velocities: vec![0.0; full_dof],
+        time_from_start: duration.into(),
+        ..Default::default()
+    };
+    Ok(JointTrajectory {
+        joint_names: full_names,
+        points: vec![point_with_full_positions],
+        ..Default::default()
+    })
+}
+
+pub(crate) fn create_joint_trajectory_message_for_send_joint_trajectory(
+    client: &dyn JointTrajectoryClient,
+    state: JointTrajectoryControllerState,
+    trajectory: &[TrajectoryPoint],
+) -> Result<JointTrajectory, arci::Error> {
+    // TODO: cache index map and use it
+    let current_full_positions = state.actual.positions;
+    let full_names = state.joint_names;
+    let full_dof = current_full_positions.len();
+
+    Ok(JointTrajectory {
+        points: trajectory
+            .iter()
+            .map(|tp| {
+                let mut full_positions = current_full_positions.clone();
+                copy_joint_positions(
+                    &client.joint_names(),
+                    &tp.positions,
+                    &full_names,
+                    &mut full_positions,
+                )?;
+                Ok(JointTrajectoryPoint {
+                    positions: full_positions,
+                    velocities: if let Some(partial_velocities) = &tp.velocities {
+                        let mut full_velocities = vec![0.0; full_dof];
+                        copy_joint_positions(
+                            &client.joint_names(),
+                            partial_velocities,
+                            &full_names,
+                            &mut full_velocities,
+                        )?;
+                        full_velocities
+                    } else {
+                        vec![]
+                    },
+                    time_from_start: tp.time_from_start.into(),
+                    ..Default::default()
+                })
+            })
+            .collect::<Result<Vec<_>, arci::Error>>()?,
+        joint_names: full_names,
+        ..Default::default()
+    })
+}
 
 fn new_joint_position_limiter<C>(
     client: C,
