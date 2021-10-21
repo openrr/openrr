@@ -8,6 +8,7 @@ use arci::{
     TrajectoryPoint, WaitFuture,
 };
 use msg::sensor_msgs::JointState;
+use once_cell::sync::Lazy;
 
 use crate::{
     define_action_client_internal,
@@ -16,12 +17,31 @@ use crate::{
     ros_control_common::{
         create_joint_trajectory_message_for_send_joint_positions,
         create_joint_trajectory_message_for_send_joint_trajectory,
-        extract_current_joint_positions_from_state, JointStateProvider,
+        extract_current_joint_positions_from_state, JointStateProvider, LazyJointStateProvider,
     },
     rosrust_utils::*,
 };
 
 const ACTION_TIMEOUT_DURATION_RATIO: u32 = 10;
+
+struct JointStateProviderFromJointState(SubscriberHandler<JointState>);
+
+impl JointStateProviderFromJointState {
+    fn new(subscriber_handler: SubscriberHandler<JointState>) -> Self {
+        subscriber_handler.wait_message(100);
+        Self(subscriber_handler)
+    }
+}
+
+impl JointStateProvider for JointStateProviderFromJointState {
+    fn get_joint_state(&self) -> Result<(Vec<String>, Vec<f64>), arci::Error> {
+        let state = self
+            .0
+            .get()?
+            .ok_or_else(|| arci::Error::Other(Error::NoJointStateAvailable.into()))?;
+        Ok((state.name, state.position))
+    }
+}
 
 define_action_client_internal!(SimpleActionClient, msg::control_msgs, FollowJointTrajectory);
 
@@ -30,42 +50,70 @@ pub struct RosControlActionClient(Arc<RosControlActionClientInner>);
 
 struct RosControlActionClientInner {
     joint_names: Vec<String>,
-    joint_state_subscriber_handler: SubscriberHandler<JointState>,
     send_partial_joints_goal: bool,
-    action_client: SimpleActionClient,
+    joint_state_provider: Arc<LazyJointStateProvider>,
     complete_condition: Mutex<Arc<dyn CompleteCondition>>,
+    action_client: SimpleActionClient,
 }
 
 impl RosControlActionClient {
-    pub fn new(
+    pub fn new_with_joint_state_provider(
         joint_names: Vec<String>,
         controller_name: &str,
         send_partial_joints_goal: bool,
+        joint_state_provider: Arc<LazyJointStateProvider>,
     ) -> Self {
-        let joint_state_topic_name = format!("{}/state", controller_name);
-        let joint_state_subscriber_handler = SubscriberHandler::new(&joint_state_topic_name, 1);
-        joint_state_subscriber_handler.wait_message(100);
+        let (state_joint_names, _) = joint_state_provider.get_joint_state().unwrap();
+        for joint_name in &joint_names {
+            if !state_joint_names.iter().any(|name| **name == *joint_name) {
+                panic!(
+                    "Invalid configuration : Joint ({}) is not found in state ({:?})",
+                    joint_name, state_joint_names
+                );
+            }
+        }
+
         let action_client =
             SimpleActionClient::new(&format!("{}/follow_joint_trajectory", controller_name), 1);
 
         Self(Arc::new(RosControlActionClientInner {
             joint_names,
-            joint_state_subscriber_handler,
+            joint_state_provider,
             send_partial_joints_goal,
             action_client,
             complete_condition: Mutex::new(Arc::new(TotalJointDiffCondition::default())),
         }))
     }
+
+    pub fn new(
+        joint_names: Vec<String>,
+        controller_name: &str,
+        send_partial_joints_goal: bool,
+        joint_state_topic_name: &str,
+    ) -> Self {
+        Self::new_with_joint_state_provider(
+            joint_names,
+            controller_name,
+            send_partial_joints_goal,
+            Self::create_joint_state_provider(joint_state_topic_name),
+        )
+    }
+
+    fn create_joint_state_provider(
+        joint_state_topic_name: impl Into<String>,
+    ) -> Arc<LazyJointStateProvider> {
+        let joint_state_topic_name = joint_state_topic_name.into();
+        Arc::new(Lazy::new(Box::new(move || {
+            Box::new(JointStateProviderFromJointState::new(
+                SubscriberHandler::new(&joint_state_topic_name, 1),
+            ))
+        })))
+    }
 }
 
 impl JointStateProvider for RosControlActionClient {
     fn get_joint_state(&self) -> Result<(Vec<String>, Vec<f64>), arci::Error> {
-        let state = self
-            .0
-            .joint_state_subscriber_handler
-            .get()?
-            .ok_or_else(|| arci::Error::Other(Error::NoJointStateAvailable.into()))?;
-        Ok((state.name, state.position))
+        self.0.joint_state_provider.get_joint_state()
     }
 }
 

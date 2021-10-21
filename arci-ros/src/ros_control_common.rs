@@ -5,6 +5,7 @@ use arci::{
     copy_joint_positions, Error, JointPositionLimit, JointPositionLimiter, JointTrajectoryClient,
     JointVelocityLimiter, TrajectoryPoint,
 };
+use once_cell::sync::Lazy;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -171,9 +172,14 @@ where
     }
 }
 
-pub(crate) trait JointStateProvider {
+pub trait JointStateProvider {
     fn get_joint_state(&self) -> Result<(Vec<String>, Vec<f64>), arci::Error>;
 }
+
+pub type LazyJointStateProvider = Lazy<
+    Box<dyn JointStateProvider + Send + Sync>,
+    Box<dyn FnOnce() -> Box<dyn JointStateProvider + Send + Sync> + Send + Sync>,
+>;
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(deny_unknown_fields)]
