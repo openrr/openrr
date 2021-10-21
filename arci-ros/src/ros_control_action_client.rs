@@ -10,9 +10,15 @@ use arci::{
 use msg::control_msgs::JointTrajectoryControllerState;
 
 use crate::{
-    create_joint_trajectory_message_for_send_joint_positions,
-    create_joint_trajectory_message_for_send_joint_trajectory, define_action_client_internal,
-    error::Error, extract_current_joint_positions_from_message, msg, rosrust_utils::*,
+    define_action_client_internal,
+    error::Error,
+    msg,
+    ros_control_common::{
+        create_joint_trajectory_message_for_send_joint_positions,
+        create_joint_trajectory_message_for_send_joint_trajectory,
+        extract_current_joint_positions_from_message,
+    },
+    rosrust_utils::*,
 };
 
 const ACTION_TIMEOUT_DURATION_RATIO: u32 = 10;
