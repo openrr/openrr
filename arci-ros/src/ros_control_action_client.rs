@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use arci::{
     CompleteCondition, JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition,
@@ -11,6 +14,8 @@ use crate::{
     create_joint_trajectory_message_for_send_joint_trajectory, define_action_client_internal,
     error::Error, extract_current_joint_positions_from_message, msg, rosrust_utils::*,
 };
+
+const ACTION_TIMEOUT_DURATION_RATIO: u32 = 10;
 
 define_action_client_internal!(SimpleActionClient, msg::control_msgs, FollowJointTrajectory);
 
@@ -29,11 +34,8 @@ impl RosControlActionClient {
         let joint_state_topic_name = format!("{}/state", controller_name);
         let joint_state_subscriber_handler = SubscriberHandler::new(&joint_state_topic_name, 1);
         joint_state_subscriber_handler.wait_message(100);
-        let action_client = SimpleActionClient::new(
-            &format!("{}/follow_joint_trajectory", controller_name),
-            1,
-            10.0,
-        );
+        let action_client =
+            SimpleActionClient::new(&format!("{}/follow_joint_trajectory", controller_name), 1);
 
         Self(Arc::new(RosControlActionClientInner {
             joint_names,
@@ -63,7 +65,7 @@ impl JointTrajectoryClient for RosControlActionClient {
     fn send_joint_positions(
         &self,
         positions: Vec<f64>,
-        duration: std::time::Duration,
+        duration: Duration,
     ) -> Result<WaitFuture, arci::Error> {
         let traj = create_joint_trajectory_message_for_send_joint_positions(
             self,
@@ -76,27 +78,26 @@ impl JointTrajectoryClient for RosControlActionClient {
             trajectory: traj,
             ..Default::default()
         };
-        let _goal_id = self
+        let mut goal_id = self
             .0
             .action_client
             .send_goal(goal)
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
         let this = self.clone();
         Ok(WaitFuture::new(async move {
+            // Success of action result does not always mean joints reached to target.
+            // So check complete_condition too.
+            tokio::task::spawn_blocking(move || {
+                goal_id.wait(duration * ACTION_TIMEOUT_DURATION_RATIO)
+            })
+            .await
+            .map_err(|e| arci::Error::Other(e.into()))??;
             // Clone to avoid holding the lock for a long time.
             let complete_condition = this.0.complete_condition.lock().unwrap().clone();
             complete_condition
                 .wait(&this, &positions, duration.as_secs_f64())
                 .await
         }))
-        /*
-        // TODO use action result
-        Ok(SimpleActionClientWait::new_boxed(
-            &self.action_client,
-            goal_id,
-            duration * 10,
-        ))
-        */
     }
 
     fn send_joint_trajectory(
@@ -112,13 +113,25 @@ impl JointTrajectoryClient for RosControlActionClient {
             trajectory: traj,
             ..Default::default()
         };
-        let _goal_id = self
+        let mut goal_id = self
             .0
             .action_client
             .send_goal(goal)
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
         let this = self.clone();
         Ok(WaitFuture::new(async move {
+            let duration = if let Some(trajectory_point) = trajectory.last() {
+                trajectory_point.time_from_start
+            } else {
+                Duration::from_secs(0)
+            };
+            // Success of action result does not always mean joints reached to target.
+            // So check complete_condition too.
+            tokio::task::spawn_blocking(move || {
+                goal_id.wait(duration * ACTION_TIMEOUT_DURATION_RATIO)
+            })
+            .await
+            .map_err(|e| arci::Error::Other(e.into()))??;
             // Clone to avoid holding the lock for a long time.
             let complete_condition = this.0.complete_condition.lock().unwrap().clone();
             complete_condition
@@ -129,19 +142,6 @@ impl JointTrajectoryClient for RosControlActionClient {
                 )
                 .await
         }))
-        /*
-        // TODO use action result
-        let duration = if let Some(trajectory_point) = trajectory.last() {
-            trajectory_point.time_from_start
-        } else {
-            std::time::Duration::from_secs(0)
-        };
-        Ok(SimpleActionClientWait::new_boxed(
-            &self.action_client,
-            goal_id,
-            duration * 10,
-        ))
-        */
     }
 }
 

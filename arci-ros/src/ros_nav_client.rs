@@ -5,7 +5,7 @@ use nalgebra as na;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{define_action_client_internal, msg};
+use crate::{define_action_client_internal, msg, ActionResultWait};
 define_action_client_internal!(SimpleActionClient, msg::move_base_msgs, MoveBase);
 
 rosrust::rosmsg_include! {
@@ -120,7 +120,7 @@ pub struct RosNavClient {
 
 impl RosNavClient {
     pub fn new(request_final_nomotion_update_hack: bool) -> Self {
-        let action_client = SimpleActionClient::new(MOVE_BASE_ACTION, 1, 10.0);
+        let action_client = SimpleActionClient::new(MOVE_BASE_ACTION, 1);
 
         let nomotion_update_client = if request_final_nomotion_update_hack {
             rosrust::wait_for_service(
@@ -158,10 +158,10 @@ impl RosNavClient {
 
     fn wait_until_reach(
         &self,
-        goal_id: &str,
+        mut action_result_wait: ActionResultWait,
         timeout: std::time::Duration,
     ) -> Result<(), crate::Error> {
-        match self.action_client.wait_for_result(goal_id, timeout) {
+        match action_result_wait.wait(timeout) {
             Ok(_) => {
                 rosrust::ros_info!("Action succeeds");
                 if let Some(client) = self.nomotion_update_client.as_ref() {
@@ -200,7 +200,7 @@ impl Navigation for RosNavClient {
         };
         target_pose.header.frame_id = frame_id.to_owned();
         target_pose.header.stamp = rosrust::now();
-        let goal_id = self
+        let action_result_wait = self
             .action_client
             .send_goal(msg::move_base_msgs::MoveBaseGoal { target_pose })
             .map_err(|e| anyhow::anyhow!("Failed to send_goal_and_wait : {}", e.to_string()))?;
@@ -211,9 +211,11 @@ impl Navigation for RosNavClient {
         // using only `tokio::task::spawn_blocking` because it doesn't spawn a thread
         // if the WaitFuture is ignored.
         let wait = WaitFuture::new(async move {
-            tokio::task::spawn_blocking(move || self_clone.wait_until_reach(&goal_id, timeout))
-                .await
-                .map_err(|e| arci::Error::Other(e.into()))??;
+            tokio::task::spawn_blocking(move || {
+                self_clone.wait_until_reach(action_result_wait, timeout)
+            })
+            .await
+            .map_err(|e| arci::Error::Other(e.into()))??;
             Ok(())
         });
 
