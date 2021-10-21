@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use anyhow::format_err;
 use arci::{
@@ -191,7 +191,62 @@ pub trait RosControlClientBuilder {
     fn name(&self) -> &str;
 }
 
-pub type LazyJointStateProvider = Lazy<
+pub fn create_joint_trajectory_clients<B>(
+    builders: Vec<B>,
+    urdf_robot: Option<&urdf_rs::Robot>,
+) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error>
+where
+    B: RosControlClientBuilder,
+{
+    create_joint_trajectory_clients_inner(builders, urdf_robot, false)
+}
+
+pub fn create_joint_trajectory_clients_lazy<B>(
+    builders: Vec<B>,
+    urdf_robot: Option<&urdf_rs::Robot>,
+) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error>
+where
+    B: RosControlClientBuilder,
+{
+    create_joint_trajectory_clients_inner(builders, urdf_robot, true)
+}
+
+fn create_joint_trajectory_clients_inner<B>(
+    builders: Vec<B>,
+    urdf_robot: Option<&urdf_rs::Robot>,
+    lazy: bool,
+) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error>
+where
+    B: RosControlClientBuilder,
+{
+    let mut clients = HashMap::new();
+    let mut state_topic_name_to_provider: HashMap<String, Arc<LazyJointStateProvider>> =
+        HashMap::new();
+    for builder in builders {
+        if urdf_robot.is_none() {
+            builder.wrapper_config().check_urdf_is_not_necessary()?;
+        }
+        let state_topic_name = builder.state_topic();
+        let joint_state_provider = if let Some(joint_state_provider) =
+            state_topic_name_to_provider.get(&state_topic_name)
+        {
+            joint_state_provider.clone()
+        } else {
+            let joint_state_provider = builder.build_joint_state_provider(&state_topic_name);
+            state_topic_name_to_provider.insert(state_topic_name, joint_state_provider.clone());
+            joint_state_provider
+        };
+
+        let name = builder.name().to_owned();
+        let client = builder.build_joint_trajectory_client(lazy, joint_state_provider)?;
+        let client =
+            wrap_joint_trajectory_client(builder.wrapper_config().clone(), client, urdf_robot)?;
+        clients.insert(name, client);
+    }
+    Ok(clients)
+}
+
+pub(crate) type LazyJointStateProvider = Lazy<
     Box<dyn JointStateProvider + Send + Sync>,
     Box<dyn FnOnce() -> Box<dyn JointStateProvider + Send + Sync> + Send + Sync>,
 >;
@@ -212,7 +267,7 @@ pub struct JointTrajectoryClientWrapperConfig {
 }
 
 impl JointTrajectoryClientWrapperConfig {
-    pub(crate) fn check_urdf_is_not_necessary(&self) -> Result<(), arci::Error> {
+    fn check_urdf_is_not_necessary(&self) -> Result<(), arci::Error> {
         if self.wrap_with_joint_position_limiter && self.joint_position_limits.is_none() {
             return Err(format_err!(
                 "`wrap_with_joint_position_limiter=true` requires urdf or joint_position_limits \
@@ -231,7 +286,7 @@ impl JointTrajectoryClientWrapperConfig {
     }
 }
 
-pub(crate) fn wrap_joint_trajectory_client(
+fn wrap_joint_trajectory_client(
     config: JointTrajectoryClientWrapperConfig,
     client: Arc<dyn JointTrajectoryClient>,
     urdf_robot: Option<&urdf_rs::Robot>,

@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     sync::{Arc, Mutex},
     time::Duration,
 };
@@ -19,9 +18,8 @@ use crate::{
     ros_control_common::{
         create_joint_trajectory_message_for_send_joint_positions,
         create_joint_trajectory_message_for_send_joint_trajectory,
-        extract_current_joint_positions_from_state, wrap_joint_trajectory_client,
-        JointStateProvider, JointTrajectoryClientWrapperConfig, LazyJointStateProvider,
-        RosControlClientBuilder,
+        extract_current_joint_positions_from_state, JointStateProvider,
+        JointTrajectoryClientWrapperConfig, LazyJointStateProvider, RosControlClientBuilder,
     },
     SubscriberHandler,
 };
@@ -114,50 +112,6 @@ impl RosControlClientBuilder for RosControlClientConfig {
     }
 }
 
-pub fn create_joint_trajectory_clients(
-    configs: Vec<RosControlClientConfig>,
-    urdf_robot: Option<&urdf_rs::Robot>,
-) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
-    create_joint_trajectory_clients_inner(configs, urdf_robot, false)
-}
-
-pub fn create_joint_trajectory_clients_lazy(
-    configs: Vec<RosControlClientConfig>,
-    urdf_robot: Option<&urdf_rs::Robot>,
-) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
-    create_joint_trajectory_clients_inner(configs, urdf_robot, true)
-}
-
-fn create_joint_trajectory_clients_inner(
-    configs: Vec<RosControlClientConfig>,
-    urdf_robot: Option<&urdf_rs::Robot>,
-    lazy: bool,
-) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, arci::Error> {
-    let mut clients = HashMap::new();
-    let mut state_topic_name_to_subscriber: HashMap<String, Arc<LazyJointStateProvider>> =
-        HashMap::new();
-    for config in configs {
-        if urdf_robot.is_none() {
-            config.wrapper_config.check_urdf_is_not_necessary()?;
-        }
-        let state_topic_name = config.state_topic();
-        let joint_state_provider = if let Some(joint_state_provider) =
-            state_topic_name_to_subscriber.get(&state_topic_name)
-        {
-            joint_state_provider.clone()
-        } else {
-            let joint_state_provider = config.build_joint_state_provider(&state_topic_name);
-            state_topic_name_to_subscriber.insert(state_topic_name, joint_state_provider.clone());
-            joint_state_provider
-        };
-
-        let client = config.build_joint_trajectory_client(lazy, joint_state_provider)?;
-        let client = wrap_joint_trajectory_client(config.wrapper_config, client, urdf_robot)?;
-        clients.insert(config.name, client);
-    }
-    Ok(clients)
-}
-
 struct JointStateProviderFromJointTrajectoryControllerState(
     SubscriberHandler<JointTrajectoryControllerState>,
 );
@@ -239,7 +193,7 @@ impl RosControlClient {
         )
     }
 
-    pub fn state_topic_name(controller_name: &str) -> String {
+    fn state_topic_name(controller_name: &str) -> String {
         format!("{}/state", controller_name)
     }
 

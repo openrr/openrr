@@ -24,6 +24,6 @@ pub use rosrust::{init, is_ok, name, rate};
 
 pub use crate::{
     cmd_vel_move_base::*, error::Error, joy_gamepad::*, ros_control_action_client::*,
-    ros_control_client::*, ros_localization_client::*, ros_nav_client::*, ros_robot_client::*,
-    ros_speak_client::*, ros_transform_resolver::*, rosrust_utils::*,
+    ros_control_client::*, ros_control_common::*, ros_localization_client::*, ros_nav_client::*,
+    ros_robot_client::*, ros_speak_client::*, ros_transform_resolver::*, rosrust_utils::*,
 };
