@@ -11,6 +11,7 @@ pub mod msg;
 mod msg_utils;
 mod ros_control_action_client;
 mod ros_control_client;
+mod ros_control_common;
 mod ros_localization_client;
 mod ros_nav_client;
 mod ros_robot_client;

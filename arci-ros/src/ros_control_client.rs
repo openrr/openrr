@@ -4,11 +4,9 @@ use std::{
     time::Duration,
 };
 
-use anyhow::format_err;
 use arci::{
-    copy_joint_positions, CompleteCondition, EachJointDiffCondition, JointPositionLimit,
-    JointPositionLimiter, JointTrajectoryClient, JointVelocityLimiter, SetCompleteCondition,
-    TotalJointDiffCondition, TrajectoryPoint, WaitFuture,
+    copy_joint_positions, CompleteCondition, EachJointDiffCondition, JointTrajectoryClient,
+    SetCompleteCondition, TotalJointDiffCondition, TrajectoryPoint, WaitFuture,
 };
 use msg::{
     control_msgs::JointTrajectoryControllerState,
@@ -18,18 +16,18 @@ use once_cell::sync::Lazy;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, msg, SubscriberHandler};
+use crate::{
+    error::Error,
+    msg,
+    ros_control_common::{wrap_joint_trajectory_client, JointTrajectoryClientWrapperConfig},
+    SubscriberHandler,
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct RosControlClientConfig {
     pub name: String,
     pub joint_names: Vec<String>,
-    #[serde(default)]
-    pub wrap_with_joint_position_limiter: bool,
-    #[serde(default)]
-    pub wrap_with_joint_velocity_limiter: bool,
-    pub joint_velocity_limits: Option<Vec<f64>>,
 
     pub controller_name: String,
     pub state_topic_name: Option<String>,
@@ -42,7 +40,8 @@ pub struct RosControlClientConfig {
     // TOML format has a restriction that if a table itself contains tables,
     // all keys with non-table values must be emitted first.
     // Therefore, these fields must be located at the end of the struct.
-    pub joint_position_limits: Option<Vec<JointPositionLimit>>,
+    #[serde(flatten)]
+    pub wrapper_config: JointTrajectoryClientWrapperConfig,
 }
 
 const fn default_complete_timeout_sec() -> f64 {
@@ -76,15 +75,8 @@ fn create_joint_trajectory_clients_inner(
     let mut clients = HashMap::new();
     let mut state_topic_name_to_subscriber: HashMap<String, Arc<StateSubscriber>> = HashMap::new();
     for config in configs {
-        if config.wrap_with_joint_position_limiter
-            && config.joint_position_limits.is_none()
-            && urdf_robot.is_none()
-        {
-            return Err(format_err!(
-                "`wrap_with_joint_position_limiter=true` requires urdf or joint_position_limits \
-                 is specified",
-            )
-            .into());
+        if urdf_robot.is_none() {
+            config.wrapper_config.check_urdf_is_not_necessary()?;
         }
         let state_topic_name = if let Some(s) = config.state_topic_name {
             s
@@ -132,60 +124,10 @@ fn create_joint_trajectory_clients_inner(
             Arc::new(create_client().unwrap())
         };
 
-        let client: Arc<dyn JointTrajectoryClient> = if config.wrap_with_joint_velocity_limiter {
-            if config.wrap_with_joint_position_limiter {
-                Arc::new(new_joint_position_limiter(
-                    new_joint_velocity_limiter(client, config.joint_velocity_limits, urdf_robot)?,
-                    config.joint_position_limits,
-                    urdf_robot,
-                )?)
-            } else {
-                Arc::new(new_joint_velocity_limiter(
-                    client,
-                    config.joint_velocity_limits,
-                    urdf_robot,
-                )?)
-            }
-        } else if config.wrap_with_joint_position_limiter {
-            Arc::new(new_joint_position_limiter(
-                client,
-                config.joint_position_limits,
-                urdf_robot,
-            )?)
-        } else {
-            Arc::new(client)
-        };
+        let client = wrap_joint_trajectory_client(config.wrapper_config, client, urdf_robot)?;
         clients.insert(config.name, client);
     }
     Ok(clients)
-}
-
-fn new_joint_position_limiter<C>(
-    client: C,
-    position_limits: Option<Vec<JointPositionLimit>>,
-    urdf_robot: Option<&urdf_rs::Robot>,
-) -> Result<JointPositionLimiter<C>, arci::Error>
-where
-    C: JointTrajectoryClient,
-{
-    match position_limits {
-        Some(position_limits) => Ok(JointPositionLimiter::new(client, position_limits)),
-        None => JointPositionLimiter::from_urdf(client, &urdf_robot.unwrap().joints),
-    }
-}
-
-fn new_joint_velocity_limiter<C>(
-    client: C,
-    velocity_limits: Option<Vec<f64>>,
-    urdf_robot: Option<&urdf_rs::Robot>,
-) -> Result<JointVelocityLimiter<C>, arci::Error>
-where
-    C: JointTrajectoryClient,
-{
-    match velocity_limits {
-        Some(velocity_limits) => Ok(JointVelocityLimiter::new(client, velocity_limits)),
-        None => JointVelocityLimiter::from_urdf(client, &urdf_robot.unwrap().joints),
-    }
 }
 
 pub fn create_joint_trajectory_message_for_send_joint_positions(
@@ -482,38 +424,5 @@ impl JointTrajectoryClient for RosControlClient {
 impl SetCompleteCondition for RosControlClient {
     fn set_complete_condition(&mut self, condition: Box<dyn CompleteCondition>) {
         *self.0.complete_condition.lock().unwrap() = condition.into();
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_new_joint_position_limiter() {
-        use arci::{DummyJointTrajectoryClient, JointPositionLimit, JointPositionLimiter};
-
-        let client = DummyJointTrajectoryClient::new(vec!["a".to_owned(), "b".to_owned()]);
-        let limits = vec![
-            JointPositionLimit::new(-5.0, 5.0),
-            JointPositionLimit::new(-5.0, 5.0),
-        ];
-
-        let result = new_joint_position_limiter(client, Some(limits.clone()), None);
-        assert!(result.is_ok());
-        let _result = result.unwrap();
-
-        let client = DummyJointTrajectoryClient::new(vec!["a".to_owned(), "b".to_owned()]);
-        let _correct = JointPositionLimiter::new(client, limits);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_new_joint_position_limiter_error() {
-        use arci::DummyJointTrajectoryClient;
-
-        let client = DummyJointTrajectoryClient::new(vec!["a".to_owned(), "b".to_owned()]);
-
-        let _ = new_joint_position_limiter(client, None, None);
     }
 }
