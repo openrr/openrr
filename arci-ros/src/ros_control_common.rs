@@ -8,20 +8,18 @@ use arci::{
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::msg::{
-    control_msgs::JointTrajectoryControllerState,
-    trajectory_msgs::{JointTrajectory, JointTrajectoryPoint},
-};
+use crate::msg::trajectory_msgs::{JointTrajectory, JointTrajectoryPoint};
 
-pub(crate) fn extract_current_joint_positions_from_message(
+pub(crate) fn extract_current_joint_positions_from_state(
     client: &dyn JointTrajectoryClient,
-    state: JointTrajectoryControllerState,
-) -> Result<Vec<f64>, arci::Error> {
+    state_provider: &dyn JointStateProvider,
+) -> Result<Vec<f64>, Error> {
+    let (state_joint_names, state_joint_positions) = state_provider.get_joint_state()?;
     // TODO: cache index map and use it
     let mut result = vec![0.0; client.joint_names().len()];
     copy_joint_positions(
-        &state.joint_names,
-        &state.actual.positions,
+        &state_joint_names,
+        &state_joint_positions,
         &client.joint_names(),
         &mut result,
     )?;
@@ -30,7 +28,7 @@ pub(crate) fn extract_current_joint_positions_from_message(
 
 pub(crate) fn create_joint_trajectory_message_for_send_joint_positions(
     client: &dyn JointTrajectoryClient,
-    state: JointTrajectoryControllerState,
+    state_provider: &dyn JointStateProvider,
     positions: &[f64],
     duration: Duration,
     send_partial_joints_goal: bool,
@@ -48,6 +46,7 @@ pub(crate) fn create_joint_trajectory_message_for_send_joint_positions(
             ..Default::default()
         })
     } else {
+        let (state_joint_names, state_joint_positions) = state_provider.get_joint_state()?;
         let partial_names = client.joint_names();
         if partial_names.len() != positions.len() {
             return Err(arci::Error::LengthMismatch {
@@ -56,10 +55,10 @@ pub(crate) fn create_joint_trajectory_message_for_send_joint_positions(
             });
         }
         // TODO: cache index map and use it
-        let full_names = state.joint_names;
+        let full_names = state_joint_names;
         let full_dof = full_names.len();
 
-        let mut full_positions = state.actual.positions;
+        let mut full_positions = state_joint_positions;
         copy_joint_positions(&partial_names, positions, &full_names, &mut full_positions)?;
 
         let point_with_full_positions = JointTrajectoryPoint {
@@ -79,7 +78,7 @@ pub(crate) fn create_joint_trajectory_message_for_send_joint_positions(
 
 pub(crate) fn create_joint_trajectory_message_for_send_joint_trajectory(
     client: &dyn JointTrajectoryClient,
-    state: JointTrajectoryControllerState,
+    state_provider: &dyn JointStateProvider,
     trajectory: &[TrajectoryPoint],
     send_partial_joints_goal: bool,
 ) -> Result<JointTrajectory, arci::Error> {
@@ -102,9 +101,10 @@ pub(crate) fn create_joint_trajectory_message_for_send_joint_trajectory(
             ..Default::default()
         })
     } else {
+        let (state_joint_names, state_joint_positions) = state_provider.get_joint_state()?;
         // TODO: cache index map and use it
-        let current_full_positions = state.actual.positions;
-        let full_names = state.joint_names;
+        let current_full_positions = state_joint_positions;
+        let full_names = state_joint_names;
         let full_dof = current_full_positions.len();
 
         Ok(JointTrajectory {
@@ -169,6 +169,10 @@ where
         Some(velocity_limits) => Ok(JointVelocityLimiter::new(client, velocity_limits)),
         None => JointVelocityLimiter::from_urdf(client, &urdf_robot.unwrap().joints),
     }
+}
+
+pub(crate) trait JointStateProvider {
+    fn get_joint_state(&self) -> Result<(Vec<String>, Vec<f64>), arci::Error>;
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]

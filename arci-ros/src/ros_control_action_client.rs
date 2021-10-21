@@ -7,7 +7,7 @@ use arci::{
     CompleteCondition, JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition,
     TrajectoryPoint, WaitFuture,
 };
-use msg::control_msgs::JointTrajectoryControllerState;
+use msg::sensor_msgs::JointState;
 
 use crate::{
     define_action_client_internal,
@@ -16,7 +16,7 @@ use crate::{
     ros_control_common::{
         create_joint_trajectory_message_for_send_joint_positions,
         create_joint_trajectory_message_for_send_joint_trajectory,
-        extract_current_joint_positions_from_message,
+        extract_current_joint_positions_from_state, JointStateProvider,
     },
     rosrust_utils::*,
 };
@@ -30,7 +30,7 @@ pub struct RosControlActionClient(Arc<RosControlActionClientInner>);
 
 struct RosControlActionClientInner {
     joint_names: Vec<String>,
-    joint_state_subscriber_handler: SubscriberHandler<JointTrajectoryControllerState>,
+    joint_state_subscriber_handler: SubscriberHandler<JointState>,
     send_partial_joints_goal: bool,
     action_client: SimpleActionClient,
     complete_condition: Mutex<Arc<dyn CompleteCondition>>,
@@ -56,12 +56,16 @@ impl RosControlActionClient {
             complete_condition: Mutex::new(Arc::new(TotalJointDiffCondition::default())),
         }))
     }
+}
 
-    pub fn get_joint_state(&self) -> Result<JointTrajectoryControllerState, arci::Error> {
-        self.0
+impl JointStateProvider for RosControlActionClient {
+    fn get_joint_state(&self) -> Result<(Vec<String>, Vec<f64>), arci::Error> {
+        let state = self
+            .0
             .joint_state_subscriber_handler
             .get()?
-            .ok_or_else(|| arci::Error::Other(Error::NoJointStateAvailable.into()))
+            .ok_or_else(|| arci::Error::Other(Error::NoJointStateAvailable.into()))?;
+        Ok((state.name, state.position))
     }
 }
 
@@ -71,7 +75,7 @@ impl JointTrajectoryClient for RosControlActionClient {
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        extract_current_joint_positions_from_message(self, self.get_joint_state()?)
+        extract_current_joint_positions_from_state(self, self)
     }
 
     fn send_joint_positions(
@@ -81,12 +85,11 @@ impl JointTrajectoryClient for RosControlActionClient {
     ) -> Result<WaitFuture, arci::Error> {
         let traj = create_joint_trajectory_message_for_send_joint_positions(
             self,
-            self.get_joint_state()?,
+            self,
             &positions,
             duration,
             self.0.send_partial_joints_goal,
         )?;
-
         let goal = msg::control_msgs::FollowJointTrajectoryGoal {
             trajectory: traj,
             ..Default::default()
@@ -119,7 +122,7 @@ impl JointTrajectoryClient for RosControlActionClient {
     ) -> Result<WaitFuture, arci::Error> {
         let traj = create_joint_trajectory_message_for_send_joint_trajectory(
             self,
-            self.get_joint_state()?,
+            self,
             &trajectory,
             self.0.send_partial_joints_goal,
         )?;
