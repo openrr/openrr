@@ -9,9 +9,7 @@ mod error;
 mod joy_gamepad;
 pub mod msg;
 mod msg_utils;
-mod ros_control_action_client;
-mod ros_control_client;
-mod ros_control_common;
+mod ros_control;
 mod ros_localization_client;
 mod ros_nav_client;
 mod ros_robot_client;
@@ -23,7 +21,7 @@ pub mod rosrust_utils;
 pub use rosrust::{init, is_ok, name, rate};
 
 pub use crate::{
-    cmd_vel_move_base::*, error::Error, joy_gamepad::*, ros_control_action_client::*,
-    ros_control_client::*, ros_control_common::*, ros_localization_client::*, ros_nav_client::*,
-    ros_robot_client::*, ros_speak_client::*, ros_transform_resolver::*, rosrust_utils::*,
+    cmd_vel_move_base::*, error::Error, joy_gamepad::*, ros_control::*, ros_localization_client::*,
+    ros_nav_client::*, ros_robot_client::*, ros_speak_client::*, ros_transform_resolver::*,
+    rosrust_utils::*,
 };
