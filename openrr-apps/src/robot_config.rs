@@ -10,9 +10,9 @@ use anyhow::format_err;
 use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker};
 #[cfg(feature = "ros")]
 use arci_ros::{
-    RosCmdVelMoveBase, RosCmdVelMoveBaseConfig, RosControlClientConfig, RosEspeakClient,
-    RosEspeakClientConfig, RosLocalizationClient, RosLocalizationClientConfig, RosNavClient,
-    RosNavClientConfig,
+    RosCmdVelMoveBase, RosCmdVelMoveBaseConfig, RosControlActionClientConfig,
+    RosControlClientConfig, RosEspeakClient, RosEspeakClientConfig, RosLocalizationClient,
+    RosLocalizationClientConfig, RosNavClient, RosNavClientConfig,
 };
 use arci_speak_audio::AudioSpeaker;
 use arci_speak_cmd::LocalCommand;
@@ -358,6 +358,17 @@ pub struct RobotConfig {
     #[cfg(not(feature = "ros"))]
     #[schemars(schema_with = "unimplemented_schema")]
     ros_clients_configs: Option<toml::Value>,
+
+    #[cfg(feature = "ros")]
+    #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub ros_action_clients_configs: Vec<RosControlActionClientConfig>,
+    // A dummy field to catch that there is a config that requires the ros feature.
+    #[cfg(not(feature = "ros"))]
+    #[schemars(schema_with = "unimplemented_schema")]
+    ros_action_clients_configs: Option<toml::Value>,
+
     #[serde(default)]
     // https://github.com/alexcrichton/toml-rs/issues/258
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -411,6 +422,7 @@ impl RobotConfig {
             has_ros_espeak |= matches!(speak_config, SpeakConfig::RosEspeak { config: _ });
         }
         !self.ros_clients_configs.is_empty()
+            || !self.ros_action_clients_configs.is_empty()
             || has_ros_espeak
             || self.ros_cmd_vel_move_base_client_config.is_some()
             || self.ros_navigation_client_config.is_some()
@@ -733,12 +745,25 @@ impl RobotConfig {
             })
             .cloned()
             .collect();
+        #[cfg(feature = "ros")]
+        let ros_action_clients_configs: Vec<_> = self
+            .ros_action_clients_configs
+            .iter()
+            .filter(|c| {
+                self.joint_trajectory_clients
+                    .as_ref()
+                    .map_or(true, |v| v.contains(&c.name))
+            })
+            .cloned()
+            .collect();
 
         let mut urdf_robot = None;
         #[cfg(not(feature = "ros"))]
         let use_urdf = !urdf_viz_clients_configs.is_empty();
         #[cfg(feature = "ros")]
-        let use_urdf = !urdf_viz_clients_configs.is_empty() || !ros_clients_configs.is_empty();
+        let use_urdf = !urdf_viz_clients_configs.is_empty()
+            || !ros_clients_configs.is_empty()
+            || !ros_action_clients_configs.is_empty();
         if use_urdf {
             if let Some(urdf_path) = self.openrr_clients_config.urdf_full_path() {
                 urdf_robot = Some(urdf_rs::utils::read_urdf_or_xacro(urdf_path)?);
@@ -757,6 +782,12 @@ impl RobotConfig {
         #[cfg(feature = "ros")]
         clients.extend(arci_ros::create_joint_trajectory_clients_lazy(
             ros_clients_configs,
+            urdf_robot.as_ref(),
+        )?);
+
+        #[cfg(feature = "ros")]
+        clients.extend(arci_ros::create_joint_trajectory_clients_lazy(
+            ros_action_clients_configs,
             urdf_robot.as_ref(),
         )?);
 
@@ -870,6 +901,9 @@ impl RobotConfig {
             }
             if config.ros_clients_configs.is_some() {
                 return Err(Error::ConfigRequireRos("ros_clients_configs".into()));
+            }
+            if config.ros_action_clients_configs.is_some() {
+                return Err(Error::ConfigRequireRos("ros_action_clients_configs".into()));
             }
             match config.move_base {
                 ClientKind::Builtin(BuiltinClient::Ros) => {
