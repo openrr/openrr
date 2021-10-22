@@ -168,9 +168,19 @@ where
         })
     }
 
+    /// Set the current joint positions to the robot kinematic model.
+    ///
+    /// Returns Error::FullChainNotFound when self.full_chain_for_collision_checker is None.
     pub fn set_raw_clients_joint_positions_to_full_chain_for_collision_checker(
         &self,
     ) -> Result<(), Error> {
+        if self.full_chain_for_collision_checker.is_none() {
+            debug!("There are no full_chain_for_collision_checker");
+            return Err(Error::FullChainNotFound(
+                "set_raw_clients_joint_positions_to_full_chain_for_collision_checker is called"
+                    .to_owned(),
+            ));
+        }
         for client in self.raw_joint_trajectory_clients.values() {
             let positions = client.current_joint_positions()?;
             let joint_names = client.joint_names();
@@ -181,7 +191,7 @@ where
                 if let Some(joint) = self
                     .full_chain_for_collision_checker
                     .as_ref()
-                    .unwrap()
+                    .expect("full_chain_for_collision_checker not found")
                     .find(joint_name)
                 {
                     joint.set_joint_position_clamped(positions[index])
@@ -192,7 +202,7 @@ where
         }
         self.full_chain_for_collision_checker
             .as_ref()
-            .unwrap()
+            .expect("full_chain_for_collision_checker not found")
             .update_transforms();
         Ok(())
     }
@@ -254,7 +264,9 @@ where
         positions: &[f64],
         duration_sec: f64,
     ) -> Result<WaitFuture, Error> {
-        self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
+        if self.full_chain_for_collision_checker.is_some() {
+            self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
+        }
         if self.is_ik_client(name) {
             Ok(self.ik_client(name)?.client.send_joint_positions(
                 positions.to_owned(),

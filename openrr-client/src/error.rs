@@ -28,6 +28,8 @@ pub enum Error {
     TomlParseFailure(PathBuf, #[source] toml::de::Error),
     #[error("openrr-client: urdf-rs: {:?}", .0)]
     UrdfRs(#[from] UrdfError),
+    #[error("openrr-client: Full Chain is none")]
+    FullChainNotFound(String),
     #[error("openrr-client: Other: {:?}", .0)]
     Other(#[from] anyhow::Error),
 }
