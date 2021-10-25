@@ -168,6 +168,7 @@ rustc
 RUSTFLAGS
 rustfmt
 RVec
+rviz
 RWait
 sabi
 scrollable
