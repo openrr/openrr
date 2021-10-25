@@ -41,8 +41,14 @@ ros2 launch nav2_bringup tb3_simulation_launch.py
 
 #### Send navigation goal via command line
 
+Don't forget to set the initial pose of the robot before sending the goal pose using the `2D Pose Estimate` button of `rviz`.
+
+```bash
 ./target/debug/openrr_apps_robot_command --config-path ./openrr-apps/config/turtlebot3_robot_client_config_ros2.toml send_navigation_goal -- -0.5 0.2 -1.5
+```
 
 #### GUI to send velocity
 
+```bash
 ./target/debug/openrr_apps_velocity_sender --config-path ./openrr-apps/config/turtlebot3_robot_client_config_ros2.toml
+```
