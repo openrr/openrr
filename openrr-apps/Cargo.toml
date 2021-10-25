@@ -44,7 +44,7 @@ thiserror = "1.0"
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }
 toml = "0.5"
 tracing = { version = "0.1", features = ["log"] }
-tracing-appender = "0.1"
+tracing-appender = "0.2"
 tracing-subscriber = "0.2"
 urdf-rs = "0.6"
 
