@@ -99,7 +99,7 @@ fn header() -> String {
 }
 
 fn write(path: &Path, contents: &TokenStream) -> Result<()> {
-    let contents = header() + &contents.to_string();
+    let contents = &contents.to_string();
 
     let tmpdir = tempfile::Builder::new().prefix("codegen").tempdir()?;
     let tmpfile = &tmpdir.path().join("generated");
@@ -120,7 +120,8 @@ fn write(path: &Path, contents: &TokenStream) -> Result<()> {
         bail!("rustfmt didn't exit successfully");
     }
 
-    let out = fs::read(tmpfile)?;
+    let mut out = header().into_bytes();
+    out.append(&mut fs::read(tmpfile)?);
     if path.is_file() && fs::read(&path)? == out {
         return Ok(());
     }
