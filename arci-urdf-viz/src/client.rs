@@ -1,11 +1,4 @@
-use std::{
-    borrow::Cow,
-    collections::HashMap,
-    mem,
-    sync::{Arc, Mutex},
-    thread::sleep,
-    time::Duration,
-};
+use std::{borrow::Cow, collections::HashMap, mem, sync::Arc, thread::sleep, time::Duration};
 
 use anyhow::format_err;
 use arci::{
@@ -13,6 +6,7 @@ use arci::{
     JointVelocityLimiter, Localization, MoveBase, Navigation, TrajectoryPoint, WaitFuture,
 };
 use openrr_sleep::ScopedSleep;
+use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tokio::sync::oneshot;
@@ -223,7 +217,7 @@ struct UrdfVizWebClientInner {
 
 impl UrdfVizWebClientInner {
     fn is_dropping(self: &Arc<Self>) -> bool {
-        let state = self.threads.lock().unwrap();
+        let state = self.threads.lock();
         Arc::strong_count(self)
             <= state.has_send_joint_positions_thread as usize
                 + state.has_send_velocity_thread as usize
@@ -243,10 +237,7 @@ impl UrdfVizWebClient {
     }
 
     pub fn run_send_velocity_thread(&self) {
-        if mem::replace(
-            &mut self.0.threads.lock().unwrap().has_send_velocity_thread,
-            true,
-        ) {
+        if mem::replace(&mut self.0.threads.lock().has_send_velocity_thread, true) {
             panic!("send_velocity_thread is running");
         }
 
@@ -255,7 +246,7 @@ impl UrdfVizWebClient {
             struct Bomb(Arc<UrdfVizWebClientInner>);
             impl Drop for Bomb {
                 fn drop(&mut self) {
-                    self.0.threads.lock().unwrap().has_send_velocity_thread = false;
+                    self.0.threads.lock().has_send_velocity_thread = false;
                     debug!("terminating send_velocity_thread");
                 }
             }
@@ -276,7 +267,7 @@ impl UrdfVizWebClient {
                 }
 
                 let _guard = ScopedSleep::from_secs(DT);
-                let velocity = bomb.0.velocity.lock().unwrap();
+                let velocity = bomb.0.velocity.lock();
                 let mut pose = continue_on_err!(get_robot_origin(&bomb.0.base_url));
                 let mut rpy = euler_angles_from_quaternion(&pose.quaternion);
                 let yaw = rpy.2;
@@ -291,12 +282,7 @@ impl UrdfVizWebClient {
 
     pub fn run_send_joint_positions_thread(&self) {
         if mem::replace(
-            &mut self
-                .0
-                .threads
-                .lock()
-                .unwrap()
-                .has_send_joint_positions_thread,
+            &mut self.0.threads.lock().has_send_joint_positions_thread,
             true,
         ) {
             panic!("send_joint_positions_thread is running");
@@ -307,11 +293,7 @@ impl UrdfVizWebClient {
             struct Bomb(Arc<UrdfVizWebClientInner>);
             impl Drop for Bomb {
                 fn drop(&mut self) {
-                    self.0
-                        .threads
-                        .lock()
-                        .unwrap()
-                        .has_send_joint_positions_thread = false;
+                    self.0.threads.lock().has_send_joint_positions_thread = false;
                     debug!("terminating send_joint_positions_thread");
                 }
             }
@@ -319,7 +301,7 @@ impl UrdfVizWebClient {
             let bomb = Bomb(inner);
             'outer: while !bomb.0.is_dropping() {
                 const UNIT_DURATION: Duration = Duration::from_millis(10);
-                let prev = mem::take(&mut *bomb.0.send_joint_positions_target.lock().unwrap());
+                let prev = mem::take(&mut *bomb.0.send_joint_positions_target.lock());
                 let (trajectory, sender) = match prev {
                     SendJointPositionsTarget::Some { trajectory, sender } => (trajectory, sender),
                     SendJointPositionsTarget::None | SendJointPositionsTarget::Abort => {
@@ -373,7 +355,7 @@ impl UrdfVizWebClient {
 
                     for traj in trajectories {
                         if matches!(
-                            *bomb.0.send_joint_positions_target.lock().unwrap(),
+                            *bomb.0.send_joint_positions_target.lock(),
                             SendJointPositionsTarget::Some { .. } | SendJointPositionsTarget::Abort
                         ) {
                             debug!("Abort old target");
@@ -401,7 +383,7 @@ impl UrdfVizWebClient {
     }
 
     pub fn abort(&self) {
-        *self.0.send_joint_positions_target.lock().unwrap() = SendJointPositionsTarget::Abort;
+        *self.0.send_joint_positions_target.lock() = SendJointPositionsTarget::Abort;
     }
 
     pub fn get_urdf(&self) -> Result<urdf_rs::Robot, arci::Error> {
@@ -429,13 +411,7 @@ impl JointTrajectoryClient for UrdfVizWebClient {
         positions: Vec<f64>,
         duration: Duration,
     ) -> Result<WaitFuture, arci::Error> {
-        if !self
-            .0
-            .threads
-            .lock()
-            .unwrap()
-            .has_send_joint_positions_thread
-        {
+        if !self.0.threads.lock().has_send_joint_positions_thread {
             panic!("send_joint_positions called without run_send_joint_positions_thread being called first");
         }
 
@@ -443,7 +419,6 @@ impl JointTrajectoryClient for UrdfVizWebClient {
             .0
             .send_joint_positions_target
             .lock()
-            .unwrap()
             .set_positions(positions, duration))
     }
 
@@ -459,7 +434,6 @@ impl JointTrajectoryClient for UrdfVizWebClient {
             .0
             .send_joint_positions_target
             .lock()
-            .unwrap()
             .set_trajectory(trajectory))
     }
 }
@@ -495,7 +469,7 @@ impl Navigation for UrdfVizWebClient {
 
 impl MoveBase for UrdfVizWebClient {
     fn send_velocity(&self, velocity: &arci::BaseVelocity) -> Result<(), arci::Error> {
-        if !self.0.threads.lock().unwrap().has_send_velocity_thread {
+        if !self.0.threads.lock().has_send_velocity_thread {
             panic!("send_velocity called without run_send_velocity_thread being called first");
         }
 
@@ -504,16 +478,11 @@ impl MoveBase for UrdfVizWebClient {
         // main thread when an error has occurred in send_velocity_thread.
         get_robot_origin(&self.0.base_url)?;
 
-        *self.0.velocity.lock().expect("failed to lock velocity") = velocity.to_owned();
+        *self.0.velocity.lock() = velocity.to_owned();
         Ok(())
     }
 
     fn current_velocity(&self) -> Result<arci::BaseVelocity, arci::Error> {
-        Ok(self
-            .0
-            .velocity
-            .lock()
-            .expect("failed to lock velocity")
-            .to_owned())
+        Ok(self.0.velocity.lock().to_owned())
     }
 }
