@@ -283,7 +283,7 @@ struct TestClientConfig {
     "#;
 
     let tmpdir_path = root_dir.join("target/test_plugin");
-    for (path, contents) in &[
+    for (path, contents) in [
         ("src", None),
         ("src/lib.rs", Some(lib_rs)),
         ("Cargo.toml", Some(&*cargo_toml)),
