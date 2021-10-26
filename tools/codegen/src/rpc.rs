@@ -241,9 +241,9 @@ fn gen_server_impl(trait_name: &Ident, item: &ItemTrait, pb_traits: &[ItemTrait]
                                 if is_str(&arg.ty) {
                                     quote! { &request }
                                 } else if matches!(&*arg.ty, syn::Type::Reference(..)) {
-                                    quote! { &request#into }
+                                    quote! { &request #into }
                                 } else {
-                                    quote! { request#into }
+                                    quote! { request #into }
                                 }
                             }
                             _ => {

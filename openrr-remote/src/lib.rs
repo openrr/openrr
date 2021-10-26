@@ -12,7 +12,6 @@ mod pb {
 mod impls;
 
 use std::{
-    convert::TryInto,
     future::Future,
     net::SocketAddr,
     time::{Duration, SystemTime},

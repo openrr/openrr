@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
     env, fmt, fs,
-    iter::FromIterator,
     path::{Path, PathBuf},
     sync::Arc,
 };

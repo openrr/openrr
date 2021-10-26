@@ -4,8 +4,6 @@
 #![allow(unused_variables)]
 #![allow(clippy::useless_conversion, clippy::unit_arg)]
 
-use std::convert::TryInto;
-
 use abi_stable::StableAbi;
 use arci::{BaseVelocity, Error, Isometry2, Isometry3, WaitFuture};
 
