@@ -170,7 +170,6 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
 
     let (plugin_trait_api, plugin_trait_proxy) = gen_plugin_trait(&traits);
     let api = quote! {
-        use std::convert::TryInto;
         use arci::{
             BaseVelocity,
             Error,
@@ -184,7 +183,6 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
         #api_items
     };
     let proxy = quote! {
-        use std::convert::TryInto;
         use abi_stable::{
             rtry,
             std_types::{RBox, RDuration, ROk, RResult, RStr},

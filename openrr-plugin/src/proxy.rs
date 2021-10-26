@@ -5,7 +5,7 @@
 #[path = "gen/proxy.rs"]
 mod impls;
 
-use std::{convert::TryFrom, future::Future, sync::Arc, time::SystemTime};
+use std::{future::Future, sync::Arc, time::SystemTime};
 
 use abi_stable::{
     declare_root_module_statics,
