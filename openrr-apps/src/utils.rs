@@ -11,7 +11,10 @@ use tracing_appender::{
     rolling::{RollingFileAppender, Rotation},
 };
 use tracing_subscriber::{
-    fmt::{format::Format, FmtContext, FormatEvent, FormatFields, Layer},
+    fmt::{
+        format::{Format, Writer},
+        FmtContext, FormatEvent, FormatFields, Layer,
+    },
     layer::SubscriberExt,
     registry::LookupSpan,
     EnvFilter,
@@ -188,7 +191,7 @@ where
     fn format_event(
         &self,
         ctx: &FmtContext<'_, S, N>,
-        writer: &mut dyn std::fmt::Write,
+        mut writer: Writer<'_>,
         event: &Event<'_>,
     ) -> std::fmt::Result {
         write!(writer, "{} ", self.name)?;
