@@ -307,7 +307,7 @@ mod tests {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
         let mut client = JointPositionLimiter::new(client, vec![(1.0..=2.0).into()]);
 
-        for &strategy in &[
+        for strategy in [
             JointPositionLimiterStrategy::Clamp,
             JointPositionLimiterStrategy::Error,
         ] {
@@ -376,7 +376,7 @@ mod tests {
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
         let mut client = JointPositionLimiter::new(client, vec![(1.0..=2.0).into()]);
 
-        for &strategy in &[
+        for strategy in [
             JointPositionLimiterStrategy::Clamp,
             JointPositionLimiterStrategy::Error,
         ] {
