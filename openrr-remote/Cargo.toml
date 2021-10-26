@@ -10,7 +10,7 @@ categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 
 [build-dependencies]
-tonic-build = "0.5"
+tonic-build = "0.6"
 
 [dependencies]
 arci = "0.0.6"
