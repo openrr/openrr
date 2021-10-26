@@ -2,7 +2,7 @@
 name = "arci-speak-cmd"
 version = "0.0.6"
 authors = ["Taiki Endo <taiki@smilerobotics.com>"]
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0"
 description = "arci::Speaker implementation using local command"
 keywords = ["robotics", "robot"]
