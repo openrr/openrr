@@ -232,11 +232,10 @@ fn test_plugin() -> Result<PathBuf> {
 [package]
 name = "test_plugin"
 version = "0.0.0"
-edition = "2018"
+edition = "2021"
 publish = false
 
 [workspace]
-resolver = "2"
 
 [lib]
 crate-type = ["cdylib"]

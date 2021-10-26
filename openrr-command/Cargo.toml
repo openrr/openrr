@@ -2,7 +2,7 @@
 name = "openrr-command"
 version = "0.0.6"
 authors = ["Mitsuharu Kojima <kojima@smilerobotics.com>"]
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0"
 description = "openrr command line tool library"
 keywords = ["robotics", "robot"]
