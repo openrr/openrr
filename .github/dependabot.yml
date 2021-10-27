@@ -14,4 +14,5 @@ updates:
       # These dependencies need to be updated at the same time with tonic.
       - dependency-name: prost
       - dependency-name: prost-types
+      - dependency-name: tonic-build
     labels: []
