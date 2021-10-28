@@ -18,7 +18,7 @@ tokio = { version = "1", features = ["sync"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 # https://github.com/diwic/alsa-rs/issues/81
-alsa = "=0.5.0"
+alsa = "=0.5.1"
 
 [dev-dependencies]
 structopt = "0.3"
