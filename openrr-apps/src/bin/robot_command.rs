@@ -31,6 +31,14 @@ struct RobotCommandArgs {
     log_directory: Option<PathBuf>,
 }
 
+fn shell_completion(shell_type: openrr_command::ShellType) {
+    RobotCommandArgs::clap().gen_completions_to(
+        env!("CARGO_BIN_NAME"),
+        shell_type.into(),
+        &mut std::io::stdout(),
+    );
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = RobotCommandArgs::from_args();
@@ -52,6 +60,12 @@ async fn main() -> Result<()> {
 
     if args.show_default_config {
         print!("{}", toml::to_string(&RobotConfig::default()).unwrap());
+        return Ok(());
+    }
+
+    // Outputs shell completion script and exit.
+    if let RobotCommand::ShellCompletion(shell_type) = args.command.as_ref().unwrap() {
+        shell_completion(*shell_type);
         return Ok(());
     }
 

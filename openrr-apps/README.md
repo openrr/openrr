@@ -31,6 +31,15 @@ Install [Universal Robot software](https://github.com/ros-industrial/universal_r
 
 Install ros-melodic-pr2-gazebo / ros-melodic-topic-tools.
 
+### Option: Install bash completion for openrr_apps_robot_command
+
+If you are using `bash`,
+
+```bash
+openrr_apps_robot_command shell_completion bash > ~/.openrr_command
+source ~/.openrr_command
+```
+
 ## How to run openrr_apps_robot_command
 
 ### Sample robot

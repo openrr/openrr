@@ -12,6 +12,7 @@ use arci::{BaseVelocity, Localization, MoveBase, Navigation};
 use async_recursion::async_recursion;
 use k::nalgebra::{Isometry2, Vector2};
 use openrr_client::{isometry, RobotClient};
+use structopt::clap::Shell;
 use structopt::StructOpt;
 use tracing::{error, info};
 
@@ -110,6 +111,29 @@ pub enum RobotCommand {
         #[structopt(short, long, default_value = "1.0")]
         duration_secs: f64,
     },
+    /// Shell completion
+    ShellCompletion(ShellType),
+}
+
+/// Enum type to handle clap::Shell in structopt
+#[derive(Debug, StructOpt, Clone, Copy)]
+#[structopt(rename_all = "snake_case")]
+pub enum ShellType {
+    Zsh,
+    Bash,
+    Fish,
+    PowerShell,
+}
+
+impl Into<Shell> for ShellType {
+    fn into(self) -> Shell {
+        match self {
+            ShellType::Bash => Shell::Bash,
+            ShellType::Zsh => Shell::Zsh,
+            ShellType::Fish => Shell::Fish,
+            ShellType::PowerShell => Shell::Fish,
+        }
+    }
 }
 
 pub struct RobotCommandExecutor {}
@@ -353,6 +377,9 @@ impl RobotCommandExecutor {
                     client.send_velocity(&BaseVelocity::new(*x, *y, *theta))?;
                     sleep(sleep_duration);
                 }
+            }
+            _ => {
+                panic!("not supported {:?}", command);
             }
         }
         Ok(())
