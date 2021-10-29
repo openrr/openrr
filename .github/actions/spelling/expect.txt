@@ -270,3 +270,4 @@ codegen
 api
 tempdir
 tempfile
+zsh
