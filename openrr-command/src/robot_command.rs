@@ -118,6 +118,7 @@ pub enum RobotCommand {
 /// Enum type to handle clap::Shell in structopt
 #[derive(Debug, StructOpt, Clone, Copy)]
 #[structopt(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum ShellType {
     Zsh,
     Bash,
