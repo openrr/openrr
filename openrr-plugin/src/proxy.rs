@@ -20,7 +20,6 @@ use abi_stable::{
 };
 use anyhow::format_err;
 use arci::nalgebra;
-use num_traits::Float;
 
 pub(crate) use self::impls::*;
 use crate::PluginProxy;
@@ -33,48 +32,6 @@ fn block_in_place<T>(f: impl Future<Output = T>) -> T {
         .build()
         .unwrap()
         .block_on(f)
-}
-
-// =============================================================================
-// f64
-
-/// FFI-safe equivalent of [`f64`].
-///
-/// `f64` does not implement `StableAbi`, so convert it to integers by `integer_decode`,
-/// and recover it on conversion to `f64`.
-///
-/// Refs: <https://docs.rs/num-traits/0.2/num_traits/float/trait.Float.html#tymethod.integer_decode>
-#[repr(C)]
-#[derive(Clone, Copy, StableAbi)]
-pub(crate) struct RF64 {
-    mantissa: u64,
-    exponent: i16,
-    sign: i8,
-}
-
-impl From<f64> for RF64 {
-    fn from(val: f64) -> Self {
-        let (mantissa, exponent, sign) = Float::integer_decode(val);
-        Self {
-            mantissa,
-            exponent,
-            sign,
-        }
-    }
-}
-
-impl From<RF64> for f64 {
-    fn from(val: RF64) -> Self {
-        let RF64 {
-            mantissa,
-            exponent,
-            sign,
-        } = val;
-        let sign_f = sign as f64;
-        let mantissa_f = mantissa as f64;
-        let exponent_f = 2.0.powf(exponent as f64);
-        sign_f * mantissa_f * exponent_f
-    }
 }
 
 // =============================================================================
@@ -149,16 +106,16 @@ impl From<RIsometry2F64> for nalgebra::Isometry2<f64> {
 #[repr(C)]
 #[derive(StableAbi)]
 struct RUnitComplexF64 {
-    re: RF64,
-    im: RF64,
+    re: f64,
+    im: f64,
 }
 
 impl From<nalgebra::UnitComplex<f64>> for RUnitComplexF64 {
     fn from(val: nalgebra::UnitComplex<f64>) -> Self {
         let val = val.into_inner();
         Self {
-            re: val.re.into(),
-            im: val.im.into(),
+            re: val.re,
+            im: val.im,
         }
     }
 }
@@ -166,8 +123,8 @@ impl From<nalgebra::UnitComplex<f64>> for RUnitComplexF64 {
 impl From<RUnitComplexF64> for nalgebra::UnitComplex<f64> {
     fn from(val: RUnitComplexF64) -> Self {
         Self::from_complex(nalgebra::Complex {
-            re: val.re.into(),
-            im: val.im.into(),
+            re: val.re,
+            im: val.im,
         })
     }
 }
@@ -176,22 +133,22 @@ impl From<RUnitComplexF64> for nalgebra::UnitComplex<f64> {
 #[repr(C)]
 #[derive(StableAbi)]
 struct RTranslation2F64 {
-    x: RF64,
-    y: RF64,
+    x: f64,
+    y: f64,
 }
 
 impl From<nalgebra::Translation2<f64>> for RTranslation2F64 {
     fn from(val: nalgebra::Translation2<f64>) -> Self {
         Self {
-            x: val.vector.x.into(),
-            y: val.vector.y.into(),
+            x: val.vector.x,
+            y: val.vector.y,
         }
     }
 }
 
 impl From<RTranslation2F64> for nalgebra::Translation2<f64> {
     fn from(val: RTranslation2F64) -> Self {
-        Self::new(val.x.into(), val.y.into())
+        Self::new(val.x, val.y)
     }
 }
 
@@ -225,32 +182,27 @@ impl From<RIsometry3F64> for nalgebra::Isometry3<f64> {
 #[repr(C)]
 #[derive(StableAbi)]
 struct RUnitQuaternionF64 {
-    x: RF64,
-    y: RF64,
-    z: RF64,
-    w: RF64,
+    x: f64,
+    y: f64,
+    z: f64,
+    w: f64,
 }
 
 impl From<nalgebra::UnitQuaternion<f64>> for RUnitQuaternionF64 {
     fn from(val: nalgebra::UnitQuaternion<f64>) -> Self {
         let val = val.into_inner();
         Self {
-            x: val.coords.x.into(),
-            y: val.coords.y.into(),
-            z: val.coords.z.into(),
-            w: val.coords.w.into(),
+            x: val.coords.x,
+            y: val.coords.y,
+            z: val.coords.z,
+            w: val.coords.w,
         }
     }
 }
 
 impl From<RUnitQuaternionF64> for nalgebra::UnitQuaternion<f64> {
     fn from(val: RUnitQuaternionF64) -> Self {
-        Self::from_quaternion(nalgebra::Quaternion::new(
-            val.w.into(),
-            val.x.into(),
-            val.y.into(),
-            val.z.into(),
-        ))
+        Self::from_quaternion(nalgebra::Quaternion::new(val.w, val.x, val.y, val.z))
     }
 }
 
@@ -258,24 +210,24 @@ impl From<RUnitQuaternionF64> for nalgebra::UnitQuaternion<f64> {
 #[repr(C)]
 #[derive(StableAbi)]
 struct RTranslation3F64 {
-    x: RF64,
-    y: RF64,
-    z: RF64,
+    x: f64,
+    y: f64,
+    z: f64,
 }
 
 impl From<nalgebra::Translation3<f64>> for RTranslation3F64 {
     fn from(val: nalgebra::Translation3<f64>) -> Self {
         Self {
-            x: val.vector.x.into(),
-            y: val.vector.y.into(),
-            z: val.vector.z.into(),
+            x: val.vector.x,
+            y: val.vector.y,
+            z: val.vector.z,
         }
     }
 }
 
 impl From<RTranslation3F64> for nalgebra::Translation3<f64> {
     fn from(val: RTranslation3F64) -> Self {
-        Self::new(val.x.into(), val.y.into(), val.z.into())
+        Self::new(val.x, val.y, val.z)
     }
 }
 
@@ -373,19 +325,16 @@ where
 #[repr(C)]
 #[derive(StableAbi)]
 pub(crate) struct RTrajectoryPoint {
-    positions: RVec<RF64>,
-    velocities: ROption<RVec<RF64>>,
+    positions: RVec<f64>,
+    velocities: ROption<RVec<f64>>,
     time_from_start: RDuration,
 }
 
 impl From<arci::TrajectoryPoint> for RTrajectoryPoint {
     fn from(val: arci::TrajectoryPoint) -> Self {
         Self {
-            positions: val.positions.into_iter().map(RF64::from).collect(),
-            velocities: val
-                .velocities
-                .map(|v| v.into_iter().map(RF64::from).collect())
-                .into(),
+            positions: val.positions.into_iter().collect(),
+            velocities: val.velocities.map(|v| v.into_iter().collect()).into(),
             time_from_start: val.time_from_start.into(),
         }
     }
@@ -411,17 +360,17 @@ impl From<RTrajectoryPoint> for arci::TrajectoryPoint {
 #[repr(C)]
 #[derive(StableAbi)]
 pub(crate) struct RBaseVelocity {
-    x: RF64,
-    y: RF64,
-    theta: RF64,
+    x: f64,
+    y: f64,
+    theta: f64,
 }
 
 impl From<arci::BaseVelocity> for RBaseVelocity {
     fn from(val: arci::BaseVelocity) -> Self {
         Self {
-            x: val.x.into(),
-            y: val.y.into(),
-            theta: val.theta.into(),
+            x: val.x,
+            y: val.y,
+            theta: val.theta,
         }
     }
 }
@@ -429,9 +378,9 @@ impl From<arci::BaseVelocity> for RBaseVelocity {
 impl From<RBaseVelocity> for arci::BaseVelocity {
     fn from(val: RBaseVelocity) -> Self {
         Self {
-            x: val.x.into(),
-            y: val.y.into(),
-            theta: val.theta.into(),
+            x: val.x,
+            y: val.y,
+            theta: val.theta,
         }
     }
 }
@@ -444,7 +393,7 @@ impl From<RBaseVelocity> for arci::BaseVelocity {
 pub(crate) enum RGamepadEvent {
     ButtonPressed(RButton),
     ButtonReleased(RButton),
-    AxisChanged(RAxis, RF64),
+    AxisChanged(RAxis, f64),
     Connected,
     Disconnected,
     Unknown,
@@ -455,7 +404,7 @@ impl From<arci::gamepad::GamepadEvent> for RGamepadEvent {
         match e {
             arci::gamepad::GamepadEvent::ButtonPressed(b) => Self::ButtonPressed(b.into()),
             arci::gamepad::GamepadEvent::ButtonReleased(b) => Self::ButtonReleased(b.into()),
-            arci::gamepad::GamepadEvent::AxisChanged(a, v) => Self::AxisChanged(a.into(), v.into()),
+            arci::gamepad::GamepadEvent::AxisChanged(a, v) => Self::AxisChanged(a.into(), v),
             arci::gamepad::GamepadEvent::Connected => Self::Connected,
             arci::gamepad::GamepadEvent::Disconnected => Self::Disconnected,
             arci::gamepad::GamepadEvent::Unknown => Self::Unknown,
@@ -468,7 +417,7 @@ impl From<RGamepadEvent> for arci::gamepad::GamepadEvent {
         match e {
             RGamepadEvent::ButtonPressed(b) => Self::ButtonPressed(b.into()),
             RGamepadEvent::ButtonReleased(b) => Self::ButtonReleased(b.into()),
-            RGamepadEvent::AxisChanged(a, v) => Self::AxisChanged(a.into(), v.into()),
+            RGamepadEvent::AxisChanged(a, v) => Self::AxisChanged(a.into(), v),
             RGamepadEvent::Connected => Self::Connected,
             RGamepadEvent::Disconnected => Self::Disconnected,
             RGamepadEvent::Unknown => Self::Unknown,
@@ -604,10 +553,10 @@ pub(crate) type JointTrajectoryClientTraitObject = RJointTrajectoryClientTrait_T
 #[sabi_trait]
 pub(crate) trait RJointTrajectoryClientTrait: Send + Sync + 'static {
     fn joint_names(&self) -> RVec<RString>;
-    fn current_joint_positions(&self) -> RResult<RVec<RF64>>;
+    fn current_joint_positions(&self) -> RResult<RVec<f64>>;
     fn send_joint_positions(
         &self,
-        positions: RVec<RF64>,
+        positions: RVec<f64>,
         duration: RDuration,
     ) -> RResult<RBlockingWait>;
     fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait>;
@@ -624,18 +573,17 @@ where
             .collect()
     }
 
-    fn current_joint_positions(&self) -> RResult<RVec<RF64>> {
+    fn current_joint_positions(&self) -> RResult<RVec<f64>> {
         ROk(
             rtry!(arci::JointTrajectoryClient::current_joint_positions(self))
                 .into_iter()
-                .map(RF64::from)
                 .collect(),
         )
     }
 
     fn send_joint_positions(
         &self,
-        positions: RVec<RF64>,
+        positions: RVec<f64>,
         duration: RDuration,
     ) -> RResult<RBlockingWait> {
         ROk(rtry!(arci::JointTrajectoryClient::send_joint_positions(
