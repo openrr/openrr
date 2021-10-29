@@ -12,8 +12,7 @@ use arci::{BaseVelocity, Localization, MoveBase, Navigation};
 use async_recursion::async_recursion;
 use k::nalgebra::{Isometry2, Vector2};
 use openrr_client::{isometry, RobotClient};
-use structopt::clap::Shell;
-use structopt::StructOpt;
+use structopt::{clap::Shell, StructOpt};
 use tracing::{error, info};
 
 use crate::Error as OpenrrCommandError;
@@ -126,9 +125,9 @@ pub enum ShellType {
     PowerShell,
 }
 
-impl Into<Shell> for ShellType {
-    fn into(self) -> Shell {
-        match self {
+impl From<ShellType> for Shell {
+    fn from(shell: ShellType) -> Shell {
+        match shell {
             ShellType::Bash => Shell::Bash,
             ShellType::Zsh => Shell::Zsh,
             ShellType::Fish => Shell::Fish,
