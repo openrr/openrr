@@ -592,6 +592,10 @@ pub fn create_collision_check_clients<P: AsRef<Path>>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use arci::{
+        DummyJointTrajectoryClient, DummyLocalization, DummyMoveBase, DummyNavigation, DummySpeaker,
+    };
+    use assert_approx_eq::assert_approx_eq;
 
     struct PanicJointTrajectoryClient;
 
@@ -754,8 +758,9 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         .unwrap();
     }
 
-    #[test]
-    fn test_joint_positions() {
+    fn new_joint_client(
+        joint_names: Vec<String>,
+    ) -> RobotClient<Box<DummyLocalization>, Box<DummyMoveBase>, Box<DummyNavigation>> {
         let mut root_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         root_dir.pop(); // openrr-config
 
@@ -763,10 +768,6 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             r#"
 urdf_path = "{}/openrr-planner/sample.urdf"
 self_collision_check_pairs = ["l_shoulder_yaw:l_gripper_linear1"]
-
-[[joint_trajectory_clients_container_configs]]
-name = "arm"
-clients_names = ["arm"]
 
 [[collision_check_clients_configs]]
 name = "arm_collision_checked"
@@ -789,6 +790,34 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         ))
         .unwrap();
         config.urdf_full_path = Some(root_dir.join("openrr-planner/sample.urdf"));
+        RobotClient::new(
+            config,
+            {
+                let mut map = HashMap::new();
+                map.insert(
+                    "arm".to_string(),
+                    Arc::new(DummyJointTrajectoryClient::new(joint_names.clone()))
+                        as Arc<dyn JointTrajectoryClient>,
+                );
+                map
+            },
+            {
+                let mut map = HashMap::new();
+                map.insert(
+                    "speaker".to_string(),
+                    Arc::new(DummySpeaker::new()) as Arc<dyn Speaker>,
+                );
+                map
+            },
+            Some(Box::new(DummyLocalization::new())),
+            Some(Box::new(DummyMoveBase::new())),
+            Some(Box::new(DummyNavigation::new())),
+        )
+        .unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_joint_positions() {
         let joint_names: Vec<String> = vec![
             "l_shoulder_yaw",
             "l_shoulder_pitch",
@@ -800,30 +829,38 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         .iter()
         .map(|x| x.to_string())
         .collect();
-        let client = BoxRobotClient::new(
-            config,
-            {
-                let mut map = HashMap::new();
-                map.insert(
-                    "arm".to_string(),
-                    Arc::new(arci::DummyJointTrajectoryClient::new(joint_names.clone()))
-                        as Arc<dyn JointTrajectoryClient>,
-                );
-                map
-            },
-            {
-                let mut map = HashMap::new();
-                map.insert(
-                    "speaker".to_string(),
-                    Arc::new(arci::DummySpeaker::new()) as Arc<dyn Speaker>,
-                );
-                map
-            },
-            Some(Box::new(arci::DummyLocalization::new())),
-            Some(Box::new(arci::DummyMoveBase::new())),
-            Some(Box::new(arci::DummyNavigation::new())),
-        )
-        .unwrap();
+        let client = new_joint_client(joint_names.clone());
         assert_eq!(client.joint_names("arm").unwrap(), joint_names);
+        let positions = vec![0.1, -0.1, 1.0, 2.0, -1.0, 0.2];
+        client
+            .send_joint_positions("arm", &positions, 0.1)
+            .unwrap()
+            .await
+            .unwrap();
+        let p1 = client.current_joint_positions("arm").unwrap();
+        assert_eq!(p1.len(), positions.len());
+        for (l, r) in p1.iter().zip(positions.iter()) {
+            assert_approx_eq!(l, r);
+        }
+        client
+            .send_joints_pose("arm", "zero", 1.0)
+            .unwrap()
+            .await
+            .unwrap();
+        let p2 = client.current_joint_positions("arm").unwrap();
+        for i in 0..p2.len() {
+            assert_approx_eq!(p2[i], 0.0);
+        }
+
+        assert!(client.current_end_transform("arm").is_err());
+        // TODO: check the value
+        let _end = client.current_end_transform("arm_ik").unwrap();
+
+        let client_names = client.raw_joint_trajectory_clients_names();
+        assert_eq!(client_names.len(), 1);
+        assert_eq!(client_names[0], "arm");
+
+        let client_names = client.joint_trajectory_clients_names();
+        assert_eq!(client_names.len(), 3);
     }
 }
