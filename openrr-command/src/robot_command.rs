@@ -279,6 +279,7 @@ impl RobotCommandExecutor {
                 }
             }
             RobotCommand::GetState { name } => {
+                println!("Joint names : {:?}", client.joint_names(name)?);
                 println!(
                     "Joint positions : {:?}",
                     client.current_joint_positions(name)?

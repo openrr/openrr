@@ -291,6 +291,11 @@ where
         }
     }
 
+    /// Returns the names which handled by `name` joint trajectory client
+    pub fn joint_names(&self, name: &str) -> Result<Vec<String>, Error> {
+        Ok(self.joint_trajectory_client(name)?.joint_names())
+    }
+
     pub fn send_joints_pose(
         &self,
         name: &str,
@@ -747,5 +752,78 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             Some(Box::new(PanicNavigation)),
         )
         .unwrap();
+    }
+
+    #[test]
+    fn test_joint_positions() {
+        let mut root_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        root_dir.pop(); // openrr-config
+
+        let mut config: OpenrrClientsConfig = toml::from_str(&format!(
+            r#"
+urdf_path = "{}/openrr-planner/sample.urdf"
+self_collision_check_pairs = ["l_shoulder_yaw:l_gripper_linear1"]
+
+[[joint_trajectory_clients_container_configs]]
+name = "arm"
+clients_names = ["arm"]
+
+[[collision_check_clients_configs]]
+name = "arm_collision_checked"
+client_name = "arm"
+
+[[ik_clients_configs]]
+name = "arm_ik"
+client_name = "arm_collision_checked"
+solver_name = "arm_ik_solver"
+
+[ik_solvers_configs.arm_ik_solver]
+ik_target = "l_tool_fixed"
+
+[[joints_poses]]
+pose_name = "zero"
+client_name = "arm"
+positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+"#,
+            root_dir.display()
+        ))
+        .unwrap();
+        config.urdf_full_path = Some(root_dir.join("openrr-planner/sample.urdf"));
+        let joint_names: Vec<String> = vec![
+            "l_shoulder_yaw",
+            "l_shoulder_pitch",
+            "l_shoulder_roll",
+            "l_elbow_pitch",
+            "l_wrist_yaw",
+            "l_wrist_pitch",
+        ]
+        .iter()
+        .map(|x| x.to_string())
+        .collect();
+        let client = BoxRobotClient::new(
+            config,
+            {
+                let mut map = HashMap::new();
+                map.insert(
+                    "arm".to_string(),
+                    Arc::new(arci::DummyJointTrajectoryClient::new(joint_names.clone()))
+                        as Arc<dyn JointTrajectoryClient>,
+                );
+                map
+            },
+            {
+                let mut map = HashMap::new();
+                map.insert(
+                    "speaker".to_string(),
+                    Arc::new(arci::DummySpeaker::new()) as Arc<dyn Speaker>,
+                );
+                map
+            },
+            Some(Box::new(arci::DummyLocalization::new())),
+            Some(Box::new(arci::DummyMoveBase::new())),
+            Some(Box::new(arci::DummyNavigation::new())),
+        )
+        .unwrap();
+        assert_eq!(client.joint_names("arm").unwrap(), joint_names);
     }
 }
