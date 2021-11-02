@@ -291,7 +291,7 @@ where
         }
     }
 
-    /// Returns the names which handled by `name` joint trajectory client
+    /// Returns the joint names which is handled by the joint trajectory client with `name`
     pub fn joint_names(&self, name: &str) -> Result<Vec<String>, Error> {
         Ok(self.joint_trajectory_client(name)?.joint_names())
     }
