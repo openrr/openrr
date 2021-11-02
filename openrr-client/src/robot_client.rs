@@ -797,7 +797,7 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
                 let mut map = HashMap::new();
                 map.insert(
                     "arm".to_string(),
-                    Arc::new(DummyJointTrajectoryClient::new(joint_names.clone()))
+                    Arc::new(DummyJointTrajectoryClient::new(joint_names))
                         as Arc<dyn JointTrajectoryClient>,
                 );
                 map
@@ -848,9 +848,9 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             .unwrap()
             .await
             .unwrap();
-        let p2 = client.current_joint_positions("arm").unwrap();
-        for i in 0..p2.len() {
-            assert_approx_eq!(p2[i], 0.0);
+        let zero_positions = client.current_joint_positions("arm").unwrap();
+        for pos in zero_positions {
+            assert_approx_eq!(pos, 0.0);
         }
 
         assert!(client.current_end_transform("arm").is_err());
