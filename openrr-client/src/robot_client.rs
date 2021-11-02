@@ -591,11 +591,12 @@ pub fn create_collision_check_clients<P: AsRef<Path>>(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use arci::{
         DummyJointTrajectoryClient, DummyLocalization, DummyMoveBase, DummyNavigation, DummySpeaker,
     };
     use assert_approx_eq::assert_approx_eq;
+
+    use super::*;
 
     struct PanicJointTrajectoryClient;
 
