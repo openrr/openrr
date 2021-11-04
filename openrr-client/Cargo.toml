@@ -17,6 +17,7 @@ assimp = ["openrr-planner/assimp"]
 anyhow = "1.0"
 arci = "0.0.6"
 k = { version = "0.25", features = ["serde-serialize"] }
+openrr-config = "0.0.6"
 openrr-planner = { version = "0.0.6", default-features = false }
 schemars = "0.8.3"
 serde = { version = "1.0", features = ["derive"] }
