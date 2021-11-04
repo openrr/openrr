@@ -110,7 +110,6 @@ impl CompleteCondition for TotalJointDiffCondition {
         target_positions: &[f64],
         duration_sec: f64,
     ) -> Result<(), Error> {
-        let i = std::time::Instant::now();
         const CHECK_UNIT_SEC: f64 = 0.01;
         let check_unit_duration: Duration = Duration::from_secs_f64(CHECK_UNIT_SEC);
         let num_repeat: i32 = ((self.timeout_sec + duration_sec) / CHECK_UNIT_SEC) as i32;
@@ -122,7 +121,6 @@ impl CompleteCondition for TotalJointDiffCondition {
                 .map(|(tar, cur)| (tar - cur).abs())
                 .sum();
             if sum_err <= self.allowable_error {
-                i.elapsed();
                 return Ok(());
             }
             tokio::time::sleep(check_unit_duration).await;
