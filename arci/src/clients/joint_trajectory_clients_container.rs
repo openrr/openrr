@@ -290,7 +290,6 @@ mod tests {
         #[derive(Debug, Clone)]
         struct Dummy {
             name: Vec<String>,
-            pos: Vec<f64>,
         }
         impl JointTrajectoryClient for Dummy {
             fn joint_names(&self) -> Vec<String> {
@@ -321,11 +320,9 @@ mod tests {
         let clients = vec![
             Dummy {
                 name: vec![String::from("part1"), String::from("high")],
-                pos: vec![1.0_f64, 3.0_f64],
             },
             Dummy {
                 name: vec![String::from("part2"), String::from("low")],
-                pos: vec![2.2_f64, 4.0_f64],
             },
         ];
 
