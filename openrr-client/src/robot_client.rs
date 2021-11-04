@@ -511,6 +511,8 @@ pub fn resolve_relative_path<B: AsRef<Path>, P: AsRef<Path>>(
 impl OpenrrClientsConfig {
     pub fn resolve_path<P: AsRef<Path>>(&mut self, path: P) -> Result<(), Error> {
         if let Some(urdf_path) = self.urdf_path.as_ref() {
+            // TODO: pass Some(config_file_dir)
+            let urdf_path = openrr_config::evaluate(urdf_path, None)?;
             self.urdf_full_path = Some(resolve_relative_path(path, &urdf_path)?);
         } else {
             return Err(Error::NoUrdfPath);
