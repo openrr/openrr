@@ -23,7 +23,7 @@ openrr_apps_robot_command get_state arm_ik
 openrr_apps_robot_command move_ik arm_ik --x=1.0 --y=0.25
 openrr_apps_robot_command get_state arm_ik
 
-openrr_apps_robot_command speak "This is U R 10"
+openrr_apps_robot_command speak Default "This is U R 10"
 
 openrr_apps_robot_command execute_command -- date
 openrr_apps_robot_command execute_command -- ls -a

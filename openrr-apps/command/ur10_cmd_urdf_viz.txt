@@ -28,7 +28,7 @@ openrr_apps_robot_command send_base_velocity 1.0 2.0 1.57 -d 3.0
 openrr_apps_robot_command send_base_velocity 0.0 0.0 0.0 -d 3.0
 openrr_apps_robot_command send_navigation_goal 0.0 0.0 0.0
 
-openrr_apps_robot_command speak "This is U R 10"
+openrr_apps_robot_command speak Default "This is U R 10"
 
 openrr_apps_robot_command execute_command -- date
 openrr_apps_robot_command execute_command -- ls -a
