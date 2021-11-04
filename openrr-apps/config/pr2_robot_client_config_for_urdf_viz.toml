@@ -27,7 +27,7 @@ name = "torso"
 joint_names = ["torso_lift_joint"]
 
 [openrr_clients_config]
-urdf_path = "/opt/ros/melodic/share/robot_state_publisher/test/pr2.urdf"
+urdf_path = "$(rospack find pr2_description)/robots/pr2.urdf.xacro"
 self_collision_check_pairs = ["l_shoulder_pan_joint:r_shoulder_pan_joint"]
 
 [[openrr_clients_config.joint_trajectory_clients_container_configs]]

@@ -74,7 +74,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --exclude arci-ros --exclude arci-ros2
+          args: --workspace --exclude arci-ros --exclude arci-ros2 --exclude openrr-apps
       - name: cargo test (openrr-apps without ros)
         working-directory: openrr-apps
         run: cargo test --no-default-features --features gui,assimp
@@ -129,7 +129,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           apt-get update
-          apt-get -y install curl
+          apt-get -y install curl ros-${{ matrix.distro }}-pr2-description
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -140,6 +140,8 @@ jobs:
         shell: bash -ieo pipefail {0}
         working-directory: openrr-apps
         run: |
+          source /opt/ros/${{ matrix.distro }}/setup.bash
+          rosdep install -y -i --from-paths .
           cargo test --no-default-features --features ros,assimp
 
   ros2_arci_ros2:

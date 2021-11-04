@@ -19,6 +19,18 @@ fn verify_sample_configs() {
                 f,
                 result
             );
+        } else if cfg!(not(feature = "ros")) && (f.contains("pr2") || f.contains("ur10")) {
+            assert!(
+                matches!(
+                    result,
+                    Err(openrr_apps::Error::OpenrrClient(
+                        openrr_client::Error::Other(..)
+                    ))
+                ),
+                "{:?} {:?}",
+                f,
+                result
+            );
         } else {
             assert!(result.is_ok(), "{:?} {:?}", f, result);
             let ser_result = toml::to_string(&result.unwrap());

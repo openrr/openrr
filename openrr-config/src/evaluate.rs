@@ -54,7 +54,12 @@ pub fn evaluate(mut s: &str, current_dir: Option<&Path>) -> Result<String> {
                     .output()
                     .with_context(|| format!("could not run `{:?}`", cmd))?;
                 if !output.status.success() {
-                    bail!("`{:?}` didn't exit successfully", cmd);
+                    bail!(
+                        "`{:?}` didn't exit successfully\nstdout:\n{}\n\nstderr:\n{}\n",
+                        cmd,
+                        String::from_utf8_lossy(&output.stdout),
+                        String::from_utf8_lossy(&output.stderr)
+                    );
                 }
                 let mut output = String::from_utf8(output.stdout)?;
                 while output.ends_with('\n') || output.ends_with('\r') {
