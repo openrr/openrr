@@ -100,9 +100,26 @@ mod tests {
     #[test]
     fn test() {
         assert_eq!(evaluate("a", None).unwrap(), "a");
+        assert_eq!(evaluate("a$", None).unwrap(), "a$");
+        assert_eq!(evaluate("$a", None).unwrap(), "$a");
         assert_eq!(evaluate("$(echo a)", None).unwrap(), "a");
+        assert_eq!(evaluate("$(echo a)b", None).unwrap(), "ab");
+        assert_eq!(evaluate("$(echo a))", None).unwrap(), "a)");
+        assert_eq!(evaluate("$$(echo a)", None).unwrap(), "$a");
+        assert_eq!(
+            evaluate("$(echo a)", Some(&env::current_dir().unwrap())).unwrap(),
+            "a"
+        );
+        evaluate("$(echo a", None).unwrap_err();
         evaluate("${OPENRR_CONFIG_TEST_ENV}", None).unwrap_err();
         env::set_var("OPENRR_CONFIG_TEST_ENV", "a");
         assert_eq!(evaluate("${OPENRR_CONFIG_TEST_ENV}", None).unwrap(), "a");
+        assert_eq!(evaluate("${OPENRR_CONFIG_TEST_ENV}b", None).unwrap(), "ab");
+        assert_eq!(evaluate("${OPENRR_CONFIG_TEST_ENV}}", None).unwrap(), "a}");
+        assert_eq!(
+            evaluate("$${OPENRR_CONFIG_TEST_ENV}}", None).unwrap(),
+            "$a}"
+        );
+        evaluate("${OPENRR_CONFIG_TEST_ENV", None).unwrap_err();
     }
 }
