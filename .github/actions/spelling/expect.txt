@@ -271,3 +271,4 @@ api
 tempdir
 tempfile
 zsh
+DISTRO

@@ -10,7 +10,7 @@ joint_names = [
 ]
 
 [openrr_clients_config]
-urdf_path = "../../../universal_robot/ur_description/urdf/ur10_robot.urdf.xacro"
+urdf_path = "$(rospack find ur_description)/urdf/ur10_robot.urdf.xacro"
 self_collision_check_pairs = ["shoulder_pan_joint:elbow_joint"]
 
 [[openrr_clients_config.collision_check_clients_configs]]
