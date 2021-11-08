@@ -4,6 +4,7 @@ use openrr_client::*;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 
 struct PanicJointTrajectoryClient;
 
@@ -254,12 +255,24 @@ async fn test_joint_positions() {
     for (l, r) in p1.iter().zip(positions.iter()) {
         assert_approx_eq!(l, r);
     }
+
+    client
+        .send_joint_positions("arm_ik", &positions, 0.1)
+        .unwrap()
+        .await
+        .unwrap();
+    let p1 = client.current_joint_positions("arm").unwrap();
+    assert_eq!(p1.len(), positions.len());
+    for (l, r) in p1.iter().zip(positions.iter()) {
+        assert_approx_eq!(l, r);
+    }
+
     client
         .send_joints_pose("arm", "zero", 1.0)
         .unwrap()
         .await
         .unwrap();
-    let zero_positions = client.current_joint_positions("arm").unwrap();
+    let zero_positions = client.current_joint_positions("arm_ik").unwrap();
     for pos in zero_positions {
         assert_approx_eq!(pos, 0.0);
     }
@@ -267,6 +280,9 @@ async fn test_joint_positions() {
     assert!(client.current_end_transform("arm").is_err());
     // TODO: check the value
     let _end = client.current_end_transform("arm_ik").unwrap();
+    client
+        .transform("arm_ik", &arci::Isometry3::identity())
+        .unwrap();
 
     let client_names = client.raw_joint_trajectory_clients_names();
     assert_eq!(client_names.len(), 1);
@@ -274,4 +290,78 @@ async fn test_joint_positions() {
 
     let client_names = client.joint_trajectory_clients_names();
     assert_eq!(client_names.len(), 3);
+}
+
+#[test]
+fn test_manipulation_accessors() {
+    let joint_names: Vec<String> = vec![
+        "l_shoulder_yaw",
+        "l_shoulder_pitch",
+        "l_shoulder_roll",
+        "l_elbow_pitch",
+        "l_wrist_yaw",
+        "l_wrist_pitch",
+    ]
+    .iter()
+    .map(|x| x.to_string())
+    .collect();
+    let client = new_joint_client(joint_names.clone());
+    let hash_joint_trajectory_clients = client.joint_trajectory_clients();
+    assert_eq!(hash_joint_trajectory_clients.keys().len(), 3);
+
+    let hash_collision_checkers = client.self_collision_checkers();
+    assert_eq!(hash_collision_checkers.keys().len(), 1);
+
+    let hash_ik_solvers = client.ik_solvers();
+    assert_eq!(hash_ik_solvers.keys().len(), 1);
+
+    let hash_ik_clients = client.ik_clients();
+    assert_eq!(hash_ik_clients.keys().len(), 1);
+
+    let collision_check_names = client.collision_check_clients_names();
+    assert_eq!(collision_check_names.len(), 1);
+
+    let ik_clients_names = client.ik_clients_names();
+    assert_eq!(ik_clients_names.len(), 1);
+
+    let full_checker = client.full_chain_for_collision_checker();
+    assert!(full_checker.is_some());
+
+    let hash_speakers = client.speakers();
+    assert_eq!(hash_speakers.keys().len(), 1);
+
+    let _ = client.speak("speaker", "aa").unwrap();
+}
+
+#[tokio::test]
+async fn test_navigation_accessors() {
+    let joint_names: Vec<String> = vec![
+        "l_shoulder_yaw",
+        "l_shoulder_pitch",
+        "l_shoulder_roll",
+        "l_elbow_pitch",
+        "l_wrist_yaw",
+        "l_wrist_pitch",
+    ]
+    .iter()
+    .map(|x| x.to_string())
+    .collect();
+    let client = new_joint_client(joint_names.clone());
+    client
+        .send_goal_pose(Isometry2::identity(), "map", Duration::from_millis(100))
+        .unwrap()
+        .await
+        .unwrap();
+    client.cancel().unwrap();
+
+    let vel = BaseVelocity {
+        x: 0.1,
+        y: -0.1,
+        theta: 1.0,
+    };
+    client.send_velocity(&vel).unwrap();
+    let current_vel = client.current_velocity().unwrap();
+    assert_approx_eq!(current_vel.x, vel.x);
+    assert_approx_eq!(current_vel.y, vel.y);
+    assert_approx_eq!(current_vel.theta, vel.theta);
 }
