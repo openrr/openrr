@@ -1,11 +1,10 @@
-use crate::nalgebra::Translation3;
+use std::{collections::HashMap, path::PathBuf, sync::Arc, time::Duration};
+
 use arci::*;
 use assert_approx_eq::assert_approx_eq;
 use openrr_client::*;
-use std::collections::HashMap;
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::time::Duration;
+
+use crate::nalgebra::Translation3;
 
 struct PanicJointTrajectoryClient;
 
@@ -306,7 +305,7 @@ fn test_manipulation_accessors() {
     .iter()
     .map(|x| x.to_string())
     .collect();
-    let client = new_joint_client(joint_names.clone());
+    let client = new_joint_client(joint_names);
     let hash_joint_trajectory_clients = client.joint_trajectory_clients();
     assert_eq!(hash_joint_trajectory_clients.keys().len(), 3);
 
