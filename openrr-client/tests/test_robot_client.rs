@@ -1,3 +1,4 @@
+use crate::nalgebra::Translation3;
 use arci::*;
 use assert_approx_eq::assert_approx_eq;
 use openrr_client::*;
@@ -364,4 +365,53 @@ async fn test_navigation_accessors() {
     assert_approx_eq!(current_vel.x, vel.x);
     assert_approx_eq!(current_vel.y, vel.y);
     assert_approx_eq!(current_vel.theta, vel.theta);
+}
+
+#[tokio::test]
+async fn test_move_ik() {
+    let joint_names: Vec<String> = vec![
+        "l_shoulder_yaw",
+        "l_shoulder_pitch",
+        "l_shoulder_roll",
+        "l_elbow_pitch",
+        "l_wrist_yaw",
+        "l_wrist_pitch",
+    ]
+    .iter()
+    .map(|x| x.to_string())
+    .collect();
+    let client = new_joint_client(joint_names.clone());
+    assert_eq!(client.joint_names("arm").unwrap(), joint_names);
+
+    let positions = vec![1.2, 1.2, 0.0, -1.8, -0.5, 0.0];
+    client
+        .send_joint_positions("arm", &positions, 0.1)
+        .unwrap()
+        .await
+        .unwrap();
+    client
+        .move_ik(
+            "arm_ik",
+            &Isometry3::from_parts(
+                Translation3::new(0.7, 0.6, 0.2),
+                UnitQuaternion::from_euler_angles(0.0, 0.0, 0.0),
+            ),
+            0.1,
+        )
+        .unwrap()
+        .await
+        .unwrap();
+
+    client
+        .move_ik_with_interpolation(
+            "arm_ik",
+            &Isometry3::from_parts(
+                Translation3::new(0.7, 0.6, 0.8),
+                UnitQuaternion::from_euler_angles(0.0, 0.0, 0.0),
+            ),
+            0.1,
+        )
+        .unwrap()
+        .await
+        .unwrap();
 }
