@@ -12,6 +12,7 @@ use arci::{BaseVelocity, Localization, MoveBase, Navigation};
 use async_recursion::async_recursion;
 use k::nalgebra::{Isometry2, Vector2};
 use openrr_client::{isometry, RobotClient};
+use rustyline::{error::ReadlineError, Editor};
 use structopt::{clap::Shell, StructOpt};
 use tracing::{error, info};
 
@@ -385,6 +386,57 @@ impl RobotCommandExecutor {
         }
         Ok(())
     }
+
+    /// Run interactive shell with the client
+    pub async fn run_interactive_shell<L, M, N>(
+        &self,
+        client: &RobotClient<L, M, N>,
+    ) -> Result<(), OpenrrCommandError>
+    where
+        L: Localization,
+        M: MoveBase,
+        N: Navigation,
+    {
+        let mut rl = Editor::<()>::new();
+        const HISTORY_FILE_NAME: &str = "openrr_apps_robot_command_log.txt";
+        // no problem if there are no log file.
+        let _ = rl.load_history(HISTORY_FILE_NAME);
+        loop {
+            let readline = rl.readline("\x1b[1;32m>> \x1b[0m");
+            match readline {
+                Ok(line) => {
+                    rl.add_history_entry(line.as_str());
+                    // add dummy to make it the same as load command
+                    let line_with_arg0 = format!("dummy {}", line);
+                    let command_parsed_iter = line_with_arg0.split_whitespace();
+                    // Parse the command
+                    if let Ok(command) = RobotCommand::from_iter_safe(command_parsed_iter) {
+                        if let Err(e) = self.execute(client, &command).await {
+                            println!("failed to execute: {:?}", e);
+                        }
+                    } else if !line.is_empty() {
+                        println!("failed to parse: {:?}", line);
+                    }
+                }
+                Err(ReadlineError::Interrupted) => {
+                    println!("CTRL-C");
+                    break;
+                }
+                Err(ReadlineError::Eof) => {
+                    println!("CTRL-D");
+                    break;
+                }
+                Err(err) => {
+                    println!("Error: {:?}", err);
+                    break;
+                }
+            }
+        }
+        if let Err(err) = rl.save_history(HISTORY_FILE_NAME) {
+            println!("failed to save history {}: {:?}", HISTORY_FILE_NAME, err);
+        }
+        Ok(())
+    }
 }
 
 pub fn load_command_file_and_filter(file_path: PathBuf) -> Result<Vec<String>, OpenrrCommandError> {
@@ -401,4 +453,15 @@ pub fn load_command_file_and_filter(file_path: PathBuf) -> Result<Vec<String>, O
                 && command_parsed_iter.clone().next().unwrap().find('#') == None
         })
         .collect())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_parse_joints() {
+        let val: (usize, usize) = parse_joints("0=2").unwrap();
+        assert_eq!(val.0, 0);
+        assert_eq!(val.1, 2);
+    }
 }

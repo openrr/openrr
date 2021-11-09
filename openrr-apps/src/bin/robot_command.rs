@@ -26,6 +26,9 @@ struct RobotCommandArgs {
     /// Prints the default setting as TOML.
     #[structopt(long)]
     show_default_config: bool,
+    /// Use interactive mode
+    #[structopt(short, long)]
+    interactive: bool,
     /// Path to log directory for tracing FileAppender.
     #[structopt(long, parse(from_os_str))]
     log_directory: Option<PathBuf>,
@@ -64,13 +67,13 @@ async fn main() -> Result<()> {
     }
 
     // Outputs shell completion script and exit.
-    if let RobotCommand::ShellCompletion(shell_type) = args.command.as_ref().unwrap() {
+    if let Some(RobotCommand::ShellCompletion(shell_type)) = args.command.as_ref() {
         shell_completion(*shell_type);
         return Ok(());
     }
 
     let config_path = openrr_apps::utils::get_apps_robot_config(args.config_path);
-    let command = args.command.ok_or(Error::NoCommand)?;
+
     let robot_config =
         openrr_apps::utils::resolve_robot_config(config_path.as_deref(), args.config.as_deref())?;
 
@@ -91,7 +94,13 @@ async fn main() -> Result<()> {
     });
     let client: BoxRobotClient = robot_config.create_robot_client()?;
     let executor = RobotCommandExecutor {};
-    Ok(executor.execute(&client, &command).await?)
+
+    if args.interactive {
+        Ok(executor.run_interactive_shell(&client).await?)
+    } else {
+        let command = args.command.ok_or(Error::NoCommand)?;
+        Ok(executor.execute(&client, &command).await?)
+    }
 }
 
 #[cfg(test)]
