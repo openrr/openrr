@@ -44,3 +44,5 @@ openrr-plugin = { path = "openrr-plugin" }
 openrr-remote = { path = "openrr-remote" }
 openrr-sleep = { path = "openrr-sleep" }
 openrr-teleop = { path = "openrr-teleop" }
+
+urdf-viz = { git = "https://github.com/openrr/urdf-viz.git", branch = "main" }
