@@ -29,6 +29,7 @@ MEMBERS=(
   "arci-gamepad-gilrs"
   "arci-gamepad-keyboard"
   "arci-ros"
+  "arci-ros2"
   "arci-speak-audio"
   "arci-speak-cmd"
   "arci-urdf-viz"

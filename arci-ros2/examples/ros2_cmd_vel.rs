@@ -26,4 +26,6 @@ async fn main() -> Result<(), anyhow::Error> {
 }
 
 #[cfg(not(feature = "ros2"))]
-fn main() {}
+fn main() {
+    println!("This example requires ros2 feature");
+}

@@ -1,21 +1,25 @@
 use std::{
-    sync::{Arc, Mutex},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
     time::Duration,
 };
 
 use arci::*;
+use futures::stream::StreamExt;
 use r2r::{
     builtin_interfaces::msg::Time, geometry_msgs::msg, nav2_msgs::action::NavigateToPose,
     std_msgs::msg::Header,
 };
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info};
 
 /// Implement arci::Navigation for ROS2
 pub struct Ros2Navigation {
     action_client: r2r::ActionClient<NavigateToPose::Action>,
     /// r2r::Node to handle the action
     node: Arc<Mutex<r2r::Node>>,
+    current_goal: Arc<Mutex<Option<r2r::ActionClientGoal<NavigateToPose::Action>>>>,
 }
 
 // TODO:
@@ -29,14 +33,10 @@ impl Ros2Navigation {
         let action_client = node
             .create_action_client::<NavigateToPose::Action>(action_name)
             .unwrap();
-        while !node.action_server_available(&action_client).unwrap() {
-            std::thread::sleep(std::time::Duration::from_millis(500));
-            debug!("waiting action server..");
-        }
-        debug!("waiting action server..Done");
         Self {
             action_client,
             node: Arc::new(Mutex::new(node)),
+            current_goal: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -63,51 +63,69 @@ impl Navigation for Ros2Navigation {
         &self,
         goal: Isometry2<f64>,
         frame_id: &str,
-        timeout: Duration,
+        _timeout: Duration,
     ) -> Result<WaitFuture, Error> {
-        let mut clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
-        let now = clock.get_now().unwrap();
-        let goal = NavigateToPose::Goal {
-            pose: msg::PoseStamped {
-                header: Header {
-                    frame_id: frame_id.to_string(),
-                    stamp: Time {
-                        sec: now.as_secs() as i32,
-                        nanosec: now.subsec_nanos(),
-                    },
-                },
-                pose: to_pose_msg(&goal),
-            },
-            ..Default::default()
-        };
-
-        let has_reached = Arc::new(Mutex::new(None));
-
-        let cb = Box::new(move |r: NavigateToPose::SendGoal::Response| {
-            debug!("got response {:?}", r);
-        });
-
-        let feedback_cb = Box::new(move |fb: NavigateToPose::Feedback| {
-            debug!("got feedback {:?}", fb);
-        });
-
-        let has_reached_set = has_reached.clone();
-        let result_cb = Box::new(move |r: NavigateToPose::Result| {
-            info!("final result {:?}", r);
-            *has_reached_set.lock().unwrap() = Some(r);
-        });
-        self.action_client
-            .send_goal_request(goal, cb, feedback_cb, result_cb)
+        let node = self.node.clone();
+        let is_done = Arc::new(AtomicBool::new(false));
+        let is_done_clone = is_done.clone();
+        let current_goal = self.current_goal.clone();
+        let action_client = self.action_client.clone();
+        let is_available = node
+            .lock()
+            .unwrap()
+            .is_available(&self.action_client)
             .unwrap();
-        let spin_node = self.node.clone();
-        let start_time = std::time::Instant::now();
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        let frame_id = frame_id.to_owned();
+        std::thread::spawn(move || {
+            tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(async move {
+                    let current_goal_clone = current_goal.clone();
+                    tokio::spawn(async move {
+                        let mut clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
+                        let now = clock.get_now().unwrap();
+                        let goal = NavigateToPose::Goal {
+                            pose: msg::PoseStamped {
+                                header: Header {
+                                    frame_id: frame_id.to_string(),
+                                    stamp: Time {
+                                        sec: now.as_secs() as i32,
+                                        nanosec: now.subsec_nanos(),
+                                    },
+                                },
+                                pose: to_pose_msg(&goal),
+                            },
+                            ..Default::default()
+                        };
+
+                        is_available.await.unwrap();
+                        let send_goal_request = action_client.send_goal_request(goal).unwrap();
+                        let (goal, result, feedback) = send_goal_request.await.unwrap();
+                        *current_goal_clone.lock().unwrap() = Some(goal.clone());
+                        tokio::spawn(
+                            async move { feedback.for_each(|_| std::future::ready(())).await },
+                        );
+                        result.await.unwrap(); // TODO: handle goal state
+                        is_done.store(true, Ordering::Relaxed);
+                    });
+                    loop {
+                        node.lock()
+                            .unwrap()
+                            .spin_once(std::time::Duration::from_millis(100));
+                        tokio::task::yield_now().await;
+                        if is_done_clone.load(Ordering::Relaxed) {
+                            break;
+                        }
+                    }
+                    *current_goal.lock().unwrap() = None;
+                    let _ = sender.send(());
+                });
+        });
         let wait = WaitFuture::new(async move {
-            const SLEEP_DURATION: std::time::Duration = std::time::Duration::from_micros(100);
-            while has_reached.lock().unwrap().is_none() && start_time.elapsed() < timeout {
-                spin_node.lock().unwrap().spin_once(SLEEP_DURATION);
-                std::thread::sleep(SLEEP_DURATION);
-            }
-            // TODO: Handle the result and timeout
+            let _ = receiver.await;
             Ok(())
         });
 
@@ -115,7 +133,21 @@ impl Navigation for Ros2Navigation {
     }
 
     fn cancel(&self) -> Result<(), Error> {
-        todo!();
+        // TODO: current_goal is None until send_goal_request.await is complete.
+        //       Therefore, if cancel is called during that period, it will not work correctly.
+        if let Some(current_goal) = self.current_goal.lock().unwrap().take() {
+            let fut = current_goal.cancel().map_err(|e| Error::Other(e.into()))?;
+            std::thread::spawn(move || {
+                tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .unwrap()
+                    .block_on(async move {
+                        let _ = fut.await;
+                    });
+            });
+        }
+        Ok(())
     }
 }
 

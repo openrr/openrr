@@ -20,4 +20,6 @@ async fn main() {
 }
 
 #[cfg(windows)]
-fn main() {}
+fn main() {
+    println!("This example does not work on Windows");
+}
