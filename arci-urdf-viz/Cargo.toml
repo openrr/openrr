@@ -25,7 +25,7 @@ ureq = { version = "2", features = ["json"] }
 url = "2.0"
 
 [dev-dependencies]
-actix-web = "3"
 assert_approx_eq = "1.1"
-serde_derive = "1.0"
+easy-ext = "1"
 tokio = { version = "1.0", features = ["full"] }
+urdf-viz = "0.31"
