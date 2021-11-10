@@ -12,21 +12,22 @@ repository = "https://github.com/openrr/openrr"
 [lib]
 crate-type = ["lib", "staticlib", "cdylib"]
 
+[features]
+ros2 = ["r2r"]
+
 [dependencies]
 abi_stable = "0.10"
 anyhow = "1.0"
 arci = "0.0.6"
+futures = "0.3"
 once_cell = "1"
 openrr-plugin = "0.0.6"
-r2r = { git = "https://github.com/smilerobotics/r2r", optional = true, branch = "smilerobotics-dev" }
+r2r = { version = "0.5.3", optional = true }
 serde = { version = "1", features = ["derive"] }
 thiserror = "1.0"
+tokio = { version = "1.0", features = ["full"] }
 toml = "0.5"
 tracing = { version = "0.1", features = ["log"] }
 
 [dev-dependencies]
 assert_approx_eq = "1.1"
-tokio = { version = "1.0", features = ["full"] }
-
-[features]
-ros2 = ["r2r"]

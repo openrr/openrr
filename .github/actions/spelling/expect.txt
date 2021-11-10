@@ -275,3 +275,4 @@ DISTRO
 ctrl
 readline
 rustyline
+uuid
