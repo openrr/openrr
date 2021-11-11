@@ -2,7 +2,7 @@
 
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicUsize, Ordering},
         Arc, Mutex,
     },
     time::Duration,
@@ -17,6 +17,11 @@ use futures::{
 };
 use r2r::nav2_msgs::action::NavigateToPose;
 
+fn node_name() -> String {
+    static COUNT: AtomicUsize = AtomicUsize::new(0);
+    format!("test_nav2_node{}", COUNT.fetch_add(1, Ordering::Relaxed))
+}
+
 #[tokio::test]
 async fn test_nav() {
     const ACTION_NAME: &str = "/test_nav";
@@ -24,7 +29,7 @@ async fn test_nav() {
     let ctx = r2r::Context::create().unwrap();
     let nav = Ros2Navigation::new(ctx.clone(), ACTION_NAME);
     let node = Arc::new(Mutex::new(
-        r2r::Node::create(ctx, "test_nav2_node1", "arci_ros2").unwrap(),
+        r2r::Node::create(ctx, &node_name(), "arci_ros2").unwrap(),
     ));
 
     let server_requests = node
@@ -43,11 +48,47 @@ async fn test_nav() {
     nav.send_goal_pose(
         Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
         "map",
-        Duration::from_secs(10),
+        Duration::from_secs(25),
     )
     .unwrap()
     .await
     .unwrap();
+}
+
+#[tokio::test]
+async fn test_nav_timeout() {
+    const ACTION_NAME: &str = "/test_nav_timeout";
+
+    let ctx = r2r::Context::create().unwrap();
+    let nav = Ros2Navigation::new(ctx.clone(), ACTION_NAME);
+    let node = Arc::new(Mutex::new(
+        r2r::Node::create(ctx, &node_name(), "arci_ros2").unwrap(),
+    ));
+
+    let server_requests = node
+        .lock()
+        .unwrap()
+        .create_action_server::<NavigateToPose::Action>(ACTION_NAME)
+        .unwrap();
+
+    let node_cb = node.clone();
+    tokio::spawn(test_nav_server(node_cb, server_requests));
+
+    std::thread::spawn(move || loop {
+        node.lock().unwrap().spin_once(Duration::from_millis(100));
+    });
+
+    assert!(nav
+        .send_goal_pose(
+            Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
+            "map",
+            Duration::from_secs(1),
+        )
+        .unwrap()
+        .await
+        .unwrap_err()
+        .to_string()
+        .contains("timeout"));
 }
 
 #[tokio::test]
@@ -57,7 +98,7 @@ async fn test_nav_cancel() {
     let ctx = r2r::Context::create().unwrap();
     let nav = Ros2Navigation::new(ctx.clone(), ACTION_NAME);
     let node = Arc::new(Mutex::new(
-        r2r::Node::create(ctx, "test_nav2_node2", "arci_ros2").unwrap(),
+        r2r::Node::create(ctx, &node_name(), "arci_ros2").unwrap(),
     ));
 
     let server_requests = node
@@ -77,7 +118,7 @@ async fn test_nav_cancel() {
         .send_goal_pose(
             Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
             "map",
-            Duration::from_secs(10),
+            Duration::from_secs(20),
         )
         .unwrap();
     // TODO: remove needs of this sleep
@@ -102,15 +143,15 @@ async fn run_goal(
     g.publish_feedback(feedback_msg.clone()).expect("fail");
 
     let mut orientation_diff = feedback_msg.current_pose.pose.orientation.clone();
-    orientation_diff.w = (g.goal.pose.pose.orientation.w - orientation_diff.w) / 10.0;
-    orientation_diff.x = (g.goal.pose.pose.orientation.x - orientation_diff.x) / 10.0;
-    orientation_diff.y = (g.goal.pose.pose.orientation.y - orientation_diff.y) / 10.0;
-    orientation_diff.z = (g.goal.pose.pose.orientation.z - orientation_diff.z) / 10.0;
+    orientation_diff.w = (g.goal.pose.pose.orientation.w - orientation_diff.w) / 6.0;
+    orientation_diff.x = (g.goal.pose.pose.orientation.x - orientation_diff.x) / 6.0;
+    orientation_diff.y = (g.goal.pose.pose.orientation.y - orientation_diff.y) / 6.0;
+    orientation_diff.z = (g.goal.pose.pose.orientation.z - orientation_diff.z) / 6.0;
     let mut position_diff = feedback_msg.current_pose.pose.position.clone();
-    position_diff.x = (g.goal.pose.pose.position.x - position_diff.x) / 10.0;
-    position_diff.y = (g.goal.pose.pose.position.y - position_diff.y) / 10.0;
-    position_diff.z = (g.goal.pose.pose.position.z - position_diff.z) / 10.0;
-    for _ in 0..10 {
+    position_diff.x = (g.goal.pose.pose.position.x - position_diff.x) / 6.0;
+    position_diff.y = (g.goal.pose.pose.position.y - position_diff.y) / 6.0;
+    position_diff.z = (g.goal.pose.pose.position.z - position_diff.z) / 6.0;
+    for _ in 0..6 {
         if canceled.load(Ordering::SeqCst) {
             break;
         }
