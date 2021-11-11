@@ -6,6 +6,7 @@ use std::{
     time::Duration,
 };
 
+use anyhow::format_err;
 use arci::*;
 use futures::stream::StreamExt;
 use r2r::{
@@ -63,7 +64,7 @@ impl Navigation for Ros2Navigation {
         &self,
         goal: Isometry2<f64>,
         frame_id: &str,
-        _timeout: Duration,
+        timeout: Duration,
     ) -> Result<WaitFuture, Error> {
         let node = self.node.clone();
         let is_done = Arc::new(AtomicBool::new(false));
@@ -121,12 +122,16 @@ impl Navigation for Ros2Navigation {
                         }
                     }
                     *current_goal.lock().unwrap() = None;
+                    // TODO: "canceled" should be an error?
                     let _ = sender.send(());
                 });
         });
+        let timeout_fut = tokio::time::sleep(timeout);
         let wait = WaitFuture::new(async move {
-            let _ = receiver.await;
-            Ok(())
+            tokio::select! {
+                _ = receiver => Ok(()),
+                _ = timeout_fut => Err(arci::Error::Other(format_err!("timeout {:?}", timeout))),
+            }
         });
 
         Ok(wait)
