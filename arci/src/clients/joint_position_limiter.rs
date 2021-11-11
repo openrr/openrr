@@ -258,7 +258,7 @@ impl JsonSchema for JointPositionLimit {
         JointPositionLimitRepr::json_schema(gen)
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, JsonSchema, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum JointPositionLimiterStrategy {
     /// If the position is out of the limit, handle it as the same value as the limit.

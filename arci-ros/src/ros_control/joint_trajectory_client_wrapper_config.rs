@@ -3,7 +3,7 @@ use std::sync::Arc;
 use anyhow::format_err;
 use arci::{
     Error, JointPositionDifferenceLimiter, JointPositionLimit, JointPositionLimiter,
-    JointTrajectoryClient, JointVelocityLimiter,
+    JointPositionLimiterStrategy, JointTrajectoryClient, JointVelocityLimiter,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -29,13 +29,18 @@ where
 fn new_joint_position_limiter<C>(
     client: C,
     position_limits: Option<Vec<JointPositionLimit>>,
+    strategy: JointPositionLimiterStrategy,
     urdf_robot: Option<&urdf_rs::Robot>,
 ) -> Result<JointPositionLimiter<C>, Error>
 where
     C: JointTrajectoryClient,
 {
     match position_limits {
-        Some(position_limits) => Ok(JointPositionLimiter::new(client, position_limits)),
+        Some(position_limits) => Ok(JointPositionLimiter::new_with_strategy(
+            client,
+            position_limits,
+            strategy,
+        )),
         None => JointPositionLimiter::from_urdf(client, &urdf_robot.unwrap().joints),
     }
 }
@@ -59,6 +64,9 @@ where
 pub struct JointTrajectoryClientWrapperConfig {
     #[serde(default)]
     pub wrap_with_joint_position_limiter: bool,
+    #[serde(default)]
+    pub joint_position_limiter_strategy: JointPositionLimiterStrategy,
+
     #[serde(default)]
     pub wrap_with_joint_velocity_limiter: bool,
     pub joint_velocity_limits: Option<Vec<f64>>,
@@ -107,14 +115,22 @@ pub(crate) fn wrap_joint_trajectory_client(
                 )?;
                 let client =
                     new_joint_velocity_limiter(client, config.joint_velocity_limits, urdf_robot)?;
-                let client =
-                    new_joint_position_limiter(client, config.joint_position_limits, urdf_robot)?;
+                let client = new_joint_position_limiter(
+                    client,
+                    config.joint_position_limits,
+                    config.joint_position_limiter_strategy,
+                    urdf_robot,
+                )?;
                 Arc::new(client)
             } else {
                 let client =
                     new_joint_velocity_limiter(client, config.joint_velocity_limits, urdf_robot)?;
-                let client =
-                    new_joint_position_limiter(client, config.joint_position_limits, urdf_robot)?;
+                let client = new_joint_position_limiter(
+                    client,
+                    config.joint_position_limits,
+                    config.joint_position_limiter_strategy,
+                    urdf_robot,
+                )?;
                 Arc::new(client)
             }
         } else if config.wrap_with_joint_position_difference_limiter {
@@ -141,12 +157,14 @@ pub(crate) fn wrap_joint_trajectory_client(
                     config.joint_position_difference_limits,
                 )?,
                 config.joint_position_limits,
+                config.joint_position_limiter_strategy,
                 urdf_robot,
             )?)
         } else {
             Arc::new(new_joint_position_limiter(
                 client,
                 config.joint_position_limits,
+                config.joint_position_limiter_strategy,
                 urdf_robot,
             )?)
         }
@@ -174,7 +192,12 @@ mod tests {
             JointPositionLimit::new(-5.0, 5.0),
         ];
 
-        let result = new_joint_position_limiter(client, Some(limits.clone()), None);
+        let result = new_joint_position_limiter(
+            client,
+            Some(limits.clone()),
+            JointPositionLimiterStrategy::Clamp,
+            None,
+        );
         assert!(result.is_ok());
         let _result = result.unwrap();
 
@@ -189,6 +212,6 @@ mod tests {
 
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned(), "b".to_owned()]);
 
-        let _ = new_joint_position_limiter(client, None, None);
+        let _ = new_joint_position_limiter(client, None, JointPositionLimiterStrategy::Clamp, None);
     }
 }
