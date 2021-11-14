@@ -2,7 +2,7 @@ use std::{f64, ops::RangeInclusive};
 
 use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use tracing::debug;
+use tracing::{debug, warn};
 use urdf_rs::JointType;
 
 use crate::{
@@ -113,9 +113,17 @@ where
                         position,
                         limit,
                     );
-                    *position = position.clamp(*limit.start(), *limit.end());
+                }
+                JointPositionLimiterStrategy::ClampWithWarn => {
+                    warn!(
+                        "Out of limit: joint={}, position={}, limit={:?}",
+                        self.client.joint_names()[i],
+                        position,
+                        limit,
+                    );
                 }
             }
+            *position = position.clamp(*limit.start(), *limit.end());
         }
         Ok(())
     }
@@ -261,6 +269,8 @@ impl JsonSchema for JointPositionLimit {
 pub enum JointPositionLimiterStrategy {
     /// If the position is out of the limit, handle it as the same value as the limit.
     Clamp,
+    /// If the position is out of the limit, handle it as the same value as the limit with warning.
+    ClampWithWarn,
     /// If the position is out of the limit, return an error.
     Error,
 }
@@ -307,6 +317,7 @@ mod tests {
 
         for strategy in [
             JointPositionLimiterStrategy::Clamp,
+            JointPositionLimiterStrategy::ClampWithWarn,
             JointPositionLimiterStrategy::Error,
         ] {
             client.set_strategy(strategy);
@@ -376,6 +387,7 @@ mod tests {
 
         for strategy in [
             JointPositionLimiterStrategy::Clamp,
+            JointPositionLimiterStrategy::ClampWithWarn,
             JointPositionLimiterStrategy::Error,
         ] {
             client.set_strategy(strategy);
