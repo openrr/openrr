@@ -113,7 +113,8 @@ where
         trajectory: &[TrajectoryPoint<N>],
     ) -> Result<()> {
         for v in trajectory {
-            using_joints.set_joint_positions(&v.position)?;
+            using_joints.set_joint_positions_clamped(&v.position);
+            self.collision_check_robot.update_transforms();
             let mut self_checker = self
                 .collision_detector
                 .detect_self(&self.collision_check_robot, &self.collision_pairs);
