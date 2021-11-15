@@ -48,7 +48,7 @@ async fn test_nav() {
     nav.send_goal_pose(
         Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
         "map",
-        Duration::from_secs(25),
+        Duration::from_secs(60),
     )
     .unwrap()
     .await
@@ -118,7 +118,7 @@ async fn test_nav_cancel() {
         .send_goal_pose(
             Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
             "map",
-            Duration::from_secs(20),
+            Duration::from_secs(60),
         )
         .unwrap();
     // TODO: remove needs of this sleep
@@ -136,22 +136,22 @@ async fn run_goal(
     let mut timer = node // local timer, will be dropped after this request is processed.
         .lock()
         .unwrap()
-        .create_wall_timer(Duration::from_millis(1000))
+        .create_wall_timer(Duration::from_millis(800))
         .expect("could not create timer");
 
     let mut feedback_msg = NavigateToPose::Feedback::default();
     g.publish_feedback(feedback_msg.clone()).expect("fail");
 
     let mut orientation_diff = feedback_msg.current_pose.pose.orientation.clone();
-    orientation_diff.w = (g.goal.pose.pose.orientation.w - orientation_diff.w) / 6.0;
-    orientation_diff.x = (g.goal.pose.pose.orientation.x - orientation_diff.x) / 6.0;
-    orientation_diff.y = (g.goal.pose.pose.orientation.y - orientation_diff.y) / 6.0;
-    orientation_diff.z = (g.goal.pose.pose.orientation.z - orientation_diff.z) / 6.0;
+    orientation_diff.w = (g.goal.pose.pose.orientation.w - orientation_diff.w) / 5.0;
+    orientation_diff.x = (g.goal.pose.pose.orientation.x - orientation_diff.x) / 5.0;
+    orientation_diff.y = (g.goal.pose.pose.orientation.y - orientation_diff.y) / 5.0;
+    orientation_diff.z = (g.goal.pose.pose.orientation.z - orientation_diff.z) / 5.0;
     let mut position_diff = feedback_msg.current_pose.pose.position.clone();
-    position_diff.x = (g.goal.pose.pose.position.x - position_diff.x) / 6.0;
-    position_diff.y = (g.goal.pose.pose.position.y - position_diff.y) / 6.0;
-    position_diff.z = (g.goal.pose.pose.position.z - position_diff.z) / 6.0;
-    for _ in 0..6 {
+    position_diff.x = (g.goal.pose.pose.position.x - position_diff.x) / 5.0;
+    position_diff.y = (g.goal.pose.pose.position.y - position_diff.y) / 5.0;
+    position_diff.z = (g.goal.pose.pose.position.z - position_diff.z) / 5.0;
+    for _ in 0..5 {
         if canceled.load(Ordering::SeqCst) {
             break;
         }
