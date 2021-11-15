@@ -76,26 +76,7 @@ where
         ) {
             Some(interpolated) => {
                 debug!("interpolated len={}", interpolated.len());
-                for v in interpolated {
-                    using_joints.set_joint_positions_clamped(&v.position);
-                    self.collision_check_robot.update_transforms();
-                    let mut self_checker = self
-                        .collision_detector
-                        .detect_self(&self.collision_check_robot, &self.collision_pairs);
-                    if let Some(names) = self_checker.next() {
-                        return Err(Error::Collision {
-                            point: UnfeasibleTrajectory::StartPoint,
-                            collision_link_names: vec![names.0, names.1],
-                        });
-                    }
-                    let mut vec_used: Vec<_> = self_checker.used_duration().iter().collect();
-                    vec_used.sort_by(|a, b| b.1.cmp(a.1));
-                    let sum_duration: Duration =
-                        self_checker.used_duration().iter().map(|(_k, v)| v).sum();
-                    debug!("total: {:?}", sum_duration);
-                    debug!("detailed: {:?}", vec_used);
-                }
-                Ok(())
+                self.check_partial_joint_trajectory(using_joints, &interpolated)
             }
             None => Err(Error::InterpolationError(
                 "failed to interpolate".to_owned(),
