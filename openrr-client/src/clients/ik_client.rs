@@ -199,6 +199,8 @@ where
         target_pose: &k::Isometry3<f64>,
         constraints: &Constraints,
         duration_sec: f64,
+        max_resolution: f64,
+        min_number_of_points: i32,
     ) -> Result<WaitFuture, Error> {
         let mut traj = self
             .ik_solver_with_chain
@@ -207,8 +209,8 @@ where
                 target_pose,
                 constraints,
                 duration_sec,
-                0.05,
-                10,
+                max_resolution,
+                min_number_of_points,
             )?;
         let dof = self.client.joint_names().len();
         traj.first_mut().unwrap().velocities = Some(vec![0.0; dof]);
@@ -232,6 +234,8 @@ where
         &self,
         target_pose: &k::Isometry3<f64>,
         duration_sec: f64,
+        max_resolution: f64,
+        min_number_of_points: i32,
     ) -> Result<WaitFuture, Error> {
         let mut traj = self
             .ik_solver_with_chain
@@ -239,8 +243,8 @@ where
                 &self.current_end_transform()?,
                 target_pose,
                 duration_sec,
-                0.05,
-                10,
+                max_resolution,
+                min_number_of_points,
             )?;
         let dof = self.client.joint_names().len();
         traj.first_mut().unwrap().velocities = Some(vec![0.0; dof]);

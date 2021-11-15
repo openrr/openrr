@@ -409,6 +409,8 @@ async fn test_move_ik() {
                 UnitQuaternion::from_euler_angles(0.0, 0.0, 0.0),
             ),
             0.1,
+            0.05,
+            10,
         )
         .unwrap()
         .await

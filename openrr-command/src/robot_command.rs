@@ -45,6 +45,10 @@ pub enum RobotCommand {
         use_interpolation: bool,
         #[structopt(short, parse(try_from_str=parse_joints))]
         joint: Vec<(usize, f64)>,
+        #[structopt(long, default_value = "0.05")]
+        max_resolution_for_interpolation: f64,
+        #[structopt(long, default_value = "10")]
+        min_number_of_points_for_interpolation: i32,
     },
     /// Send predefined joint positions.
     SendJointsPose {
@@ -75,6 +79,10 @@ pub enum RobotCommand {
         use_interpolation: bool,
         #[structopt(name = "local", short, long)]
         is_local: bool,
+        #[structopt(long, default_value = "0.05")]
+        max_resolution_for_interpolation: f64,
+        #[structopt(long, default_value = "10")]
+        min_number_of_points_for_interpolation: i32,
     },
     /// Get joint positions and end pose if applicable.
     GetState { name: String },
@@ -157,6 +165,8 @@ impl RobotCommandExecutor {
                 duration,
                 use_interpolation,
                 joint,
+                max_resolution_for_interpolation,
+                min_number_of_points_for_interpolation,
             } => {
                 let mut positions = client.current_joint_positions(name)?;
 
@@ -172,7 +182,13 @@ impl RobotCommandExecutor {
                 }
                 if *use_interpolation {
                     client
-                        .send_joint_positions_with_pose_interpolation(name, &positions, *duration)?
+                        .send_joint_positions_with_pose_interpolation(
+                            name,
+                            &positions,
+                            *duration,
+                            *max_resolution_for_interpolation,
+                            *min_number_of_points_for_interpolation,
+                        )?
                         .await?;
                 } else {
                     client
@@ -198,6 +214,8 @@ impl RobotCommandExecutor {
                 duration,
                 use_interpolation,
                 is_local,
+                max_resolution_for_interpolation,
+                min_number_of_points_for_interpolation,
             } => {
                 if !client.is_ik_client(name) {
                     return Err(OpenrrCommandError::NoIkClient(name.clone()));
@@ -273,7 +291,13 @@ impl RobotCommandExecutor {
                 };
                 if *use_interpolation {
                     client
-                        .move_ik_with_interpolation(name, &target_pose, *duration)?
+                        .move_ik_with_interpolation(
+                            name,
+                            &target_pose,
+                            *duration,
+                            *max_resolution_for_interpolation,
+                            *min_number_of_points_for_interpolation,
+                        )?
                         .await?
                 } else {
                     client.move_ik(name, &target_pose, *duration)?.await?
