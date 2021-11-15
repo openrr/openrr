@@ -338,11 +338,16 @@ where
         name: &str,
         target_pose: &Isometry3<f64>,
         duration_sec: f64,
+        max_resolution: f64,
+        min_number_of_points: i32,
     ) -> Result<WaitFuture, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
-        Ok(self
-            .ik_client(name)?
-            .move_ik_with_interpolation(target_pose, duration_sec)?)
+        Ok(self.ik_client(name)?.move_ik_with_interpolation(
+            target_pose,
+            duration_sec,
+            max_resolution,
+            min_number_of_points,
+        )?)
     }
 
     pub fn send_joint_positions_with_pose_interpolation(
@@ -350,6 +355,8 @@ where
         name: &str,
         positions: &[f64],
         duration_sec: f64,
+        max_resolution: f64,
+        min_number_of_points: i32,
     ) -> Result<WaitFuture, Error> {
         self.set_raw_clients_joint_positions_to_full_chain_for_collision_checker()?;
         let target_pose = {
@@ -357,7 +364,13 @@ where
             ik_client.set_joint_positions_clamped(positions);
             ik_client.ik_solver_with_chain.end_transform()
         };
-        self.move_ik_with_interpolation(name, &target_pose, duration_sec)
+        self.move_ik_with_interpolation(
+            name,
+            &target_pose,
+            duration_sec,
+            max_resolution,
+            min_number_of_points,
+        )
     }
 
     pub fn raw_joint_trajectory_clients_names(&self) -> Vec<String> {
