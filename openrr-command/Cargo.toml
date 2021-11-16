@@ -16,7 +16,7 @@ assimp = ["openrr-client/assimp"]
 [dependencies]
 arci = "0.0.6"
 async-recursion = "0.3"
-k = "0.25"
+k = "0.26"
 openrr-client = { version = "0.0.6", default-features = false }
 rustyline = "9.0.0"
 structopt = "0.3.21"

@@ -25,7 +25,7 @@ use crate::errors::*;
 pub struct JointPathPlannerWithIk<T, I>
 where
     I: k::InverseKinematicsSolver<T>,
-    T: RealField + k::SubsetOf<f64>,
+    T: RealField + Copy + k::SubsetOf<f64>,
 {
     /// Joint Path Planner to be used to find collision free path
     ///

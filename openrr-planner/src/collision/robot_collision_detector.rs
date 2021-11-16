@@ -10,7 +10,7 @@ use crate::collision::{CollisionDetector, EnvCollisionNames, SelfCollisionPairs}
 
 pub struct RobotCollisionDetector<N>
 where
-    N: RealField + k::SubsetOf<f64>,
+    N: RealField + Copy + k::SubsetOf<f64>,
 {
     /// Robot model instance used for collision detection
     pub robot: k::Chain<N>,
@@ -23,7 +23,7 @@ where
 /// CollisionDetector holding robot information
 impl<N> RobotCollisionDetector<N>
 where
-    N: RealField + k::SubsetOf<f64>,
+    N: RealField + Copy + k::SubsetOf<f64>,
 {
     pub fn new(
         robot: k::Chain<N>,

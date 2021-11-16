@@ -29,7 +29,7 @@ use crate::{
 /// Collision Avoidance Path Planner
 pub struct JointPathPlanner<N>
 where
-    N: RealField + k::SubsetOf<f64>,
+    N: RealField + Copy + k::SubsetOf<f64>,
 {
     /// Robot collision detector
     pub robot_collision_detector: RobotCollisionDetector<N>,
@@ -229,7 +229,7 @@ where
 /// Builder pattern to create `JointPathPlanner`
 pub struct JointPathPlannerBuilder<N>
 where
-    N: RealField + k::SubsetOf<f64>,
+    N: RealField + Copy + k::SubsetOf<f64>,
 {
     robot_collision_detector: RobotCollisionDetector<N>,
     step_length: N,

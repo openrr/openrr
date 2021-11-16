@@ -17,7 +17,7 @@ assimp = ["openrr-client/assimp"]
 arci = "0.0.6"
 async-trait = "0.1"
 auto_impl = "0.5.0"
-k = "0.25"
+k = "0.26"
 openrr-client = { version = "0.0.6", default-features = false }
 openrr-command = { version = "0.0.6", default-features = false }
 schemars = "0.8.3"

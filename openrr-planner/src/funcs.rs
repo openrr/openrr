@@ -31,7 +31,7 @@ pub fn generate_clamped_joint_positions_from_limits<T>(
     limits: &Limits<T>,
 ) -> Result<Vec<T>>
 where
-    T: RealField,
+    T: RealField + Copy,
 {
     if angles.len() != limits.len() {
         return Err(Error::DofMismatch(angles.len(), limits.len()));
@@ -63,7 +63,7 @@ where
 /// The input vec is clamped to the limits.
 pub fn set_clamped_joint_positions<T>(chain: &k::Chain<T>, vec: &[T]) -> Result<()>
 where
-    T: RealField + k::SubsetOf<f64>,
+    T: RealField + Copy + k::SubsetOf<f64>,
 {
     let limits = chain.iter_joints().map(|j| j.limits).collect::<Vec<_>>();
     let clamped = generate_clamped_joint_positions_from_limits(vec, &limits)?;
@@ -76,12 +76,12 @@ where
 /// If the limit is None, -PI <-> PI is used.
 pub fn generate_random_joint_positions_from_limits<T>(limits: &Limits<T>) -> Vec<T>
 where
-    T: RealField,
+    T: RealField + Copy,
 {
     limits
         .iter()
-        .map(|range| match *range {
-            Some(ref range) => (range.max - range.min) * na::convert(rand::random()) + range.min,
+        .map(|range| match range {
+            Some(range) => (range.max - range.min) * na::convert(rand::random()) + range.min,
             None => na::convert::<f64, T>(rand::random::<f64>() - 0.5) * na::convert(2.0 * PI),
         })
         .collect()
@@ -99,7 +99,7 @@ where
 #[track_caller]
 pub fn modify_to_nearest_angle<T>(vec1: &[T], vec2: &mut [T], limits: &Limits<T>)
 where
-    T: RealField,
+    T: RealField + Copy,
 {
     assert_eq!(vec1.len(), vec2.len());
     for i in 0..vec1.len() {
@@ -190,7 +190,7 @@ where
 /// Set random joint angles
 pub fn set_random_joint_positions<T>(robot: &k::Chain<T>) -> ::std::result::Result<(), k::Error>
 where
-    T: RealField + k::SubsetOf<f64>,
+    T: RealField + Copy + k::SubsetOf<f64>,
 {
     let limits = robot.iter_joints().map(|j| j.limits).collect();
     robot.set_joint_positions(&generate_random_joint_positions_from_limits(&limits))

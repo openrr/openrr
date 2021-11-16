@@ -9,7 +9,7 @@ use crate::errors::*;
 pub(crate) fn load_mesh<P, T>(filename: P, scale: &[f64; 3]) -> Result<TriMesh<T>>
 where
     P: AsRef<Path>,
-    T: RealField,
+    T: RealField + Copy,
 {
     let filename = filename.as_ref();
     let mut importer = assimp::Importer::new();
@@ -32,7 +32,7 @@ where
 pub(crate) fn load_mesh<P, T>(filename: P, scale: &[f64; 3]) -> Result<TriMesh<T>>
 where
     P: AsRef<Path>,
-    T: RealField,
+    T: RealField + Copy,
 {
     let filename = filename.as_ref();
     match filename.extension().and_then(OsStr::to_str) {
@@ -47,7 +47,7 @@ where
 fn load_stl<P, T>(filename: P, scale: &[f64; 3]) -> Result<TriMesh<T>>
 where
     P: AsRef<Path>,
-    T: RealField,
+    T: RealField + Copy,
 {
     let mesh: nom_stl::IndexMesh = nom_stl::parse_stl(&mut File::open(filename)?)
         .map_err(|e| match e {
@@ -86,7 +86,7 @@ where
 #[cfg(feature = "assimp")]
 fn assimp_scene_to_ncollide_mesh<T>(scene: assimp::Scene<'_>, scale: &[f64; 3]) -> TriMesh<T>
 where
-    T: RealField,
+    T: RealField + Copy,
 {
     let mut vertices = Vec::new();
     let mut indices = Vec::new();

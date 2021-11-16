@@ -50,7 +50,7 @@ where
 
 impl<T, I> InverseKinematicsSolver<T> for RandomInitializeIkSolver<T, I>
 where
-    T: RealField + SubsetOf<f64>,
+    T: RealField + Copy + SubsetOf<f64>,
     I: InverseKinematicsSolver<T>,
 {
     fn solve_with_constraints(
@@ -95,7 +95,7 @@ pub fn get_reachable_region<T, I>(
     unit_check_length: T,
 ) -> Vec<na::Isometry3<T>>
 where
-    T: RealField + k::SubsetOf<f64>,
+    T: RealField + Copy + k::SubsetOf<f64>,
     I: InverseKinematicsSolver<T>,
 {
     let initial_angles = arm.joint_positions();

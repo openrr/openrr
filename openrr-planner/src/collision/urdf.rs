@@ -15,7 +15,7 @@ pub(crate) fn urdf_geometry_to_shape_handle<T>(
     base_dir: Option<&Path>,
 ) -> Option<ShapeHandle<T>>
 where
-    T: RealField,
+    T: RealField + Copy,
 {
     match *collision_geometry {
         urdf_rs::Geometry::Box { ref size } => {

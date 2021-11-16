@@ -35,7 +35,7 @@ type NameShapeMap<T> = HashMap<String, Vec<(ShapeHandle<T>, na::Isometry3<T>)>>;
 /// Lists collisions between a robot and an object
 pub struct EnvCollisionNames<'a, 'b, T>
 where
-    T: RealField,
+    T: RealField + Copy,
 {
     detector: &'a CollisionDetector<T>,
     target_shape: &'b dyn Shape<T>,
@@ -46,7 +46,7 @@ where
 
 impl<'a, 'b, T> EnvCollisionNames<'a, 'b, T>
 where
-    T: RealField + k::SubsetOf<f64>,
+    T: RealField + Copy + k::SubsetOf<f64>,
 {
     pub fn new(
         detector: &'a CollisionDetector<T>,
@@ -68,7 +68,7 @@ where
 
 impl<'a, 'b, T> Iterator for EnvCollisionNames<'a, 'b, T>
 where
-    T: RealField + k::SubsetOf<f64>,
+    T: RealField + Copy + k::SubsetOf<f64>,
 {
     type Item = String;
 
@@ -107,7 +107,7 @@ where
 /// Lists collisions inside robot links
 pub struct SelfCollisionPairs<'a, T>
 where
-    T: RealField,
+    T: RealField + Copy,
 {
     detector: &'a CollisionDetector<T>,
     robot: &'a k::Chain<T>,
@@ -118,7 +118,7 @@ where
 
 impl<'a, T> SelfCollisionPairs<'a, T>
 where
-    T: RealField + k::SubsetOf<f64>,
+    T: RealField + Copy + k::SubsetOf<f64>,
 {
     pub fn new(
         detector: &'a CollisionDetector<T>,
@@ -143,7 +143,7 @@ where
 
 impl<'a, T> Iterator for SelfCollisionPairs<'a, T>
 where
-    T: RealField + k::SubsetOf<f64>,
+    T: RealField + Copy + k::SubsetOf<f64>,
 {
     type Item = (String, String);
 
@@ -209,7 +209,7 @@ where
 /// Collision detector
 pub struct CollisionDetector<T>
 where
-    T: RealField,
+    T: RealField + Copy,
 {
     name_collision_model_map: NameShapeMap<T>,
     /// margin length for collision detection
@@ -218,7 +218,7 @@ where
 
 impl<T> CollisionDetector<T>
 where
-    T: RealField + k::SubsetOf<f64>,
+    T: RealField + Copy + k::SubsetOf<f64>,
 {
     /// Create CollisionDetector from HashMap
     pub fn new(name_collision_model_map: NameShapeMap<T>, prediction: T) -> Self {
