@@ -13,7 +13,7 @@ use crate::{
 
 pub struct SelfCollisionChecker<N>
 where
-    N: RealField + k::SubsetOf<f64>,
+    N: RealField + Copy + k::SubsetOf<f64>,
 {
     pub collision_check_robot: Arc<k::Chain<N>>,
     pub collision_detector: CollisionDetector<N>,

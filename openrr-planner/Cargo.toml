@@ -14,8 +14,8 @@ default = ["assimp"]
 
 [dependencies]
 assimp = { version = "0.3", optional = true }
-k = "0.25"
-ncollide3d = "0.29"
+k = "0.26"
+ncollide3d = "0.32"
 nom_stl = "0.2"
 num-traits = "0.2"
 rand = "0.8"
@@ -29,7 +29,7 @@ urdf-rs = "0.6"
 
 [dev-dependencies]
 assert_approx_eq = "1.1"
-nalgebra = "0.26"
+nalgebra = "0.29"
 structopt = "0.3"
 tracing-subscriber = "0.3"
-urdf-viz = "0.31"
+urdf-viz = "0.32"
