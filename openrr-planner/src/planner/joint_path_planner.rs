@@ -312,17 +312,8 @@ where
         let collision_detector = CollisionDetector::from_urdf_robot(&urdf_robot, default_margin);
         let robot_collision_detector =
             RobotCollisionDetector::new(robot, collision_detector, vec![]);
-        get_joint_path_planner_builder_from_urdf(robot_collision_detector)
+        JointPathPlannerBuilder::new(robot_collision_detector)
     }
-}
-
-fn get_joint_path_planner_builder_from_urdf<N>(
-    robot_collision_detector: RobotCollisionDetector<N>,
-) -> JointPathPlannerBuilder<N>
-where
-    N: RealField + k::SubsetOf<f64> + num_traits::Float,
-{
-    JointPathPlannerBuilder::new(robot_collision_detector)
 }
 
 #[cfg(test)]
