@@ -48,7 +48,7 @@ async fn test_nav() {
     nav.send_goal_pose(
         Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
         "map",
-        Duration::from_secs(60),
+        Duration::from_secs(80),
     )
     .unwrap()
     .await
@@ -118,7 +118,7 @@ async fn test_nav_cancel() {
         .send_goal_pose(
             Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
             "map",
-            Duration::from_secs(60),
+            Duration::from_secs(80),
         )
         .unwrap();
     // TODO: remove needs of this sleep
