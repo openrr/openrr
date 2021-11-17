@@ -223,6 +223,7 @@ async fn test_send_joint_trajectory() {
         .unwrap()
         .await
         .unwrap();
+    std::thread::sleep(Duration::from_millis(10));
     let v = client.current_joint_positions().unwrap();
     assert_approx_eq!(v[0], 2.0);
 

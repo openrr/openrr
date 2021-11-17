@@ -62,7 +62,7 @@ async fn test_set_get_pose() {
     .unwrap()
     .await
     .unwrap();
-    std::thread::sleep(Duration::from_millis(5));
+    std::thread::sleep(Duration::from_millis(10));
     let pose = c.current_pose("").unwrap();
     assert_approx_eq!(pose.translation.x, 1.0);
     assert_approx_eq!(pose.translation.y, 2.0);
@@ -87,7 +87,7 @@ fn test_set_get_pose_no_wait() {
             Duration::from_secs(0),
         )
         .unwrap();
-    std::thread::sleep(Duration::from_millis(5));
+    std::thread::sleep(Duration::from_millis(10));
     let pose = c.current_pose("").unwrap();
     assert_approx_eq!(pose.translation.x, 1.0);
     assert_approx_eq!(pose.translation.y, 2.0);
