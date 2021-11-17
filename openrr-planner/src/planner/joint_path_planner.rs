@@ -327,59 +327,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use na::{Isometry3, Vector3};
-    use ncollide3d::shape::Cuboid;
-
     use super::*;
 
-    #[test]
-    fn collision_check() {
-        let urdf_robot = urdf_rs::read_file("sample.urdf").unwrap();
-        let detector = CollisionDetector::from_urdf_robot(&urdf_robot, 0.01);
-
-        let target = Cuboid::new(Vector3::new(0.5, 1.0, 0.5));
-        let target_pose = Isometry3::new(Vector3::new(0.9, 0.0, 0.0), na::zero());
-
-        let robot = k::Chain::<f32>::from(&urdf_robot);
-
-        let names: Vec<String> = detector.detect_env(&robot, &target, &target_pose).collect();
-        assert_eq!(
-            names,
-            vec![
-                "l_elbow_pitch",
-                "l_wrist_yaw",
-                "l_wrist_pitch",
-                "l_gripper_linear2",
-                "l_gripper_linear1",
-            ]
-        );
-        let angles = vec![-1.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-        robot.set_joint_positions(&angles).unwrap();
-        let names: Vec<String> = detector.detect_env(&robot, &target, &target_pose).collect();
-        assert_eq!(
-            names,
-            vec![
-                "l_wrist_yaw",
-                "l_wrist_pitch",
-                "l_gripper_linear2",
-                "l_gripper_linear1"
-            ]
-        );
-        let target_pose = Isometry3::new(Vector3::new(0.7, 0.0, 0.0), na::zero());
-        let names: Vec<String> = detector.detect_env(&robot, &target, &target_pose).collect();
-        assert_eq!(
-            names,
-            vec![
-                "root",
-                "l_shoulder_roll",
-                "l_elbow_pitch",
-                "l_wrist_yaw",
-                "l_wrist_pitch",
-                "l_gripper_linear2",
-                "l_gripper_linear1",
-            ]
-        );
-    }
     #[test]
     fn from_urdf() {
         let _planner = JointPathPlannerBuilder::from_urdf_file("sample.urdf")
