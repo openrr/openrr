@@ -22,8 +22,12 @@ fn node_name() -> String {
     format!("test_nav2_node{}", COUNT.fetch_add(1, Ordering::Relaxed))
 }
 
-#[tokio::test]
-async fn test_nav() {
+#[flaky_test::flaky_test]
+fn test_nav() {
+    test_nav_inner();
+}
+#[tokio::main(flavor = "current_thread")]
+async fn test_nav_inner() {
     const ACTION_NAME: &str = "/test_nav";
 
     let ctx = r2r::Context::create().unwrap();
@@ -91,8 +95,12 @@ async fn test_nav_timeout() {
         .contains("timeout"));
 }
 
-#[tokio::test]
-async fn test_nav_cancel() {
+#[flaky_test::flaky_test]
+fn test_nav_cancel() {
+    test_nav_cancel_inner();
+}
+#[tokio::main(flavor = "current_thread")]
+async fn test_nav_cancel_inner() {
     const ACTION_NAME: &str = "/test_nav_cancel";
 
     let ctx = r2r::Context::create().unwrap();
