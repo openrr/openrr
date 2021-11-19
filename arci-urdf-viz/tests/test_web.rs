@@ -43,8 +43,12 @@ fn test_set_get_vel() {
     assert_approx_eq!(v.theta, 3.0);
 }
 
-#[tokio::test]
-async fn test_set_get_pose() {
+#[flaky_test::flaky_test]
+fn test_set_get_pose() {
+    test_set_get_pose_inner();
+}
+#[tokio::main(flavor = "current_thread")]
+async fn test_set_get_pose_inner() {
     const PORT: u16 = 8889;
     let web_server = WebServer::new(PORT, Default::default());
     web_server.start_background();
@@ -69,8 +73,12 @@ async fn test_set_get_pose() {
     assert_approx_eq!(pose.rotation.angle(), 3.0);
 }
 
-#[test]
+#[flaky_test::flaky_test]
 fn test_set_get_pose_no_wait() {
+    test_set_get_pose_no_wait_inner();
+}
+#[tokio::main(flavor = "current_thread")]
+async fn test_set_get_pose_no_wait_inner() {
     const PORT: u16 = 8890;
     let web_server = WebServer::new(PORT, Default::default());
     web_server.start_background();
