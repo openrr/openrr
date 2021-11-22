@@ -1,7 +1,6 @@
 [package]
 name = "openrr-config"
 version = "0.0.6"
-authors = ["Taiki Endo <taiki@smilerobotics.com>"]
 edition = "2021"
 license = "Apache-2.0"
 description = "Utilities for modifying configuration files"
