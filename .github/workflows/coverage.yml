@@ -12,6 +12,7 @@ env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
   RUSTUP_MAX_RETRIES: 10
+  nightly: nightly-2021-11-22
 
 jobs:
   coverage:
@@ -32,7 +33,11 @@ jobs:
             ros-noetic-ros-base ros-noetic-joy ros-noetic-pr2-description \
             ros-foxy-ros-core ros-foxy-geometry-msgs ros-foxy-nav2-msgs
       # rustfmt is for openrr-remote (tonic-build)
-      - run: rustup toolchain install nightly --component rustfmt,llvm-tools-preview && rustup default nightly
+      - name: Install Rust
+        run: |
+          rustup toolchain install ${{ env.nightly }} --component rustfmt,llvm-tools-preview
+          rustup default ${{ env.nightly }}
+      - uses: Swatinem/rust-cache@v1
       - run: cargo install cargo-llvm-cov
       - name: Generate code coverage
         run: |
