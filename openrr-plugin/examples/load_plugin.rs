@@ -8,7 +8,6 @@ use openrr_plugin::PluginProxy;
 async fn main() -> Result<()> {
     let plugin = PluginProxy::from_path("./target/debug/libopenrr_plugin_example.dylib")?;
 
-    println!("Plugin: {}", plugin.name());
     if let Some(joint_trajectory_client) =
         plugin.new_joint_trajectory_client(r#"{ "joint_names": ["a", "b"] }"#.into())?
     {

@@ -250,10 +250,6 @@ fn gen_plugin_trait(traits: &[Ident]) -> (TokenStream, TokenStream) {
     let api = quote! {
         /// The plugin trait.
         pub trait Plugin: Send + Sync + 'static {
-            /// Returns the name of this plugin.
-            ///
-            /// NOTE: This is *not* a unique identifier.
-            fn name(&self) -> String;
             #(#plugin_method_def)*
         }
         #proxy_type
@@ -266,7 +262,6 @@ fn gen_plugin_trait(traits: &[Ident]) -> (TokenStream, TokenStream) {
 
         #[sabi_trait]
         pub(crate) trait RPluginTrait: Send + Sync + 'static {
-            fn name(&self) -> RString;
             #(#sabi_plugin_method_def)*
         }
 
@@ -274,9 +269,6 @@ fn gen_plugin_trait(traits: &[Ident]) -> (TokenStream, TokenStream) {
         where
             T: crate::Plugin,
         {
-            fn name(&self) -> RString {
-                crate::Plugin::name(self).into()
-            }
             #(#sabi_plugin_method_impl)*
         }
     };
