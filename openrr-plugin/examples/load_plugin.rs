@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{env, time::Duration};
 
 use anyhow::Result;
 use arci::{BaseVelocity, JointTrajectoryClient, MoveBase, Speaker};
@@ -6,7 +6,10 @@ use openrr_plugin::PluginProxy;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let plugin = PluginProxy::from_path("./target/debug/libopenrr_plugin_example.dylib")?;
+    let plugin = PluginProxy::from_path(format!(
+        "./target/debug/libopenrr_plugin_example.{}",
+        env::consts::DLL_EXTENSION
+    ))?;
 
     println!("Plugin: {}", plugin.name());
     if let Some(joint_trajectory_client) =
