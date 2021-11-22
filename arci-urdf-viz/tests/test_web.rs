@@ -75,10 +75,6 @@ async fn test_set_get_pose_inner() {
 
 #[flaky_test::flaky_test]
 fn test_set_get_pose_no_wait() {
-    test_set_get_pose_no_wait_inner();
-}
-#[tokio::main(flavor = "current_thread")]
-async fn test_set_get_pose_no_wait_inner() {
     const PORT: u16 = 8890;
     let web_server = WebServer::new(PORT, Default::default());
     web_server.start_background();
