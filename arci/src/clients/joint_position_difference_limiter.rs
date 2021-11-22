@@ -233,14 +233,10 @@ mod test {
         assert!(
             tokio_test::block_on(client.send_joint_trajectory(trajectory.clone()).unwrap()).is_ok()
         );
-        for (c, w) in trajectory.iter().zip(
-            wrapped_client
-                .last_trajectory
-                .lock()
-                .unwrap()
-                .clone()
-                .iter(),
-        ) {
+        for (c, w) in trajectory
+            .iter()
+            .zip(wrapped_client.last_trajectory.lock().clone().iter())
+        {
             assert_eq!(c.positions, w.positions);
             assert_eq!(c.velocities, w.velocities);
             assert_eq!(c.time_from_start, w.time_from_start);
@@ -270,14 +266,14 @@ mod test {
         {
             assert_eq!(c, w);
         }
-        *wrapped_client.positions.lock().unwrap() = vec![0.0, 1.0];
+        *wrapped_client.positions.lock() = vec![0.0, 1.0];
         assert!(tokio_test::block_on(
             client
                 .send_joint_positions(vec![-1.0, 2.0], Duration::from_secs(1))
                 .unwrap()
         )
         .is_ok());
-        assert!(wrapped_client.last_trajectory.lock().unwrap().is_empty());
+        assert!(wrapped_client.last_trajectory.lock().is_empty());
         assert_eq!(
             wrapped_client.current_joint_positions().unwrap(),
             vec![-1.0, 2.0]
@@ -303,14 +299,14 @@ mod test {
         {
             assert_eq!(c, w);
         }
-        *wrapped_client.positions.lock().unwrap() = vec![0.0, 1.0];
+        *wrapped_client.positions.lock() = vec![0.0, 1.0];
         assert!(tokio_test::block_on(
             client
                 .send_joint_positions(vec![-1.0, 2.0], Duration::from_secs(1))
                 .unwrap()
         )
         .is_ok());
-        let actual_trajectory = wrapped_client.last_trajectory.lock().unwrap().clone();
+        let actual_trajectory = wrapped_client.last_trajectory.lock().clone();
         assert_eq!(actual_trajectory.len(), 2);
         assert_eq!(actual_trajectory[0].positions, vec![-0.5, 1.5]);
         assert_eq!(actual_trajectory[1].positions, vec![-1.0, 2.0]);

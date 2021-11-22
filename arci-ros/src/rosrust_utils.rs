@@ -1,16 +1,17 @@
 use std::{
     sync::{
         mpsc::{Receiver, Sender},
-        Arc, Mutex,
+        Arc,
     },
     time::{Duration, SystemTime},
 };
 
+use parking_lot::Mutex;
 use rosrust::Time;
 type MessageBuffer<T> = Arc<Mutex<Option<T>>>;
 
 fn set_message_buffer<T>(buffer: &MessageBuffer<T>, message: T) {
-    buffer.lock().unwrap().replace(message);
+    buffer.lock().replace(message);
 }
 
 fn subscribe_with_message_buffer<T: rosrust::Message>(
@@ -46,19 +47,11 @@ where
     }
 
     pub fn take(&self) -> Result<Option<T>, arci::Error> {
-        Ok(self
-            .buffer
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock buffer for {} : {}", self.topic, e))?
-            .take())
+        Ok(self.buffer.lock().take())
     }
 
     pub fn get(&self) -> Result<Option<T>, arci::Error> {
-        Ok(self
-            .buffer
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock buffer for {} : {}", self.topic, e))?
-            .clone())
+        Ok(self.buffer.lock().clone())
     }
 
     pub fn wait_message(&self, loop_millis: u64) {
@@ -112,20 +105,16 @@ where
         let _service_name = Arc::new(Mutex::new(service_name.to_string()));
         let service_name_for_callback = _service_name.clone();
 
-        let _server = rosrust::service::<T, _>(&_service_name.lock().unwrap(), move |req| {
+        let _server = rosrust::service::<T, _>(&_service_name.lock(), move |req| {
             let req_time = rosrust::now();
-            request_sender
-                .lock()
-                .unwrap()
-                .send((req_time, req))
-                .unwrap();
-            let (res_time, response) = response_receiver.lock().unwrap().recv().unwrap();
+            request_sender.lock().send((req_time, req)).unwrap();
+            let (res_time, response) = response_receiver.lock().recv().unwrap();
             if res_time == req_time {
                 Ok(response)
             } else {
                 Err(format!(
                     "Mismatch time stamp in ServiceHandler for {}",
-                    service_name_for_callback.lock().unwrap()
+                    service_name_for_callback.lock()
                 ))
             }
         })
@@ -141,17 +130,12 @@ where
     pub fn get_request(&self, timeout_millis: u32) -> Option<(rosrust::Time, T::Request)> {
         self.request_receiver
             .lock()
-            .unwrap()
             .recv_timeout(Duration::from_millis(timeout_millis as u64))
             .ok()
     }
 
     pub fn set_response(&self, time: rosrust::Time, res: T::Response) {
-        self.response_sender
-            .lock()
-            .unwrap()
-            .send((time, res))
-            .unwrap();
+        self.response_sender.lock().send((time, res)).unwrap();
     }
 }
 
@@ -190,13 +174,13 @@ macro_rules! define_action_client_with_namespace {
                 goal_publisher: rosrust::Publisher<$namespace::[<$action_base ActionGoal>]>,
                 _result_subscriber: rosrust::Subscriber,
                 cancel_publisher: rosrust::Publisher<msg::actionlib_msgs::GoalID>,
-                goal_id_to_sender: std::sync::Arc<std::sync::Mutex<std::collections::HashMap<String, std::sync::mpsc::Sender<std::result::Result<(), $arci_ros_namespace::Error>> >>>
+                goal_id_to_sender: std::sync::Arc<parking_lot::Mutex<std::collections::HashMap<String, std::sync::mpsc::Sender<std::result::Result<(), $arci_ros_namespace::Error>> >>>
             }
             impl $name {
                 pub fn new(base_topic: &str, queue_size: usize) -> Self {
                     use std::sync::Arc;
-                    use std::sync::Mutex;
                     use std::collections::HashMap;
+                    use parking_lot::Mutex;
                     use $arci_ros_namespace::Error;
                     let goal_topic = format!("{}/goal", base_topic);
                     let cancel_topic = format!("{}/cancel", base_topic);
@@ -207,7 +191,7 @@ macro_rules! define_action_client_with_namespace {
                     let _result_subscriber = ::rosrust::subscribe(
                         &format!("{}/result", base_topic),
                         queue_size, move |result: $namespace::[<$action_base ActionResult>]| {
-                            if let Some(sender) = goal_id_to_sender_cloned.lock().unwrap().remove(&result.status.goal_id.id) {
+                            if let Some(sender) = goal_id_to_sender_cloned.lock().remove(&result.status.goal_id.id) {
                                 let _ = sender.send(
                                 // TODO more detailed error / status handling
                                 match result.status.status {
@@ -250,16 +234,16 @@ macro_rules! define_action_client_with_namespace {
                     let goal_id = format!("{}-{}", rosrust::name(), rosrust::now().seconds());
                     action_goal.goal_id.id = goal_id.clone();
                     let (sender, receiver) = std::sync::mpsc::channel();
-                    self.goal_id_to_sender.lock().unwrap().insert(goal_id.clone(), sender);
+                    self.goal_id_to_sender.lock().insert(goal_id.clone(), sender);
                     if self.goal_publisher.send(action_goal).is_err() {
-                        let _ = self.goal_id_to_sender.lock().unwrap().remove(&goal_id);
+                        let _ = self.goal_id_to_sender.lock().remove(&goal_id);
                         return Err($arci_ros_namespace::Error::ActionGoalSendingFailure);
                     }
                     Ok($arci_ros_namespace::ActionResultWait::new(goal_id, receiver))
                 }
                 #[allow(dead_code)]
                 pub fn cancel_goal(&self, goal_id: &str) -> Result<(), $arci_ros_namespace::Error> {
-                    let mut goal_id_to_sender = self.goal_id_to_sender.lock().unwrap();
+                    let mut goal_id_to_sender = self.goal_id_to_sender.lock();
                     if goal_id.is_empty() {
                         goal_id_to_sender.clear();
                     } else {

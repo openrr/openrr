@@ -1,10 +1,9 @@
-use std::sync::Mutex;
-
 use arci::{
     gamepad::{Axis, Button, GamepadEvent},
     BaseVelocity, MoveBase,
 };
 use async_trait::async_trait;
+use parking_lot::Mutex;
 
 use super::control_node::ControlNode;
 
@@ -105,7 +104,7 @@ where
     T: MoveBase,
 {
     fn handle_event(&self, ev: GamepadEvent) {
-        if self.inner.lock().unwrap().handle_event(ev) {
+        if self.inner.lock().handle_event(ev) {
             // stop immediately
             self.move_base
                 .send_velocity(&BaseVelocity::default())
@@ -114,7 +113,7 @@ where
     }
 
     async fn proc(&self) {
-        if let Some(v) = self.inner.lock().unwrap().get_target_velocity() {
+        if let Some(v) = self.inner.lock().get_target_velocity() {
             self.move_base.send_velocity(&v).unwrap();
         }
     }
@@ -148,11 +147,11 @@ mod tests {
         assert_eq!(node.mode, mode);
         assert_eq!(node.submode, String::from(""));
         assert_eq!(
-            format!("{:?}", node.inner.lock().unwrap().vel),
+            format!("{:?}", node.inner.lock().vel),
             format!("{:?}", BaseVelocity::default())
         );
-        assert!(!node.inner.lock().unwrap().is_enabled);
-        assert!(!node.inner.lock().unwrap().is_turbo);
+        assert!(!node.inner.lock().is_enabled);
+        assert!(!node.inner.lock().is_turbo);
     }
 
     #[test]
@@ -192,7 +191,7 @@ mod tests {
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {:?}", node.inner.lock().unwrap().vel, current);
+        println!("{:?} {:?}", node.inner.lock().vel, current);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
@@ -213,7 +212,7 @@ mod tests {
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {:?}", node.inner.lock().unwrap().vel, current);
+        println!("{:?} {:?}", node.inner.lock().vel, current);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
@@ -234,7 +233,7 @@ mod tests {
         assert_approx_eq!(current.x, X);
         assert_approx_eq!(current.y, Y);
         assert_approx_eq!(current.theta, THETA);
-        println!("{:?} {:?}", node.inner.lock().unwrap().vel, current);
+        println!("{:?} {:?}", node.inner.lock().vel, current);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
@@ -255,6 +254,6 @@ mod tests {
         assert_approx_eq!(current.x, X * 2.0);
         assert_approx_eq!(current.y, Y * 2.0);
         assert_approx_eq!(current.theta, THETA * 2.0);
-        println!("{:?} {:?}", node.inner.lock().unwrap().vel, current);
+        println!("{:?} {:?}", node.inner.lock().vel, current);
     }
 }

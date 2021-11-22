@@ -1,10 +1,11 @@
-use std::{sync::Mutex, time::Duration};
+use std::time::Duration;
 
 use arci::{
     gamepad::{Axis, Button, GamepadEvent},
     JointTrajectoryClient, Speaker,
 };
 use async_trait::async_trait;
+use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -148,7 +149,7 @@ where
     S: Speaker,
 {
     fn handle_event(&self, event: GamepadEvent) {
-        if let Some(submode) = self.inner.lock().unwrap().handle_event(event) {
+        if let Some(submode) = self.inner.lock().handle_event(event) {
             // do not wait
             let _ = self
                 .speaker
@@ -158,7 +159,7 @@ where
     }
 
     async fn proc(&self) {
-        let inner = self.inner.lock().unwrap();
+        let inner = self.inner.lock();
         if inner.is_sending {
             let pos = self
                 .joint_trajectory_client
@@ -178,7 +179,7 @@ where
     }
 
     fn submode(&self) -> String {
-        self.inner.lock().unwrap().submode.to_owned()
+        self.inner.lock().submode.to_owned()
     }
 }
 
