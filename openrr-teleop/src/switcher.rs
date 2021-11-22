@@ -1,7 +1,7 @@
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
-        Arc, Mutex,
+        Arc,
     },
     time::Duration,
 };
@@ -10,6 +10,7 @@ use arci::{
     gamepad::{Button, Gamepad, GamepadEvent},
     Speaker,
 };
+use parking_lot::Mutex;
 use tokio::sync::Mutex as TokioMutex;
 use tracing::{debug, warn};
 
@@ -47,7 +48,7 @@ where
     pub async fn increment_mode(&self) -> Result<(), arci::Error> {
         let len = self.control_nodes.lock().await.len();
         {
-            let mut index = self.current_index.lock().unwrap();
+            let mut index = self.current_index.lock();
             *index = (*index + 1) % len;
         }
         self.speak_current_mode().await
@@ -62,7 +63,7 @@ where
     }
 
     fn current_index(&self) -> usize {
-        *self.current_index.lock().unwrap()
+        *self.current_index.lock()
     }
 
     fn is_running(&self) -> bool {
@@ -88,7 +89,7 @@ where
             let mut interval = tokio::time::interval(Duration::from_millis(50));
             while is_running.load(Ordering::Relaxed) {
                 debug!("tick");
-                let node = { nodes.lock().await[*index.lock().unwrap()].clone() };
+                let node = { nodes.lock().await[*index.lock()].clone() };
                 node.proc().await;
                 interval.tick().await;
             }

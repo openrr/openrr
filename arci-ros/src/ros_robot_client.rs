@@ -1,6 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use arci::*;
+use parking_lot::Mutex;
 
 use crate::msg;
 
@@ -39,12 +40,12 @@ impl RosRobotClient {
             joint_state_topic_name,
             1,
             move |joint_state: msg::sensor_msgs::JointState| {
-                let mut aaa = joint_state_message_for_sub.lock().unwrap();
+                let mut aaa = joint_state_message_for_sub.lock();
                 *aaa = joint_state;
             },
         )
         .unwrap();
-        while joint_state_message.lock().unwrap().name.is_empty() {
+        while joint_state_message.lock().name.is_empty() {
             rosrust::ros_info!("waiting joint state publisher");
             std::thread::sleep(std::time::Duration::from_millis(100));
         }
@@ -78,7 +79,7 @@ impl JointTrajectoryClient for RosRobotClient {
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
-        let message = self.0.joint_state_message.lock().unwrap();
+        let message = self.0.joint_state_message.lock();
         Ok(message.position.clone())
     }
 
@@ -108,7 +109,7 @@ impl JointTrajectoryClient for RosRobotClient {
             let this = self.clone();
             Ok(WaitFuture::new(async move {
                 // Clone to avoid holding the lock for a long time.
-                let complete_condition = this.0.complete_condition.lock().unwrap().clone();
+                let complete_condition = this.0.complete_condition.lock().clone();
                 complete_condition
                     .wait(&this, &positions, duration.as_secs_f64())
                     .await
@@ -129,7 +130,7 @@ impl JointTrajectoryClient for RosRobotClient {
             let this = self.clone();
             Ok(WaitFuture::new(async move {
                 // Clone to avoid holding the lock for a long time.
-                let complete_condition = this.0.complete_condition.lock().unwrap().clone();
+                let complete_condition = this.0.complete_condition.lock().clone();
                 complete_condition
                     .wait(
                         &this,
@@ -146,6 +147,6 @@ impl JointTrajectoryClient for RosRobotClient {
 
 impl SetCompleteCondition for RosRobotClient {
     fn set_complete_condition(&mut self, condition: Box<dyn CompleteCondition>) {
-        *self.0.complete_condition.lock().unwrap() = condition.into();
+        *self.0.complete_condition.lock() = condition.into();
     }
 }

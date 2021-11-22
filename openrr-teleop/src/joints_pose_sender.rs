@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Mutex, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
 use arci::{
     gamepad::{Button, GamepadEvent},
@@ -6,6 +6,7 @@ use arci::{
 };
 use async_trait::async_trait;
 use openrr_client::JointsPose;
+use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -127,7 +128,7 @@ where
     J: JointTrajectoryClient,
 {
     fn handle_event(&self, event: arci::gamepad::GamepadEvent) {
-        if let Some(submode) = self.inner.lock().unwrap().handle_event(event) {
+        if let Some(submode) = self.inner.lock().handle_event(event) {
             // do not wait
             let _ = self
                 .speaker
@@ -137,7 +138,7 @@ where
     }
 
     async fn proc(&self) {
-        let inner = self.inner.lock().unwrap();
+        let inner = self.inner.lock();
         let (name, target) = inner.get_target_name_positions();
         let client = self.joint_trajectory_clients.get(&name).unwrap();
         let _ = client
@@ -157,7 +158,7 @@ where
     }
 
     fn submode(&self) -> String {
-        self.inner.lock().unwrap().submode.to_owned()
+        self.inner.lock().submode.to_owned()
     }
 }
 

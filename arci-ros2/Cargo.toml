@@ -21,6 +21,7 @@ arci = "0.0.6"
 futures = "0.3"
 once_cell = "1"
 openrr-plugin = "0.0.6"
+parking_lot = "0.11"
 r2r = { version = "0.5.3", optional = true }
 serde = { version = "1", features = ["derive"] }
 thiserror = "1.0"

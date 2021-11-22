@@ -1,6 +1,5 @@
-use std::sync::Mutex;
-
 use nalgebra::{Isometry2, Vector2};
+use parking_lot::Mutex;
 
 use crate::{error::Error, traits::Navigation, WaitFuture};
 
@@ -21,11 +20,11 @@ impl DummyNavigation {
     }
 
     pub fn current_goal_pose(&self) -> Result<Isometry2<f64>, Error> {
-        Ok(self.goal_pose.lock().unwrap().to_owned())
+        Ok(self.goal_pose.lock().to_owned())
     }
 
     pub fn is_canceled(&self) -> bool {
-        *self.canceled.lock().unwrap()
+        *self.canceled.lock()
     }
 }
 
@@ -42,13 +41,13 @@ impl Navigation for DummyNavigation {
         _frame_id: &str,
         _timeout: std::time::Duration,
     ) -> Result<WaitFuture, Error> {
-        *self.canceled.lock().unwrap() = false;
-        *self.goal_pose.lock().unwrap() = goal;
+        *self.canceled.lock() = false;
+        *self.goal_pose.lock() = goal;
         Ok(WaitFuture::ready())
     }
 
     fn cancel(&self) -> Result<(), Error> {
-        *self.canceled.lock().unwrap() = true;
+        *self.canceled.lock() = true;
         Ok(())
     }
 }

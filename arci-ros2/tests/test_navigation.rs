@@ -3,7 +3,7 @@
 use std::{
     sync::{
         atomic::{AtomicBool, AtomicUsize, Ordering},
-        Arc, Mutex,
+        Arc,
     },
     time::Duration,
 };
@@ -15,6 +15,7 @@ use futures::{
     future::{self, Either},
     stream::{Stream, StreamExt},
 };
+use parking_lot::Mutex;
 use r2r::nav2_msgs::action::NavigateToPose;
 
 fn node_name() -> String {
@@ -38,7 +39,6 @@ async fn test_nav_inner() {
 
     let server_requests = node
         .lock()
-        .unwrap()
         .create_action_server::<NavigateToPose::Action>(ACTION_NAME)
         .unwrap();
 
@@ -46,7 +46,7 @@ async fn test_nav_inner() {
     tokio::spawn(test_nav_server(node_cb, server_requests));
 
     std::thread::spawn(move || loop {
-        node.lock().unwrap().spin_once(Duration::from_millis(100));
+        node.lock().spin_once(Duration::from_millis(100));
     });
 
     nav.send_goal_pose(
@@ -71,7 +71,6 @@ async fn test_nav_timeout() {
 
     let server_requests = node
         .lock()
-        .unwrap()
         .create_action_server::<NavigateToPose::Action>(ACTION_NAME)
         .unwrap();
 
@@ -79,7 +78,7 @@ async fn test_nav_timeout() {
     tokio::spawn(test_nav_server(node_cb, server_requests));
 
     std::thread::spawn(move || loop {
-        node.lock().unwrap().spin_once(Duration::from_millis(100));
+        node.lock().spin_once(Duration::from_millis(100));
     });
 
     assert!(nav
@@ -111,7 +110,6 @@ async fn test_nav_cancel_inner() {
 
     let server_requests = node
         .lock()
-        .unwrap()
         .create_action_server::<NavigateToPose::Action>(ACTION_NAME)
         .unwrap();
 
@@ -119,7 +117,7 @@ async fn test_nav_cancel_inner() {
     tokio::spawn(test_nav_server(node_cb, server_requests));
 
     std::thread::spawn(move || loop {
-        node.lock().unwrap().spin_once(Duration::from_millis(100));
+        node.lock().spin_once(Duration::from_millis(100));
     });
 
     let wait = nav
@@ -143,7 +141,6 @@ async fn run_goal(
 ) -> NavigateToPose::Result {
     let mut timer = node // local timer, will be dropped after this request is processed.
         .lock()
-        .unwrap()
         .create_wall_timer(Duration::from_millis(800))
         .expect("could not create timer");
 

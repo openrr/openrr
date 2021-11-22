@@ -1,4 +1,6 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+
+use parking_lot::Mutex;
 
 use crate::{
     error::Error,
@@ -32,7 +34,7 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
-        Ok(self.positions.lock().unwrap().clone())
+        Ok(self.positions.lock().clone())
     }
 
     fn send_joint_positions(
@@ -40,7 +42,7 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
         positions: Vec<f64>,
         _duration: std::time::Duration,
     ) -> Result<WaitFuture, Error> {
-        *self.positions.lock().unwrap() = positions;
+        *self.positions.lock() = positions;
         Ok(WaitFuture::ready())
     }
 
@@ -49,9 +51,9 @@ impl JointTrajectoryClient for DummyJointTrajectoryClient {
         full_trajectory: Vec<TrajectoryPoint>,
     ) -> Result<WaitFuture, Error> {
         if let Some(last_point) = full_trajectory.last() {
-            *self.positions.lock().unwrap() = last_point.positions.to_owned();
+            *self.positions.lock() = last_point.positions.to_owned();
         }
-        *self.last_trajectory.lock().unwrap() = full_trajectory;
+        *self.last_trajectory.lock() = full_trajectory;
         Ok(WaitFuture::ready())
     }
 }
@@ -86,7 +88,7 @@ mod tests {
     #[tokio::test]
     async fn trajectory() {
         let client = DummyJointTrajectoryClient::new(vec!["aa".to_owned(), "bb".to_owned()]);
-        assert_eq!(client.last_trajectory.lock().unwrap().len(), 0);
+        assert_eq!(client.last_trajectory.lock().len(), 0);
         let result = client
             .send_joint_trajectory(vec![
                 TrajectoryPoint::new(vec![1.0, -1.0], std::time::Duration::from_secs(1)),
@@ -94,7 +96,7 @@ mod tests {
             ])
             .unwrap();
         assert!(result.await.is_ok());
-        assert_eq!(client.last_trajectory.lock().unwrap().len(), 2);
+        assert_eq!(client.last_trajectory.lock().len(), 2);
 
         let pos = client.current_joint_positions().unwrap();
         assert_eq!(pos.len(), 2);

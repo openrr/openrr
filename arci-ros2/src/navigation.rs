@@ -1,7 +1,7 @@
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
-        Arc, Mutex,
+        Arc,
     },
     time::Duration,
 };
@@ -9,6 +9,7 @@ use std::{
 use anyhow::format_err;
 use arci::*;
 use futures::stream::StreamExt;
+use parking_lot::Mutex;
 use r2r::{
     builtin_interfaces::msg::Time, geometry_msgs::msg, nav2_msgs::action::NavigateToPose,
     std_msgs::msg::Header,
@@ -71,11 +72,7 @@ impl Navigation for Ros2Navigation {
         let is_done_clone = is_done.clone();
         let current_goal = self.current_goal.clone();
         let action_client = self.action_client.clone();
-        let is_available = node
-            .lock()
-            .unwrap()
-            .is_available(&self.action_client)
-            .unwrap();
+        let is_available = node.lock().is_available(&self.action_client).unwrap();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let frame_id = frame_id.to_owned();
         std::thread::spawn(move || {
@@ -105,7 +102,7 @@ impl Navigation for Ros2Navigation {
                         is_available.await.unwrap();
                         let send_goal_request = action_client.send_goal_request(goal).unwrap();
                         let (goal, result, feedback) = send_goal_request.await.unwrap();
-                        *current_goal_clone.lock().unwrap() = Some(goal.clone());
+                        *current_goal_clone.lock() = Some(goal.clone());
                         tokio::spawn(
                             async move { feedback.for_each(|_| std::future::ready(())).await },
                         );
@@ -113,15 +110,13 @@ impl Navigation for Ros2Navigation {
                         is_done.store(true, Ordering::Relaxed);
                     });
                     loop {
-                        node.lock()
-                            .unwrap()
-                            .spin_once(std::time::Duration::from_millis(100));
+                        node.lock().spin_once(std::time::Duration::from_millis(100));
                         tokio::task::yield_now().await;
                         if is_done_clone.load(Ordering::Relaxed) {
                             break;
                         }
                     }
-                    *current_goal.lock().unwrap() = None;
+                    *current_goal.lock() = None;
                     // TODO: "canceled" should be an error?
                     let _ = sender.send(());
                 });
@@ -140,7 +135,7 @@ impl Navigation for Ros2Navigation {
     fn cancel(&self) -> Result<(), Error> {
         // TODO: current_goal is None until send_goal_request.await is complete.
         //       Therefore, if cancel is called during that period, it will not work correctly.
-        if let Some(current_goal) = self.current_goal.lock().unwrap().take() {
+        if let Some(current_goal) = self.current_goal.lock().take() {
             let fut = current_goal.cancel().map_err(|e| Error::Other(e.into()))?;
             std::thread::spawn(move || {
                 tokio::runtime::Builder::new_current_thread()
