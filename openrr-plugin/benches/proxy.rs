@@ -300,7 +300,7 @@ struct TestClientConfig {
 
     let plugin_path = tmpdir_path
         .join("target/release")
-        .join("libtest_plugin.dylib");
+        .join(format!("libtest_plugin.{}", env::consts::DLL_EXTENSION));
     Ok(plugin_path)
 }
 
