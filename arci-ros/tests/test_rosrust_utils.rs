@@ -81,7 +81,7 @@ fn test_convert_system_time_to_ros_time() {
     );
 }
 
-#[test]
+#[flaky_test::flaky_test]
 fn test_subscribe_with_channel() {
     use arci::{BaseVelocity, MoveBase};
     use arci_ros::{msg::geometry_msgs::Twist, RosCmdVelMoveBase};
