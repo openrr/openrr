@@ -10,10 +10,6 @@ openrr_plugin::export_plugin!(MyPlugin);
 pub struct MyPlugin;
 
 impl Plugin for MyPlugin {
-    fn name(&self) -> String {
-        "Example".into()
-    }
-
     fn new_joint_trajectory_client(
         &self,
         args: String,

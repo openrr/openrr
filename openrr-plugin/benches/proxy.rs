@@ -262,10 +262,6 @@ openrr_plugin::export_plugin!(TestPlugin);
 pub struct TestPlugin;
 
 impl openrr_plugin::Plugin for TestPlugin {
-    fn name(&self) -> String {
-        "TestPlugin".into()
-    }
-
     fn new_joint_trajectory_client(
         &self,
         args: String,

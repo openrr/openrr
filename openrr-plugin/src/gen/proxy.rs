@@ -13,7 +13,6 @@ use super::*;
 pub(crate) type PluginTraitObject = RPluginTrait_TO<RBox<()>>;
 #[sabi_trait]
 pub(crate) trait RPluginTrait: Send + Sync + 'static {
-    fn name(&self) -> RString;
     fn new_gamepad(&self, args: RString) -> RResult<ROption<crate::GamepadProxy>, RError>;
     fn new_joint_trajectory_client(
         &self,
@@ -33,10 +32,6 @@ impl<T> RPluginTrait for T
 where
     T: crate::Plugin,
 {
-    fn name(&self) -> RString {
-        crate::Plugin::name(self).into()
-    }
-
     fn new_gamepad(&self, args: RString) -> RResult<ROption<crate::GamepadProxy>, RError> {
         ROk(rtry!(crate::Plugin::new_gamepad(self, args.into()))
             .map(crate::GamepadProxy::new)

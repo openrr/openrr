@@ -32,9 +32,6 @@ use crate::proxy::{GamepadTraitObject, JointTrajectoryClientTraitObject};
 /// pub struct MyPlugin;
 ///
 /// impl Plugin for MyPlugin {
-///     fn name(&self) -> String {
-///         "MyPlugin".into()
-///     }
 /// }
 /// ```
 #[macro_export]
@@ -71,20 +68,11 @@ impl PluginProxy {
 
         Ok(plugin)
     }
-
-    /// Returns the name of this plugin.
-    ///
-    /// NOTE: This is *not* a unique identifier.
-    pub fn name(&self) -> String {
-        self.0.name().into()
-    }
 }
 
 impl fmt::Debug for PluginProxy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PluginProxy")
-            .field("name", &self.name())
-            .finish()
+        f.debug_struct("PluginProxy").finish()
     }
 }
 

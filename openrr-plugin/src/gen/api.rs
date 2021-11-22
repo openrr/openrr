@@ -10,10 +10,6 @@ use arci::{BaseVelocity, Error, Isometry2, Isometry3, WaitFuture};
 use super::*;
 /// The plugin trait.
 pub trait Plugin: Send + Sync + 'static {
-    /// Returns the name of this plugin.
-    ///
-    /// NOTE: This is *not* a unique identifier.
-    fn name(&self) -> String;
     /// Creates a new instance of [`arci::Gamepad`] with the specified arguments.
     fn new_gamepad(&self, args: String) -> Result<Option<Box<dyn arci::Gamepad>>, arci::Error> {
         let _ = args;
