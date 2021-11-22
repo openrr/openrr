@@ -226,6 +226,7 @@ impl GilGamepad {
         let is_running_cloned = is_running.clone();
         std::thread::spawn(move || {
             let mut gil = gilrs::Gilrs::new().unwrap();
+            #[cfg_attr(target_os = "macos", allow(unused_mut))]
             let mut selected_gamepad_id = None;
             // TODO: On MacOS `gamepads()` does not works.
             #[cfg(not(target_os = "macos"))]
