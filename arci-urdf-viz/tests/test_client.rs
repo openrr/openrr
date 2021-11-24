@@ -157,8 +157,12 @@ fn test_current_joint_positions() {
     assert_approx_eq!(v[1], -1.0);
 }
 
-#[tokio::test]
-async fn test_send_joint_positions() {
+#[flaky_test::flaky_test]
+fn test_send_joint_positions() {
+    test_send_joint_positions_inner();
+}
+#[tokio::main(flavor = "current_thread")]
+async fn test_send_joint_positions_inner() {
     const PORT: u16 = 7780;
     let web_server = WebServer::new(PORT, Default::default());
     web_server.set_current_joint_positions(JointNamesAndPositions {
