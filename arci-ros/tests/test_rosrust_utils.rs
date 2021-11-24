@@ -50,7 +50,7 @@ fn test_convert_ros_time_to_system_time() {
     );
 }
 
-#[test]
+#[flaky_test::flaky_test]
 fn test_convert_system_time_to_ros_time() {
     let _roscore =
         run_roscore_and_rosrust_init_once(&"test_convert_system_time_to_ros_time".to_owned());
