@@ -249,7 +249,16 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-install-dependencies.sh
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets -- -D clippy::disallowed_type
+      - name: Install ROS2
+        run: |
+          # for arci-ros2
+          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y \
+            ros-foxy-ros-core ros-foxy-geometry-msgs ros-foxy-nav2-msgs
+      - name: Run clippy
+        run: |
+          # for arci-ros2
+          source /opt/ros/foxy/setup.bash
+          cargo clippy --all-features --all-targets -- -D clippy::disallowed_type
