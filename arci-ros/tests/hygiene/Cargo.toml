@@ -1,0 +1,9 @@
+[package]
+name = "arci-ros-hygiene-test"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+arci = "0.0.6"
+arci-ros = "0.0.6"

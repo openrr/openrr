@@ -5,8 +5,8 @@ use nalgebra as na;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{define_action_client_internal, msg, ActionResultWait};
-define_action_client_internal!(SimpleActionClient, msg::move_base_msgs, MoveBase);
+use crate::{define_action_client, msg, ActionResultWait};
+define_action_client!(SimpleActionClient, msg::move_base_msgs, MoveBase);
 
 rosrust::rosmsg_include! {
     std_srvs / Empty

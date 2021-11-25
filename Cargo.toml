@@ -19,6 +19,9 @@ members = [
     "openrr-remote",
     "openrr-sleep",
     "openrr-teleop",
+
+    # internal
+    "arci-ros/tests/hygiene",
     "openrr-plugin/examples/plugin",
     "tools/codegen",
 ]
