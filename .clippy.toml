@@ -1,9 +1,18 @@
+# https://rust-lang.github.io/rust-clippy/master/#disallowed_methods
+disallowed-methods = [
+    # use faster `flume` instead
+    "std::sync::mpsc::channel",
+    "std::sync::mpsc::sync_channel",
+    # TODO: use `reason =` syntax once 1.57 became stable:
+    # { path = "std::sync::mpsc::channel", reason = "use faster `flume::unbounded` instead" },
+    # { path = "std::sync::mpsc::sync_channel", reason = "use faster `flume::bounded` instead" },
+]
 # https://rust-lang.github.io/rust-clippy/master/#disallowed_types
 disallowed-types = [
     # use faster `parking_lot::{Mutex, RwLock, CondVar}` instead
     "std::sync::Mutex",
     "std::sync::RwLock",
     "std::sync::CondVar",
-    # TODO: use `reason =` syntax once 1.57 became stable:
+    # TODO: use `reason =` syntax once 1.58 became stable:
     # { path = "std::sync::Mutex", reason = "use faster `parking_lot::Mutex` instead" },
 ]
