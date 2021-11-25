@@ -166,29 +166,29 @@ impl ActionResultWait {
     }
 }
 
-#[macro_export(crate)]
-macro_rules! define_action_client_with_namespace {
-    ($arci_ros_namespace: path, $name: ident,$namespace: path, $action_base:expr) => {
-        paste::item! {
+#[macro_export]
+macro_rules! define_action_client {
+    ($name:ident, $namespace:path, $action_base:expr) => {
+        $crate::paste::item! {
             pub struct $name {
-                goal_publisher: rosrust::Publisher<$namespace::[<$action_base ActionGoal>]>,
-                _result_subscriber: rosrust::Subscriber,
-                cancel_publisher: rosrust::Publisher<msg::actionlib_msgs::GoalID>,
-                goal_id_to_sender: std::sync::Arc<parking_lot::Mutex<std::collections::HashMap<String, std::sync::mpsc::Sender<std::result::Result<(), $arci_ros_namespace::Error>> >>>
+                goal_publisher: $crate::rosrust::Publisher<$namespace::[<$action_base ActionGoal>]>,
+                _result_subscriber: $crate::rosrust::Subscriber,
+                cancel_publisher: $crate::rosrust::Publisher<msg::actionlib_msgs::GoalID>,
+                goal_id_to_sender: std::sync::Arc<$crate::parking_lot::Mutex<std::collections::HashMap<String, std::sync::mpsc::Sender<std::result::Result<(), $crate::Error>>>>>
             }
             impl $name {
                 pub fn new(base_topic: &str, queue_size: usize) -> Self {
                     use std::sync::Arc;
                     use std::collections::HashMap;
-                    use parking_lot::Mutex;
-                    use $arci_ros_namespace::Error;
+                    use $crate::parking_lot::Mutex;
+                    use $crate::Error;
+                    use $crate::rosrust;
                     let goal_topic = format!("{}/goal", base_topic);
                     let cancel_topic = format!("{}/cancel", base_topic);
-                    let goal_publisher =
-                        rosrust::publish(&goal_topic, queue_size).unwrap();
+                    let goal_publisher = rosrust::publish(&goal_topic, queue_size).unwrap();
                     let goal_id_to_sender: Arc<Mutex<HashMap<String, std::sync::mpsc::Sender<std::result::Result<(), Error>> >>>  = Arc::new(Mutex::new(HashMap::new()));
                     let goal_id_to_sender_cloned = goal_id_to_sender.clone();
-                    let _result_subscriber = ::rosrust::subscribe(
+                    let _result_subscriber = rosrust::subscribe(
                         &format!("{}/result", base_topic),
                         queue_size, move |result: $namespace::[<$action_base ActionResult>]| {
                             if let Some(sender) = goal_id_to_sender_cloned.lock().remove(&result.status.goal_id.id) {
@@ -210,11 +210,11 @@ macro_rules! define_action_client_with_namespace {
                     ).unwrap();
                     let cancel_publisher =
                         rosrust::publish(&cancel_topic, queue_size).unwrap();
-                        rosrust::ros_info!("Waiting {} ....", goal_topic);
-                    $arci_ros_namespace::wait_subscriber(&goal_publisher);
+                    rosrust::ros_info!("Waiting {} ....", goal_topic);
+                    $crate::wait_subscriber(&goal_publisher);
                     rosrust::ros_info!("Waiting {} Done", goal_topic);
                     rosrust::ros_info!("Waiting {} ....", cancel_topic);
-                    $arci_ros_namespace::wait_subscriber(&cancel_publisher);
+                    $crate::wait_subscriber(&cancel_publisher);
                     rosrust::ros_info!("Waiting {} Done", cancel_topic);
                     Self {
                         goal_publisher,
@@ -224,11 +224,12 @@ macro_rules! define_action_client_with_namespace {
                      }
                 }
                 #[allow(dead_code)]
-                pub fn send_goal_and_wait(&self, goal: $namespace::[<$action_base Goal>], timeout: std::time::Duration) -> Result<(), $arci_ros_namespace::Error> {
+                pub fn send_goal_and_wait(&self, goal: $namespace::[<$action_base Goal>], timeout: std::time::Duration) -> Result<(), $crate::Error> {
                     self.send_goal(goal)?.wait(timeout)
                 }
                 #[allow(clippy::field_reassign_with_default)]
-                pub fn send_goal(&self, goal: $namespace::[<$action_base Goal>]) -> Result<$arci_ros_namespace::ActionResultWait, $arci_ros_namespace::Error> {
+                pub fn send_goal(&self, goal: $namespace::[<$action_base Goal>]) -> Result<$crate::ActionResultWait, $crate::Error> {
+                    use $crate::rosrust;
                     let mut action_goal = <$namespace::[<$action_base ActionGoal>]>::default();
                     action_goal.goal = goal;
                     let goal_id = format!("{}-{}", rosrust::name(), rosrust::now().seconds());
@@ -237,12 +238,12 @@ macro_rules! define_action_client_with_namespace {
                     self.goal_id_to_sender.lock().insert(goal_id.clone(), sender);
                     if self.goal_publisher.send(action_goal).is_err() {
                         let _ = self.goal_id_to_sender.lock().remove(&goal_id);
-                        return Err($arci_ros_namespace::Error::ActionGoalSendingFailure);
+                        return Err($crate::Error::ActionGoalSendingFailure);
                     }
-                    Ok($arci_ros_namespace::ActionResultWait::new(goal_id, receiver))
+                    Ok($crate::ActionResultWait::new(goal_id, receiver))
                 }
                 #[allow(dead_code)]
-                pub fn cancel_goal(&self, goal_id: &str) -> Result<(), $arci_ros_namespace::Error> {
+                pub fn cancel_goal(&self, goal_id: &str) -> Result<(), $crate::Error> {
                     let mut goal_id_to_sender = self.goal_id_to_sender.lock();
                     if goal_id.is_empty() {
                         goal_id_to_sender.clear();
@@ -251,35 +252,16 @@ macro_rules! define_action_client_with_namespace {
                     }
                     if self.cancel_publisher.send(
                     msg::actionlib_msgs::GoalID { id: goal_id.to_owned(), ..Default::default()}).is_err() {
-                        return Err($arci_ros_namespace::Error::ActionCancelSendingFailure);
+                        return Err($crate::Error::ActionCancelSendingFailure);
                     }
                     Ok(())
                 }
                 #[allow(dead_code)]
-                pub fn cancel_all_goal(&self) -> Result<(), $arci_ros_namespace::Error> {
+                pub fn cancel_all_goal(&self) -> Result<(), $crate::Error> {
                     self.cancel_goal("")
                 }
             }
         }
-    };
-}
-
-#[macro_export(crate)]
-macro_rules! define_action_client_internal {
-    ($name: ident,$namespace: path, $action_base:expr) => {
-        crate::define_action_client_with_namespace!(crate, $name, $namespace, $action_base);
-    };
-}
-
-#[macro_export]
-macro_rules! define_action_client {
-    ($name: ident, $namespace: path, $action_base:expr) => {
-        ::arci_ros::define_action_client_with_namespace!(
-            ::arci_ros,
-            $name,
-            $namespace,
-            $action_base
-        );
     };
 }
 

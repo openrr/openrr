@@ -9,14 +9,14 @@ use parking_lot::Mutex;
 
 use crate::{
     create_joint_trajectory_message_for_send_joint_positions,
-    create_joint_trajectory_message_for_send_joint_trajectory, define_action_client_internal,
+    create_joint_trajectory_message_for_send_joint_trajectory, define_action_client,
     extract_current_joint_positions_from_state, msg, JointStateProvider,
     JointStateProviderFromJointState, LazyJointStateProvider, SubscriberHandler,
 };
 
 const ACTION_TIMEOUT_DURATION_RATIO: u32 = 10;
 
-define_action_client_internal!(SimpleActionClient, msg::control_msgs, FollowJointTrajectory);
+define_action_client!(SimpleActionClient, msg::control_msgs, FollowJointTrajectory);
 
 #[derive(Clone)]
 pub struct RosControlActionClient(Arc<RosControlActionClientInner>);
