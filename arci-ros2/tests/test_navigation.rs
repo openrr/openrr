@@ -18,9 +18,13 @@ use futures::{
 use parking_lot::Mutex;
 use r2r::nav2_msgs::action::NavigateToPose;
 
-fn node_name() -> String {
+// (node_name, action_name)
+fn node_and_action_name() -> (String, String) {
     static COUNT: AtomicUsize = AtomicUsize::new(0);
-    format!("test_nav2_node{}", COUNT.fetch_add(1, Ordering::Relaxed))
+    let n = COUNT.fetch_add(1, Ordering::Relaxed);
+    let node_name = format!("test_nav2_node_{}", n);
+    let action_name = format!("/test_nav2_{}", n);
+    (node_name, action_name)
 }
 
 #[flaky_test::flaky_test]
@@ -29,17 +33,16 @@ fn test_nav() {
 }
 #[tokio::main(flavor = "current_thread")]
 async fn test_nav_inner() {
-    const ACTION_NAME: &str = "/test_nav";
-
+    let (node_name, action_name) = &node_and_action_name();
     let ctx = r2r::Context::create().unwrap();
-    let nav = Ros2Navigation::new(ctx.clone(), ACTION_NAME);
+    let nav = Ros2Navigation::new(ctx.clone(), action_name);
     let node = Arc::new(Mutex::new(
-        r2r::Node::create(ctx, &node_name(), "arci_ros2").unwrap(),
+        r2r::Node::create(ctx, node_name, "arci_ros2").unwrap(),
     ));
 
     let server_requests = node
         .lock()
-        .create_action_server::<NavigateToPose::Action>(ACTION_NAME)
+        .create_action_server::<NavigateToPose::Action>(action_name)
         .unwrap();
 
     let node_cb = node.clone();
@@ -61,17 +64,16 @@ async fn test_nav_inner() {
 
 #[tokio::test]
 async fn test_nav_timeout() {
-    const ACTION_NAME: &str = "/test_nav_timeout";
-
+    let (node_name, action_name) = &node_and_action_name();
     let ctx = r2r::Context::create().unwrap();
-    let nav = Ros2Navigation::new(ctx.clone(), ACTION_NAME);
+    let nav = Ros2Navigation::new(ctx.clone(), action_name);
     let node = Arc::new(Mutex::new(
-        r2r::Node::create(ctx, &node_name(), "arci_ros2").unwrap(),
+        r2r::Node::create(ctx, node_name, "arci_ros2").unwrap(),
     ));
 
     let server_requests = node
         .lock()
-        .create_action_server::<NavigateToPose::Action>(ACTION_NAME)
+        .create_action_server::<NavigateToPose::Action>(action_name)
         .unwrap();
 
     let node_cb = node.clone();
@@ -100,17 +102,16 @@ fn test_nav_cancel() {
 }
 #[tokio::main(flavor = "current_thread")]
 async fn test_nav_cancel_inner() {
-    const ACTION_NAME: &str = "/test_nav_cancel";
-
+    let (node_name, action_name) = &node_and_action_name();
     let ctx = r2r::Context::create().unwrap();
-    let nav = Ros2Navigation::new(ctx.clone(), ACTION_NAME);
+    let nav = Ros2Navigation::new(ctx.clone(), action_name);
     let node = Arc::new(Mutex::new(
-        r2r::Node::create(ctx, &node_name(), "arci_ros2").unwrap(),
+        r2r::Node::create(ctx, node_name, "arci_ros2").unwrap(),
     ));
 
     let server_requests = node
         .lock()
-        .create_action_server::<NavigateToPose::Action>(ACTION_NAME)
+        .create_action_server::<NavigateToPose::Action>(action_name)
         .unwrap();
 
     let node_cb = node.clone();
