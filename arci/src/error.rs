@@ -67,6 +67,8 @@ pub enum Error {
     Lazy(Arc<Error>),
     #[error("arci: urdf: {:?}", .0)]
     Urdf(#[from] urdf_rs::UrdfError),
+    #[error("arci: Not implemented: {}", message)]
+    NotImplemented { message: String },
     #[error("arci: Other: {:?}", .0)]
     Other(#[from] anyhow::Error),
 }

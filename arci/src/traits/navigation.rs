@@ -19,7 +19,9 @@ pub trait Navigation: Send + Sync {
         frame_id: &str,
         timeout: std::time::Duration,
     ) -> Result<WaitFuture, Error> {
-        Err(anyhow::anyhow!("Not implemented").into())
+        Err(Error::NotImplemented {
+            message: "method `send_goal_pose_with_thresholds`".to_owned(),
+        })
     }
 
     fn cancel(&self) -> Result<(), Error>;
