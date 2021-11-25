@@ -1,11 +1,9 @@
 use std::{
-    sync::{
-        mpsc::{Receiver, Sender},
-        Arc,
-    },
+    sync::Arc,
     time::{Duration, SystemTime},
 };
 
+use flume::{Receiver, Sender};
 use parking_lot::Mutex;
 use rosrust::Time;
 type MessageBuffer<T> = Arc<Mutex<Option<T>>>;
@@ -92,10 +90,9 @@ where
     T: rosrust::ServicePair,
 {
     pub fn new(service_name: &str) -> Self {
-        let (request_sender, request_receiver) =
-            std::sync::mpsc::channel::<(rosrust::Time, T::Request)>();
+        let (request_sender, request_receiver) = flume::unbounded::<(rosrust::Time, T::Request)>();
         let (response_sender, response_receiver) =
-            std::sync::mpsc::channel::<(rosrust::Time, T::Response)>();
+            flume::unbounded::<(rosrust::Time, T::Response)>();
 
         let request_sender = Arc::new(Mutex::new(request_sender));
         let request_receiver = Arc::new(Mutex::new(request_receiver));
@@ -174,7 +171,7 @@ macro_rules! define_action_client {
                 goal_publisher: $crate::rosrust::Publisher<$namespace::[<$action_base ActionGoal>]>,
                 _result_subscriber: $crate::rosrust::Subscriber,
                 cancel_publisher: $crate::rosrust::Publisher<msg::actionlib_msgs::GoalID>,
-                goal_id_to_sender: std::sync::Arc<$crate::parking_lot::Mutex<std::collections::HashMap<String, std::sync::mpsc::Sender<std::result::Result<(), $crate::Error>>>>>
+                goal_id_to_sender: std::sync::Arc<$crate::parking_lot::Mutex<std::collections::HashMap<String, $crate::flume::Sender<std::result::Result<(), $crate::Error>>>>>
             }
             impl $name {
                 pub fn new(base_topic: &str, queue_size: usize) -> Self {
@@ -182,11 +179,11 @@ macro_rules! define_action_client {
                     use std::collections::HashMap;
                     use $crate::parking_lot::Mutex;
                     use $crate::Error;
-                    use $crate::rosrust;
+                    use $crate::{flume, rosrust};
                     let goal_topic = format!("{}/goal", base_topic);
                     let cancel_topic = format!("{}/cancel", base_topic);
                     let goal_publisher = rosrust::publish(&goal_topic, queue_size).unwrap();
-                    let goal_id_to_sender: Arc<Mutex<HashMap<String, std::sync::mpsc::Sender<std::result::Result<(), Error>> >>>  = Arc::new(Mutex::new(HashMap::new()));
+                    let goal_id_to_sender: Arc<Mutex<HashMap<String, flume::Sender<std::result::Result<(), Error>> >>> = Arc::new(Mutex::new(HashMap::new()));
                     let goal_id_to_sender_cloned = goal_id_to_sender.clone();
                     let _result_subscriber = rosrust::subscribe(
                         &format!("{}/result", base_topic),
@@ -229,12 +226,12 @@ macro_rules! define_action_client {
                 }
                 #[allow(clippy::field_reassign_with_default)]
                 pub fn send_goal(&self, goal: $namespace::[<$action_base Goal>]) -> Result<$crate::ActionResultWait, $crate::Error> {
-                    use $crate::rosrust;
+                    use $crate::{flume, rosrust};
                     let mut action_goal = <$namespace::[<$action_base ActionGoal>]>::default();
                     action_goal.goal = goal;
                     let goal_id = format!("{}-{}", rosrust::name(), rosrust::now().seconds());
                     action_goal.goal_id.id = goal_id.clone();
-                    let (sender, receiver) = std::sync::mpsc::channel();
+                    let (sender, receiver) = flume::unbounded();
                     self.goal_id_to_sender.lock().insert(goal_id.clone(), sender);
                     if self.goal_publisher.send(action_goal).is_err() {
                         let _ = self.goal_id_to_sender.lock().remove(&goal_id);
@@ -248,7 +245,7 @@ macro_rules! define_action_client {
                     if goal_id.is_empty() {
                         goal_id_to_sender.clear();
                     } else {
-                        let _  = goal_id_to_sender.remove(goal_id);
+                        let _ = goal_id_to_sender.remove(goal_id);
                     }
                     if self.cancel_publisher.send(
                     msg::actionlib_msgs::GoalID { id: goal_id.to_owned(), ..Default::default()}).is_err() {
@@ -307,7 +304,7 @@ pub fn convert_ros_time_to_system_time(time: &Time) -> SystemTime {
 /// # subscribe ROS message helper
 ///
 /// using for inspect specific massage type.
-/// Message is displayed on screen and sent to ``mpsc receiver``
+/// Message is displayed on screen and sent to `mpsc receiver`
 ///
 /// # Panic!
 ///
@@ -317,10 +314,8 @@ pub fn convert_ros_time_to_system_time(time: &Time) -> SystemTime {
 pub fn subscribe_with_channel<T: rosrust::Message>(
     topic_name: &str,
     queue_size: usize,
-) -> (std::sync::mpsc::Receiver<T>, rosrust::Subscriber) {
-    use std::sync::mpsc;
-
-    let (tx, rx) = mpsc::channel::<T>();
+) -> (flume::Receiver<T>, rosrust::Subscriber) {
+    let (tx, rx) = flume::unbounded::<T>();
 
     let sub = rosrust::subscribe(topic_name, queue_size, move |v: T| {
         tx.send(v).unwrap();

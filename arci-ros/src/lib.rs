@@ -19,6 +19,8 @@ pub mod rosrust_utils;
 
 // re-export
 #[doc(hidden)] // re-export for macros
+pub use flume;
+#[doc(hidden)] // re-export for macros
 pub use parking_lot;
 #[doc(hidden)] // re-export for macros
 pub use paste;
