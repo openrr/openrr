@@ -101,7 +101,7 @@ impl JointTrajectoryClientWrapperConfig {
     }
 }
 
-pub(crate) fn wrap_joint_trajectory_client(
+pub fn wrap_joint_trajectory_client(
     config: JointTrajectoryClientWrapperConfig,
     client: Arc<dyn JointTrajectoryClient>,
     urdf_robot: Option<&urdf_rs::Robot>,
