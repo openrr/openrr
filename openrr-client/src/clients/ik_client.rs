@@ -124,19 +124,28 @@ impl IkSolverWithChain {
             (position_diff.norm() / max_resolution) as i32,
         );
         let mut traj = vec![];
-        for i in 1..n + 1 {
-            let t = i as f64 / n as f64;
-            let tar_pos = current_position.lerp(&target_position, t);
-            let tar_rot = current_rotation.slerp(&target_rotation, t);
-            self.solve_with_constraints(
-                &k::Isometry3::from_parts(na::Translation3::from(tar_pos), tar_rot),
-                constraints,
-            )?;
+        if n == 0 {
+            self.solve_with_constraints(target_pose, constraints)?;
             let trajectory = TrajectoryPoint::new(
                 self.joint_positions(),
-                std::time::Duration::from_secs_f64(t * duration_sec),
+                std::time::Duration::from_secs_f64(duration_sec),
             );
             traj.push(trajectory);
+        } else {
+            for i in 1..n + 1 {
+                let t = i as f64 / n as f64;
+                let tar_pos = current_position.lerp(&target_position, t);
+                let tar_rot = current_rotation.slerp(&target_rotation, t);
+                self.solve_with_constraints(
+                    &k::Isometry3::from_parts(na::Translation3::from(tar_pos), tar_rot),
+                    constraints,
+                )?;
+                let trajectory = TrajectoryPoint::new(
+                    self.joint_positions(),
+                    std::time::Duration::from_secs_f64(t * duration_sec),
+                );
+                traj.push(trajectory);
+            }
         }
         Ok(traj)
     }
