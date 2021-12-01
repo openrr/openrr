@@ -1,5 +1,6 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
+use anyhow::format_err;
 use arci::{copy_joint_positions, Error, JointTrajectoryClient, TrajectoryPoint};
 
 use crate::{
@@ -141,6 +142,12 @@ pub(crate) fn create_joint_trajectory_message_for_send_joint_trajectory(
     }
 }
 
+/// Returns a map of clients for each builder.
+///
+/// The key for the map is [the name of the client](RosControlClientBuilder::name),
+/// and in case of conflict, it becomes an error.
+///
+/// Returns empty map when `builders` are empty.
 pub fn create_joint_trajectory_clients<B>(
     builders: Vec<B>,
     urdf_robot: Option<&urdf_rs::Robot>,
@@ -151,6 +158,9 @@ where
     create_joint_trajectory_clients_inner(builders, urdf_robot, false)
 }
 
+/// Returns a map of clients that will be created lazily for each builder.
+///
+/// See [create_joint_trajectory_clients] for more.
 pub fn create_joint_trajectory_clients_lazy<B>(
     builders: Vec<B>,
     urdf_robot: Option<&urdf_rs::Robot>,
@@ -169,6 +179,10 @@ fn create_joint_trajectory_clients_inner<B>(
 where
     B: RosControlClientBuilder,
 {
+    if builders.is_empty() {
+        return Ok(HashMap::default());
+    }
+
     let mut clients = HashMap::new();
     let mut state_topic_name_to_provider: HashMap<String, Arc<LazyJointStateProvider>> =
         HashMap::new();
@@ -191,7 +205,9 @@ where
         let client = builder.build_joint_trajectory_client(lazy, joint_state_provider)?;
         let client =
             wrap_joint_trajectory_client(builder.wrapper_config().clone(), client, urdf_robot)?;
-        clients.insert(name, client);
+        if clients.insert(name.clone(), client).is_some() {
+            return Err(format_err!("client named '{}' has already been specified", name).into());
+        }
     }
     Ok(clients)
 }
