@@ -211,20 +211,17 @@ where
         max_resolution: f64,
         min_number_of_points: i32,
     ) -> Result<WaitFuture, Error> {
-        let mut traj = self
-            .ik_solver_with_chain
-            .generate_trajectory_with_interpolation_and_constraints(
-                &self.current_end_transform()?,
-                target_pose,
-                constraints,
-                duration_sec,
-                max_resolution,
-                min_number_of_points,
-            )?;
-        let dof = self.client.joint_names().len();
-        traj.first_mut().unwrap().velocities = Some(vec![0.0; dof]);
-        traj.last_mut().unwrap().velocities = Some(vec![0.0; dof]);
-        self.client.send_joint_trajectory(traj)
+        self.client.send_joint_trajectory(
+            self.ik_solver_with_chain
+                .generate_trajectory_with_interpolation_and_constraints(
+                    &self.current_end_transform()?,
+                    target_pose,
+                    constraints,
+                    duration_sec,
+                    max_resolution,
+                    min_number_of_points,
+                )?,
+        )
     }
 
     pub fn move_ik(
@@ -246,19 +243,16 @@ where
         max_resolution: f64,
         min_number_of_points: i32,
     ) -> Result<WaitFuture, Error> {
-        let mut traj = self
-            .ik_solver_with_chain
-            .generate_trajectory_with_interpolation(
-                &self.current_end_transform()?,
-                target_pose,
-                duration_sec,
-                max_resolution,
-                min_number_of_points,
-            )?;
-        let dof = self.client.joint_names().len();
-        traj.first_mut().unwrap().velocities = Some(vec![0.0; dof]);
-        traj.last_mut().unwrap().velocities = Some(vec![0.0; dof]);
-        self.client.send_joint_trajectory(traj)
+        self.client.send_joint_trajectory(
+            self.ik_solver_with_chain
+                .generate_trajectory_with_interpolation(
+                    &self.current_end_transform()?,
+                    target_pose,
+                    duration_sec,
+                    max_resolution,
+                    min_number_of_points,
+                )?,
+        )
     }
 
     /// Get relative pose from current pose of the IK target
