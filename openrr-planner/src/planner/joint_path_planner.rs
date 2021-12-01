@@ -18,6 +18,8 @@ use std::path::Path;
 use k::nalgebra as na;
 use na::RealField;
 use ncollide3d::shape::Compound;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use tracing::*;
 
 use crate::{
@@ -316,6 +318,61 @@ where
     }
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct JointPathPlannerConfig {
+    #[serde(default = "default_step_length")]
+    step_length: f64,
+    #[serde(default = "default_max_try")]
+    max_try: usize,
+    #[serde(default = "default_num_smoothing")]
+    num_smoothing: usize,
+    #[serde(default = "default_margin")]
+    margin: f64,
+}
+
+fn default_step_length() -> f64 {
+    0.1
+}
+
+fn default_max_try() -> usize {
+    5000
+}
+
+fn default_num_smoothing() -> usize {
+    100
+}
+
+fn default_margin() -> f64 {
+    0.001
+}
+
+impl Default for JointPathPlannerConfig {
+    fn default() -> Self {
+        Self {
+            step_length: default_step_length(),
+            max_try: default_max_try(),
+            num_smoothing: default_num_smoothing(),
+            margin: default_margin(),
+        }
+    }
+}
+
+pub fn create_joint_path_planner<P: AsRef<Path>>(
+    urdf_path: P,
+    self_collision_check_pairs: Vec<(String, String)>,
+    config: &JointPathPlannerConfig,
+) -> JointPathPlanner<f64> {
+    JointPathPlannerBuilder::from_urdf_file(urdf_path)
+        .unwrap()
+        .step_length(config.step_length)
+        .max_try(config.max_try)
+        .num_smoothing(config.num_smoothing)
+        .collision_check_margin(config.margin)
+        .self_collision_pairs(self_collision_check_pairs)
+        .finalize()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -326,5 +383,14 @@ mod tests {
             .unwrap()
             .collision_check_margin(0.01)
             .finalize();
+    }
+
+    #[test]
+    fn test_create_joint_path_planner() {
+        let _planner = create_joint_path_planner(
+            "sample.urdf",
+            vec![("root".into(), "l_shoulder_roll".into())],
+            &JointPathPlannerConfig::default(),
+        );
     }
 }
