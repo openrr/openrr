@@ -1,10 +1,21 @@
-use std::{f64, time::Duration};
+use std::{
+    f64,
+    sync::atomic::{AtomicU16, Ordering},
+    time::Duration,
+};
 
 use arci::{nalgebra, Localization, MoveBase, Navigation};
 use arci_urdf_viz::*;
 use assert_approx_eq::assert_approx_eq;
 use urdf_viz::WebServer;
 use url::Url;
+
+fn port_and_url() -> (u16, Url) {
+    static PORT: AtomicU16 = AtomicU16::new(51200);
+    let port = PORT.fetch_add(1, Ordering::Relaxed);
+    let url = Url::parse(&format!("http://127.0.0.1:{}", port)).unwrap();
+    (port, url)
+}
 
 #[easy_ext::ext]
 impl WebServer {
@@ -25,11 +36,10 @@ impl WebServer {
 
 #[test]
 fn test_set_get_vel() {
-    const PORT: u16 = 8888;
-    let web_server = WebServer::new(PORT, Default::default());
+    let (port, url) = port_and_url();
+    let web_server = WebServer::new(port, Default::default());
     web_server.start_background();
-    let c =
-        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
+    let c = UrdfVizWebClient::new(url).unwrap();
     c.run_send_velocity_thread();
     let v = c.current_velocity().unwrap();
     assert_approx_eq!(v.x, 0.0);
@@ -49,11 +59,10 @@ fn test_set_get_pose() {
 }
 #[tokio::main(flavor = "current_thread")]
 async fn test_set_get_pose_inner() {
-    const PORT: u16 = 8889;
-    let web_server = WebServer::new(PORT, Default::default());
+    let (port, url) = port_and_url();
+    let web_server = WebServer::new(port, Default::default());
     web_server.start_background();
-    let c =
-        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
+    let c = UrdfVizWebClient::new(url).unwrap();
     let pose = c.current_pose("").unwrap();
     assert_approx_eq!(pose.translation.x, 0.0);
     assert_approx_eq!(pose.translation.y, 0.0);
@@ -75,11 +84,10 @@ async fn test_set_get_pose_inner() {
 
 #[flaky_test::flaky_test]
 fn test_set_get_pose_no_wait() {
-    const PORT: u16 = 8890;
-    let web_server = WebServer::new(PORT, Default::default());
+    let (port, url) = port_and_url();
+    let web_server = WebServer::new(port, Default::default());
     web_server.start_background();
-    let c =
-        UrdfVizWebClient::new(Url::parse(&format!("http://127.0.0.1:{}", PORT)).unwrap()).unwrap();
+    let c = UrdfVizWebClient::new(url).unwrap();
     let pose = c.current_pose("").unwrap();
     assert_approx_eq!(pose.translation.x, 0.0);
     assert_approx_eq!(pose.translation.y, 0.0);
