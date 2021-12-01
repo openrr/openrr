@@ -1,7 +1,7 @@
 use std::{path::Path, sync::Arc};
 
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
-use openrr_planner::JointPathPlannerBuilder;
+use openrr_planner::{create_joint_path_planner, JointPathPlannerConfig};
 
 // TODO: speed limit
 fn trajectory_from_positions(
@@ -109,18 +109,24 @@ where
 pub fn create_collision_avoidance_client<P: AsRef<Path>>(
     urdf_path: P,
     self_collision_check_pairs: Vec<(String, String)>,
-    collision_check_prediction: f64,
+    joint_path_planner_config: &JointPathPlannerConfig,
     client: Arc<dyn JointTrajectoryClient>,
 ) -> CollisionAvoidanceClient<Arc<dyn JointTrajectoryClient>> {
-    let urdf_robot = urdf_rs::read_file(urdf_path.as_ref()).unwrap();
-    let planner_builder = JointPathPlannerBuilder::from_urdf_robot(urdf_robot.clone())
-        .self_collision_pairs(self_collision_check_pairs)
-        .collision_check_margin(collision_check_prediction);
-    CollisionAvoidanceClient::new(
-        client,
-        k::Chain::<f64>::from(&urdf_robot),
-        planner_builder.finalize(),
-    )
+    let planner = create_joint_path_planner(
+        urdf_path,
+        self_collision_check_pairs,
+        joint_path_planner_config,
+    );
+
+    let nodes = planner
+        .robot_collision_detector
+        .robot
+        .iter()
+        .map(|node| (*node).clone())
+        .collect();
+    let using_joints = k::Chain::<f64>::from_nodes(nodes);
+
+    CollisionAvoidanceClient::new(client, using_joints, planner)
 }
 
 #[cfg(test)]
@@ -147,7 +153,7 @@ mod tests {
         let collision_avoidance_client = create_collision_avoidance_client(
             urdf_path,
             vec![("root".to_owned(), "l_shoulder_roll".to_owned())],
-            0.0001,
+            &JointPathPlannerConfig::default(),
             Arc::new(client),
         );
 
