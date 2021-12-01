@@ -32,6 +32,12 @@ pub struct UrdfVizWebClientConfig {
     pub joint_position_limits: Option<Vec<JointPositionLimit>>,
 }
 
+/// Returns a map of clients for each config.
+///
+/// The key for the map is [the name of the client](UrdfVizWebClientConfig::name),
+/// and in case of conflict, it becomes an error.
+///
+/// Returns empty map when `configs` are empty.
 pub fn create_joint_trajectory_clients(
     configs: Vec<UrdfVizWebClientConfig>,
     urdf_robot: Option<&urdf_rs::Robot>,
@@ -39,6 +45,9 @@ pub fn create_joint_trajectory_clients(
     create_joint_trajectory_clients_inner(configs, urdf_robot, false)
 }
 
+/// Returns a map of clients that will be created lazily for each config.
+///
+/// See [create_joint_trajectory_clients] for more.
 pub fn create_joint_trajectory_clients_lazy(
     configs: Vec<UrdfVizWebClientConfig>,
     urdf_robot: Option<&urdf_rs::Robot>,
@@ -137,7 +146,11 @@ fn create_joint_trajectory_clients_inner(
         } else {
             client
         };
-        clients.insert(config.name, client);
+        if clients.insert(config.name.clone(), client).is_some() {
+            return Err(
+                format_err!("client named '{}' has already been specified", config.name).into(),
+            );
+        }
     }
     Ok(clients)
 }

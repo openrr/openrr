@@ -125,6 +125,19 @@ fn test_urdf_viz_web_client_config_clone() {
 fn test_create_joint_trajectory_clients() {
     // TODO: support non-default port
     const DEFAULT_PORT: u16 = 7777;
+
+    // empty config is no-op. it also does not connect to the server.
+    assert!(arci_urdf_viz::create_joint_trajectory_clients(vec![], None)
+        .unwrap()
+        .is_empty());
+    assert!(
+        arci_urdf_viz::create_joint_trajectory_clients_lazy(vec![], None)
+            .unwrap()
+            .is_empty()
+    );
+
+    // Subsequent tests will require a connection to the server,
+    // so start the test server here.
     let web_server = WebServer::new(DEFAULT_PORT, Default::default());
     web_server.set_current_joint_positions(JointNamesAndPositions {
         names: vec!["j1".to_owned(), "j2".to_owned()],
@@ -150,8 +163,28 @@ fn test_create_joint_trajectory_clients() {
             joint_velocity_limits: None,
         },
     ];
+
     let _clients = arci_urdf_viz::create_joint_trajectory_clients(configs.clone(), None).unwrap();
-    let _clients = arci_urdf_viz::create_joint_trajectory_clients_lazy(configs, None).unwrap();
+    let _clients =
+        arci_urdf_viz::create_joint_trajectory_clients_lazy(configs.clone(), None).unwrap();
+
+    // error when client name conflict
+    assert!(arci_urdf_viz::create_joint_trajectory_clients(
+        vec![configs[0].clone(), configs[0].clone()],
+        None
+    )
+    .err()
+    .unwrap()
+    .to_string()
+    .contains("client named 'c1' has already been specified"));
+    assert!(arci_urdf_viz::create_joint_trajectory_clients_lazy(
+        vec![configs[0].clone(), configs[0].clone()],
+        None
+    )
+    .err()
+    .unwrap()
+    .to_string()
+    .contains("client named 'c1' has already been specified"));
 }
 
 #[test]
