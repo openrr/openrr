@@ -11,6 +11,7 @@ repository = "https://github.com/openrr/openrr"
 [dependencies]
 anyhow = "1.0"
 arci = "0.0.6"
+auto_impl = "0.5"
 flume = "0.10"
 nalgebra = "0.29"
 once_cell = "1"
