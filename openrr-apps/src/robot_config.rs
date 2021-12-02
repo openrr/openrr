@@ -45,6 +45,7 @@ pub enum ClientKind {
     Auto(bool),
 }
 
+#[cfg(feature = "ros")]
 impl ClientKind {
     /// Returns true if the use of the ros client is explicitly specified.
     ///
@@ -97,7 +98,7 @@ impl Default for SpeakConfig {
 impl SpeakConfig {
     pub fn build(&self) -> Box<dyn Speaker> {
         match self {
-            SpeakConfig::RosEspeak { config } => self.create_ros_espeak_client(&config.topic),
+            SpeakConfig::RosEspeak { config } => self.create_ros_espeak_client(config),
             SpeakConfig::Audio { map } => self.create_audio_speaker(map.clone()),
             SpeakConfig::Command => self.create_local_command_speaker(),
             SpeakConfig::Print => self.create_print_speaker(),
@@ -126,8 +127,8 @@ impl SpeakConfig {
     }
 
     #[cfg(feature = "ros")]
-    fn create_ros_espeak_client(&self, topic: &str) -> Box<dyn Speaker> {
-        let topic = topic.to_string();
+    fn create_ros_espeak_client(&self, config: &RosEspeakClientConfig) -> Box<dyn Speaker> {
+        let topic = config.topic.to_string();
         Box::new(arci::Lazy::new(move || {
             debug!("create_ros_espeak_client: creating RosEspeakClient");
             Ok(RosEspeakClient::new(&topic))
@@ -135,7 +136,7 @@ impl SpeakConfig {
     }
 
     #[cfg(not(feature = "ros"))]
-    fn create_ros_espeak_client(&self, _topic: &str) -> Box<dyn Speaker> {
+    fn create_ros_espeak_client(&self, _config: &toml::Value) -> Box<dyn Speaker> {
         unreachable!()
     }
 }
@@ -428,24 +429,27 @@ impl RobotConfig {
     /// that the ros client is to be used.
     ///
     /// This is always false when ros feature is disabled.
+    #[cfg(feature = "ros")]
     pub fn has_ros_clients(&self) -> bool {
         let mut has_ros_clients = false;
-        #[cfg(feature = "ros")]
-        {
-            let speak_configs = self.speak_configs.clone();
-            for (_, speak_config) in speak_configs {
-                has_ros_clients |= matches!(speak_config, SpeakConfig::RosEspeak { .. });
-            }
-            has_ros_clients |= !self.ros_clients_configs.is_empty();
-            has_ros_clients |= !self.ros_action_clients_configs.is_empty();
-            has_ros_clients |= self.move_base.is_builtin_ros()
-                || (self.move_base.is_auto() && self.ros_cmd_vel_move_base_client_config.is_some());
-            has_ros_clients |= self.navigation.is_builtin_ros()
-                || (self.navigation.is_auto() && self.ros_navigation_client_config.is_some());
-            has_ros_clients |= self.localization.is_builtin_ros()
-                || (self.localization.is_auto() && self.ros_localization_client_config.is_some());
+        let speak_configs = self.speak_configs.clone();
+        for (_, speak_config) in speak_configs {
+            has_ros_clients |= matches!(speak_config, SpeakConfig::RosEspeak { .. });
         }
+        has_ros_clients |= !self.ros_clients_configs.is_empty();
+        has_ros_clients |= !self.ros_action_clients_configs.is_empty();
+        has_ros_clients |= self.move_base.is_builtin_ros()
+            || (self.move_base.is_auto() && self.ros_cmd_vel_move_base_client_config.is_some());
+        has_ros_clients |= self.navigation.is_builtin_ros()
+            || (self.navigation.is_auto() && self.ros_navigation_client_config.is_some());
+        has_ros_clients |= self.localization.is_builtin_ros()
+            || (self.localization.is_auto() && self.ros_localization_client_config.is_some());
         has_ros_clients
+    }
+
+    #[cfg(not(feature = "ros"))]
+    pub fn has_ros_clients(&self) -> bool {
+        false
     }
 
     pub fn create_robot_client<L, M, N>(&self) -> Result<RobotClient<L, M, N>, Error>
@@ -754,11 +758,13 @@ impl RobotConfig {
             .filter(|c| is_used(&c.name))
             .cloned()
             .collect();
+        #[cfg(feature = "ros")]
         let ros_clients_configs: Vec<_> = self
             .ros_clients_configs
             .iter()
             .filter(|c| is_used(&c.name))
             .collect();
+        #[cfg(feature = "ros")]
         let ros_action_clients_configs: Vec<_> = self
             .ros_action_clients_configs
             .iter()
@@ -766,8 +772,9 @@ impl RobotConfig {
             .collect();
 
         let mut urdf_robot = None;
-        // ros_clients_configs and ros_action_clients_configs are always empty
-        // when ros feature is disabled. (ensured by validate_ros_config)
+        #[cfg(not(feature = "ros"))]
+        let use_urdf = !urdf_viz_clients_configs.is_empty();
+        #[cfg(feature = "ros")]
         let use_urdf = !urdf_viz_clients_configs.is_empty()
             || !ros_clients_configs.is_empty()
             || !ros_action_clients_configs.is_empty();
