@@ -46,9 +46,15 @@ pub enum ClientKind {
 }
 
 impl ClientKind {
-    #[cfg(feature = "ros")]
+    /// Returns true if the use of the ros client is explicitly specified.
+    ///
+    /// This is always false when ros feature is disabled. (ensured by validate_ros_config)
     fn is_builtin_ros(&self) -> bool {
         matches!(self, Self::Builtin(BuiltinClient::Ros))
+    }
+
+    fn is_auto(&self) -> bool {
+        matches!(self, Self::Auto(true))
     }
 }
 
@@ -73,7 +79,6 @@ pub enum SpeakConfig {
     // A dummy variant to catch that there is a config that requires the ros feature.
     #[doc(hidden)]
     #[cfg(not(feature = "ros"))]
-    #[serde(rename = "RosEspeak")]
     RosEspeak {
         #[schemars(schema_with = "unimplemented_schema")]
         config: toml::Value,
@@ -92,11 +97,8 @@ impl Default for SpeakConfig {
 impl SpeakConfig {
     pub fn build(&self) -> Box<dyn Speaker> {
         match self {
-            #[cfg(feature = "ros")]
             SpeakConfig::RosEspeak { config } => self.create_ros_espeak_client(&config.topic),
-            #[cfg(not(feature = "ros"))]
-            SpeakConfig::RosEspeak { .. } => unreachable!(),
-            SpeakConfig::Audio { ref map } => self.create_audio_speaker(map.clone()),
+            SpeakConfig::Audio { map } => self.create_audio_speaker(map.clone()),
             SpeakConfig::Command => self.create_local_command_speaker(),
             SpeakConfig::Print => self.create_print_speaker(),
         }
@@ -130,6 +132,11 @@ impl SpeakConfig {
             debug!("create_ros_espeak_client: creating RosEspeakClient");
             Ok(RosEspeakClient::new(&topic))
         }))
+    }
+
+    #[cfg(not(feature = "ros"))]
+    fn create_ros_espeak_client(&self, _topic: &str) -> Box<dyn Speaker> {
+        unreachable!()
     }
 }
 
@@ -355,8 +362,10 @@ pub struct RobotConfig {
     pub ros_clients_configs: Vec<RosControlClientConfig>,
     // A dummy field to catch that there is a config that requires the ros feature.
     #[cfg(not(feature = "ros"))]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     #[schemars(schema_with = "unimplemented_schema")]
-    ros_clients_configs: Option<toml::Value>,
+    ros_clients_configs: Vec<toml::Value>,
 
     #[cfg(feature = "ros")]
     #[serde(default)]
@@ -365,8 +374,10 @@ pub struct RobotConfig {
     pub ros_action_clients_configs: Vec<RosControlActionClientConfig>,
     // A dummy field to catch that there is a config that requires the ros feature.
     #[cfg(not(feature = "ros"))]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     #[schemars(schema_with = "unimplemented_schema")]
-    ros_action_clients_configs: Option<toml::Value>,
+    ros_action_clients_configs: Vec<toml::Value>,
 
     #[serde(default)]
     // https://github.com/alexcrichton/toml-rs/issues/258
@@ -413,21 +424,28 @@ fn unimplemented_schema(_gen: &mut schemars::gen::SchemaGenerator) -> schemars::
 impl RobotConfig {
     const DEFAULT_SPEAKER_NAME: &'static str = "Default";
 
-    #[cfg(feature = "ros")]
+    /// Returns true if ros-related configs exist, or it is explicitly specified
+    /// that the ros client is to be used.
+    ///
+    /// This is always false when ros feature is disabled.
     pub fn has_ros_clients(&self) -> bool {
-        let mut has_ros_espeak = false;
-        let speak_configs = self.speak_configs.clone();
-        for (_, speak_config) in speak_configs {
-            has_ros_espeak |= matches!(speak_config, SpeakConfig::RosEspeak { config: _ });
+        let mut has_ros_clients = false;
+        #[cfg(feature = "ros")]
+        {
+            let speak_configs = self.speak_configs.clone();
+            for (_, speak_config) in speak_configs {
+                has_ros_clients |= matches!(speak_config, SpeakConfig::RosEspeak { .. });
+            }
+            has_ros_clients |= !self.ros_clients_configs.is_empty();
+            has_ros_clients |= !self.ros_action_clients_configs.is_empty();
+            has_ros_clients |= self.move_base.is_builtin_ros()
+                || (self.move_base.is_auto() && self.ros_cmd_vel_move_base_client_config.is_some());
+            has_ros_clients |= self.navigation.is_builtin_ros()
+                || (self.navigation.is_auto() && self.ros_navigation_client_config.is_some());
+            has_ros_clients |= self.localization.is_builtin_ros()
+                || (self.localization.is_auto() && self.ros_localization_client_config.is_some());
         }
-        !self.ros_clients_configs.is_empty()
-            || !self.ros_action_clients_configs.is_empty()
-            || has_ros_espeak
-            || self.ros_cmd_vel_move_base_client_config.is_some()
-            || self.ros_navigation_client_config.is_some()
-            || self.localization.is_builtin_ros()
-            || self.move_base.is_builtin_ros()
-            || self.navigation.is_builtin_ros()
+        has_ros_clients
     }
 
     pub fn create_robot_client<L, M, N>(&self) -> Result<RobotClient<L, M, N>, Error>
@@ -474,6 +492,11 @@ impl RobotConfig {
         })))
     }
 
+    #[cfg(not(feature = "ros"))]
+    fn create_localization_ros(&self) -> Option<Box<dyn Localization>> {
+        unreachable!()
+    }
+
     fn create_localization(
         &self,
         plugins: &mut PluginMap,
@@ -481,7 +504,6 @@ impl RobotConfig {
         let (plugin_name, instance) = match &self.localization {
             ClientKind::Auto(false) => return Ok(None),
             ClientKind::Auto(true) => {
-                #[cfg(feature = "ros")]
                 if self.ros_localization_client_config.is_some() {
                     return Ok(self.create_localization_ros());
                 }
@@ -495,7 +517,6 @@ impl RobotConfig {
                         // assumed that urdf-viz would also be used.
                         // Users who want to use both at the same time need to
                         // specify it explicitly by `localization = "urdf-viz"`.
-                        #[cfg(feature = "ros")]
                         if self.has_ros_clients() {
                             return Ok(None);
                         }
@@ -504,9 +525,6 @@ impl RobotConfig {
                     res => res?,
                 }
             }
-            #[cfg(not(feature = "ros"))]
-            ClientKind::Builtin(BuiltinClient::Ros) => unreachable!(),
-            #[cfg(feature = "ros")]
             ClientKind::Builtin(BuiltinClient::Ros) => {
                 return Ok(self.create_localization_ros());
             }
@@ -543,6 +561,11 @@ impl RobotConfig {
         })))
     }
 
+    #[cfg(not(feature = "ros"))]
+    fn create_navigation_ros(&self) -> Option<Box<dyn Navigation>> {
+        unreachable!()
+    }
+
     fn create_navigation(
         &self,
         plugins: &mut PluginMap,
@@ -550,7 +573,6 @@ impl RobotConfig {
         let (plugin_name, instance) = match &self.navigation {
             ClientKind::Auto(false) => return Ok(None),
             ClientKind::Auto(true) => {
-                #[cfg(feature = "ros")]
                 if self.ros_navigation_client_config.is_some() {
                     return Ok(self.create_navigation_ros());
                 }
@@ -564,7 +586,6 @@ impl RobotConfig {
                         // assumed that urdf-viz would also be used.
                         // Users who want to use both at the same time need to
                         // specify it explicitly by `navigation = "urdf-viz"`.
-                        #[cfg(feature = "ros")]
                         if self.has_ros_clients() {
                             return Ok(None);
                         }
@@ -573,9 +594,6 @@ impl RobotConfig {
                     res => res?,
                 }
             }
-            #[cfg(not(feature = "ros"))]
-            ClientKind::Builtin(BuiltinClient::Ros) => unreachable!(),
-            #[cfg(feature = "ros")]
             ClientKind::Builtin(BuiltinClient::Ros) => {
                 return Ok(self.create_navigation_ros());
             }
@@ -618,6 +636,11 @@ impl RobotConfig {
         })))
     }
 
+    #[cfg(not(feature = "ros"))]
+    fn create_move_base_ros(&self) -> Option<Box<dyn MoveBase>> {
+        unreachable!()
+    }
+
     fn create_move_base(
         &self,
         plugins: &mut PluginMap,
@@ -625,7 +648,6 @@ impl RobotConfig {
         let (plugin_name, instance) = match &self.move_base {
             ClientKind::Auto(false) => return Ok(None),
             ClientKind::Auto(true) => {
-                #[cfg(feature = "ros")]
                 if self.ros_cmd_vel_move_base_client_config.is_some() {
                     return Ok(self.create_move_base_ros());
                 }
@@ -639,7 +661,6 @@ impl RobotConfig {
                         // assumed that urdf-viz would also be used.
                         // Users who want to use both at the same time need to
                         // specify it explicitly by `move_base = "urdf-viz"`.
-                        #[cfg(feature = "ros")]
                         if self.has_ros_clients() {
                             return Ok(None);
                         }
@@ -648,9 +669,6 @@ impl RobotConfig {
                     res => res?,
                 }
             }
-            #[cfg(not(feature = "ros"))]
-            ClientKind::Builtin(BuiltinClient::Ros) => unreachable!(),
-            #[cfg(feature = "ros")]
             ClientKind::Builtin(BuiltinClient::Ros) => {
                 return Ok(self.create_move_base_ros());
             }
@@ -723,43 +741,33 @@ impl RobotConfig {
         &self,
         plugins: &mut PluginMap,
     ) -> Result<HashMap<String, Arc<dyn JointTrajectoryClient>>, Error> {
+        // True if the name is included in the list of clients to use
+        // or if no list is specified.
+        let is_used = |client_name| {
+            self.joint_trajectory_clients
+                .as_ref()
+                .map_or(true, |v| v.contains(client_name))
+        };
         let urdf_viz_clients_configs: Vec<_> = self
             .urdf_viz_clients_configs
             .iter()
-            .filter(|c| {
-                self.joint_trajectory_clients
-                    .as_ref()
-                    .map_or(true, |v| v.contains(&c.name))
-            })
+            .filter(|c| is_used(&c.name))
             .cloned()
             .collect();
-        #[cfg(feature = "ros")]
         let ros_clients_configs: Vec<_> = self
             .ros_clients_configs
             .iter()
-            .filter(|c| {
-                self.joint_trajectory_clients
-                    .as_ref()
-                    .map_or(true, |v| v.contains(&c.name))
-            })
-            .cloned()
+            .filter(|c| is_used(&c.name))
             .collect();
-        #[cfg(feature = "ros")]
         let ros_action_clients_configs: Vec<_> = self
             .ros_action_clients_configs
             .iter()
-            .filter(|c| {
-                self.joint_trajectory_clients
-                    .as_ref()
-                    .map_or(true, |v| v.contains(&c.name))
-            })
-            .cloned()
+            .filter(|c| is_used(&c.name))
             .collect();
 
         let mut urdf_robot = None;
-        #[cfg(not(feature = "ros"))]
-        let use_urdf = !urdf_viz_clients_configs.is_empty();
-        #[cfg(feature = "ros")]
+        // ros_clients_configs and ros_action_clients_configs are always empty
+        // when ros feature is disabled. (ensured by validate_ros_config)
         let use_urdf = !urdf_viz_clients_configs.is_empty()
             || !ros_clients_configs.is_empty()
             || !ros_action_clients_configs.is_empty();
@@ -769,26 +777,21 @@ impl RobotConfig {
             }
         }
 
-        let mut clients = if urdf_viz_clients_configs.is_empty() {
-            HashMap::new()
-        } else {
-            arci_urdf_viz::create_joint_trajectory_clients_lazy(
-                urdf_viz_clients_configs,
+        let mut clients = arci_urdf_viz::create_joint_trajectory_clients_lazy(
+            urdf_viz_clients_configs,
+            urdf_robot.as_ref(),
+        )?;
+        #[cfg(feature = "ros")]
+        {
+            clients.extend(arci_ros::create_joint_trajectory_clients_lazy(
+                ros_clients_configs,
                 urdf_robot.as_ref(),
-            )?
-        };
-
-        #[cfg(feature = "ros")]
-        clients.extend(arci_ros::create_joint_trajectory_clients_lazy(
-            ros_clients_configs,
-            urdf_robot.as_ref(),
-        )?);
-
-        #[cfg(feature = "ros")]
-        clients.extend(arci_ros::create_joint_trajectory_clients_lazy(
-            ros_action_clients_configs,
-            urdf_robot.as_ref(),
-        )?);
+            )?);
+            clients.extend(arci_ros::create_joint_trajectory_clients_lazy(
+                ros_action_clients_configs,
+                urdf_robot.as_ref(),
+            )?);
+        }
 
         for (plugin_name, config) in &self.plugins {
             for instance in config.instances.iter().filter(|instance| {
@@ -890,60 +893,13 @@ impl RobotConfig {
         let mut config: RobotConfig =
             toml::from_str(s).map_err(|e| Error::TomlParseFailure(path.to_owned(), e))?;
 
-        // Returns an error if a config requires ros feature but ros feature is disabled.
-        #[cfg(not(feature = "ros"))]
-        {
-            for (name, speak_config) in &config.speak_configs {
-                if matches!(speak_config, SpeakConfig::RosEspeak { .. }) {
-                    return Err(Error::ConfigRequireRos(format!("speak_configs.{}", name)));
-                }
-            }
-            if config.ros_clients_configs.is_some() {
-                return Err(Error::ConfigRequireRos("ros_clients_configs".into()));
-            }
-            if config.ros_action_clients_configs.is_some() {
-                return Err(Error::ConfigRequireRos("ros_action_clients_configs".into()));
-            }
-            match config.move_base {
-                ClientKind::Builtin(BuiltinClient::Ros) => {
-                    return Err(Error::ConfigRequireRos("move_base".into()));
-                }
-                ClientKind::Auto(true) if config.ros_cmd_vel_move_base_client_config.is_some() => {
-                    return Err(Error::ConfigRequireRos(
-                        "ros_cmd_vel_move_base_client_config".into(),
-                    ));
-                }
-                _ => {}
-            }
-            match config.navigation {
-                ClientKind::Builtin(BuiltinClient::Ros) => {
-                    return Err(Error::ConfigRequireRos("navigation".into()));
-                }
-                ClientKind::Auto(true) if config.ros_navigation_client_config.is_some() => {
-                    return Err(Error::ConfigRequireRos(
-                        "ros_navigation_client_config".into(),
-                    ));
-                }
-                _ => {}
-            }
-            match config.localization {
-                ClientKind::Builtin(BuiltinClient::Ros) => {
-                    return Err(Error::ConfigRequireRos("localization".into()));
-                }
-                ClientKind::Auto(true) if config.ros_localization_client_config.is_some() => {
-                    return Err(Error::ConfigRequireRos(
-                        "ros_localization_client_config".into(),
-                    ));
-                }
-                _ => {}
-            }
-        }
+        config.validate_ros_config()?;
 
         if config.openrr_clients_config.urdf_path.is_some() {
             config.openrr_clients_config.resolve_path(path)?;
         }
         for speak_config in config.speak_configs.values_mut() {
-            if let SpeakConfig::Audio { ref mut map } = speak_config {
+            if let SpeakConfig::Audio { map } = speak_config {
                 resolve_audio_file_path(path, map)?;
             }
         }
@@ -958,5 +914,58 @@ impl RobotConfig {
         }
         debug!("{:?}", config);
         Ok(config)
+    }
+
+    /// Returns an error if a config requires ros feature but ros feature is disabled.
+    fn validate_ros_config(&self) -> Result<(), Error> {
+        if cfg!(feature = "ros") {
+            return Ok(());
+        }
+
+        for (name, speak_config) in &self.speak_configs {
+            if matches!(speak_config, SpeakConfig::RosEspeak { .. }) {
+                return Err(Error::ConfigRequireRos(format!("speak_configs.{}", name)));
+            }
+        }
+        if !self.ros_clients_configs.is_empty() {
+            return Err(Error::ConfigRequireRos("ros_clients_configs".into()));
+        }
+        if !self.ros_action_clients_configs.is_empty() {
+            return Err(Error::ConfigRequireRos("ros_action_clients_configs".into()));
+        }
+        match self.move_base {
+            ClientKind::Builtin(BuiltinClient::Ros) => {
+                return Err(Error::ConfigRequireRos("move_base".into()));
+            }
+            ClientKind::Auto(true) if self.ros_cmd_vel_move_base_client_config.is_some() => {
+                return Err(Error::ConfigRequireRos(
+                    "ros_cmd_vel_move_base_client_config".into(),
+                ));
+            }
+            _ => {}
+        }
+        match self.navigation {
+            ClientKind::Builtin(BuiltinClient::Ros) => {
+                return Err(Error::ConfigRequireRos("navigation".into()));
+            }
+            ClientKind::Auto(true) if self.ros_navigation_client_config.is_some() => {
+                return Err(Error::ConfigRequireRos(
+                    "ros_navigation_client_config".into(),
+                ));
+            }
+            _ => {}
+        }
+        match self.localization {
+            ClientKind::Builtin(BuiltinClient::Ros) => {
+                return Err(Error::ConfigRequireRos("localization".into()));
+            }
+            ClientKind::Auto(true) if self.ros_localization_client_config.is_some() => {
+                return Err(Error::ConfigRequireRos(
+                    "ros_localization_client_config".into(),
+                ));
+            }
+            _ => {}
+        }
+        Ok(())
     }
 }

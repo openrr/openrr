@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use arci::JointTrajectoryClient;
+use auto_impl::auto_impl;
 use once_cell::sync::Lazy;
 
 use crate::JointTrajectoryClientWrapperConfig;
@@ -9,6 +10,7 @@ pub trait JointStateProvider {
     fn get_joint_state(&self) -> Result<(Vec<String>, Vec<f64>), arci::Error>;
 }
 
+#[auto_impl(&)]
 pub trait RosControlClientBuilder {
     fn build_joint_state_provider(
         &self,
