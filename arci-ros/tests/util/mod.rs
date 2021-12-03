@@ -34,9 +34,8 @@ pub fn run_roscore(port: u32) -> ChildProcessTerminator {
         println!("Waiting port={}", port);
         sleep(Duration::from_millis(100));
     }
-    let roscore = ChildProcessTerminator::spawn(
-        &mut Command::new("roscore").arg("-p").arg(format!("{}", port)),
-    );
+    let roscore =
+        ChildProcessTerminator::spawn(Command::new("roscore").arg("-p").arg(format!("{}", port)));
     await_roscore();
     roscore
 }

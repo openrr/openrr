@@ -198,8 +198,13 @@ jobs:
   # When this job failed, run tools/gen-code.sh and commit result changes.
   codegen:
     runs-on: ubuntu-latest
+    env:
+      PROTOC: /usr/bin/protoc
     steps:
       - uses: actions/checkout@v2
+      - run: |
+          sudo apt-get update
+          sudo apt-get -y install protobuf-compiler
       - name: Install Rust
         run: |
           rustup toolchain install ${{ env.nightly }} --component rustfmt
