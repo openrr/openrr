@@ -96,13 +96,13 @@ impl Default for SpeakConfig {
 }
 
 impl SpeakConfig {
-    pub fn build(&self) -> Box<dyn Speaker> {
-        match self {
+    pub fn build(&self) -> Result<Box<dyn Speaker>, Error> {
+        Ok(match self {
             SpeakConfig::RosEspeak { config } => self.create_ros_espeak_client(config),
-            SpeakConfig::Audio { map } => self.create_audio_speaker(map.clone()),
+            SpeakConfig::Audio { map } => self.create_audio_speaker(map.clone())?,
             SpeakConfig::Command => self.create_local_command_speaker(),
             SpeakConfig::Print => self.create_print_speaker(),
-        }
+        })
     }
 
     fn create_print_speaker(&self) -> Box<dyn Speaker> {
@@ -119,11 +119,19 @@ impl SpeakConfig {
         }))
     }
 
-    fn create_audio_speaker(&self, hash_map: HashMap<String, PathBuf>) -> Box<dyn Speaker> {
-        Box::new(arci::Lazy::new(move || {
+    fn create_audio_speaker(
+        &self,
+        mut hash_map: HashMap<String, PathBuf>,
+    ) -> Result<Box<dyn Speaker>, Error> {
+        for path in hash_map.values_mut() {
+            *path = openrr_config::evaluate(path.to_str().unwrap(), None)
+                .map_err(arci::Error::Other)?
+                .into();
+        }
+        Ok(Box::new(arci::Lazy::new(move || {
             debug!("create_audio_speaker: creating AudioSpeaker");
             Ok(AudioSpeaker::new(hash_map))
-        }))
+        })))
     }
 
     #[cfg(feature = "ros")]
@@ -703,7 +711,7 @@ impl RobotConfig {
             .iter()
             .filter(|(name, _)| self.speakers.as_ref().map_or(true, |v| v.contains(name)))
         {
-            speakers.insert(name.to_owned(), speak_config.build().into());
+            speakers.insert(name.to_owned(), speak_config.build()?.into());
         }
 
         for (plugin_name, config) in &self.plugins {
@@ -735,7 +743,7 @@ impl RobotConfig {
         if self.speakers.is_none() && speakers.is_empty() {
             speakers.insert(
                 Self::DEFAULT_SPEAKER_NAME.to_owned(),
-                SpeakConfig::default().build().into(),
+                SpeakConfig::default().build()?.into(),
             );
         }
         Ok(speakers)
