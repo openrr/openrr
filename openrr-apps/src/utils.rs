@@ -3,6 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use openrr_config::evaluate;
 use rand::prelude::*;
 use serde::Deserialize;
 use tracing::{debug, warn, Event, Level, Subscriber};
@@ -39,6 +40,10 @@ pub fn get_apps_robot_config(config: Option<PathBuf>) -> Option<PathBuf> {
     }
 }
 
+fn evaluate_overwrite_str(doc: &str, scripts: &str) -> anyhow::Result<String> {
+    openrr_config::overwrite_str(&evaluate(doc, None)?, &evaluate(scripts, None)?)
+}
+
 pub fn resolve_robot_config(
     config_path: Option<&Path>,
     overwrite: Option<&str>,
@@ -46,10 +51,13 @@ pub fn resolve_robot_config(
     match (config_path, overwrite) {
         (Some(config_path), Some(overwrite)) => {
             let s = &fs::read_to_string(&config_path)?;
-            let s = &openrr_config::overwrite_str(s, overwrite)?;
+            let s = &evaluate_overwrite_str(s, overwrite)?;
             Ok(RobotConfig::from_str(s, config_path)?)
         }
-        (Some(config_path), None) => Ok(RobotConfig::new(config_path)?),
+        (Some(config_path), None) => {
+            let s = &evaluate(&fs::read_to_string(&config_path)?, None)?;
+            Ok(RobotConfig::from_str(s, config_path)?)
+        }
         (None, overwrite) => {
             let mut config = RobotConfig::default();
             config
@@ -64,7 +72,7 @@ pub fn resolve_robot_config(
                 });
             if let Some(overwrite) = overwrite {
                 let s = &toml::to_string(&config)?;
-                let s = &openrr_config::overwrite_str(s, overwrite)?;
+                let s = &evaluate_overwrite_str(s, overwrite)?;
                 config = toml::from_str(s)?;
             }
             Ok(config)
@@ -79,16 +87,19 @@ pub fn resolve_teleop_config(
     match (config_path, overwrite) {
         (Some(teleop_config_path), Some(overwrite)) => {
             let s = &fs::read_to_string(&teleop_config_path)?;
-            let s = &openrr_config::overwrite_str(s, overwrite)?;
+            let s = &evaluate_overwrite_str(s, overwrite)?;
             Ok(RobotTeleopConfig::from_str(s, teleop_config_path)?)
         }
-        (Some(teleop_config_path), None) => Ok(RobotTeleopConfig::new(teleop_config_path)?),
+        (Some(teleop_config_path), None) => {
+            let s = &evaluate(&fs::read_to_string(&teleop_config_path)?, None)?;
+            Ok(RobotTeleopConfig::from_str(s, teleop_config_path)?)
+        }
         (None, overwrite) => {
             let mut config = RobotTeleopConfig::default();
             config.control_nodes_config.move_base_mode = Some("base".into());
             if let Some(overwrite) = overwrite {
                 let s = &toml::to_string(&config)?;
-                let s = &openrr_config::overwrite_str(s, overwrite)?;
+                let s = &evaluate_overwrite_str(s, overwrite)?;
                 config = toml::from_str(s)?;
             }
             Ok(config)
