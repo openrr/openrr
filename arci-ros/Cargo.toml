@@ -21,7 +21,7 @@ ros-nalgebra = "0.0.5"
 rosrust = "0.9"
 schemars = "0.8.3"
 serde = { version = "1", features = ["derive"] }
-tf_rosrust = "0.0.4"
+tf_rosrust = "0.0.5"
 thiserror = "1.0"
 tokio = { version = "1.0", features = ["full"] }
 tracing = { version = "0.1", features = ["log"] }
