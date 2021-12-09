@@ -278,3 +278,7 @@ rustyline
 uuid
 attr
 rrbot
+esac
+euo
+noprofile
+norc
