@@ -4,7 +4,7 @@ use std::{mem, path::Path};
 
 use anyhow::Result;
 use fs_err as fs;
-use heck::SnakeCase;
+use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
