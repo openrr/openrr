@@ -11,8 +11,8 @@ use urdf_viz::WebServer;
 use url::Url;
 
 fn port_and_url() -> (u16, Url) {
-    static PORT: AtomicU16 = AtomicU16::new(51200);
-    let port = PORT.fetch_add(1, Ordering::Relaxed);
+    static PORT: AtomicU16 = AtomicU16::new(52000);
+    let port = PORT.fetch_add(1, Ordering::SeqCst);
     let url = Url::parse(&format!("http://127.0.0.1:{}", port)).unwrap();
     (port, url)
 }
