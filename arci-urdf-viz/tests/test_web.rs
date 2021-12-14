@@ -1,8 +1,4 @@
-use std::{
-    f64,
-    sync::atomic::{AtomicU16, Ordering},
-    time::Duration,
-};
+use std::{f64, time::Duration};
 
 use arci::{nalgebra, Localization, MoveBase, Navigation};
 use arci_urdf_viz::*;
@@ -11,8 +7,7 @@ use urdf_viz::WebServer;
 use url::Url;
 
 fn port_and_url() -> (u16, Url) {
-    static PORT: AtomicU16 = AtomicU16::new(52000);
-    let port = PORT.fetch_add(1, Ordering::SeqCst);
+    let port = portpicker::pick_unused_port().expect("No ports free");
     let url = Url::parse(&format!("http://127.0.0.1:{}", port)).unwrap();
     (port, url)
 }
