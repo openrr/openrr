@@ -1,4 +1,4 @@
-use std::{path::Path, time::Duration};
+use std::{path::Path, sync::Arc, time::Duration};
 
 use k::nalgebra as na;
 use na::RealField;
@@ -7,21 +7,18 @@ use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::{
-    collision::{
-        create_robot_collision_detector, parse_colon_separated_pairs, RobotCollisionDetector,
-        RobotCollisionDetectorConfig,
-    },
-    errors::*,
-    interpolate, TrajectoryPoint,
+    collision::parse_colon_separated_pairs, errors::*, interpolate, CollisionDetector,
+    TrajectoryPoint,
 };
 
 pub struct SelfCollisionChecker<N>
 where
     N: RealField + Copy + k::SubsetOf<f64>,
 {
-    /// Robot collision detector
-    pub robot_collision_detector: RobotCollisionDetector<N>,
-    /// Rate of time interpolation
+    pub collision_check_robot: Arc<k::Chain<N>>,
+    pub collision_detector: CollisionDetector<N>,
+    pub collision_pairs: Vec<(String, String)>,
+
     pub time_interpolate_rate: N,
 }
 
@@ -31,7 +28,9 @@ where
 {
     #[track_caller]
     pub fn new(
-        robot_collision_detector: RobotCollisionDetector<N>,
+        collision_check_robot: Arc<k::Chain<N>>,
+        collision_detector: CollisionDetector<N>,
+        collision_pairs: Vec<(String, String)>,
         time_interpolate_rate: N,
     ) -> Self {
         assert!(
@@ -41,7 +40,9 @@ where
         );
 
         Self {
-            robot_collision_detector,
+            collision_check_robot,
+            collision_detector,
+            collision_pairs,
             time_interpolate_rate,
         }
     }
@@ -53,7 +54,7 @@ where
         duration: std::time::Duration,
     ) -> Result<()> {
         self.check_partial_joint_positions(
-            &self.robot_collision_detector.robot,
+            &self.collision_check_robot,
             current,
             positions,
             duration,
@@ -84,7 +85,7 @@ where
     }
 
     pub fn check_joint_trajectory(&self, trajectory: &[TrajectoryPoint<N>]) -> Result<()> {
-        self.check_partial_joint_trajectory(&self.robot_collision_detector.robot, trajectory)
+        self.check_partial_joint_trajectory(&self.collision_check_robot, trajectory)
     }
 
     pub fn check_partial_joint_trajectory(
@@ -94,8 +95,10 @@ where
     ) -> Result<()> {
         for v in trajectory {
             using_joints.set_joint_positions_clamped(&v.position);
-            self.robot_collision_detector.robot.update_transforms();
-            let mut self_checker = self.robot_collision_detector.detect_self();
+            self.collision_check_robot.update_transforms();
+            let mut self_checker = self
+                .collision_detector
+                .detect_self(&self.collision_check_robot, &self.collision_pairs);
             if let Some(names) = self_checker.next() {
                 return Err(Error::Collision {
                     point: UnfeasibleTrajectory::StartPoint,
@@ -142,22 +145,28 @@ pub fn create_self_collision_checker<P: AsRef<Path>>(
     urdf_path: P,
     self_collision_check_pairs: &[String],
     config: &SelfCollisionCheckerConfig,
+    full_chain: Arc<k::Chain<f64>>,
 ) -> SelfCollisionChecker<f64> {
-    let robot_collision_detector = create_robot_collision_detector(
-        urdf_path,
-        RobotCollisionDetectorConfig::new(config.prediction),
+    SelfCollisionChecker::new(
+        full_chain,
+        CollisionDetector::from_urdf_robot(
+            &urdf_rs::utils::read_urdf_or_xacro(urdf_path).unwrap(),
+            config.prediction,
+        ),
         parse_colon_separated_pairs(self_collision_check_pairs).unwrap(),
-    );
-    SelfCollisionChecker::new(robot_collision_detector, config.time_interpolate_rate)
+        config.time_interpolate_rate,
+    )
 }
 
 #[test]
 fn test_create_self_collision_checker() {
-    let urdf_path = Path::new("sample.urdf");
+    let urdf_robot = urdf_rs::read_file("sample.urdf").unwrap();
+    let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
     let self_collision_checker = create_self_collision_checker(
-        urdf_path,
+        "sample.urdf",
         &["root:l_shoulder_roll".into()],
         &SelfCollisionCheckerConfig::default(),
+        robot.clone(),
     );
 
     assert!(self_collision_checker
@@ -171,7 +180,6 @@ fn test_create_self_collision_checker() {
         )
         .is_err());
 
-    let robot = &self_collision_checker.robot_collision_detector.robot;
     let nodes = robot.iter().take(2).map(|node| (*node).clone()).collect();
     let using_joints = k::Chain::<f64>::from_nodes(nodes);
 
