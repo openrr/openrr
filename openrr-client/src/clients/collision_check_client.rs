@@ -79,22 +79,24 @@ pub fn create_collision_check_client<P: AsRef<Path>>(
     self_collision_check_pairs: &[String],
     config: &SelfCollisionCheckerConfig,
     client: Arc<dyn JointTrajectoryClient>,
+    full_chain: Arc<k::Chain<f64>>,
 ) -> CollisionCheckClient<Arc<dyn JointTrajectoryClient>> {
-    let collision_checker = Arc::new(create_self_collision_checker(
-        urdf_path,
-        self_collision_check_pairs,
-        config,
-    ));
-    // Reconstructs a robot chain to define using_joints without life-parameters
-    let nodes = collision_checker
-        .robot_collision_detector
-        .robot
+    let joint_names = client.joint_names();
+    let nodes = joint_names
         .iter()
-        .map(|node| (*node).clone())
+        .map(|joint_name| (*full_chain.find(joint_name).unwrap()).clone())
         .collect();
     let using_joints = k::Chain::<f64>::from_nodes(nodes);
-
-    CollisionCheckClient::new(client, using_joints, collision_checker)
+    CollisionCheckClient::new(
+        client,
+        using_joints,
+        Arc::new(create_self_collision_checker(
+            urdf_path,
+            self_collision_check_pairs,
+            config,
+            full_chain,
+        )),
+    )
 }
 
 #[cfg(test)]
@@ -105,7 +107,7 @@ mod tests {
     async fn test_create_collision_check_client() {
         let urdf_path = Path::new("sample.urdf");
         let urdf_robot = urdf_rs::read_file(urdf_path).unwrap();
-        let robot = k::Chain::<f64>::from(&urdf_robot);
+        let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
         let client = arci::DummyJointTrajectoryClient::new(
             robot
                 .iter_joints()
@@ -123,6 +125,7 @@ mod tests {
             &["root:l_shoulder_roll".into()],
             &SelfCollisionCheckerConfig::default(),
             Arc::new(client),
+            robot,
         );
 
         assert_eq!(
@@ -164,6 +167,7 @@ mod tests {
             &["root:l_shoulder_roll".into()],
             &SelfCollisionCheckerConfig::default(),
             Arc::new(client),
+            robot,
         );
 
         assert_eq!(
