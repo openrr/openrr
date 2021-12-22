@@ -153,9 +153,15 @@ jobs:
           cargo test --no-default-features --features ros,assimp
 
   ros2_arci_ros2:
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - foxy
+          - galactic
     runs-on: ubuntu-20.04
     container:
-      image: docker://ros:foxy
+      image: docker://ros:${{ matrix.distro }}
     env:
       HOME: /root
     steps:
@@ -163,7 +169,7 @@ jobs:
       - run: |
           apt-get update
           apt-get -y install curl libclang-dev
-          apt-get -y install ros-foxy-geometry-msgs ros-foxy-nav2-msgs
+          apt-get -y install ros-${{ matrix.distro }}-geometry-msgs ros-${{ matrix.distro }}-nav2-msgs
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -174,13 +180,13 @@ jobs:
         shell: bash -ieo pipefail {0}
         working-directory: arci-ros2
         run: |
-          source /opt/ros/foxy/setup.bash
+          source /opt/ros/${{ matrix.distro }}/setup.bash
           cargo build --features ros2 --examples
       - name: cargo test
         shell: bash -ieo pipefail {0}
         working-directory: arci-ros2
         run: |
-          source /opt/ros/foxy/setup.bash
+          source /opt/ros/${{ matrix.distro }}/setup.bash
           cargo test --features ros2
 
   # TODO(taiki-e): Some configs use HashMap and the order of the default values
