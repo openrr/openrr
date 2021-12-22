@@ -33,7 +33,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             ros-noetic-ros-base ros-noetic-joy ros-noetic-pr2-description \
-            ros-foxy-ros-core ros-foxy-geometry-msgs ros-foxy-nav2-msgs
+            ros-foxy-ros-core ros-foxy-geometry-msgs ros-foxy-nav2-msgs ros-foxy-ros2-control ros-foxy-ros2-controllers
       # rustfmt is for openrr-remote (tonic-build)
       - name: Install Rust
         run: |
