@@ -15,8 +15,10 @@
 mod cmd_vel_move_base;
 mod navigation;
 mod plugin;
+mod ros2_control;
 
 pub use cmd_vel_move_base::*;
 pub use navigation::*;
 // re-export
 pub use r2r;
+pub use ros2_control::*;
