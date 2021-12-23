@@ -18,6 +18,10 @@ const NO_MOTION_UPDATE_SERVICE: &str = "request_nomotion_update";
 #[serde(deny_unknown_fields)]
 pub struct RosLocalizationClientConfig {
     pub request_final_nomotion_update_hack: bool,
+    #[serde(default = "default_nomotion_update_service_name")]
+    pub nomotion_update_service_name: String,
+    #[serde(default = "default_amcl_pose_topic_name")]
+    pub amcl_pose_topic_name: String,
 }
 
 /// Build RosLocalizationClient interactively.
@@ -29,10 +33,8 @@ pub struct RosLocalizationClientConfig {
 /// ```
 #[derive(Clone, Debug)]
 pub struct RosLocalizationClientBuilder {
-    /* TODO
     amcl_pose_topic_name: String,
-    no_motion_update_service: String,
-    */
+    nomotion_update_service_name: String,
     request_final_nomotion_update_hack: bool,
 }
 
@@ -46,10 +48,8 @@ impl RosLocalizationClientBuilder {
     /// ```
     pub fn new() -> Self {
         Self {
-            /* TODO:
             amcl_pose_topic_name: AMCL_POSE_TOPIC.to_string(),
-            no_motion_update_service: NO_MOTION_UPDATE_SERVICE.to_string(),
-            */
+            nomotion_update_service_name: NO_MOTION_UPDATE_SERVICE.to_string(),
             request_final_nomotion_update_hack: false,
         }
     }
@@ -75,7 +75,11 @@ impl RosLocalizationClientBuilder {
     /// let client = arci_ros::RosLocalizationClientBuilder::new().finalize();
     /// ```
     pub fn finalize(self) -> RosLocalizationClient {
-        RosLocalizationClient::new(self.request_final_nomotion_update_hack)
+        RosLocalizationClient::new(
+            self.request_final_nomotion_update_hack,
+            self.nomotion_update_service_name,
+            self.amcl_pose_topic_name,
+        )
     }
 }
 
@@ -88,29 +92,39 @@ impl Default for RosLocalizationClientBuilder {
 pub struct RosLocalizationClient {
     pose_subscriber: SubscriberHandler<msg::geometry_msgs::PoseWithCovarianceStamped>,
     nomotion_update_client: Option<rosrust::Client<msg::std_srvs::Empty>>,
+    amcl_pose_topic_name: String,
 }
 
 impl RosLocalizationClient {
-    pub fn new(request_final_nomotion_update_hack: bool) -> Self {
-        let pose_subscriber = SubscriberHandler::new(AMCL_POSE_TOPIC, 1);
+    pub fn new(
+        request_final_nomotion_update_hack: bool,
+        nomotion_update_service_name: String,
+        amcl_pose_topic_name: String,
+    ) -> Self {
+        let pose_subscriber = SubscriberHandler::new(&amcl_pose_topic_name, 1);
         let nomotion_update_client = if request_final_nomotion_update_hack {
             rosrust::wait_for_service(
-                NO_MOTION_UPDATE_SERVICE,
+                &nomotion_update_service_name,
                 Some(std::time::Duration::from_secs(10)),
             )
             .unwrap();
-            Some(rosrust::client::<msg::std_srvs::Empty>(NO_MOTION_UPDATE_SERVICE).unwrap())
+            Some(rosrust::client::<msg::std_srvs::Empty>(&nomotion_update_service_name).unwrap())
         } else {
             None
         };
         Self {
             pose_subscriber,
             nomotion_update_client,
+            amcl_pose_topic_name,
         }
     }
 
     pub fn new_from_config(config: RosLocalizationClientConfig) -> Self {
-        Self::new(config.request_final_nomotion_update_hack)
+        Self::new(
+            config.request_final_nomotion_update_hack,
+            config.nomotion_update_service_name,
+            config.amcl_pose_topic_name,
+        )
     }
 
     pub fn request_nomotion_update(&self) {
@@ -131,7 +145,7 @@ impl Localization for RosLocalizationClient {
             self.pose_subscriber
                 .get()?
                 .ok_or_else(|| Error::Connection {
-                    message: format!("Failed to get pose from {}", AMCL_POSE_TOPIC),
+                    message: format!("Failed to get pose from {}", self.amcl_pose_topic_name),
                 })?;
         let pose: na::Isometry3<f64> = pose_with_cov_stamped.pose.pose.into();
 
@@ -140,4 +154,12 @@ impl Localization for RosLocalizationClient {
             pose.rotation.euler_angles().2,
         ))
     }
+}
+
+fn default_nomotion_update_service_name() -> String {
+    NO_MOTION_UPDATE_SERVICE.to_string()
+}
+
+fn default_amcl_pose_topic_name() -> String {
+    AMCL_POSE_TOPIC.to_string()
 }
