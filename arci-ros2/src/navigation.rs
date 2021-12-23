@@ -28,10 +28,17 @@ pub struct Ros2Navigation {
 unsafe impl Sync for Ros2Navigation {}
 
 impl Ros2Navigation {
-    /// Create instance from ROS2 context and name of action
+    /// Creates a new `Ros2Navigation` from ROS2 context and name of action.
+    #[track_caller]
     pub fn new(ctx: r2r::Context, action_name: &str) -> Self {
-        // TODO: Use unique name
-        let mut node = r2r::Node::create(ctx, "nav2_node", "arci_ros2").unwrap();
+        // TODO: Consider using unique name
+        let node = r2r::Node::create(ctx, "nav2_node", "arci_ros2").unwrap();
+        Self::from_node(node, action_name)
+    }
+
+    /// Creates a new `Ros2Navigation` from ROS2 node and name of action.
+    #[track_caller]
+    pub fn from_node(mut node: r2r::Node, action_name: &str) -> Self {
         let action_client = node
             .create_action_client::<NavigateToPose::Action>(action_name)
             .unwrap();

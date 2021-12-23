@@ -10,10 +10,17 @@ pub struct Ros2CmdVelMoveBase {
 }
 
 impl Ros2CmdVelMoveBase {
-    /// Create Ros2CmdVelMoveBase from ROS2 context and Twist topic name
+    /// Creates a new `Ros2CmdVelMoveBase` from ROS2 context and Twist topic name.
+    #[track_caller]
     pub fn new(ctx: r2r::Context, cmd_topic_name: &str) -> Self {
-        // TODO: Use unique name
-        let mut node = r2r::Node::create(ctx, "cmd_vel_node", "arci_ros2").unwrap();
+        // TODO: Consider using unique name
+        let node = r2r::Node::create(ctx, "cmd_vel_node", "arci_ros2").unwrap();
+        Self::from_node(node, cmd_topic_name)
+    }
+
+    /// Creates a new `Ros2CmdVelMoveBase` from ROS2 node and Twist topic name.
+    #[track_caller]
+    pub fn from_node(mut node: r2r::Node, cmd_topic_name: &str) -> Self {
         Self {
             vel_publisher: node.create_publisher(cmd_topic_name).unwrap(),
             _node: node,
