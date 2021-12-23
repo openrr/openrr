@@ -35,11 +35,9 @@ const CLEAR_COSTMAP_SERVICE: &str = "/move_base/clear_costmaps";
 /// ```
 #[derive(Clone, Debug)]
 pub struct RosNavClientBuilder {
-    /* TODO
-    move_base_action_name: String,
-    amcl_pose_topic_name: String,
-    no_motion_update_service: String,
-    */
+    move_base_action_base_name: String,
+    clear_costmap_service_name: String,
+    nomotion_update_service_name: String,
     request_final_nomotion_update_hack: bool,
     clear_costmap_before_start: bool,
 }
@@ -54,11 +52,9 @@ impl RosNavClientBuilder {
     /// ```
     pub fn new() -> Self {
         Self {
-            /* TODO:
-            move_base_action_name: MOVE_BASE_ACTION.to_string(),
-            amcl_pose_topic_name: AMCL_POSE_TOPIC.to_string(),
-            no_motion_update_service: NO_MOTION_UPDATE_SERVICE.to_string(),
-            */
+            move_base_action_base_name: MOVE_BASE_ACTION.to_string(),
+            clear_costmap_service_name: CLEAR_COSTMAP_SERVICE.to_string(),
+            nomotion_update_service_name: NO_MOTION_UPDATE_SERVICE.to_string(),
             request_final_nomotion_update_hack: false,
             clear_costmap_before_start: false,
         }
@@ -99,7 +95,12 @@ impl RosNavClientBuilder {
     /// let client = arci_ros::RosNavClientBuilder::new().finalize();
     /// ```
     pub fn finalize(self) -> RosNavClient {
-        let mut c = RosNavClient::new(self.request_final_nomotion_update_hack);
+        let mut c = RosNavClient::new(
+            self.request_final_nomotion_update_hack,
+            self.move_base_action_base_name,
+            self.nomotion_update_service_name,
+            self.clear_costmap_service_name,
+        );
         c.clear_costmap_before_start = self.clear_costmap_before_start;
         c
     }
@@ -116,19 +117,26 @@ pub struct RosNavClient {
     pub clear_costmap_before_start: bool,
     action_client: Arc<SimpleActionClient>,
     nomotion_update_client: Option<rosrust::Client<std_srvs::Empty>>,
+    nomotion_update_service_name: String,
+    clear_costmap_service_name: String,
 }
 
 impl RosNavClient {
-    pub fn new(request_final_nomotion_update_hack: bool) -> Self {
-        let action_client = SimpleActionClient::new(MOVE_BASE_ACTION, 1);
+    pub fn new(
+        request_final_nomotion_update_hack: bool,
+        move_base_action_base_name: String,
+        nomotion_update_service_name: String,
+        clear_costmap_service_name: String,
+    ) -> Self {
+        let action_client = SimpleActionClient::new(&move_base_action_base_name, 1);
 
         let nomotion_update_client = if request_final_nomotion_update_hack {
             rosrust::wait_for_service(
-                NO_MOTION_UPDATE_SERVICE,
+                &nomotion_update_service_name,
                 Some(std::time::Duration::from_secs(10)),
             )
             .unwrap();
-            Some(rosrust::client::<std_srvs::Empty>(NO_MOTION_UPDATE_SERVICE).unwrap())
+            Some(rosrust::client::<std_srvs::Empty>(&nomotion_update_service_name).unwrap())
         } else {
             None
         };
@@ -136,21 +144,32 @@ impl RosNavClient {
             clear_costmap_before_start: false,
             action_client: Arc::new(action_client),
             nomotion_update_client,
+            nomotion_update_service_name,
+            clear_costmap_service_name,
         }
     }
 
     pub fn new_from_config(config: RosNavClientConfig) -> Self {
-        let mut s = Self::new(config.request_final_nomotion_update_hack);
+        let mut s = Self::new(
+            config.request_final_nomotion_update_hack,
+            config.move_base_action_base_name,
+            config.nomotion_update_service_name,
+            config.clear_costmap_service_name,
+        );
         s.clear_costmap_before_start = config.clear_costmap_before_start;
         s
     }
 
     pub fn clear_costmap(&self) -> Result<(), Error> {
         // Wait ten seconds for the service to appear
-        rosrust::wait_for_service(CLEAR_COSTMAP_SERVICE, Some(time::Duration::from_secs(10)))
-            .unwrap();
+        rosrust::wait_for_service(
+            &self.clear_costmap_service_name,
+            Some(time::Duration::from_secs(10)),
+        )
+        .unwrap();
         // Create a client and call service
-        let client = rosrust::client::<msg::std_srvs::Empty>(CLEAR_COSTMAP_SERVICE).unwrap();
+        let client =
+            rosrust::client::<msg::std_srvs::Empty>(&self.clear_costmap_service_name).unwrap();
         client.req(&msg::std_srvs::EmptyReq {}).unwrap().unwrap();
         rosrust::ros_info!("requested to clear costmaps");
         Ok(())
@@ -166,7 +185,7 @@ impl RosNavClient {
                 rosrust::ros_info!("Action succeeds");
                 if let Some(client) = self.nomotion_update_client.as_ref() {
                     client.req(&std_srvs::EmptyReq {}).unwrap().unwrap();
-                    rosrust::ros_info!("Called {}", NO_MOTION_UPDATE_SERVICE);
+                    rosrust::ros_info!("Called {}", self.nomotion_update_service_name);
                 }
                 Ok(())
             }
@@ -235,4 +254,22 @@ impl Navigation for RosNavClient {
 pub struct RosNavClientConfig {
     pub request_final_nomotion_update_hack: bool,
     pub clear_costmap_before_start: bool,
+    #[serde(default = "default_move_base_action_base_name")]
+    pub move_base_action_base_name: String,
+    #[serde(default = "default_nomotion_update_service_name")]
+    pub nomotion_update_service_name: String,
+    #[serde(default = "default_clear_costmap_service_name")]
+    pub clear_costmap_service_name: String,
+}
+
+fn default_move_base_action_base_name() -> String {
+    MOVE_BASE_ACTION.to_string()
+}
+
+fn default_nomotion_update_service_name() -> String {
+    NO_MOTION_UPDATE_SERVICE.to_string()
+}
+
+fn default_clear_costmap_service_name() -> String {
+    CLEAR_COSTMAP_SERVICE.to_string()
 }

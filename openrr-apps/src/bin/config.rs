@@ -43,8 +43,8 @@ arg_enum! {
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum Config {
-    RobotConfig(openrr_apps::RobotConfig),
-    RobotTeleopConfig(openrr_apps::RobotTeleopConfig),
+    RobotConfig(Box<openrr_apps::RobotConfig>),
+    RobotTeleopConfig(Box<openrr_apps::RobotTeleopConfig>),
 }
 
 fn main() -> Result<()> {
