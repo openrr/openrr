@@ -112,8 +112,7 @@ impl CollisionAvoidApp {
             .path_planner
             .robot_collision_detector
             .robot
-            .set_joint_positions(&ja)
-            .unwrap();
+            .set_joint_positions_clamped(&ja);
         self.viewer
             .update(&self.planner.path_planner.robot_collision_detector.robot);
     }
@@ -312,14 +311,21 @@ impl CollisionAvoidApp {
                                 rotation_z: !self.ignore_rotation_z,
                                 ..Default::default()
                             };
+                            const MAX_X: f64 = 1.5;
+                            const MIN_X: f64 = -1.5;
+                            const MAX_Y: f64 = 1.5;
+                            const MIN_Y: f64 = -1.5;
+                            const MAX_Z: f64 = 1.5;
+                            const MIN_Z: f64 = -0.5;
+                            const UNIT_LENGTH: f64 = 0.2;
                             for v in openrr_planner::get_reachable_region(
                                 &self.planner.ik_solver,
                                 &self.arm,
                                 &self.ik_target_pose,
                                 &c,
-                                na::Vector3::new(1.5, 1.5, 1.5),
-                                na::Vector3::new(-1.5, -1.5, -0.5),
-                                0.2,
+                                na::Vector3::new(MAX_X, MAX_Y, MAX_Z),
+                                na::Vector3::new(MIN_X, MIN_Y, MIN_Z),
+                                UNIT_LENGTH,
                             ) {
                                 let mut c = window.add_cube(0.05, 0.04, 0.03);
                                 c.prepend_to_local_transformation(&na::convert(v));
