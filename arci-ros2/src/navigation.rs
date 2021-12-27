@@ -16,6 +16,8 @@ use r2r::{
 };
 use serde::{Deserialize, Serialize};
 
+use crate::utils;
+
 /// Implement arci::Navigation for ROS2
 pub struct Ros2Navigation {
     action_client: r2r::ActionClient<NavigateToPose::Action>,
@@ -82,51 +84,43 @@ impl Navigation for Ros2Navigation {
         let is_available = node.lock().is_available(&self.action_client).unwrap();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let frame_id = frame_id.to_owned();
-        std::thread::spawn(move || {
-            tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .unwrap()
-                .block_on(async move {
-                    let current_goal_clone = current_goal.clone();
-                    tokio::spawn(async move {
-                        let mut clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
-                        let now = clock.get_now().unwrap();
-                        let goal = NavigateToPose::Goal {
-                            pose: msg::PoseStamped {
-                                header: Header {
-                                    frame_id: frame_id.to_string(),
-                                    stamp: Time {
-                                        sec: now.as_secs() as i32,
-                                        nanosec: now.subsec_nanos(),
-                                    },
-                                },
-                                pose: to_pose_msg(&goal),
+        utils::spawn_blocking(async move {
+            let current_goal_clone = current_goal.clone();
+            tokio::spawn(async move {
+                let mut clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
+                let now = clock.get_now().unwrap();
+                let goal = NavigateToPose::Goal {
+                    pose: msg::PoseStamped {
+                        header: Header {
+                            frame_id: frame_id.to_string(),
+                            stamp: Time {
+                                sec: now.as_secs() as i32,
+                                nanosec: now.subsec_nanos(),
                             },
-                            ..Default::default()
-                        };
+                        },
+                        pose: to_pose_msg(&goal),
+                    },
+                    ..Default::default()
+                };
 
-                        is_available.await.unwrap();
-                        let send_goal_request = action_client.send_goal_request(goal).unwrap();
-                        let (goal, result, feedback) = send_goal_request.await.unwrap();
-                        *current_goal_clone.lock() = Some(goal.clone());
-                        tokio::spawn(
-                            async move { feedback.for_each(|_| std::future::ready(())).await },
-                        );
-                        result.await.unwrap(); // TODO: handle goal state
-                        is_done.store(true, Ordering::Relaxed);
-                    });
-                    loop {
-                        node.lock().spin_once(std::time::Duration::from_millis(100));
-                        tokio::task::yield_now().await;
-                        if is_done_clone.load(Ordering::Relaxed) {
-                            break;
-                        }
-                    }
-                    *current_goal.lock() = None;
-                    // TODO: "canceled" should be an error?
-                    let _ = sender.send(());
-                });
+                is_available.await.unwrap();
+                let send_goal_request = action_client.send_goal_request(goal).unwrap();
+                let (goal, result, feedback) = send_goal_request.await.unwrap();
+                *current_goal_clone.lock() = Some(goal.clone());
+                tokio::spawn(async move { feedback.for_each(|_| std::future::ready(())).await });
+                result.await.unwrap(); // TODO: handle goal state
+                is_done.store(true, Ordering::Relaxed);
+            });
+            loop {
+                node.lock().spin_once(std::time::Duration::from_millis(100));
+                tokio::task::yield_now().await;
+                if is_done_clone.load(Ordering::Relaxed) {
+                    break;
+                }
+            }
+            *current_goal.lock() = None;
+            // TODO: "canceled" should be an error?
+            let _ = sender.send(());
         });
         let timeout_fut = tokio::time::sleep(timeout);
         let wait = WaitFuture::new(async move {
@@ -144,14 +138,8 @@ impl Navigation for Ros2Navigation {
         //       Therefore, if cancel is called during that period, it will not work correctly.
         if let Some(current_goal) = self.current_goal.lock().take() {
             let fut = current_goal.cancel().map_err(|e| Error::Other(e.into()))?;
-            std::thread::spawn(move || {
-                tokio::runtime::Builder::new_current_thread()
-                    .enable_all()
-                    .build()
-                    .unwrap()
-                    .block_on(async move {
-                        let _ = fut.await;
-                    });
+            utils::spawn_blocking(async move {
+                let _ = fut.await;
             });
         }
         Ok(())

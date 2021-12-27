@@ -9,12 +9,25 @@ async fn main() -> anyhow::Result<()> {
     let ctx = r2r::Context::create().unwrap();
     let client = Ros2ControlClient::new(
         ctx,
-        "/position_trajectory_controller/follow_joint_trajectory",
+        "/position_trajectory_controller",
         vec!["joint1".into(), "joint2".into()],
     );
+    dbg!(client.current_joint_positions()).unwrap();
     client
-        .send_joint_positions(vec![1.0, 1.0], Duration::from_secs(10))?
+        .send_joint_positions(
+            vec![1.0; client.joint_names().len()],
+            Duration::from_secs(5),
+        )?
         .await?;
+    dbg!(client.current_joint_positions()).unwrap();
+    client
+        .send_joint_positions(
+            vec![0.5; client.joint_names().len()],
+            Duration::from_secs(5),
+        )?
+        .await?;
+    dbg!(client.current_joint_positions()).unwrap();
+
     Ok(())
 }
 

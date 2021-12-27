@@ -37,7 +37,10 @@ async fn test_control() {
 
     let server_requests = node
         .lock()
-        .create_action_server::<FollowJointTrajectory::Action>(action_name)
+        .create_action_server::<FollowJointTrajectory::Action>(&format!(
+            "{}/follow_joint_trajectory",
+            action_name
+        ))
         .unwrap();
 
     let node_cb = node.clone();
