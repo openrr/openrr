@@ -16,6 +16,7 @@ mod cmd_vel_move_base;
 mod navigation;
 mod plugin;
 mod ros2_control;
+mod utils;
 
 pub use cmd_vel_move_base::*;
 pub use navigation::*;
