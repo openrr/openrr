@@ -7,11 +7,8 @@ async fn main() -> anyhow::Result<()> {
     use arci_ros2::{r2r, Ros2ControlClient};
 
     let ctx = r2r::Context::create().unwrap();
-    let client = Ros2ControlClient::new(
-        ctx,
-        "/position_trajectory_controller",
-        vec!["joint1".into(), "joint2".into()],
-    );
+    let client = Ros2ControlClient::new(ctx, "/position_trajectory_controller");
+    dbg!(client.joint_names()); // => ["joint1", "joint2"]
     dbg!(client.current_joint_positions()).unwrap();
     client
         .send_joint_positions(

@@ -32,30 +32,64 @@ pub struct Ros2ControlClient {
 unsafe impl Sync for Ros2ControlClient {}
 
 impl Ros2ControlClient {
-    /// Creates a new `Ros2ControlClient` from ROS2 context and names of action and joints.
+    /// Creates a new `Ros2ControlClient` from ROS2 context and names of action.
     #[track_caller]
-    pub fn new(ctx: r2r::Context, action_name: &str, joint_names: Vec<String>) -> Self {
+    pub fn new(ctx: r2r::Context, action_name: &str) -> Self {
         // TODO: Consider using unique name
         let node = r2r::Node::create(ctx, "ros2_control_node", "arci_ros2").unwrap();
-        Self::from_node(node, action_name, joint_names)
+        Self::from_node(node, action_name)
     }
 
-    /// Creates a new `Ros2ControlClient` from ROS2 node and names of action and joints.
+    /// Creates a new `Ros2ControlClient` from ROS2 node and names of action.
     #[track_caller]
-    pub fn from_node(mut node: r2r::Node, action_name: &str, joint_names: Vec<String>) -> Self {
+    pub fn from_node(mut node: r2r::Node, action_name: &str) -> Self {
+        // http://wiki.ros.org/joint_trajectory_controller
         let action_client = node
             .create_action_client::<FollowJointTrajectory::Action>(&format!(
                 "{}/follow_joint_trajectory",
                 action_name
             ))
             .unwrap();
+        let state_topic = format!("{}/state", action_name);
+        let node = Arc::new(Mutex::new(node));
+        let joints = get_joint_state(node.clone(), &state_topic);
         Self {
-            state_topic: format!("{}/state", action_name),
+            state_topic,
             action_client,
-            node: Arc::new(Mutex::new(node)),
-            joint_names,
+            node,
+            joint_names: joints.joint_names,
         }
     }
+}
+
+fn get_joint_state(
+    node: Arc<Mutex<r2r::Node>>,
+    state_topic: &str,
+) -> JointTrajectoryControllerState {
+    let mut state_subscriber = node
+        .lock()
+        .subscribe::<JointTrajectoryControllerState>(state_topic)
+        .unwrap();
+    let is_done = Arc::new(AtomicBool::new(false));
+    let is_done_clone = is_done.clone();
+    utils::spawn_blocking(async move {
+        let handle = tokio::spawn(async move {
+            let next = state_subscriber.next().await;
+            is_done_clone.store(true, Ordering::SeqCst);
+            next
+        });
+        loop {
+            if is_done.load(Ordering::SeqCst) {
+                break;
+            }
+            node.lock().spin_once(Duration::from_millis(100));
+            tokio::task::yield_now().await;
+        }
+        handle.await.unwrap()
+    })
+    .join()
+    .unwrap()
+    .unwrap()
 }
 
 impl JointTrajectoryClient for Ros2ControlClient {
@@ -64,33 +98,14 @@ impl JointTrajectoryClient for Ros2ControlClient {
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        let node = self.node.clone();
-        let mut state_subscriber = node
-            .lock()
-            .subscribe::<JointTrajectoryControllerState>(&self.state_topic)
-            .unwrap();
-        let is_done = Arc::new(AtomicBool::new(false));
-        let is_done_clone = is_done.clone();
-        Ok(utils::spawn_blocking(async move {
-            let handle = tokio::spawn(async move {
-                let next = state_subscriber.next().await;
-                is_done_clone.store(true, Ordering::SeqCst);
-                next
-            });
-            loop {
-                node.lock().spin_once(std::time::Duration::from_millis(100));
-                tokio::task::yield_now().await;
-                if is_done.load(Ordering::SeqCst) {
-                    break;
-                }
-            }
-            handle.await.unwrap()
-        })
-        .join()
-        .unwrap()
-        .unwrap()
-        .actual
-        .positions)
+        let joints = get_joint_state(self.node.clone(), &self.state_topic);
+        Ok(self
+            .joint_names
+            .iter()
+            .map(|name| {
+                joints.actual.positions[joints.joint_names.iter().position(|n| n == name).unwrap()]
+            })
+            .collect())
     }
 
     fn send_joint_positions(
@@ -126,7 +141,9 @@ impl JointTrajectoryClient for Ros2ControlClient {
                         points: trajectory
                             .into_iter()
                             .map(|tp| trajectory_msg::JointTrajectoryPoint {
-                                velocities: vec![0.0; tp.positions.len()],
+                                velocities: tp
+                                    .velocities
+                                    .unwrap_or_else(|| vec![0.0; tp.positions.len()]),
                                 positions: tp.positions,
                                 time_from_start: builtin_msg::Duration {
                                     sec: tp
@@ -157,11 +174,11 @@ impl JointTrajectoryClient for Ros2ControlClient {
                 is_done.store(true, Ordering::Relaxed);
             });
             loop {
-                node.lock().spin_once(std::time::Duration::from_millis(100));
-                tokio::task::yield_now().await;
                 if is_done_clone.load(Ordering::Relaxed) {
                     break;
                 }
+                node.lock().spin_once(Duration::from_millis(100));
+                tokio::task::yield_now().await;
             }
             // TODO: "canceled" should be an error?
             let _ = sender.send(());
@@ -181,5 +198,6 @@ pub struct Ros2ControlConfig {
     /// Name of action control_msgs::action::FollowJointTrajectory
     pub action_name: String,
     /// Names of joints.
+    #[serde(default)]
     pub joint_names: Vec<String>,
 }
