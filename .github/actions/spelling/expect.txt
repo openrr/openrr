@@ -277,3 +277,4 @@ readline
 rustyline
 uuid
 attr
+rrbot
