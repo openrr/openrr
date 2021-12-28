@@ -384,11 +384,19 @@ pub fn create_ik_solver_with_chain(
 ) -> IkSolverWithChain {
     let chain = if let Some(root_node_name) = &config.root_node_name {
         k::SerialChain::from_end_to_root(
-            full_chain.find(&config.ik_target).unwrap(),
-            full_chain.find(root_node_name).unwrap(),
+            full_chain
+                .find(&config.ik_target)
+                .unwrap_or_else(|| panic!("ik_target: {} not found", config.ik_target)),
+            full_chain
+                .find(root_node_name)
+                .unwrap_or_else(|| panic!("root_node_name: {} not found", root_node_name)),
         )
     } else {
-        k::SerialChain::from_end(full_chain.find(&config.ik_target).unwrap())
+        k::SerialChain::from_end(
+            full_chain
+                .find(&config.ik_target)
+                .unwrap_or_else(|| panic!("ik_target: {} not found", config.ik_target)),
+        )
     };
 
     let parameters = IkSolverParameters {
