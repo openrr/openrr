@@ -190,7 +190,6 @@ stdin
 Stdio
 stdout
 stl
-structopt
 subsec
 subwindow
 sudo

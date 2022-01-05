@@ -4,6 +4,7 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use anyhow::{format_err, Result};
 use arci_gamepad_gilrs::GilGamepad;
+use clap::Parser;
 use openrr_apps::{
     utils::{init_tracing, init_tracing_with_file_appender, LogConfig},
     BuiltinGamepad, Error, GamepadKind, RobotTeleopConfig,
@@ -11,35 +12,34 @@ use openrr_apps::{
 use openrr_client::ArcRobotClient;
 use openrr_plugin::PluginProxy;
 use openrr_teleop::ControlNodeSwitcher;
-use structopt::StructOpt;
 use tracing::info;
 
 /// An openrr teleoperation tool.
-#[derive(StructOpt, Debug)]
-#[structopt(name = env!("CARGO_BIN_NAME"))]
+#[derive(Parser, Debug)]
+#[clap(name = env!("CARGO_BIN_NAME"))]
 pub struct RobotTeleopArgs {
     /// Path to the setting file.
-    #[structopt(short, long, parse(from_os_str))]
+    #[clap(short, long, parse(from_os_str))]
     config_path: Option<PathBuf>,
     /// Set options from command line. These settings take priority over the
     /// setting file specified by --config-path.
-    #[structopt(long)]
+    #[clap(long)]
     teleop_config: Option<String>,
     /// Set options from command line. These settings take priority over the
     /// setting file specified by --config-path.
-    #[structopt(long)]
+    #[clap(long)]
     robot_config: Option<String>,
     /// Prints the default setting as TOML.
-    #[structopt(long)]
+    #[clap(long)]
     show_default_config: bool,
     /// Path to log directory for tracing FileAppender.
-    #[structopt(long, parse(from_os_str))]
+    #[clap(long, parse(from_os_str))]
     log_directory: Option<PathBuf>,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = RobotTeleopArgs::from_args();
+    let args = RobotTeleopArgs::parse();
 
     if args.show_default_config {
         print!(
@@ -193,20 +193,27 @@ async fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use clap::IntoApp;
+
     use super::*;
 
     #[test]
     fn parse_args() {
         let bin = env!("CARGO_BIN_NAME");
-        assert!(RobotTeleopArgs::from_iter_safe(&[bin]).is_ok());
-        assert!(RobotTeleopArgs::from_iter_safe(&[bin, "--show-default-config"]).is_ok());
-        assert!(RobotTeleopArgs::from_iter_safe(&[bin, "--config-path", "path"]).is_ok());
-        assert!(RobotTeleopArgs::from_iter_safe(&[
+        assert!(RobotTeleopArgs::try_parse_from(&[bin]).is_ok());
+        assert!(RobotTeleopArgs::try_parse_from(&[bin, "--show-default-config"]).is_ok());
+        assert!(RobotTeleopArgs::try_parse_from(&[bin, "--config-path", "path"]).is_ok());
+        assert!(RobotTeleopArgs::try_parse_from(&[
             bin,
             "--show-default-config",
             "--config-path",
             "path"
         ])
         .is_ok());
+    }
+
+    #[test]
+    fn assert_app() {
+        RobotTeleopArgs::into_app().debug_assert();
     }
 }

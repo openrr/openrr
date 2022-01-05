@@ -28,6 +28,8 @@ arci-gamepad-gilrs = "0.0.6"
 arci-speak-audio = "0.0.6"
 arci-speak-cmd = "0.0.6"
 arci-urdf-viz = "0.0.6"
+clap = { version = "3", features = ["derive"] }
+clap_complete = "3"
 k = "0.26"
 openrr-client = { version = "0.0.6", default-features = false }
 openrr-command = { version = "0.0.6", default-features = false }
@@ -38,7 +40,6 @@ rand = "0.8.0"
 schemars = "0.8.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
-structopt = "0.3.21"
 thiserror = "1.0"
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "parking_lot"] }
 toml = "0.5"

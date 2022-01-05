@@ -15,10 +15,10 @@ limitations under the License.
 */
 use std::path::{Path, PathBuf};
 
+use clap::Parser;
 use k::nalgebra as na;
 use ncollide3d::shape::Compound;
 use openrr_planner::FromUrdf;
-use structopt::StructOpt;
 use urdf_rs::Robot;
 use urdf_viz::{kiss3d::window::Window, Action, Key, Modifiers, WindowEvent};
 
@@ -342,38 +342,38 @@ impl CollisionAvoidApp {
     }
 }
 
-#[derive(StructOpt, Debug)]
-#[structopt(name = "openrr_planner_example")]
+#[derive(Parser, Debug)]
+#[clap(name = "openrr_planner_example")]
 struct Opt {
-    #[structopt(short = "x", long = "ignore-rotation-x")]
+    #[clap(short = 'x', long = "ignore-rotation-x")]
     ignore_rotation_x: bool,
-    #[structopt(short = "y", long = "ignore-rotation-y")]
+    #[clap(short = 'y', long = "ignore-rotation-y")]
     ignore_rotation_y: bool,
-    #[structopt(short = "z", long = "ignore-rotation-z")]
+    #[clap(short = 'z', long = "ignore-rotation-z")]
     ignore_rotation_z: bool,
-    #[structopt(
-        short = "r",
+    #[clap(
+        short = 'r',
         long = "robot",
         parse(from_os_str),
         default_value = "sample.urdf"
     )]
     robot_urdf_path: PathBuf,
-    #[structopt(
-        short = "o",
+    #[clap(
+        short = 'o',
         long = "obstacle",
         parse(from_os_str),
         default_value = "obstacles.urdf"
     )]
     obstacle_urdf_path: PathBuf,
-    #[structopt(short = "e", long = "end-link", default_value = "l_tool_fixed")]
+    #[clap(short = 'e', long = "end-link", default_value = "l_tool_fixed")]
     end_link: String,
-    #[structopt(short = "s", long = "self-collision-pair")]
+    #[clap(short = 's', long = "self-collision-pair")]
     self_collision_pair: Vec<String>,
 }
 
 fn main() -> Result<(), openrr_planner::Error> {
     tracing_subscriber::fmt::init();
-    let opt = Opt::from_args();
+    let opt = Opt::parse();
     let app = CollisionAvoidApp::new(
         &opt.robot_urdf_path,
         &opt.end_link,

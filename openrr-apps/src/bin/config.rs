@@ -1,43 +1,41 @@
 use std::{fs, path::PathBuf};
 
 use anyhow::Result;
+use clap::{ArgEnum, Parser};
 use openrr_apps::utils::init_tracing;
 use schemars::schema_for;
 use serde::Deserialize;
-use structopt::{clap::arg_enum, StructOpt};
 use tracing::debug;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = env!("CARGO_BIN_NAME"))]
+#[derive(Debug, Parser)]
+#[clap(name = env!("CARGO_BIN_NAME"))]
 struct Args {
-    #[structopt(subcommand)]
+    #[clap(subcommand)]
     subcommand: Subcommand,
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 enum Subcommand {
     /// Generate JSON schema for the specified config file.
     Schema {
         /// Kind of config file.
-        #[structopt(possible_values = &ConfigKind::variants(), case_insensitive = true)]
+        #[clap(arg_enum, ignore_case = true)]
         kind: ConfigKind,
     },
     Merge {
         /// Path to the setting file.
-        #[structopt(long, parse(from_os_str))]
+        #[clap(long, parse(from_os_str))]
         config_path: PathBuf,
         /// Config to overwrite
-        #[structopt(long)]
+        #[clap(long)]
         config: String,
     },
 }
 
-arg_enum! {
-    #[derive(Debug)]
-    enum ConfigKind {
-        RobotConfig,
-        RobotTeleopConfig,
-    }
+#[derive(Debug, Clone, Copy, ArgEnum)]
+enum ConfigKind {
+    RobotConfig,
+    RobotTeleopConfig,
 }
 
 #[derive(Debug, Deserialize)]
@@ -49,7 +47,7 @@ enum Config {
 
 fn main() -> Result<()> {
     init_tracing();
-    let args = Args::from_args();
+    let args = Args::parse();
     debug!(?args);
 
     match args.subcommand {
@@ -73,4 +71,16 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::IntoApp;
+
+    use super::*;
+
+    #[test]
+    fn assert_app() {
+        Args::into_app().debug_assert();
+    }
 }

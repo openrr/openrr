@@ -1,50 +1,52 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
+use clap::{IntoApp, Parser};
+use clap_complete::Shell;
 use openrr_apps::{
     utils::{init_tracing, init_tracing_with_file_appender, LogConfig},
     Error, RobotConfig,
 };
 use openrr_client::BoxRobotClient;
 use openrr_command::{RobotCommand, RobotCommandExecutor};
-use structopt::StructOpt;
 use tracing::info;
 
 /// An openrr command line tool.
-#[derive(StructOpt, Debug)]
-#[structopt(name = env!("CARGO_BIN_NAME"))]
+#[derive(Parser, Debug)]
+#[clap(name = env!("CARGO_BIN_NAME"))]
 struct RobotCommandArgs {
     /// Path to the setting file.
-    #[structopt(short, long, parse(from_os_str))]
+    #[clap(short, long, parse(from_os_str))]
     config_path: Option<PathBuf>,
     /// Set options from command line. These settings take priority over the
     /// setting file specified by --config-path.
-    #[structopt(long)]
+    #[clap(long)]
     config: Option<String>,
-    #[structopt(subcommand)]
+    #[clap(subcommand)]
     command: Option<RobotCommand>,
     /// Prints the default setting as TOML.
-    #[structopt(long)]
+    #[clap(long)]
     show_default_config: bool,
     /// Use interactive mode
-    #[structopt(short, long)]
+    #[clap(short, long)]
     interactive: bool,
     /// Path to log directory for tracing FileAppender.
-    #[structopt(long, parse(from_os_str))]
+    #[clap(long, parse(from_os_str))]
     log_directory: Option<PathBuf>,
 }
 
 fn shell_completion(shell_type: openrr_command::ShellType) {
-    RobotCommandArgs::clap().gen_completions_to(
+    clap_complete::generate(
+        Shell::from(shell_type),
+        &mut RobotCommandArgs::into_app(),
         env!("CARGO_BIN_NAME"),
-        shell_type.into(),
         &mut std::io::stdout(),
     );
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = RobotCommandArgs::from_args();
+    let args = RobotCommandArgs::parse();
     if args.log_directory.is_none() {
         init_tracing();
     }
@@ -110,15 +112,20 @@ mod tests {
     #[test]
     fn parse_args() {
         let bin = env!("CARGO_BIN_NAME");
-        assert!(RobotCommandArgs::from_iter_safe(&[bin]).is_ok());
-        assert!(RobotCommandArgs::from_iter_safe(&[bin, "--show-default-config"]).is_ok());
-        assert!(RobotCommandArgs::from_iter_safe(&[bin, "--config-path", "path", "list"]).is_ok());
-        assert!(RobotCommandArgs::from_iter_safe(&[
+        assert!(RobotCommandArgs::try_parse_from(&[bin]).is_ok());
+        assert!(RobotCommandArgs::try_parse_from(&[bin, "--show-default-config"]).is_ok());
+        assert!(RobotCommandArgs::try_parse_from(&[bin, "--config-path", "path", "list"]).is_ok());
+        assert!(RobotCommandArgs::try_parse_from(&[
             bin,
             "--show-default-config",
             "--config-path",
             "path"
         ])
         .is_ok());
+    }
+
+    #[test]
+    fn assert_app() {
+        RobotCommandArgs::into_app().debug_assert();
     }
 }

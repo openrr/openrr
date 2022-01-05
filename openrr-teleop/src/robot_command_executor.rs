@@ -5,12 +5,12 @@ use arci::{
     Speaker,
 };
 use async_trait::async_trait;
+use clap::Parser;
 use openrr_client::{resolve_relative_path, ArcRobotClient};
 use openrr_command::{load_command_file_and_filter, RobotCommand};
 use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use structopt::StructOpt;
 use tracing::{error, info, warn};
 
 use crate::ControlNode;
@@ -142,7 +142,7 @@ where
                             }
                             let command_parsed_iter = command.split_whitespace();
                             // Parse the command
-                            let read_opt = RobotCommand::from_iter(command_parsed_iter);
+                            let read_opt = RobotCommand::parse_from(command_parsed_iter);
                             // Execute the parsed command
                             info!("Executing {} {}/{}", command, i, commands_len);
 
