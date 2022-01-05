@@ -10,20 +10,21 @@ use std::{
 
 use arci::{BaseVelocity, Localization, MoveBase, Navigation};
 use async_recursion::async_recursion;
+use clap::Parser;
+use clap_complete::Shell;
 use k::nalgebra::{Isometry2, Vector2};
 use openrr_client::{isometry, RobotClient};
 use rustyline::{error::ReadlineError, Editor};
-use structopt::{clap::Shell, StructOpt};
 use tracing::{error, info};
 
 use crate::Error as OpenrrCommandError;
 
-fn parse_joints<T, U>(s: &str) -> Result<(T, U), Box<dyn Error>>
+fn parse_joints<T, U>(s: &str) -> Result<(T, U), Box<dyn Error + Send + Sync>>
 where
     T: std::str::FromStr,
-    T::Err: Error + 'static,
+    T::Err: Error + Send + Sync + 'static,
     U: std::str::FromStr,
-    U::Err: Error + 'static,
+    U::Err: Error + Send + Sync + 'static,
 {
     let pos = s
         .find('=')
@@ -31,64 +32,64 @@ where
     Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
 }
 
-#[derive(StructOpt, Debug)]
-#[structopt(rename_all = "snake_case")]
+#[derive(Parser, Debug)]
+#[clap(rename_all = "snake_case")]
 pub enum RobotCommand {
     /// Send joint positions.
     SendJoints {
         name: String,
-        #[structopt(short, long, default_value = "3.0")]
+        #[clap(short, long, default_value = "3.0")]
         duration: f64,
         /// Interpolate target in cartesian space.
         /// If you use this flag, joint values are not used as references but used in forward kinematics.
-        #[structopt(name = "interpolate", short, long)]
+        #[clap(name = "interpolate", short, long)]
         use_interpolation: bool,
-        #[structopt(short, parse(try_from_str=parse_joints))]
+        #[clap(short, parse(try_from_str = parse_joints))]
         joint: Vec<(usize, f64)>,
-        #[structopt(long, default_value = "0.05")]
+        #[clap(long, default_value = "0.05")]
         max_resolution_for_interpolation: f64,
-        #[structopt(long, default_value = "10")]
+        #[clap(long, default_value = "10")]
         min_number_of_points_for_interpolation: i32,
     },
     /// Send predefined joint positions.
     SendJointsPose {
         name: String,
         pose_name: String,
-        #[structopt(short, long, default_value = "3.0")]
+        #[clap(short, long, default_value = "3.0")]
         duration: f64,
     },
     /// Move with ik
     MoveIk {
         name: String,
-        #[structopt(short, long)]
+        #[clap(short, long)]
         x: Option<f64>,
-        #[structopt(short, long)]
+        #[clap(short, long)]
         y: Option<f64>,
-        #[structopt(short, long)]
+        #[clap(short, long)]
         z: Option<f64>,
-        #[structopt(long)]
+        #[clap(long)]
         yaw: Option<f64>,
-        #[structopt(short, long)]
+        #[clap(short, long)]
         pitch: Option<f64>,
-        #[structopt(short, long)]
+        #[clap(short, long)]
         roll: Option<f64>,
-        #[structopt(short, long, default_value = "3.0")]
+        #[clap(short, long, default_value = "3.0")]
         duration: f64,
         /// Interpolate target in cartesian space.
-        #[structopt(name = "interpolate", short, long)]
+        #[clap(name = "interpolate", short, long)]
         use_interpolation: bool,
-        #[structopt(name = "local", short, long)]
+        #[clap(name = "local", short, long)]
         is_local: bool,
-        #[structopt(long, default_value = "0.05")]
+        #[clap(long, default_value = "0.05")]
         max_resolution_for_interpolation: f64,
-        #[structopt(long, default_value = "10")]
+        #[clap(long, default_value = "10")]
         min_number_of_points_for_interpolation: i32,
     },
     /// Get joint positions and end pose if applicable.
     GetState { name: String },
     /// Load commands from file and execute them.
     LoadCommands {
-        #[structopt(parse(from_os_str))]
+        #[clap(parse(from_os_str))]
         command_file_path: PathBuf,
     },
     /// List available clients.
@@ -104,9 +105,9 @@ pub enum RobotCommand {
         x: f64,
         y: f64,
         yaw: f64,
-        #[structopt(short, long, default_value = "map")]
+        #[clap(short, long, default_value = "map")]
         frame_id: String,
-        #[structopt(short, long, default_value = "100.0")]
+        #[clap(short, long, default_value = "100.0")]
         timeout_secs: f64,
     },
     /// Cancel navigation gaol.
@@ -116,16 +117,17 @@ pub enum RobotCommand {
         x: f64,
         y: f64,
         theta: f64,
-        #[structopt(short, long, default_value = "1.0")]
+        #[clap(short, long, default_value = "1.0")]
         duration_secs: f64,
     },
     /// Shell completion
+    #[clap(subcommand)]
     ShellCompletion(ShellType),
 }
 
-/// Enum type to handle clap::Shell in structopt
-#[derive(Debug, StructOpt, Clone, Copy)]
-#[structopt(rename_all = "snake_case")]
+/// Enum type to handle clap_complete::Shell
+#[derive(Debug, Parser, Clone, Copy)]
+#[clap(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum ShellType {
     Zsh,
@@ -320,7 +322,7 @@ impl RobotCommandExecutor {
                 for command in load_command_file_and_filter(command_file_path.clone())? {
                     let command_parsed_iter = command.split_whitespace();
                     // Parse the command
-                    let read_opt = RobotCommand::from_iter(command_parsed_iter);
+                    let read_opt = RobotCommand::parse_from(command_parsed_iter);
                     // Execute the parsed command
                     info!("Executing {}", command);
                     self.execute(client, &read_opt).await?;
@@ -434,7 +436,7 @@ impl RobotCommandExecutor {
                     let line_with_arg0 = format!("dummy {}", line);
                     let command_parsed_iter = line_with_arg0.split_whitespace();
                     // Parse the command
-                    if let Ok(command) = RobotCommand::from_iter_safe(command_parsed_iter) {
+                    if let Ok(command) = RobotCommand::try_parse_from(command_parsed_iter) {
                         if let Err(e) = self.execute(client, &command).await {
                             println!("failed to execute: {:?}", e);
                         }
