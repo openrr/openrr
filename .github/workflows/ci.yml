@@ -278,3 +278,11 @@ jobs:
           source /opt/ros/foxy/setup.bash
           # NOTE: clippy::disallowed_method/clippy::disallowed_type has been renamed to clippy::disallowed_methods/clippy::disallowed_types in Rust 1.58.
           cargo clippy --all-features --all-targets -- -D clippy::disallowed_method -D clippy::disallowed_type
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install latest shellcheck
+        uses: taiki-e/install-action@shellcheck
+      - run: shellcheck $(git ls-files '*.sh')
