@@ -17,6 +17,8 @@ limitations under the License.
 
 use k::{nalgebra as na, InverseKinematicsSolver, SubsetOf};
 use na::RealField;
+use parking_lot::Mutex;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::funcs::*;
 
@@ -95,36 +97,43 @@ pub fn get_reachable_region<T, I>(
     unit_check_length: T,
 ) -> Vec<na::Isometry3<T>>
 where
-    T: RealField + Copy + k::SubsetOf<f64>,
-    I: InverseKinematicsSolver<T>,
+    T: RealField + Copy + k::SubsetOf<f64> + Send + Sync,
+    I: InverseKinematicsSolver<T> + Send + Sync,
 {
     let initial_angles = arm.joint_positions();
+    let solved_poses = Mutex::new(Vec::new());
+    let target_pose = *initial_pose;
+
+    let mut z_points = vec![];
     let mut z = min_point[2];
-    let mut solved_poses = Vec::new();
-    let mut target_pose = *initial_pose;
     while z < max_point[2] {
+        z_points.push(z);
+        z += unit_check_length;
+    }
+
+    z_points.par_iter().for_each(|&z| {
+        let arm = arm.clone();
+        let mut target_pose = target_pose;
         target_pose.translation.vector[2] = z;
         let mut y = min_point[1];
         while y < max_point[1] {
             target_pose.translation.vector[1] = y;
             let mut x = min_point[0];
             while x < max_point[0] {
-                //
                 target_pose.translation.vector[0] = x;
                 arm.set_joint_positions_unchecked(&initial_angles);
                 if ik_solver
-                    .solve_with_constraints(arm, &target_pose, constraints)
+                    .solve_with_constraints(&arm, &target_pose, constraints)
                     .is_ok()
                 {
-                    solved_poses.push(target_pose);
+                    solved_poses.lock().push(target_pose);
                 }
                 x += unit_check_length;
             }
             y += unit_check_length;
         }
-        z += unit_check_length;
-    }
-    solved_poses
+    });
+    solved_poses.into_inner()
 }
 
 #[cfg(test)]
