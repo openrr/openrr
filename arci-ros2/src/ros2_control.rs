@@ -16,20 +16,28 @@ use r2r::{
     trajectory_msgs::msg as trajectory_msg,
 };
 use serde::{Deserialize, Serialize};
+use tokio::sync::watch;
 
 use crate::utils;
 
 /// Implement arci::JointTrajectoryClient for ROS2
 pub struct Ros2ControlClient {
-    state_topic: String,
     action_client: r2r::ActionClient<FollowJointTrajectory::Action>,
+    state_receiver: watch::Receiver<JointTrajectoryControllerState>,
     /// r2r::Node to handle the action
     node: Arc<Mutex<r2r::Node>>,
     joint_names: Vec<String>,
+    is_dropping: Arc<AtomicBool>,
 }
 
 // TODO:
 unsafe impl Sync for Ros2ControlClient {}
+
+impl Drop for Ros2ControlClient {
+    fn drop(&mut self) {
+        self.is_dropping.store(true, Ordering::Relaxed);
+    }
+}
 
 impl Ros2ControlClient {
     /// Creates a new `Ros2ControlClient` from ROS2 context and names of action.
@@ -50,46 +58,45 @@ impl Ros2ControlClient {
                 action_name
             ))
             .unwrap();
-        let state_topic = format!("{}/state", action_name);
         let node = Arc::new(Mutex::new(node));
-        let joints = get_joint_state(node.clone(), &state_topic);
+        let node_clone = node.clone();
+        let is_dropping = Arc::new(AtomicBool::new(false));
+        let is_dropping_clone = is_dropping.clone();
+        let state_topic = format!("{}/state", action_name);
+        let (state_sender, state_receiver) = watch::channel(Default::default());
+        utils::spawn_blocking(async move {
+            let mut state_subscriber = node_clone
+                .lock()
+                .subscribe::<JointTrajectoryControllerState>(&state_topic)
+                .unwrap();
+            tokio::spawn(async move {
+                while let Some(v) = state_subscriber.next().await {
+                    if state_sender.send(v).is_err() {
+                        break;
+                    }
+                    tokio::task::yield_now().await;
+                }
+            });
+            while !is_dropping_clone.load(Ordering::Relaxed) {
+                node_clone.lock().spin_once(Duration::from_millis(100));
+                tokio::task::yield_now().await;
+            }
+        });
+        let joint_names = loop {
+            let mut r = state_receiver.clone();
+            let r = r.borrow_and_update();
+            if !r.actual.positions.is_empty() {
+                break r.joint_names.clone();
+            }
+        };
         Self {
-            state_topic,
             action_client,
+            state_receiver,
             node,
-            joint_names: joints.joint_names,
+            joint_names,
+            is_dropping,
         }
     }
-}
-
-fn get_joint_state(
-    node: Arc<Mutex<r2r::Node>>,
-    state_topic: &str,
-) -> JointTrajectoryControllerState {
-    let mut state_subscriber = node
-        .lock()
-        .subscribe::<JointTrajectoryControllerState>(state_topic)
-        .unwrap();
-    let is_done = Arc::new(AtomicBool::new(false));
-    let is_done_clone = is_done.clone();
-    utils::spawn_blocking(async move {
-        let handle = tokio::spawn(async move {
-            let next = state_subscriber.next().await;
-            is_done_clone.store(true, Ordering::SeqCst);
-            next
-        });
-        loop {
-            if is_done.load(Ordering::SeqCst) {
-                break;
-            }
-            node.lock().spin_once(Duration::from_millis(100));
-            tokio::task::yield_now().await;
-        }
-        handle.await.unwrap()
-    })
-    .join()
-    .unwrap()
-    .unwrap()
 }
 
 impl JointTrajectoryClient for Ros2ControlClient {
@@ -98,14 +105,14 @@ impl JointTrajectoryClient for Ros2ControlClient {
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        let joints = get_joint_state(self.node.clone(), &self.state_topic);
-        Ok(self
-            .joint_names
-            .iter()
-            .map(|name| {
-                joints.actual.positions[joints.joint_names.iter().position(|n| n == name).unwrap()]
-            })
-            .collect())
+        Ok(loop {
+            let mut r = self.state_receiver.clone();
+            let r = r.borrow_and_update();
+            if !r.actual.positions.is_empty() {
+                break r.actual.clone();
+            }
+        }
+        .positions)
     }
 
     fn send_joint_positions(
