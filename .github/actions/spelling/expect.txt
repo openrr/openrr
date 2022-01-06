@@ -278,3 +278,4 @@ rustyline
 uuid
 attr
 rrbot
+Condvar
