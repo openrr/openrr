@@ -54,7 +54,7 @@ openrr-gui = { version = "0.0.6", optional = true, default-features = false }
 arci-gamepad-keyboard = "0.0.6"
 
 # https://github.com/alexcrichton/cmake-rs/issues/131
-cmake = "=0.1.45"
+cmake = "=0.1.48"
 
 [dev-dependencies]
 tempfile = "3"
