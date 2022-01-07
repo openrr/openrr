@@ -142,7 +142,7 @@ impl From<ShellType> for Shell {
             ShellType::Bash => Shell::Bash,
             ShellType::Zsh => Shell::Zsh,
             ShellType::Fish => Shell::Fish,
-            ShellType::PowerShell => Shell::Fish,
+            ShellType::PowerShell => Shell::PowerShell,
         }
     }
 }
