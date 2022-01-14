@@ -28,7 +28,7 @@ where
 {
     let pos = s
         .find('=')
-        .ok_or_else(|| format!("invalid KEY=value: no `=` found in `{}`", s))?;
+        .ok_or_else(|| format!("invalid KEY=value: no `=` found in `{s}`"))?;
     Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
 }
 
@@ -324,26 +324,26 @@ impl RobotCommandExecutor {
                     // Parse the command
                     let read_opt = RobotCommand::parse_from(command_parsed_iter);
                     // Execute the parsed command
-                    info!("Executing {}", command);
+                    info!("Executing {command}");
                     self.execute(client, &read_opt).await?;
                 }
             }
             RobotCommand::List => {
                 println!("Raw joint trajectory clients");
                 for name in client.raw_joint_trajectory_clients_names() {
-                    println!(" {}", name);
+                    println!(" {name}");
                 }
                 println!("Joint trajectory clients");
                 for name in client.joint_trajectory_clients_names() {
-                    println!(" {}", name);
+                    println!(" {name}");
                 }
                 println!("Collision check clients");
                 for name in client.collision_check_clients_names() {
-                    println!(" {}", name);
+                    println!(" {name}");
                 }
                 println!("Ik clients");
                 for name in client.ik_clients_names() {
-                    println!(" {}", name);
+                    println!(" {name}");
                 }
             }
             RobotCommand::Speak { name, message } => {
@@ -407,7 +407,7 @@ impl RobotCommandExecutor {
                 }
             }
             _ => {
-                panic!("not supported {:?}", command);
+                panic!("not supported {command:?}");
             }
         }
         Ok(())
@@ -433,15 +433,15 @@ impl RobotCommandExecutor {
                 Ok(line) => {
                     rl.add_history_entry(line.as_str());
                     // add dummy to make it the same as load command
-                    let line_with_arg0 = format!("dummy {}", line);
+                    let line_with_arg0 = format!("dummy {line}");
                     let command_parsed_iter = line_with_arg0.split_whitespace();
                     // Parse the command
                     if let Ok(command) = RobotCommand::try_parse_from(command_parsed_iter) {
                         if let Err(e) = self.execute(client, &command).await {
-                            println!("failed to execute: {:?}", e);
+                            println!("failed to execute: {e:?}");
                         }
                     } else if !line.is_empty() {
-                        println!("failed to parse: {:?}", line);
+                        println!("failed to parse: {line:?}");
                     }
                 }
                 Err(ReadlineError::Interrupted) => {
@@ -453,13 +453,13 @@ impl RobotCommandExecutor {
                     break;
                 }
                 Err(err) => {
-                    println!("Error: {:?}", err);
+                    println!("Error: {err:?}");
                     break;
                 }
             }
         }
         if let Err(err) = rl.save_history(HISTORY_FILE_NAME) {
-            println!("failed to save history {}: {:?}", HISTORY_FILE_NAME, err);
+            println!("failed to save history {HISTORY_FILE_NAME}: {err:?}");
         }
         Ok(())
     }

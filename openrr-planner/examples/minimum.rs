@@ -42,11 +42,11 @@ fn main() {
     let plan1 = planner
         .plan_with_ik(target_name, &ik_target_pose, &obstacles)
         .unwrap();
-    println!("plan1 = {:?}", plan1);
+    println!("plan1 = {plan1:?}");
     ik_target_pose.translation.vector[2] += 0.50;
     // plan the path from previous result
     let plan2 = planner
         .plan_with_ik(target_name, &ik_target_pose, &obstacles)
         .unwrap();
-    println!("plan2 = {:?}", plan2);
+    println!("plan2 = {plan2:?}");
 }

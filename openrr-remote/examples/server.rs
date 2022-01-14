@@ -24,8 +24,7 @@ impl arci::JointTrajectoryClient for DebugJointTrajectoryClient {
         duration: std::time::Duration,
     ) -> Result<arci::WaitFuture, arci::Error> {
         println!(
-            "Server received JointTrajectoryClient::send_joint_positions (position: {:?}, duration: {:?})",
-            positions, duration
+            "Server received JointTrajectoryClient::send_joint_positions (position: {positions:?}, duration: {duration:?})",
         );
         Ok(arci::WaitFuture::ready())
     }
@@ -35,8 +34,7 @@ impl arci::JointTrajectoryClient for DebugJointTrajectoryClient {
         trajectory: Vec<arci::TrajectoryPoint>,
     ) -> Result<arci::WaitFuture, arci::Error> {
         println!(
-            "Server received JointTrajectoryClient::send_joint_trajectory (trajectory: {:?})",
-            trajectory
+            "Server received JointTrajectoryClient::send_joint_trajectory (trajectory: {trajectory:?})"
         );
         Ok(arci::WaitFuture::ready())
     }
@@ -47,7 +45,7 @@ struct DebugSpeaker {}
 
 impl arci::Speaker for DebugSpeaker {
     fn speak(&self, message: &str) -> Result<arci::WaitFuture, arci::Error> {
-        println!("Server received Speaker::speak (message: {:?})", message);
+        println!("Server received Speaker::speak (message: {message:?})");
         Ok(arci::WaitFuture::ready())
     }
 }
@@ -57,10 +55,7 @@ struct DebugMoveBase {}
 
 impl arci::MoveBase for DebugMoveBase {
     fn send_velocity(&self, velocity: &arci::BaseVelocity) -> Result<(), arci::Error> {
-        println!(
-            "Server received MoveBase::send_velocity (velocity: {:?})",
-            velocity
-        );
+        println!("Server received MoveBase::send_velocity (velocity: {velocity:?})");
         Ok(())
     }
 
@@ -81,8 +76,7 @@ impl arci::Navigation for DebugNavigation {
         timeout: std::time::Duration,
     ) -> Result<arci::WaitFuture, arci::Error> {
         println!(
-            "Server received Navigation::send_goal_pose (goal: {:?}, frame_id: {:?}, timeout: {:?})",
-            goal, frame_id, timeout
+            "Server received Navigation::send_goal_pose (goal: {goal:?}, frame_id: {frame_id:?}, timeout: {timeout:?})"
         );
         Ok(arci::WaitFuture::ready())
     }
@@ -98,10 +92,7 @@ struct DebugLocalization {}
 
 impl arci::Localization for DebugLocalization {
     fn current_pose(&self, frame_id: &str) -> Result<arci::Isometry2<f64>, arci::Error> {
-        println!(
-            "Server received Localization::current_pose (frame_id: {:?})",
-            frame_id
-        );
+        println!("Server received Localization::current_pose (frame_id: {frame_id:?})");
         Ok(arci::Isometry2::new(arci::Vector2::new(0.0, 0.0), 0.0))
     }
 }
@@ -117,8 +108,7 @@ impl arci::TransformResolver for DebugTransformResolver {
         time: std::time::SystemTime,
     ) -> Result<arci::Isometry3<f64>, arci::Error> {
         println!(
-            "Server received TransformResolver::resolve_transformation (from: {:?}, to: {:?}, time: {:?})",
-            from, to, time
+            "Server received TransformResolver::resolve_transformation (from: {from:?}, to: {to:?}, time: {time:?})",
         );
         Ok(arci::Isometry3::new(
             arci::Vector3::new(0.0, 0.0, 0.0),
@@ -145,7 +135,7 @@ impl arci::Gamepad for DebugGamepad {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let addr = "[::1]:50051".parse()?;
-    println!("Server listening on {}", addr);
+    println!("Server listening on {addr}");
 
     let client = RemoteJointTrajectoryClientReceiver::new(DebugJointTrajectoryClient::default());
     let speaker = RemoteSpeakerReceiver::new(DebugSpeaker::default());

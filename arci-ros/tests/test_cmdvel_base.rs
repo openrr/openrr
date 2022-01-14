@@ -26,7 +26,7 @@ async fn test_cmd_vel() {
         vel.x = 0.001 * (count as f64);
         c.send_velocity(&vel).unwrap();
         std::thread::sleep(std::time::Duration::from_millis(100));
-        println!("{}, {:?}", count, vel);
+        println!("{count}, {vel:?}");
     }
 
     let mut rv_count = 0_usize;
@@ -35,7 +35,7 @@ async fn test_cmd_vel() {
             break;
         } else {
             assert_approx_eq!(rv.linear.x, 0.001 * (rv_count as f64));
-            println!("{:?}", rv);
+            println!("{rv:?}");
         }
         rv_count += 1;
     }

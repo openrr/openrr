@@ -195,7 +195,7 @@ impl RosNavClient {
                     Err(e)
                 }
                 _ => {
-                    rosrust::ros_err!("Action does not succeed {:?}", e);
+                    rosrust::ros_err!("Action does not succeed {e:?}");
                     Err(e)
                 }
             },
@@ -222,7 +222,7 @@ impl Navigation for RosNavClient {
         let action_result_wait = self
             .action_client
             .send_goal(msg::move_base_msgs::MoveBaseGoal { target_pose })
-            .map_err(|e| anyhow::anyhow!("Failed to send_goal_and_wait : {}", e.to_string()))?;
+            .map_err(|e| anyhow::anyhow!("Failed to send_goal_and_wait : {e}"))?;
 
         let self_clone = self.clone();
         // Creates a WaitFuture that waits until reach only if the future
@@ -244,7 +244,7 @@ impl Navigation for RosNavClient {
     fn cancel(&self) -> Result<(), Error> {
         self.action_client
             .cancel_all_goal()
-            .map_err(|e| anyhow::anyhow!("Failed to cancel_all_goal : {}", e.to_string()))?;
+            .map_err(|e| anyhow::anyhow!("Failed to cancel_all_goal : {e}"))?;
         Ok(())
     }
 }

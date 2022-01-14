@@ -108,18 +108,14 @@ where
                 }
                 JointPositionLimiterStrategy::Clamp => {
                     debug!(
-                        "Out of limit: joint={}, position={}, limit={:?}",
+                        "Out of limit: joint={}, position={position}, limit={limit:?}",
                         self.client.joint_names()[i],
-                        position,
-                        limit,
                     );
                 }
                 JointPositionLimiterStrategy::ClampWithWarn => {
                     warn!(
-                        "Out of limit: joint={}, position={}, limit={:?}",
+                        "Out of limit: joint={}, position={position}, limit={limit:?}",
                         self.client.joint_names()[i],
-                        position,
-                        limit,
                     );
                 }
             }
@@ -489,7 +485,7 @@ mod tests {
     fn assert_error(e: Error, position: f64) {
         match e {
             Error::OutOfLimit { position: p, .. } => assert_approx_eq!(p, position),
-            _ => panic!("{:?}", e),
+            _ => panic!("{e:?}"),
         }
     }
 

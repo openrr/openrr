@@ -156,7 +156,7 @@ impl arci::Gamepad for RemoteGamepadSender {
         match client.next_event(()).await {
             Ok(event) => event.into_inner().into(),
             Err(e) => {
-                error!("{}", e);
+                error!("{e}");
                 arci::gamepad::GamepadEvent::Unknown
             }
         }
@@ -165,7 +165,7 @@ impl arci::Gamepad for RemoteGamepadSender {
     fn stop(&self) {
         let mut client = self.client.clone();
         if let Err(e) = block_in_place(client.stop(())) {
-            error!("{}", e);
+            error!("{e}");
         }
     }
 }

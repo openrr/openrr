@@ -153,7 +153,7 @@ where
             // do not wait
             let _ = self
                 .speaker
-                .speak(&format!("{}{}", self.mode, submode))
+                .speak(&format!("{}{submode}", self.mode))
                 .unwrap();
         }
     }

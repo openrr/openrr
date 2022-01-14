@@ -13,7 +13,7 @@ async fn main() {
         match ev {
             GamepadEvent::Unknown => {}
             _ => {
-                println!("Result = {:?}", ev);
+                println!("Result = {ev:?}");
             }
         }
     }

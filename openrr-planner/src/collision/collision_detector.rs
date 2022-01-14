@@ -91,13 +91,13 @@ where
                         self.target_shape,
                     );
                     if dist < self.detector.prediction {
-                        debug!("name: {}, dist={}", joint_name, dist);
+                        debug!("name: {joint_name}, dist={dist}");
                         return Some(joint_name.to_owned());
                     }
                 }
             }
             None => {
-                debug!("collision model {} not found", joint_name);
+                debug!("collision model {joint_name} not found");
             }
         }
         self.next()
@@ -156,21 +156,21 @@ where
         let obj_vec1_opt = self.detector.name_collision_model_map.get(j1);
         let obj_vec2_opt = self.detector.name_collision_model_map.get(j2);
         if obj_vec1_opt.is_none() {
-            warn!("Collision model {} not found", j1);
+            warn!("Collision model {j1} not found");
             return self.next();
         }
         if obj_vec2_opt.is_none() {
-            warn!("Collision model {} not found", j2);
+            warn!("Collision model {j2} not found");
             return self.next();
         }
         let node1_opt = self.robot.find(j1);
         let node2_opt = self.robot.find(j2);
         if node1_opt.is_none() {
-            warn!("self_colliding: joint {} not found", j1);
+            warn!("self_colliding: joint {j1} not found");
             return self.next();
         }
         if node2_opt.is_none() {
-            warn!("self_colliding: joint {} not found", j2);
+            warn!("self_colliding: joint {j2} not found");
             return self.next();
         }
         let obj_vec1 = obj_vec1_opt.unwrap();
@@ -185,7 +185,7 @@ where
                 // proximity and predict does not work correctly for mesh
                 let dist =
                     query::distance(&(trans1 * obj1.1), &*obj1.0, &(trans2 * obj2.1), &*obj2.0);
-                debug!("name: {}, name: {} dist={}", j1, j2, dist);
+                debug!("name: {j1}, name: {j2} dist={dist}");
                 if dist < self.detector.prediction {
                     return Some((j1.to_owned(), j2.to_owned()));
                 }

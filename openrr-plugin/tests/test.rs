@@ -164,10 +164,9 @@ async fn gamepad() {
                 assert_approx_eq!(*expected_val, actual_val);
             }
             (GamepadEvent::Unknown, GamepadEvent::Unknown) => {}
-            (expected, actual) => panic!(
-                "event mismatch, expected: {:?}, actual: {:?}",
-                expected, actual
-            ),
+            (expected, actual) => {
+                panic!("event mismatch, expected: {expected:?}, actual: {actual:?}")
+            }
         }
     }
     proxy.stop();

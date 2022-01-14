@@ -8,7 +8,7 @@ use url::Url;
 
 fn port_and_url() -> (u16, Url) {
     let port = portpicker::pick_unused_port().expect("No ports free");
-    let url = Url::parse(&format!("http://127.0.0.1:{}", port)).unwrap();
+    let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
     (port, url)
 }
 

@@ -40,7 +40,7 @@ impl MoveBase for Ros2CmdVelMoveBase {
         self.vel_publisher
             .publish(&twist_msg)
             .map_err(|e| arci::Error::Connection {
-                message: format!("r2r publish error: {:?}", e),
+                message: format!("r2r publish error: {e:?}"),
             })
     }
 

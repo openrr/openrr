@@ -22,7 +22,7 @@ async fn main() -> Result<(), Error> {
     let pad = JoyGamepad::new("joy", button_map, axis_map);
     while arci_ros::is_ok() {
         let event = pad.next_event().await;
-        println!("{:?}", event);
+        println!("{event:?}");
     }
     Ok(())
 }

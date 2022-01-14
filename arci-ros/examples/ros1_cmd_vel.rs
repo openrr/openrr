@@ -14,14 +14,14 @@ async fn main() -> Result<(), anyhow::Error> {
         c.send_velocity(&vel)?;
         std::thread::sleep(std::time::Duration::from_millis(100));
         count += 1;
-        println!("{}, {:?}", count, vel);
+        println!("{count}, {vel:?}");
     }
     while count >= 0 {
         vel.x = 0.001 * (count as f64);
         c.send_velocity(&vel)?;
         std::thread::sleep(std::time::Duration::from_millis(100));
         count -= 1;
-        println!("{}, {:?}", count, vel);
+        println!("{count}, {vel:?}");
     }
     Ok(())
 }

@@ -42,8 +42,7 @@ impl JoyGamepad {
                 let idx = *idx_ref;
                 if joy_msg.buttons.len() <= idx {
                     rosrust::ros_err!(
-                        "buttons index is out of range, ignored: input={}, size={}",
-                        idx,
+                        "buttons index is out of range, ignored: input={idx}, size={}",
                         joy_msg.buttons.len()
                     );
                 } else if last_joy.buttons[idx] == 0 && joy_msg.buttons[idx] == 1 {
@@ -58,8 +57,7 @@ impl JoyGamepad {
                 let idx = *idx_ref;
                 if joy_msg.axes.len() <= idx {
                     rosrust::ros_err!(
-                        "axes index is out of range, ignored: input={}, size={}",
-                        idx,
+                        "axes index is out of range, ignored: input={idx}, size={}",
                         joy_msg.buttons.len()
                     );
                 } else if (last_joy.axes[idx] - joy_msg.axes[idx]).abs() > DEAD_ZONE {

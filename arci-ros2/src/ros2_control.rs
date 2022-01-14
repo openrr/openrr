@@ -46,11 +46,10 @@ impl Ros2ControlClient {
         // http://wiki.ros.org/joint_trajectory_controller
         let action_client = node
             .create_action_client::<FollowJointTrajectory::Action>(&format!(
-                "{}/follow_joint_trajectory",
-                action_name
+                "{action_name}/follow_joint_trajectory"
             ))
             .unwrap();
-        let state_topic = format!("{}/state", action_name);
+        let state_topic = format!("{action_name}/state");
         let node = Arc::new(Mutex::new(node));
         let joints = get_joint_state(node.clone(), &state_topic);
         Self {

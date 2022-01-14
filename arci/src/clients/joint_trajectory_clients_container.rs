@@ -450,7 +450,7 @@ mod tests {
         assert!(result.unwrap().await.is_ok());
 
         let positions = container.current_joint_positions().unwrap();
-        println!("{:?}", positions);
+        println!("{positions:?}");
         positions
             .iter()
             .zip(correct)

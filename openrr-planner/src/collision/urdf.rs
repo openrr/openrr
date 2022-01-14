@@ -65,13 +65,13 @@ where
             let replaced_filename = urdf_rs::utils::expand_package_path(filename, base_dir);
             let path = Path::new(&replaced_filename);
             if !path.exists() {
-                error!("{} not found", replaced_filename);
+                error!("{replaced_filename} not found");
                 return None;
             }
             match load_mesh(path, &scale) {
                 Ok(mesh) => Some(ShapeHandle::new(mesh)),
                 Err(err) => {
-                    error!("load_mesh {:?} failed: {}", path, err);
+                    error!("load_mesh {path:?} failed: {err}");
                     None
                 }
             }

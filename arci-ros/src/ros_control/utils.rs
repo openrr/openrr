@@ -206,7 +206,7 @@ where
         let client =
             wrap_joint_trajectory_client(builder.wrapper_config().clone(), client, urdf_robot)?;
         if clients.insert(name.clone(), client).is_some() {
-            return Err(format_err!("client named '{}' has already been specified", name).into());
+            return Err(format_err!("client named '{name}' has already been specified").into());
         }
     }
     Ok(clients)

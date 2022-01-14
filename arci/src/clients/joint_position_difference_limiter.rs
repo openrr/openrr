@@ -117,9 +117,8 @@ fn interpolate(
         let step = diff[i].abs() / position_difference_limits[i].abs();
         if step.is_infinite() {
             return Err(Error::Other(anyhow::format_err!(
-                "Invalid position difference limits {} for joint {} ",
+                "Invalid position difference limits {} for joint {i} ",
                 position_difference_limits[i],
-                i,
             )));
         }
         max_diff_step = max_diff_step.max(step);

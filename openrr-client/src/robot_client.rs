@@ -63,7 +63,7 @@ where
         move_base: Option<M>,
         navigation: Option<N>,
     ) -> Result<Self, Error> {
-        debug!("{:?}", config);
+        debug!("{config:?}");
 
         let mut all_joint_trajectory_clients = HashMap::new();
         for (name, client) in &raw_joint_trajectory_clients {
@@ -87,7 +87,7 @@ where
             self_collision_checkers,
             ik_solvers,
         ) = if let Some(urdf_full_path) = config.urdf_full_path() {
-            debug!("Loading {:?}", urdf_full_path);
+            debug!("Loading {urdf_full_path:?}");
             let full_chain_for_collision_checker =
                 Arc::new(Chain::from_urdf_file(&urdf_full_path)?);
 
@@ -412,7 +412,7 @@ where
     pub fn speak(&self, name: &str, message: &str) -> Result<WaitFuture, Error> {
         match self.speakers.get(&name.to_string()) {
             Some(speaker) => Ok(speaker.speak(message)?),
-            _ => Err(anyhow::format_err!("Speaker \"{}\" is not found.", name).into()),
+            _ => Err(anyhow::format_err!("Speaker \"{name}\" is not found.").into()),
         }
     }
 }

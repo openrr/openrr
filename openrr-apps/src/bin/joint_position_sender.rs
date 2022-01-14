@@ -23,7 +23,7 @@ struct Opt {
 fn main() -> Result<()> {
     init_tracing();
     let opt = Opt::parse();
-    debug!("opt: {:?}", opt);
+    debug!("opt: {opt:?}");
 
     let config_path = openrr_apps::utils::get_apps_robot_config(opt.config_path);
     let config =

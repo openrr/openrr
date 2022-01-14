@@ -47,7 +47,7 @@ fn main() -> Result<(), Error> {
                     rotation.i, rotation.j, rotation.k, rotation.w
                 )
             }
-            Err(e) => println!("{:?}", e),
+            Err(e) => println!("{e:?}"),
         };
         rate.sleep();
     }

@@ -168,7 +168,7 @@ async fn main() -> Result<()> {
                     };
                     let plugin = PluginProxy::from_path(&config.path)?;
                     gamepad = Some(plugin.new_gamepad(args)?.ok_or_else(|| {
-                        format_err!("failed to create `Gamepad` instance `{}`: None", name,)
+                        format_err!("failed to create `Gamepad` instance `{name}`: None")
                     })?);
                     break;
                 }

@@ -379,7 +379,7 @@ where
                     }
                     Err(e) => {
                         let msg = format!("Value for `{}` is not a valid number", state.name);
-                        warn!(?state.input, ?msg, "error=\"{}\"", e);
+                        warn!(?state.input, ?msg, "error=\"{e}\"");
                         self.errors.velocity_state = Some((index, msg));
                         return Command::none();
                     }
@@ -418,7 +418,7 @@ where
         debug!(?velocity, "send_velocity");
         match self.move_base.send_velocity(&velocity) {
             Err(e) => {
-                error!("{}", e);
+                error!("{e}");
                 self.errors.other = Some(e.to_string());
             }
             Ok(()) => {}
@@ -522,7 +522,7 @@ where
             .filter_map(|e| e.as_ref())
             {
                 errors = errors.push(
-                    Text::new(&format!("Error: {}", msg))
+                    Text::new(&format!("Error: {msg}"))
                         .size(style::ERROR_TEXT_SIZE)
                         .horizontal_alignment(HorizontalAlignment::Left)
                         .width(Length::Fill)
@@ -553,6 +553,6 @@ where
 
 // round float: https://stackoverflow.com/questions/28655362/how-does-one-round-a-floating-point-number-to-a-specified-number-of-digits
 fn round_f64(n: f64) -> f64 {
-    let n = format!("{:.2}", n);
+    let n = format!("{n:.2}");
     n.parse().unwrap()
 }

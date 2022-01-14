@@ -31,7 +31,7 @@ impl arci::Speaker for RosEspeakClient {
         };
         self.publisher
             .send(ros_msg)
-            .map_err(|e| anyhow::format_err!("{}", e))?;
+            .map_err(|e| anyhow::format_err!("{e}"))?;
         Ok(WaitFuture::ready())
     }
 }

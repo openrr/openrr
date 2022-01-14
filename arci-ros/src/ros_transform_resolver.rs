@@ -38,10 +38,7 @@ impl TransformResolver for RosTransformResolver {
         let mut last_error = None;
         for i in 0..=self.max_retry {
             if i != 0 {
-                debug!(
-                    "Retrying {} -> {} ({} / {}) ...",
-                    from, to, i, self.max_retry
-                );
+                debug!("Retrying {from} -> {to} ({i} / {}) ...", self.max_retry);
             }
             let result = self.tf_listener.lookup_transform(from, to, ros_time);
             match result {
@@ -57,7 +54,7 @@ impl TransformResolver for RosTransformResolver {
                     ));
                 }
                 Err(e) => {
-                    debug!("Failed to lookup_transform ({:?})", e);
+                    debug!("Failed to lookup_transform ({e:?})");
                     last_error = Some(e)
                 }
             }
@@ -65,8 +62,8 @@ impl TransformResolver for RosTransformResolver {
         }
         match last_error {
             Some(e) => {
-                warn!("{:?}", e);
-                Err(anyhow::anyhow!("{:?}", e).into())
+                warn!("{e:?}");
+                Err(anyhow::anyhow!("{e:?}").into())
             }
             None => Err(anyhow::anyhow!("Broken Logic").into()),
         }

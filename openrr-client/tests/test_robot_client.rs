@@ -35,8 +35,7 @@ impl JointTrajectoryClient for PanicJointTrajectoryClient {
         duration: std::time::Duration,
     ) -> Result<WaitFuture, arci::Error> {
         panic!(
-            "PanicJointTrajectoryClient::send_joint_positions positions={:?}, duration={:?}",
-            positions, duration
+            "PanicJointTrajectoryClient::send_joint_positions positions={positions:?}, duration={duration:?}",
         )
     }
 
@@ -45,10 +44,7 @@ impl JointTrajectoryClient for PanicJointTrajectoryClient {
         &self,
         trajectory: Vec<arci::TrajectoryPoint>,
     ) -> Result<WaitFuture, arci::Error> {
-        panic!(
-            "PanicJointTrajectoryClient::send_joint_trajectory trajectory={:?}",
-            trajectory
-        )
+        panic!("PanicJointTrajectoryClient::send_joint_trajectory trajectory={trajectory:?}")
     }
 }
 
@@ -57,7 +53,7 @@ struct PanicSpeaker;
 impl Speaker for PanicSpeaker {
     #[track_caller]
     fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
-        panic!("PanicSpeaker::speak message={:?}", message)
+        panic!("PanicSpeaker::speak message={message:?}")
     }
 }
 
@@ -66,7 +62,7 @@ struct PanicLocalization;
 impl Localization for PanicLocalization {
     #[track_caller]
     fn current_pose(&self, frame_id: &str) -> Result<arci::Isometry2<f64>, arci::Error> {
-        panic!("PanicLocalization::current_pose frame_id={:?}", frame_id)
+        panic!("PanicLocalization::current_pose frame_id={frame_id:?}")
     }
 }
 
@@ -80,7 +76,7 @@ impl MoveBase for PanicMoveBase {
 
     #[track_caller]
     fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), arci::Error> {
-        panic!("PanicMoveBase::send_velocity velocity={:?}", velocity)
+        panic!("PanicMoveBase::send_velocity velocity={velocity:?}")
     }
 }
 
@@ -95,8 +91,7 @@ impl Navigation for PanicNavigation {
         timeout: std::time::Duration,
     ) -> Result<WaitFuture, arci::Error> {
         panic!(
-            "PanicNavigation::current_pose goal={:?}, frame_id={:?}, timeout={:?}",
-            goal, frame_id, timeout
+            "PanicNavigation::current_pose goal={goal:?}, frame_id={frame_id:?}, timeout={timeout:?}",
         )
     }
 

@@ -66,7 +66,7 @@ fn main() -> Result<()> {
             let s = &openrr_config::overwrite_str(s, &overwrite)?;
             // check if the edited document is valid config.
             let _base: Config = toml::from_str(s)?;
-            println!("{}", s);
+            println!("{s}");
         }
     }
 

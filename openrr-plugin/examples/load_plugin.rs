@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
             y: 1.0,
             theta: 0.5,
         };
-        println!("sending velocity: {:?}", new);
+        println!("sending velocity: {new:?}");
         move_base.send_velocity(&new)?;
         println!("current_velocity: {:?}", move_base.current_velocity()?);
     }

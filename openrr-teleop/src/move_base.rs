@@ -191,7 +191,7 @@ mod tests {
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {:?}", node.inner.lock().vel, current);
+        println!("{:?} {current:?}", node.inner.lock().vel);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
@@ -212,7 +212,7 @@ mod tests {
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {:?}", node.inner.lock().vel, current);
+        println!("{:?} {current:?}", node.inner.lock().vel);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
@@ -233,7 +233,7 @@ mod tests {
         assert_approx_eq!(current.x, X);
         assert_approx_eq!(current.y, Y);
         assert_approx_eq!(current.theta, THETA);
-        println!("{:?} {:?}", node.inner.lock().vel, current);
+        println!("{:?} {current:?}", node.inner.lock().vel);
 
         let node = MoveBaseNode {
             move_base: DummyMoveBase::new(),
@@ -254,6 +254,6 @@ mod tests {
         assert_approx_eq!(current.x, X * 2.0);
         assert_approx_eq!(current.y, Y * 2.0);
         assert_approx_eq!(current.theta, THETA * 2.0);
-        println!("{:?} {:?}", node.inner.lock().vel, current);
+        println!("{:?} {current:?}", node.inner.lock().vel);
     }
 }

@@ -39,7 +39,7 @@ pub fn evaluate(mut s: &str, current_dir: Option<&Path>) -> Result<String> {
             Some(b'(') => {
                 let end = match s.find(')') {
                     Some(end) => end,
-                    None => bail!("unclosed command literal {:?}", s),
+                    None => bail!("unclosed command literal {s:?}"),
                 };
                 let script = &s[2..end];
                 s = s.get(end + 1..).unwrap_or_default();
@@ -52,11 +52,10 @@ pub fn evaluate(mut s: &str, current_dir: Option<&Path>) -> Result<String> {
                 }
                 let output = cmd
                     .output()
-                    .with_context(|| format!("could not run `{:?}`", cmd))?;
+                    .with_context(|| format!("could not run `{cmd:?}`"))?;
                 if !output.status.success() {
                     bail!(
-                        "`{:?}` didn't exit successfully\nstdout:\n{}\n\nstderr:\n{}\n",
-                        cmd,
+                        "`{cmd:?}` didn't exit successfully\nstdout:\n{}\n\nstderr:\n{}\n",
                         String::from_utf8_lossy(&output.stdout),
                         String::from_utf8_lossy(&output.stderr)
                     );
@@ -70,13 +69,13 @@ pub fn evaluate(mut s: &str, current_dir: Option<&Path>) -> Result<String> {
             Some(b'{') => {
                 let end = match s.find('}') {
                     Some(end) => end,
-                    None => bail!("unclosed environment variable literal {:?}", s),
+                    None => bail!("unclosed environment variable literal {s:?}"),
                 };
                 let key = &s[2..end];
                 s = s.get(end + 1..).unwrap_or_default();
 
                 let var = env::var(key)
-                    .with_context(|| format!("could not get environment variable {:?}", key))?;
+                    .with_context(|| format!("could not get environment variable {key:?}"))?;
                 out.push_str(&var);
             }
             Some(_) => {

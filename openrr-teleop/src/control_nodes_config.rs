@@ -264,7 +264,7 @@ mod tests {
         );
         assert!(nodes.is_err());
         let err = nodes.err().unwrap();
-        println!("{}", err);
+        println!("{err}");
 
         // Check create control node(Error:No HashMap item[Key=ik_trajectory])
         // HashMap key is required by ControlNodesConfig
@@ -309,7 +309,7 @@ mod tests {
         );
         assert!(nodes.is_err());
         let err = nodes.err().unwrap();
-        println!("{}", err);
+        println!("{err}");
     }
 
     #[test]

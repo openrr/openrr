@@ -389,7 +389,7 @@ pub fn create_ik_solver_with_chain(
                 .unwrap_or_else(|| panic!("ik_target: {} not found", config.ik_target)),
             full_chain
                 .find(root_node_name)
-                .unwrap_or_else(|| panic!("root_node_name: {} not found", root_node_name)),
+                .unwrap_or_else(|| panic!("root_node_name: {root_node_name} not found")),
         )
     } else {
         k::SerialChain::from_end(

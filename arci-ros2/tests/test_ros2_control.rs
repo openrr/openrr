@@ -24,8 +24,8 @@ use r2r::{
 fn node_and_action_name() -> (String, String) {
     static COUNT: AtomicUsize = AtomicUsize::new(0);
     let n = COUNT.fetch_add(1, Ordering::SeqCst);
-    let node_name = format!("test_ros2_control_node_{}", n);
-    let action_name = format!("/test_ros2_control_{}", n);
+    let node_name = format!("test_ros2_control_node_{n}");
+    let action_name = format!("/test_ros2_control_{n}");
     (node_name, action_name)
 }
 
@@ -40,13 +40,12 @@ async fn test_control() {
     let server_requests = node
         .lock()
         .create_action_server::<FollowJointTrajectory::Action>(&format!(
-            "{}/follow_joint_trajectory",
-            action_name
+            "{action_name}/follow_joint_trajectory"
         ))
         .unwrap();
     let publisher = node
         .lock()
-        .create_publisher::<JointTrajectoryControllerState>(&format!("{}/state", action_name))
+        .create_publisher::<JointTrajectoryControllerState>(&format!("{action_name}/state"))
         .unwrap();
     let state = Arc::new(Mutex::new(JointTrajectoryControllerState {
         joint_names: vec!["j1".to_owned(), "j2".to_owned()],

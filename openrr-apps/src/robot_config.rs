@@ -212,13 +212,11 @@ impl PluginConfig {
 
         if let Some(instance_name) = instance_name {
             Err(Error::DuplicateInstance(format!(
-                "Multiple {:?} plugin instances {:?} are found. Consider renaming one of the instances",
-                instance_kind, instance_name,
+                "Multiple {instance_kind:?} plugin instances {instance_name:?} are found. Consider renaming one of the instances",
             )))
         } else {
             Err(Error::DuplicateInstance(format!(
-                "Multiple plugin instances for {:?} are found. Consider specifying the instance to use",
-                instance_kind
+                "Multiple plugin instances for {instance_kind:?} are found. Consider specifying the instance to use",
             )))
         }
     }
@@ -283,8 +281,7 @@ impl PluginInstance {
         Ok(arci::Lazy::new(move || match f(&plugin, args) {
             Ok(Some(instance)) => {
                 info!(
-                    "created `{:?}` instance `{}` from plugin `{}`",
-                    instance_kind, instance_name, plugin_name,
+                    "created `{instance_kind:?}` instance `{instance_name}` from plugin `{plugin_name}`",
                 );
                 Ok(instance)
             }
@@ -307,7 +304,7 @@ pub enum PluginInstanceKind {
 
 impl fmt::Display for PluginInstanceKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -863,16 +860,12 @@ fn instance_create_error<T: fmt::Debug, U>(
     plugin_name: String,
 ) -> Result<U, arci::Error> {
     error!(
-        "failed to create `{:?}` instance `{}` from plugin `{}`: {:?}",
-        instance_kind, instance_name, plugin_name, res,
+        "failed to create `{instance_kind:?}` instance `{instance_name}` from plugin `{plugin_name}`: {res:?}",
     );
     res.and_then(|_| {
         // TODO: error msg
         Err(format_err!(
-            "failed to create `{:?}` instance `{}` from plugin `{}`: None",
-            instance_kind,
-            instance_name,
-            plugin_name,
+            "failed to create `{instance_kind:?}` instance `{instance_name}` from plugin `{plugin_name}`: None",
         )
         .into())
     })
@@ -927,7 +920,7 @@ impl RobotConfig {
                 }
             }
         }
-        debug!("{:?}", config);
+        debug!("{config:?}");
         Ok(config)
     }
 
@@ -939,7 +932,7 @@ impl RobotConfig {
 
         for (name, speak_config) in &self.speak_configs {
             if matches!(speak_config, SpeakConfig::RosEspeak { .. }) {
-                return Err(Error::ConfigRequireRos(format!("speak_configs.{}", name)));
+                return Err(Error::ConfigRequireRos(format!("speak_configs.{name}")));
             }
         }
         if !self.ros_clients_configs.is_empty() {

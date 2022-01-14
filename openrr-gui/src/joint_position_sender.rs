@@ -56,7 +56,7 @@ struct JointState {
 impl JointState {
     fn update_position(&mut self, position: f64) {
         self.position = position;
-        self.position_input = format!("{:.2}", position);
+        self.position_input = format!("{position:.2}");
     }
 }
 
@@ -90,8 +90,7 @@ where
         for joint_name in client.joint_names() {
             if !joints.contains_key(&joint_name) {
                 return Err(Error::Other(format!(
-                    "Joint '{}' not found in URDF",
-                    joint_name
+                    "Joint '{joint_name}' not found in URDF"
                 )));
             }
         }
@@ -308,7 +307,7 @@ where
                 let positions = match joint_trajectory_client.current_joint_positions() {
                     Ok(positions) => positions,
                     Err(e) => {
-                        error!("{}", e);
+                        error!("{e}");
                         self.errors.other = Some(e.to_string());
                         vec![Default::default(); len]
                     }
@@ -411,7 +410,7 @@ where
                             "Position for joint `{}` is not a valid number",
                             joint_state.name
                         );
-                        warn!(?joint_state.position_input, ?msg, "error=\"{}\"", e);
+                        warn!(?joint_state.position_input, ?msg, "error=\"{e}\"");
                         self.errors.joint_states = Some((index, msg));
                         return Command::none();
                     }
@@ -444,7 +443,7 @@ where
                     }
                     Err(e) => {
                         let msg = "Duration is not a valid number".to_string();
-                        warn!(?self.duration_input, ?msg, "error=\"{}\"", e);
+                        warn!(?self.duration_input, ?msg, "error=\"{e}\"");
                         self.errors.duration_input = Some(msg);
                         return Command::none();
                     }
@@ -458,7 +457,7 @@ where
         debug!(?joint_positions, ?duration, "send_joint_positions");
         match joint_trajectory_client.send_joint_positions(joint_positions, duration) {
             Err(e) => {
-                error!("{}", e);
+                error!("{e}");
                 self.errors.other = Some(e.to_string());
             }
             // do not wait
@@ -596,7 +595,7 @@ where
             .filter_map(|e| e.as_ref())
             {
                 errors = errors.push(
-                    Text::new(&format!("Error: {}", msg))
+                    Text::new(&format!("Error: {msg}"))
                         .size(style::ERROR_TEXT_SIZE)
                         .horizontal_alignment(HorizontalAlignment::Left)
                         .width(Length::Fill)
@@ -627,6 +626,6 @@ where
 
 // round float: https://stackoverflow.com/questions/28655362/how-does-one-round-a-floating-point-number-to-a-specified-number-of-digits
 fn round_f64(n: f64) -> f64 {
-    let n = format!("{:.2}", n);
+    let n = format!("{n:.2}");
     n.parse().unwrap()
 }

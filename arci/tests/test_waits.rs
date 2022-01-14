@@ -37,7 +37,7 @@ fn test_total_condition_accessor() {
 fn test_total_condition_debug() {
     let c1 = TotalJointDiffCondition::new(1.0, 0.1);
     assert_eq!(
-        format!("{:?}", c1),
+        format!("{c1:?}"),
         "TotalJointDiffCondition { allowable_error: 1.0, timeout_sec: 0.1 }"
     );
 }
@@ -125,7 +125,7 @@ fn test_each_condition_accessor() {
 fn test_each_condition_debug() {
     let c1 = EachJointDiffCondition::new(vec![1.0, 0.1], 0.1);
     assert_eq!(
-        format!("{:?}", c1),
+        format!("{c1:?}"),
         "EachJointDiffCondition { allowable_errors: [1.0, 0.1], timeout_sec: 0.1 }"
     );
 }
