@@ -46,8 +46,7 @@ where
         let current_position = joint_trajectory_client.current_joint_positions()?[joint_index];
         let diff_position = (prev_current_position - current_position).abs();
         debug!(
-            "diff={:.4} diff_threshold={:.4} stopped_count={}",
-            diff_position, diff_threshold_for_stop, stopped_count
+            "diff={diff_position:.4} diff_threshold={diff_threshold_for_stop:.4} stopped_count={stopped_count}",
         );
         if diff_position < diff_threshold_for_stop {
             stopped_count += 1;

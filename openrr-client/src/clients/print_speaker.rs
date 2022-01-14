@@ -16,7 +16,7 @@ impl Default for PrintSpeaker {
 
 impl Speaker for PrintSpeaker {
     fn speak(&self, message: &str) -> Result<WaitFuture, arci::Error> {
-        println!("PrintSpeaker: {}", message);
+        println!("PrintSpeaker: {message}");
         Ok(WaitFuture::ready())
     }
 }

@@ -74,7 +74,7 @@ where
         match using_joints.set_joint_positions(joint_positions) {
             Ok(()) => !self.robot_collision_detector.is_collision_detected(objects),
             Err(err) => {
-                debug!("is_feasible: {}", err);
+                debug!("is_feasible: {err}");
                 false
             }
         }
@@ -85,7 +85,7 @@ where
         match using_joints.set_joint_positions(joint_positions) {
             Ok(()) => !self.robot_collision_detector.is_self_collision_detected(),
             Err(err) => {
-                debug!("is_feasible: {}", err);
+                debug!("is_feasible: {err}");
                 false
             }
         }

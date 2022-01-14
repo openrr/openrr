@@ -28,14 +28,14 @@ fn await_roscore() {
 }
 
 pub fn run_roscore(port: u32) -> ChildProcessTerminator {
-    println!("Running roscore on port: {}", port);
-    env::set_var("ROS_MASTER_URI", format!("http://localhost:{}", port));
+    println!("Running roscore on port: {port}");
+    env::set_var("ROS_MASTER_URI", format!("http://localhost:{port}"));
     while !portpicker::is_free(port as u16) {
-        println!("Waiting port={}", port);
+        println!("Waiting port={port}");
         sleep(Duration::from_millis(100));
     }
     let roscore =
-        ChildProcessTerminator::spawn(Command::new("roscore").arg("-p").arg(format!("{}", port)));
+        ChildProcessTerminator::spawn(Command::new("roscore").arg("-p").arg(format!("{port}")));
     await_roscore();
     roscore
 }

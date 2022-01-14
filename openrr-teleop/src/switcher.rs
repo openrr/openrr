@@ -59,7 +59,7 @@ where
         let i = self.current_index();
         let mode = nodes[i].mode();
         let submode = nodes[i].submode();
-        self.speaker.speak(&format!("{}{}", mode, submode))?.await
+        self.speaker.speak(&format!("{mode}{submode}"))?.await
     }
 
     fn current_index(&self) -> usize {
@@ -97,7 +97,7 @@ where
         });
         while self.is_running() {
             let ev = gamepad.next_event().await;
-            debug!("event: {:?}", ev);
+            debug!("event: {ev:?}");
             match ev {
                 GamepadEvent::ButtonPressed(Button::North) => {
                     self.increment_mode().await.unwrap();

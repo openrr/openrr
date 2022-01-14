@@ -67,7 +67,7 @@ where
         }
         match self.get_ref() {
             Ok(this) => this.joint_names(),
-            Err(e) => panic!("{}", e),
+            Err(e) => panic!("{e}"),
         }
     }
 
@@ -159,14 +159,14 @@ where
     async fn next_event(&self) -> GamepadEvent {
         match self.get_ref() {
             Ok(this) => this.next_event().await,
-            Err(e) => panic!("{}", e),
+            Err(e) => panic!("{e}"),
         }
     }
 
     fn stop(&self) {
         match self.get_ref() {
             Ok(this) => this.stop(),
-            Err(e) => panic!("{}", e),
+            Err(e) => panic!("{e}"),
         }
     }
 }

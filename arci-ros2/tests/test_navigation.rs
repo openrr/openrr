@@ -22,8 +22,8 @@ use r2r::nav2_msgs::action::NavigateToPose;
 fn node_and_action_name() -> (String, String) {
     static COUNT: AtomicUsize = AtomicUsize::new(0);
     let n = COUNT.fetch_add(1, Ordering::SeqCst);
-    let node_name = format!("test_nav2_node_{}", n);
-    let action_name = format!("/test_nav2_{}", n);
+    let node_name = format!("test_nav2_node_{n}");
+    let action_name = format!("/test_nav2_{n}");
     (node_name, action_name)
 }
 
@@ -170,7 +170,7 @@ async fn run_goal(
         current_pose.position.y += position_diff.y;
         current_pose.position.z += position_diff.z;
         g.publish_feedback(feedback_msg.clone()).expect("fail");
-        println!("Sending feedback: {:?}", feedback_msg);
+        println!("Sending feedback: {feedback_msg:?}");
         timer.tick().await.unwrap();
     }
 

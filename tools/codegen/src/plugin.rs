@@ -36,9 +36,9 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
         }
 
         let trait_name = &item.ident;
-        let proxy_name = format_ident!("{}Proxy", trait_name);
+        let proxy_name = format_ident!("{trait_name}Proxy");
         let proxy_name_lit = proxy_name.to_string();
-        let trait_object_name = format_ident!("{}TraitObject", trait_name);
+        let trait_object_name = format_ident!("{trait_name}TraitObject");
         let methods = item.items.iter().map(|method| match method {
             syn::TraitItem::Method(method) => {
                 let sig = &method.sig;
@@ -84,8 +84,8 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
             }
         });
 
-        let sabi_trait_name = format_ident!("R{}Trait", trait_name);
-        let sabi_trait_trait_object_name = format_ident!("{}_TO", sabi_trait_name);
+        let sabi_trait_name = format_ident!("R{trait_name}Trait");
+        let sabi_trait_trait_object_name = format_ident!("{sabi_trait_name}_TO");
         let mut sabi_method_def = vec![];
         let mut sabi_method_impl = vec![];
         for method in &item.items {
@@ -204,10 +204,9 @@ fn gen_plugin_trait(traits: &[Ident]) -> (TokenStream, TokenStream) {
     let mut sabi_plugin_method_impl = vec![];
     for trait_name in traits {
         let method_name = format_ident!("new_{}", trait_name.to_string().to_snake_case());
-        let proxy_name = format_ident!("{}Proxy", trait_name);
+        let proxy_name = format_ident!("{trait_name}Proxy");
         let new_doc = format!(
-            " Creates a new instance of [`arci::{}`] with the specified arguments.",
-            trait_name
+            " Creates a new instance of [`arci::{trait_name}`] with the specified arguments.",
         );
         plugin_method_def.push(quote! {
             #[doc = #new_doc]
@@ -276,13 +275,12 @@ fn gen_plugin_trait(traits: &[Ident]) -> (TokenStream, TokenStream) {
 }
 
 fn gen_proxy_type(trait_name: &Ident, prefix_path: TokenStream) -> TokenStream {
-    let proxy_name = format_ident!("{}Proxy", trait_name);
-    let trait_object_name = format_ident!("{}TraitObject", trait_name);
-    let new_doc = format!(" Creates a new `{}`.", proxy_name);
+    let proxy_name = format_ident!("{trait_name}Proxy");
+    let trait_object_name = format_ident!("{trait_name}TraitObject");
+    let new_doc = format!(" Creates a new `{proxy_name}`.");
     let struct_doc = format!(
-        " FFI-safe equivalent of [`Box<dyn {0}{1}>`]({0}{1}).",
+        " FFI-safe equivalent of [`Box<dyn {0}{trait_name}>`]({0}{trait_name}).",
         prefix_path.to_string().replace(' ', ""),
-        trait_name,
     );
     quote! {
         #[doc = #struct_doc]

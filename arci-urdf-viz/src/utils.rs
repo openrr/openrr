@@ -37,7 +37,7 @@ pub(crate) struct RpcResult {
 
 fn map_connection_error<E: fmt::Display>(url: &Url) -> impl FnOnce(E) -> arci::Error + '_ {
     move |e: E| arci::Error::Connection {
-        message: format!("url:{}: {}", url, e),
+        message: format!("url:{url}: {e}"),
     }
 }
 

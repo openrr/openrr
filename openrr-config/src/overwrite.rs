@@ -139,8 +139,8 @@ fn parse_scripts(s: &str) -> Result<Vec<Script>> {
         let operation = if value.is_empty() {
             Operation::Delete
         } else {
-            let value: Value = toml::from_str(&format!(r#"a = {}"#, value))
-                .with_context(|| format!("invalid script syntax at {}: {}", i + 1, value))?;
+            let value: Value = toml::from_str(&format!(r#"a = {value}"#))
+                .with_context(|| format!("invalid script syntax at {}: {value}", i + 1))?;
             Operation::Set(value["a"].clone())
         };
 
@@ -163,8 +163,8 @@ fn parse_scripts(s: &str) -> Result<Vec<Script>> {
             '"' | '\'' => {
                 let end = parse_string_literal(&mut buf, ch, &mut chars);
                 if !end {
-                    debug!(?buf, ?cur_query, "unexpected eof, expected `{}`", ch);
-                    bail!("unexpected eof, expected `{}`", ch);
+                    debug!(?buf, ?cur_query, "unexpected eof, expected `{ch}`");
+                    bail!("unexpected eof, expected `{ch}`");
                 }
             }
             '[' => {

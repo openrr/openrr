@@ -21,7 +21,7 @@ impl MoveBase for RosCmdVelMoveBase {
         self.vel_publisher
             .send((*velocity).into())
             .map_err(|e| arci::Error::Connection {
-                message: format!("rosrust publish error: {:?}", e),
+                message: format!("rosrust publish error: {e:?}"),
             })
     }
 

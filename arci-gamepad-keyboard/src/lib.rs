@@ -156,9 +156,9 @@ impl State {
     }
 
     fn send(&self, event: GamepadEvent) {
-        debug!("sending {:?}", event);
+        debug!("sending {event:?}");
         if let Err(e) = self.sender.send(event) {
-            error!("{}", e);
+            error!("{e}");
         }
     }
 
@@ -236,7 +236,7 @@ impl KeyboardGamepad {
                     state.send_event(b as char);
                     continue;
                 }
-                debug!("non-ascii input: {}", b);
+                debug!("non-ascii input: {b}");
             }
             tcsetattr(stdin, termios::TCSANOW, &termios).unwrap(); // reset the stdin to
         });
@@ -260,7 +260,7 @@ impl Gamepad for KeyboardGamepad {
         match self.receiver.recv_async().await {
             Ok(e) => e,
             Err(e) => {
-                error!("recv error: {}", e);
+                error!("recv error: {e}");
                 GamepadEvent::Unknown
             }
         }

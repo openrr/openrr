@@ -94,7 +94,7 @@ mod tests {
     fn test_trajectory_point_debug() {
         let tp = TrajectoryPoint::new(vec![1.0, -1.0], std::time::Duration::from_secs(1));
         assert_eq!(
-            format!("{:?}", tp),
+            format!("{tp:?}"),
             "TrajectoryPoint { positions: [1.0, -1.0], velocities: None, time_from_start: 1s }"
         );
     }

@@ -126,18 +126,14 @@ where
             });
             prev_positions = original_trajectory_point.positions.clone();
             debug!(
-                "Sequence{} dominant joint_index {} duration limited : {:?}{} original : {:?}{}",
-                sequence_index,
-                dominant_joint_index,
-                limited_duration_from_prev,
+                "Sequence{sequence_index} dominant joint_index {dominant_joint_index} duration limited : {limited_duration_from_prev:?}{} original : {original_duration_from_prev:?}{}",
                 if use_limited { "(O)" } else { "" },
-                original_duration_from_prev,
                 if use_limited { "" } else { "(O)" }
             );
         }
 
-        debug!("OriginalTrajectory {:?}", trajectory);
-        debug!("LimitedTrajectory {:?}", limited_trajectory);
+        debug!("OriginalTrajectory {trajectory:?}");
+        debug!("LimitedTrajectory {limited_trajectory:?}");
 
         self.client.send_joint_trajectory(limited_trajectory)
     }

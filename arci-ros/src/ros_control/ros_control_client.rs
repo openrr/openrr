@@ -38,14 +38,13 @@ impl RosControlClient {
         for joint_name in &joint_names {
             if !state_joint_names.iter().any(|name| **name == *joint_name) {
                 panic!(
-                    "Invalid configuration : Joint ({}) is not found in state ({:?})",
-                    joint_name, state_joint_names
+                    "Invalid configuration : Joint ({joint_name}) is not found in state ({state_joint_names:?})",
                 );
             }
         }
 
         let trajectory_publisher =
-            rosrust::publish(&format!("{}/command", controller_name), 1).unwrap();
+            rosrust::publish(&format!("{controller_name}/command"), 1).unwrap();
 
         let rate = rosrust::rate(10.0);
         while rosrust::is_ok() && trajectory_publisher.subscriber_count() == 0 {
@@ -77,7 +76,7 @@ impl RosControlClient {
     }
 
     pub(crate) fn state_topic_name(controller_name: &str) -> String {
-        format!("{}/state", controller_name)
+        format!("{controller_name}/state")
     }
 
     pub(crate) fn create_joint_state_provider(

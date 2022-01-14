@@ -40,14 +40,13 @@ impl RosControlActionClient {
         for joint_name in &joint_names {
             if !state_joint_names.iter().any(|name| **name == *joint_name) {
                 panic!(
-                    "Invalid configuration : Joint ({}) is not found in state ({:?})",
-                    joint_name, state_joint_names
+                    "Invalid configuration : Joint ({joint_name}) is not found in state ({state_joint_names:?})",
                 );
             }
         }
 
         let action_client =
-            SimpleActionClient::new(&format!("{}/follow_joint_trajectory", controller_name), 1);
+            SimpleActionClient::new(&format!("{controller_name}/follow_joint_trajectory"), 1);
 
         Self(Arc::new(RosControlActionClientInner {
             joint_names,

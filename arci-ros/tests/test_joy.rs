@@ -58,20 +58,20 @@ async fn test_joy() {
             assert_eq!(ax, arci::gamepad::Axis::LeftStickY);
             assert!((value - 0.2).abs() < 0.000001);
         }
-        _ => panic!("unexpected {:?}", event),
+        _ => panic!("unexpected {event:?}"),
     }
 
     println!("await1");
     let event = pad.next_event().await;
     match event {
         GamepadEvent::ButtonPressed(b) => assert_eq!(b, arci::gamepad::Button::East),
-        _ => panic!("unexpected {:?}", event),
+        _ => panic!("unexpected {event:?}"),
     }
 
     println!("await2");
     let event = pad.next_event().await;
     match event {
         GamepadEvent::ButtonReleased(b) => assert_eq!(b, arci::gamepad::Button::East),
-        _ => panic!("unexpected {:?}", event),
+        _ => panic!("unexpected {event:?}"),
     }
 }

@@ -23,7 +23,7 @@ where
     } else {
         match filename.extension().and_then(OsStr::to_str) {
             Some("stl" | "STL") => load_stl(filename, scale),
-            _ => Err(Error::MeshError(format!("failed to parse {:?}", filename))),
+            _ => Err(Error::MeshError(format!("failed to parse {filename:?}"))),
         }
     }
 }
@@ -38,8 +38,7 @@ where
     match filename.extension().and_then(OsStr::to_str) {
         Some("stl" | "STL") => load_stl(filename, scale),
         _ => Err(Error::MeshError(format!(
-            "assimp feature is disabled: could not parse {:?}",
-            filename
+            "assimp feature is disabled: could not parse {filename:?}"
         ))),
     }
 }

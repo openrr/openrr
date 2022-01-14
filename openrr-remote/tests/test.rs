@@ -26,7 +26,7 @@ use openrr_remote::{
 fn endpoint() -> (SocketAddr, String) {
     static PORT: AtomicU16 = AtomicU16::new(50061);
     let addr = format!("[::1]:{}", PORT.fetch_add(1, Ordering::SeqCst));
-    (addr.parse().unwrap(), format!("http://{}", addr))
+    (addr.parse().unwrap(), format!("http://{addr}"))
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -224,10 +224,9 @@ async fn gamepad() -> Result<()> {
                 assert_approx_eq!(*expected_val, actual_val);
             }
             (GamepadEvent::Unknown, GamepadEvent::Unknown) => {}
-            (expected, actual) => panic!(
-                "event mismatch, expected: {:?}, actual: {:?}",
-                expected, actual
-            ),
+            (expected, actual) => {
+                panic!("event mismatch, expected: {expected:?}, actual: {actual:?}")
+            }
         }
     }
     gamepad.stop();
@@ -344,10 +343,9 @@ async fn multiple() -> Result<()> {
                 assert_approx_eq!(*expected_val, actual_val);
             }
             (GamepadEvent::Unknown, GamepadEvent::Unknown) => {}
-            (expected, actual) => panic!(
-                "event mismatch, expected: {:?}, actual: {:?}",
-                expected, actual
-            ),
+            (expected, actual) => {
+                panic!("event mismatch, expected: {expected:?}, actual: {actual:?}")
+            }
         }
     }
     gamepad.stop();

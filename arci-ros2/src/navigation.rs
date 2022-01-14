@@ -126,7 +126,7 @@ impl Navigation for Ros2Navigation {
         let wait = WaitFuture::new(async move {
             tokio::select! {
                 _ = receiver => Ok(()),
-                _ = timeout_fut => Err(arci::Error::Other(format_err!("timeout {:?}", timeout))),
+                _ = timeout_fut => Err(arci::Error::Other(format_err!("timeout {timeout:?}"))),
             }
         });
 

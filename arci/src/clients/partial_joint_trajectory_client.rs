@@ -278,7 +278,7 @@ mod tests {
             "[\"high\", \"part2\", \"part1\"]"
         );
         assert_eq!(
-            format!("{:?}", client),
+            format!("{client:?}"),
             format!("{:?}", partial.shared_client)
         );
         assert_eq!(
@@ -300,7 +300,7 @@ mod tests {
             "[\"part1\", \"high\"]"
         );
         assert_eq!(
-            format!("{:?}", client),
+            format!("{client:?}"),
             format!("{:?}", partial.shared_client)
         );
         assert_eq!(
@@ -335,7 +335,7 @@ mod tests {
             &mut to_positions,
         );
         assert!(result.is_ok());
-        println!("{:?}", to_positions);
+        println!("{to_positions:?}");
         to_positions
             .iter()
             .zip(correct.iter())
@@ -364,7 +364,7 @@ mod tests {
             &mut to_positions,
         );
         assert!(result.is_ok());
-        println!("{:?}", to_positions);
+        println!("{to_positions:?}");
         to_positions
             .iter()
             .zip(correct.iter())
@@ -400,7 +400,7 @@ mod tests {
             .iter()
             .zip(from_positions.iter())
             .for_each(|(pos, correct)| assert_approx_eq!(*pos, correct));
-        println!("{:?}", to_positions);
+        println!("{to_positions:?}");
 
         // random order pattern
         let mut to_positions = vec![3.3_f64, 8.1, 5.2, 0.8];
@@ -422,7 +422,7 @@ mod tests {
             .iter()
             .zip(correct.iter())
             .for_each(|(pos, correct)| assert_approx_eq!(*pos, correct));
-        println!("{:?}", to_positions);
+        println!("{to_positions:?}");
 
         // few joint pattern
         let mut to_positions = vec![3.3_f64, 8.1];
@@ -439,7 +439,7 @@ mod tests {
             .iter()
             .zip(correct.iter())
             .for_each(|(pos, correct)| assert_approx_eq!(*pos, correct));
-        println!("{:?}", to_positions);
+        println!("{to_positions:?}");
     }
 
     #[test]
@@ -553,7 +553,7 @@ mod tests {
         assert!(result.unwrap().await.is_ok());
 
         let current_pos = partial.current_joint_positions().unwrap();
-        println!("{:?}", current_pos);
+        println!("{current_pos:?}");
         current_pos
             .iter()
             .zip(next_pos.iter())
@@ -599,7 +599,7 @@ mod tests {
         assert!(result.unwrap().await.is_ok());
 
         let current_pos = partial.current_joint_positions().unwrap();
-        println!("{:?}", current_pos);
+        println!("{current_pos:?}");
         current_pos
             .iter()
             .zip(correct.iter())
@@ -630,7 +630,7 @@ mod tests {
         assert!(result.unwrap().await.is_ok());
 
         let current_pos = partial.current_joint_positions().unwrap();
-        println!("{:?}", current_pos);
+        println!("{current_pos:?}");
         current_pos
             .iter()
             .zip(correct.iter())

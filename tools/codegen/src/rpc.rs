@@ -62,11 +62,11 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
 }
 
 fn gen_remote_types(trait_name: &Ident) -> TokenStream {
-    let client_name = format_ident!("Remote{}Sender", trait_name);
-    let client_pb_ty = format_ident!("{}Client", trait_name);
+    let client_name = format_ident!("Remote{trait_name}Sender");
+    let client_pb_ty = format_ident!("{trait_name}Client");
     let client_pb_mod = format_ident!("{}_client", trait_name.to_string().to_snake_case());
-    let server_name = format_ident!("Remote{}Receiver", trait_name);
-    let server_pb_ty = format_ident!("{}Server", trait_name);
+    let server_name = format_ident!("Remote{trait_name}Receiver");
+    let server_pb_ty = format_ident!("{trait_name}Server");
     let server_pb_mod = format_ident!("{}_server", trait_name.to_string().to_snake_case());
 
     quote! {
@@ -132,7 +132,7 @@ fn gen_remote_types(trait_name: &Ident) -> TokenStream {
 }
 
 fn gen_client_impl(trait_name: &Ident, item: &ItemTrait) -> TokenStream {
-    let client_name = format_ident!("Remote{}Sender", trait_name);
+    let client_name = format_ident!("Remote{trait_name}Sender");
 
     let methods = item.items.iter().map(|method| match method {
         syn::TraitItem::Method(method) => {
@@ -201,7 +201,7 @@ fn gen_client_impl(trait_name: &Ident, item: &ItemTrait) -> TokenStream {
 fn gen_server_impl(trait_name: &Ident, item: &ItemTrait, pb_traits: &[ItemTrait]) -> TokenStream {
     const USE_TRY_INTO: &[&str] = &["SystemTime", "Duration"];
 
-    let server_name = format_ident!("Remote{}Receiver", trait_name);
+    let server_name = format_ident!("Remote{trait_name}Receiver");
     let server_pb_mod = format_ident!("{}_server", trait_name.to_string().to_snake_case());
     let pb_trait = pb_traits.iter().find(|t| t.ident == *trait_name).unwrap();
 

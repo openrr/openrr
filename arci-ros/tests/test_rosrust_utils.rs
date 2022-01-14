@@ -101,14 +101,14 @@ fn test_subscribe_with_channel() {
         vel.x = 0.001 * (count as f64);
         c.send_velocity(&vel).unwrap();
         std::thread::sleep(std::time::Duration::from_millis(100));
-        println!("{}, {:?}", count, vel);
+        println!("{count}, {vel:?}");
     }
 
     // subscribe(receiving from mpsc)
     let mut rv_count = 0_usize;
     while let Ok(rv) = rx.recv() {
         assert_approx_eq!(rv.linear.x, 0.001 * (rv_count as f64));
-        println!("subscribe(receiving from mpsc): {:?}", rv);
+        println!("subscribe(receiving from mpsc): {rv:?}");
 
         rv_count += 1;
         if rv_count >= NUMBER_OF_TEST_MESSAGES {

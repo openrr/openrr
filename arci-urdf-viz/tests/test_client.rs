@@ -8,7 +8,7 @@ use url::Url;
 
 fn port_and_url() -> (u16, Url) {
     let port = portpicker::pick_unused_port().expect("No ports free");
-    let url = Url::parse(&format!("http://127.0.0.1:{}", port)).unwrap();
+    let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
     (port, url)
 }
 
@@ -84,7 +84,7 @@ fn test_urdf_viz_web_client_config_debug() {
         joint_velocity_limits: Some(vec![1.0, 2.0]),
     };
     assert_eq!(
-        format!("{:?}", config),
+        format!("{config:?}"),
         "UrdfVizWebClientConfig { name: \"test\", \
             joint_names: Some([\"j1\", \"j2\"]), \
             wrap_with_joint_position_limiter: true, \

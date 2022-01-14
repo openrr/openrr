@@ -32,7 +32,7 @@ impl JointTrajectoryClient for ChainWrapper {
         for (index, node) in self.nodes.iter().enumerate() {
             positions[index] = node
                 .joint_position()
-                .ok_or_else(|| anyhow::anyhow!("No joint_position for joint={}", node))?;
+                .ok_or_else(|| anyhow::anyhow!("No joint_position for joint={node}"))?;
         }
         Ok(positions)
     }

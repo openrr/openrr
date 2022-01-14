@@ -61,7 +61,7 @@ async fn main() -> Result<()> {
         )
     });
 
-    info!("ParsedArgs {:?}", args);
+    info!("ParsedArgs {args:?}");
 
     if args.show_default_config {
         print!("{}", toml::to_string(&RobotConfig::default()).unwrap());

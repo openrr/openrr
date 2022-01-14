@@ -78,7 +78,7 @@ impl CollisionAvoidApp {
                 .robot_collision_detector
                 .robot
                 .find(end_link_name)
-                .unwrap_or_else(|| panic!("{} not found", end_link_name));
+                .unwrap_or_else(|| panic!("{end_link_name} not found"));
             k::SerialChain::from_end(end_link)
         };
         let ik_target_pose = arm.end_transform();
@@ -226,7 +226,7 @@ impl CollisionAvoidApp {
                                 &c,
                             );
                             if result.is_err() {
-                                println!("fail!! {:?}", result);
+                                println!("fail!! {result:?}");
                             }
                             self.update_robot();
                         }
@@ -248,7 +248,7 @@ impl CollisionAvoidApp {
                                 }
                                 Err(error) => {
                                     self.update_robot();
-                                    println!("failed to reach!! {}", error);
+                                    println!("failed to reach!! {error}");
                                 }
                             };
                         }
@@ -262,7 +262,7 @@ impl CollisionAvoidApp {
                             self.colliding_link_names =
                                 self.planner.colliding_link_names(&self.obstacles);
                             for name in &self.colliding_link_names {
-                                println!("{}", name);
+                                println!("{name}");
                                 self.viewer.set_temporal_color(name, 0.8, 0.8, 0.6);
                             }
                             println!("===========");
@@ -285,7 +285,7 @@ impl CollisionAvoidApp {
                                 self.colliding_link_names.push(p.1);
                             }
                             for name in &self.colliding_link_names {
-                                println!("{}", name);
+                                println!("{name}");
                                 self.viewer.set_temporal_color(name, 0.8, 0.4, 0.6);
                             }
                             println!("===========");

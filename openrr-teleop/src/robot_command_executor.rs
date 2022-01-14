@@ -113,10 +113,7 @@ where
     fn handle_event(&self, event: arci::gamepad::GamepadEvent) {
         if let Some(submode) = self.inner.lock().handle_event(event) {
             // do not wait
-            let _ = self
-                .speaker
-                .speak(&format!("{} {}", MODE, submode))
-                .unwrap();
+            let _ = self.speaker.speak(&format!("{MODE} {submode}")).unwrap();
         }
     }
 
@@ -144,26 +141,26 @@ where
                             // Parse the command
                             let read_opt = RobotCommand::parse_from(command_parsed_iter);
                             // Execute the parsed command
-                            info!("Executing {} {}/{}", command, i, commands_len);
+                            info!("Executing {command} {i}/{commands_len}");
 
                             match executor.execute(&self.robot_client, &read_opt).await {
                                 Ok(_) => {
-                                    info!("finished command {}", command);
+                                    info!("finished command {command}");
                                 }
                                 Err(e) => {
-                                    error!("failed command {} {:?}", command, e);
+                                    error!("failed command {command} {e:?}");
                                     break;
                                 }
                             }
                         }
                     }
                     Err(e) => {
-                        error!("failed to load file {:?}", e);
+                        error!("failed to load file {e:?}");
                     }
                 }
             }
             Err(e) => {
-                error!("failed to resolve_relative_path {:?}", e);
+                error!("failed to resolve_relative_path {e:?}");
             }
         }
     }

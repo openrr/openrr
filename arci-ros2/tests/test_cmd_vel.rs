@@ -29,7 +29,7 @@ async fn test_pub() {
         assert_approx_eq!(v.angular.z, vel.theta);
 
         count += 1;
-        println!("{}, {:?}", count, vel);
+        println!("{count}, {vel:?}");
     }
     while count >= 0 {
         vel.x = 0.001 * (count as f64);
@@ -46,6 +46,6 @@ async fn test_pub() {
         assert_approx_eq!(v.angular.z, vel.theta);
 
         count -= 1;
-        println!("{}, {:?}", count, vel);
+        println!("{count}, {vel:?}");
     }
 }

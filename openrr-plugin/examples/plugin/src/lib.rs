@@ -78,7 +78,7 @@ impl arci::JointTrajectoryClient for MyJointTrajectoryClient {
         positions: Vec<f64>,
         duration: Duration,
     ) -> Result<WaitFuture, Error> {
-        println!("positions = {:?}, duration = {:?}", positions, duration);
+        println!("positions = {positions:?}, duration = {duration:?}");
         *self.joint_positions.lock() = positions;
         Ok(WaitFuture::new(async move { async { Ok(()) }.await }))
     }

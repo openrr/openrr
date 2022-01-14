@@ -33,7 +33,7 @@ pub fn get_apps_robot_config(config: Option<PathBuf>) -> Option<PathBuf> {
     } else {
         std::env::var(OPENRR_APPS_CONFIG_ENV_NAME)
             .map(|s| {
-                warn!("### ENV VAR {} is used ###", s);
+                warn!("### ENV VAR {s} is used ###");
                 PathBuf::from(s)
             })
             .ok()
@@ -162,13 +162,13 @@ pub fn init(name: &str, config: &RobotConfig) {
     if config.has_ros_clients() {
         arci_ros::init(name);
     }
-    debug!("init {} with {:?}", name, config);
+    debug!("init {name} with {config:?}");
 }
 
 /// Do something needed to start the program for multiple
 pub fn init_with_anonymize(name: &str, config: &RobotConfig) {
     let suffix: u64 = rand::thread_rng().gen();
-    let anon_name = format!("{}_{}", name, suffix);
+    let anon_name = format!("{name}_{suffix}");
     init(&anon_name, config);
 }
 

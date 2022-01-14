@@ -32,7 +32,7 @@ async fn test_ctrl_client_gen() {
     let _handle = thread::spawn(move || {
         // connecting topic (``test_ctrl_client/state<JointTrajectoryControllerState>``)
         let (_rx, _sub) = subscribe_with_channel::<JointTrajectoryControllerState>(
-            &format!("{}/state", CONTROLLER_NAME),
+            &format!("{CONTROLLER_NAME}/state"),
             1,
         );
 
@@ -51,7 +51,7 @@ async fn test_ctrl_client_gen() {
             ..Default::default()
         };
         let publisher = rosrust::publish::<JointTrajectoryControllerState>(
-            &format!("{}/state", CONTROLLER_NAME),
+            &format!("{CONTROLLER_NAME}/state"),
             1,
         )
         .unwrap();
@@ -71,13 +71,13 @@ async fn test_ctrl_client_gen() {
             })
             .unwrap();
         if let Ok(rv) = _rx.recv() {
-            println!("mpsc {:?}", rv);
+            println!("mpsc {rv:?}");
         }
         drop(_sub);
 
         // connecting topic (``test_ctrl_client/command<JointTrajectory>``)
         let (_rx, sub) =
-            subscribe_with_channel::<JointTrajectory>(&format!("{}/command", CONTROLLER_NAME), 1);
+            subscribe_with_channel::<JointTrajectory>(&format!("{CONTROLLER_NAME}/command"), 1);
 
         // waiting for publisher of RosControlClient
         while rosrust::is_ok() && sub.publisher_count() == 0 {
@@ -114,7 +114,7 @@ async fn test_ctrl_client_gen_panic() {
     let _handle = thread::spawn(move || {
         // connecting topic (``test_ctrl_client/state<JointTrajectoryControllerState>``)
         let (_rx, _sub) = subscribe_with_channel::<JointTrajectoryControllerState>(
-            &format!("{}/state", CONTROLLER_NAME),
+            &format!("{CONTROLLER_NAME}/state"),
             1,
         );
 
@@ -133,7 +133,7 @@ async fn test_ctrl_client_gen_panic() {
             ..Default::default()
         };
         let publisher = rosrust::publish::<JointTrajectoryControllerState>(
-            &format!("{}/state", CONTROLLER_NAME),
+            &format!("{CONTROLLER_NAME}/state"),
             1,
         )
         .unwrap();
@@ -154,13 +154,13 @@ async fn test_ctrl_client_gen_panic() {
             })
             .unwrap();
         if let Ok(rv) = _rx.recv() {
-            println!("mpsc {:?}", rv);
+            println!("mpsc {rv:?}");
         }
         drop(_sub);
 
         // connecting topic (``test_ctrl_client/command<JointTrajectory>``)
         let (_rx, sub) =
-            subscribe_with_channel::<JointTrajectory>(&format!("{}/command", CONTROLLER_NAME), 1);
+            subscribe_with_channel::<JointTrajectory>(&format!("{CONTROLLER_NAME}/command"), 1);
 
         // waiting for publisher of RosControlClient
         while rosrust::is_ok() && sub.publisher_count() == 0 {
