@@ -67,7 +67,7 @@ fn get_joint_state(
 ) -> JointTrajectoryControllerState {
     let mut state_subscriber = node
         .lock()
-        .subscribe::<JointTrajectoryControllerState>(state_topic)
+        .subscribe::<JointTrajectoryControllerState>(state_topic, r2r::QosProfile::default())
         .unwrap();
     let is_done = Arc::new(AtomicBool::new(false));
     let is_done_clone = is_done.clone();

@@ -12,7 +12,9 @@ async fn test_pub() {
     let c = Ros2CmdVelMoveBase::new(ctx.clone(), "/cmd_vel_test");
     let mut node = r2r::Node::create(ctx, "recv", "arci_ros2_test").unwrap();
 
-    let mut sub = node.subscribe::<Twist>("/cmd_vel_test").unwrap();
+    let mut sub = node
+        .subscribe::<Twist>("/cmd_vel_test", r2r::QosProfile::default())
+        .unwrap();
 
     let mut count = 0;
     let mut vel = BaseVelocity::default();

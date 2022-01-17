@@ -22,7 +22,9 @@ impl Ros2CmdVelMoveBase {
     #[track_caller]
     pub fn from_node(mut node: r2r::Node, cmd_topic_name: &str) -> Self {
         Self {
-            vel_publisher: node.create_publisher(cmd_topic_name).unwrap(),
+            vel_publisher: node
+                .create_publisher(cmd_topic_name, r2r::QosProfile::default())
+                .unwrap(),
             _node: node,
         }
     }
