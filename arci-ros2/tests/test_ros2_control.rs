@@ -45,7 +45,10 @@ async fn test_control() {
         .unwrap();
     let publisher = node
         .lock()
-        .create_publisher::<JointTrajectoryControllerState>(&format!("{action_name}/state"))
+        .create_publisher::<JointTrajectoryControllerState>(
+            &format!("{action_name}/state"),
+            r2r::QosProfile::default(),
+        )
         .unwrap();
     let state = Arc::new(Mutex::new(JointTrajectoryControllerState {
         joint_names: vec!["j1".to_owned(), "j2".to_owned()],
