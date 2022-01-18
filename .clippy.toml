@@ -7,11 +7,7 @@ disallowed-methods = [
 # https://rust-lang.github.io/rust-clippy/master/#disallowed_types
 disallowed-types = [
     # use faster `parking_lot` instead
-    "std::sync::Mutex",
-    "std::sync::RwLock",
-    "std::sync::Condvar",
-    # TODO: use `reason =` syntax once 1.58 became stable:
-    # { path = "std::sync::Mutex", reason = "use faster `parking_lot::Mutex` instead" },
-    # { path = "std::sync::RwLock", reason = "use faster `parking_lot::RwLock` instead" },
-    # { path = "std::sync::Condvar", reason = "use faster `parking_lot::Condvar` instead" },
+    { path = "std::sync::Mutex", reason = "use faster `parking_lot::Mutex` instead" },
+    { path = "std::sync::RwLock", reason = "use faster `parking_lot::RwLock` instead" },
+    { path = "std::sync::Condvar", reason = "use faster `parking_lot::Condvar` instead" },
 ]
