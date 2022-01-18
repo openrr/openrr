@@ -273,10 +273,12 @@ jobs:
           sudo apt-get install -y \
             ros-foxy-ros-core ros-foxy-geometry-msgs ros-foxy-nav2-msgs ros-foxy-ros2-control ros-foxy-ros2-controllers
       - name: Run clippy
+        # NOTE: clippy::disallowed_method/clippy::disallowed_type has been renamed
+        # to clippy::disallowed_methods/clippy::disallowed_types in Rust 1.59.
+        # And warned-by-default in Rust 1.60.
         run: |
           # for arci-ros2
           source /opt/ros/foxy/setup.bash
-          # NOTE: clippy::disallowed_method/clippy::disallowed_type has been renamed to clippy::disallowed_methods/clippy::disallowed_types in Rust 1.58.
           cargo clippy --all-features --all-targets -- -D clippy::disallowed_method -D clippy::disallowed_type
 
   shellcheck:
