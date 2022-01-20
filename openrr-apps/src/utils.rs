@@ -1,9 +1,10 @@
 use std::{
+    ffi::OsStr,
     fs, io,
     path::{Path, PathBuf},
 };
 
-use openrr_config::evaluate;
+use anyhow::Result;
 use rand::prelude::*;
 use serde::Deserialize;
 use tracing::{debug, warn, Event, Level, Subscriber};
@@ -40,22 +41,47 @@ pub fn get_apps_robot_config(config: Option<PathBuf>) -> Option<PathBuf> {
     }
 }
 
-fn evaluate_overwrite_str(doc: &str, scripts: &str) -> anyhow::Result<String> {
-    openrr_config::overwrite_str(&evaluate(doc, None)?, &evaluate(scripts, None)?)
+fn evaluate_overwrite_str(doc: &str, scripts: &str, path: Option<&Path>) -> Result<String> {
+    if path.and_then(Path::extension).and_then(OsStr::to_str) == Some("toml") {
+        if let Err(e) = toml::from_str::<toml::Value>(doc) {
+            warn!(
+                "config {} is not valid toml: {}",
+                path.unwrap().display(),
+                e
+            );
+        }
+    }
+    openrr_config::overwrite_str(
+        &openrr_config::evaluate(doc, None)?,
+        &openrr_config::evaluate(scripts, None)?,
+    )
+}
+
+fn evaluate(doc: &str, path: Option<&Path>) -> Result<String> {
+    if path.and_then(Path::extension).and_then(OsStr::to_str) == Some("toml") {
+        if let Err(e) = toml::from_str::<toml::Value>(doc) {
+            warn!(
+                "config {} is not valid toml: {}",
+                path.unwrap().display(),
+                e
+            );
+        }
+    }
+    openrr_config::evaluate(doc, None)
 }
 
 pub fn resolve_robot_config(
     config_path: Option<&Path>,
     overwrite: Option<&str>,
-) -> anyhow::Result<RobotConfig> {
+) -> Result<RobotConfig> {
     match (config_path, overwrite) {
         (Some(config_path), Some(overwrite)) => {
-            let s = &fs::read_to_string(&config_path)?;
-            let s = &evaluate_overwrite_str(s, overwrite)?;
+            let s = &fs::read_to_string(config_path)?;
+            let s = &evaluate_overwrite_str(s, overwrite, Some(config_path))?;
             Ok(RobotConfig::from_str(s, config_path)?)
         }
         (Some(config_path), None) => {
-            let s = &evaluate(&fs::read_to_string(&config_path)?, None)?;
+            let s = &evaluate(&fs::read_to_string(config_path)?, Some(config_path))?;
             Ok(RobotConfig::from_str(s, config_path)?)
         }
         (None, overwrite) => {
@@ -72,7 +98,7 @@ pub fn resolve_robot_config(
                 });
             if let Some(overwrite) = overwrite {
                 let s = &toml::to_string(&config)?;
-                let s = &evaluate_overwrite_str(s, overwrite)?;
+                let s = &evaluate_overwrite_str(s, overwrite, None)?;
                 config = toml::from_str(s)?;
             }
             Ok(config)
@@ -83,15 +109,18 @@ pub fn resolve_robot_config(
 pub fn resolve_teleop_config(
     config_path: Option<&Path>,
     overwrite: Option<&str>,
-) -> anyhow::Result<RobotTeleopConfig> {
+) -> Result<RobotTeleopConfig> {
     match (config_path, overwrite) {
         (Some(teleop_config_path), Some(overwrite)) => {
-            let s = &fs::read_to_string(&teleop_config_path)?;
-            let s = &evaluate_overwrite_str(s, overwrite)?;
+            let s = &fs::read_to_string(teleop_config_path)?;
+            let s = &evaluate_overwrite_str(s, overwrite, Some(teleop_config_path))?;
             Ok(RobotTeleopConfig::from_str(s, teleop_config_path)?)
         }
         (Some(teleop_config_path), None) => {
-            let s = &evaluate(&fs::read_to_string(&teleop_config_path)?, None)?;
+            let s = &evaluate(
+                &fs::read_to_string(teleop_config_path)?,
+                Some(teleop_config_path),
+            )?;
             Ok(RobotTeleopConfig::from_str(s, teleop_config_path)?)
         }
         (None, overwrite) => {
@@ -99,7 +128,7 @@ pub fn resolve_teleop_config(
             config.control_nodes_config.move_base_mode = Some("base".into());
             if let Some(overwrite) = overwrite {
                 let s = &toml::to_string(&config)?;
-                let s = &evaluate_overwrite_str(s, overwrite)?;
+                let s = &evaluate_overwrite_str(s, overwrite, None)?;
                 config = toml::from_str(s)?;
             }
             Ok(config)
