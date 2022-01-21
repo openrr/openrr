@@ -40,7 +40,8 @@ jobs:
           rustup toolchain install ${{ env.nightly }} --component rustfmt,llvm-tools-preview
           rustup default ${{ env.nightly }}
       - uses: Swatinem/rust-cache@v1
-      - run: cargo install cargo-llvm-cov
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
         run: |
           # for test of arci-ros2

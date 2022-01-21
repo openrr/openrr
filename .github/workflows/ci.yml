@@ -229,7 +229,8 @@ jobs:
         run: rustup update stable
       - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-install-dependencies.sh
-      - run: cargo install cargo-hack
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
       - run: cargo hack check --all --feature-powerset --optional-deps --exclude arci-ros2
 
   fmt:
