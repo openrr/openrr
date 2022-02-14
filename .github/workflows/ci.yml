@@ -59,6 +59,7 @@ jobs:
           toolchain: stable
           override: true
       - uses: Swatinem/rust-cache@v1
+      - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
       - uses: actions-rs/cargo@v1
         with:
@@ -75,6 +76,7 @@ jobs:
           toolchain: stable
           override: true
       - uses: Swatinem/rust-cache@v1
+      - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
       # testing arci-ros/arci-ros2 is done in ros1.yaml, ros2.yaml
       - uses: actions-rs/cargo@v1
@@ -110,6 +112,7 @@ jobs:
           toolchain: stable
           override: true
       - uses: Swatinem/rust-cache@v1
+      - run: ci/ubuntu-setup-lld.sh
       - name: cargo everything
         shell: bash -ieo pipefail {0}
         working-directory: arci-ros
@@ -143,6 +146,7 @@ jobs:
           toolchain: stable
           override: true
       - uses: Swatinem/rust-cache@v1
+      - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
       - name: cargo test
         shell: bash -ieo pipefail {0}
@@ -176,6 +180,7 @@ jobs:
           toolchain: stable
           override: true
       - uses: Swatinem/rust-cache@v1
+      - run: ci/ubuntu-setup-lld.sh
       - name: cargo build
         shell: bash -ieo pipefail {0}
         working-directory: arci-ros2
@@ -259,11 +264,7 @@ jobs:
           toolchain: stable
           override: true
           components: clippy
-      # TODO: If ros2-control is not installed, r2r will not generate the control_msg module.
-      #       Cached artifacts are generated in an environment where ros2-control is not installed,
-      #       and somehow clippy does not rebuild the dependencies, so disable the cache for now.
-      #       We should be able to re-enable this once the previous cache expires.
-      # - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-install-dependencies.sh
       - name: Install ROS2
         run: |

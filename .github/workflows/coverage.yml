@@ -21,6 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: ci/ubuntu-install-dependencies.sh
+      - run: ci/ubuntu-setup-lld.sh
       - name: Install ROS1 and ROS2
         run: |
           # ros2
