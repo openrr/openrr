@@ -30,6 +30,7 @@ cov
 Cpp
 ctx
 dbg
+dearmor
 debian
 deref
 deserialize
@@ -56,6 +57,7 @@ gilrs
 github
 githubusercontent
 google
+gpg
 gui
 hashmap
 html
@@ -84,6 +86,8 @@ libtest
 libudev
 libxkbcommon
 linux
+lld
+llvm
 localhost
 macos
 Microsoft
@@ -162,6 +166,7 @@ RTranslation
 rtry
 RUnit
 rustc
+rustflags
 rustfmt
 rustyline
 RVec
