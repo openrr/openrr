@@ -193,7 +193,7 @@ async fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use clap::IntoApp;
+    use clap::CommandFactory;
 
     use super::*;
 
@@ -214,6 +214,6 @@ mod tests {
 
     #[test]
     fn assert_app() {
-        RobotTeleopArgs::into_app().debug_assert();
+        RobotTeleopArgs::command().debug_assert();
     }
 }

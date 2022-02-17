@@ -75,12 +75,12 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use clap::IntoApp;
+    use clap::CommandFactory;
 
     use super::*;
 
     #[test]
     fn assert_app() {
-        Args::into_app().debug_assert();
+        Args::command().debug_assert();
     }
 }

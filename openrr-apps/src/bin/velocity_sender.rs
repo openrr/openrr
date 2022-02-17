@@ -37,12 +37,12 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use clap::IntoApp;
+    use clap::CommandFactory;
 
     use super::*;
 
     #[test]
     fn assert_app() {
-        Opt::into_app().debug_assert();
+        Opt::command().debug_assert();
     }
 }
