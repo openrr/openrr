@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use clap::{IntoApp, Parser};
+use clap::{CommandFactory, Parser};
 use clap_complete::Shell;
 use openrr_apps::{
     utils::{init_tracing, init_tracing_with_file_appender, LogConfig},
@@ -38,7 +38,7 @@ struct RobotCommandArgs {
 fn shell_completion(shell_type: openrr_command::ShellType) {
     clap_complete::generate(
         Shell::from(shell_type),
-        &mut RobotCommandArgs::into_app(),
+        &mut RobotCommandArgs::command(),
         env!("CARGO_BIN_NAME"),
         &mut std::io::stdout(),
     );
@@ -126,6 +126,6 @@ mod tests {
 
     #[test]
     fn assert_app() {
-        RobotCommandArgs::into_app().debug_assert();
+        RobotCommandArgs::command().debug_assert();
     }
 }

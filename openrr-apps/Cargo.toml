@@ -28,7 +28,7 @@ arci-gamepad-gilrs = "0.0.6"
 arci-speak-audio = "0.0.6"
 arci-speak-cmd = "0.0.6"
 arci-urdf-viz = "0.0.6"
-clap = { version = "3", features = ["derive"] }
+clap = { version = "3.1", features = ["derive"] }
 clap_complete = "3"
 k = "0.27"
 openrr-client = { version = "0.0.6", default-features = false }
