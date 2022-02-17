@@ -16,7 +16,7 @@ fn port_and_url() -> (u16, Url) {
 impl WebServer {
     fn start_background(self) {
         let handle = self.handle();
-        std::thread::spawn(move || self.start().unwrap());
+        std::thread::spawn(move || self.start());
         std::thread::spawn(move || loop {
             if let Some(positions) = handle.take_target_joint_positions() {
                 *handle.current_joint_positions() = positions;
