@@ -13,6 +13,7 @@ env:
   CARGO_NET_RETRY: 10
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  RUSTDOCFLAGS: -D warnings
   RUSTFLAGS: -D warnings
   RUSTUP_MAX_RETRIES: 10
   nightly: nightly-2021-11-22
@@ -282,6 +283,20 @@ jobs:
           # for arci-ros2
           source /opt/ros/foxy/setup.bash
           cargo clippy --all-features --all-targets -- -D clippy::disallowed_method -D clippy::disallowed_type
+
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: Swatinem/rust-cache@v1
+      - run: ci/ubuntu-install-dependencies.sh
+      - run: cargo doc --workspace --all-features --exclude arci-ros2
 
   shellcheck:
     runs-on: ubuntu-latest
