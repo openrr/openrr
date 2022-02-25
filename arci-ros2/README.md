@@ -96,3 +96,7 @@ TODO: add usage of openrr-apps + ros2_control
 ```sh
 cargo run --package arci-ros2 --example ros2_control --features ros2
 ```
+
+## License
+
+Licensed under the [Apache License, Version 2.0](https://github.com/openrr/openrr/blob/main/LICENSE).

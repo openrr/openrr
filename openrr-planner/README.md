@@ -104,3 +104,7 @@ cargo run --release --example reach $(rospack find sawyer_description)/urdf/sawy
 ```
 
 [![UR5 movie](https://j.gifs.com/G55yxL.gif)](https://www.youtube.com/watch?v=0YujRKUto-4)
+
+## License
+
+Licensed under the [Apache License, Version 2.0](https://github.com/openrr/openrr/blob/main/LICENSE).

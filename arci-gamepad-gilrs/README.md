@@ -20,3 +20,7 @@ A. You need to join `input` group if you don't have the permissions.
 ```bash
 sudo adduser $USER input
 ```
+
+## License
+
+Licensed under the [Apache License, Version 2.0](https://github.com/openrr/openrr/blob/main/LICENSE).
