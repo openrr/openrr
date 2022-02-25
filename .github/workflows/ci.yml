@@ -113,6 +113,9 @@ jobs:
           toolchain: stable
           override: true
       - uses: Swatinem/rust-cache@v1
+        with:
+          # Swatinem/rust-cache does not recognize the matrix.
+          key: ros1_arci_ros-${{ matrix.distro }}
       - run: ci/ubuntu-setup-lld.sh
       - run: |
           cargo generate-lockfile
@@ -151,6 +154,9 @@ jobs:
           toolchain: stable
           override: true
       - uses: Swatinem/rust-cache@v1
+        with:
+          # Swatinem/rust-cache does not recognize the matrix.
+          key: ros1_openrr_apps-${{ matrix.distro }}
       - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
       - run: |
@@ -189,6 +195,9 @@ jobs:
           toolchain: stable
           override: true
       - uses: Swatinem/rust-cache@v1
+        with:
+          # Swatinem/rust-cache does not recognize the matrix.
+          key: ros2_arci_ros2-${{ matrix.distro }}
       - run: ci/ubuntu-setup-lld.sh
       - name: cargo build
         shell: bash -ieo pipefail {0}
