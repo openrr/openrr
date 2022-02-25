@@ -52,8 +52,7 @@ fn test_convert_ros_time_to_system_time() {
 
 #[flaky_test::flaky_test]
 fn test_convert_system_time_to_ros_time() {
-    let _roscore =
-        run_roscore_and_rosrust_init_once(&"test_convert_system_time_to_ros_time".to_owned());
+    let _roscore = run_roscore_and_rosrust_init_once("test_convert_system_time_to_ros_time");
 
     const ALLOWABLE_ERROR: f64 = 1e-5;
     let system_time_diff = std::time::Duration::from_secs(1);
@@ -89,7 +88,7 @@ fn test_subscribe_with_channel() {
 
     println!("test subscriber helper is running!");
     let topic = "sub_test_twist".to_owned();
-    let _roscore = run_roscore_and_rosrust_init_once(&"test_subscribe_with_channel".to_owned());
+    let _roscore = run_roscore_and_rosrust_init_once("test_subscribe_with_channel");
 
     let (rx, _sub) = subscribe_with_channel::<Twist>(&topic, 1);
     let c = RosCmdVelMoveBase::new(&topic);

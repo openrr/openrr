@@ -51,13 +51,10 @@ fn test_interpolate_values() {
     // interpolate
     let func_result = interpolate(&points, total_duration, unit_duration);
     let spline = CubicSpline::new(time, points).expect("failed interpolation");
-    let t_points;
-    match func_result {
-        Some(some) => {
-            t_points = some;
-        }
+    let t_points = match func_result {
+        Some(some) => some,
         None => panic!("failed interpolation(Trajectory Points)"),
-    }
+    };
 
     // preparing vector of times by unit_duration
     let time = (0..(total_duration / unit_duration) as i32)
