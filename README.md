@@ -77,7 +77,7 @@ cargo +nightly fmt
 
 ## License
 
-Apache2
+Licensed under the [Apache License, Version 2.0](https://github.com/openrr/openrr/blob/main/LICENSE).
 
 ## Related openrr repositories
 
