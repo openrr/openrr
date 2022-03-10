@@ -13,7 +13,6 @@ env:
   RUST_BACKTRACE: 1
   RUSTFLAGS: -D warnings
   RUSTUP_MAX_RETRIES: 10
-  nightly: nightly-2021-11-22
 
 jobs:
   coverage:
@@ -38,8 +37,8 @@ jobs:
       # rustfmt is for openrr-remote (tonic-build)
       - name: Install Rust
         run: |
-          rustup toolchain install ${{ env.nightly }} --component rustfmt,llvm-tools-preview
-          rustup default ${{ env.nightly }}
+          rustup toolchain install beta --component rustfmt,llvm-tools-preview
+          rustup default beta
       - uses: Swatinem/rust-cache@v1
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
@@ -49,7 +48,7 @@ jobs:
           source /opt/ros/foxy/setup.bash
           # for test of arci-ros (roscore, rostopic)
           source /opt/ros/noetic/setup.bash
-          cargo llvm-cov --verbose --all-features --workspace --exclude openrr-internal-codegen --doctests --lcov --output-path lcov.info
+          cargo llvm-cov --verbose --all-features --workspace --exclude openrr-internal-codegen --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
