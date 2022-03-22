@@ -23,7 +23,7 @@ jobs:
     name: Build on Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -38,7 +38,7 @@ jobs:
     name: Build on MacOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -53,7 +53,7 @@ jobs:
     name: Build on Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -70,7 +70,7 @@ jobs:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -103,7 +103,7 @@ jobs:
     env:
       HOME: /root
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           apt-get update
           apt-get -y install curl
@@ -144,7 +144,7 @@ jobs:
     env:
       HOME: /root
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           apt-get update
           apt-get -y install curl ros-${{ matrix.distro }}-pr2-description
@@ -184,7 +184,7 @@ jobs:
     env:
       HOME: /root
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           apt-get update
           apt-get -y install curl libclang-dev
@@ -220,7 +220,7 @@ jobs:
   # schema:
   #   runs-on: ubuntu-latest
   #   steps:
-  #     - uses: actions/checkout@v2
+  #     - uses: actions/checkout@v3
   #     - run: tools/update-schema.sh
   #     - run: git diff --exit-code
 
@@ -230,7 +230,7 @@ jobs:
     env:
       PROTOC: /usr/bin/protoc
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           sudo apt-get update
           sudo apt-get -y install protobuf-compiler
@@ -247,7 +247,7 @@ jobs:
     name: Check features
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install Rust
         run: rustup update stable
       - uses: Swatinem/rust-cache@v1
@@ -260,7 +260,7 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install Rust
         run: |
           rustup toolchain install ${{ env.nightly }} --component rustfmt
@@ -275,7 +275,7 @@ jobs:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -304,7 +304,7 @@ jobs:
     name: Docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -317,7 +317,7 @@ jobs:
   shellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install latest shellcheck
         uses: taiki-e/install-action@shellcheck
       - run: shellcheck $(git ls-files '*.sh')
