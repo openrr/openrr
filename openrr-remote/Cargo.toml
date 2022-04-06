@@ -9,12 +9,12 @@ categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 
 [build-dependencies]
-tonic-build = "0.6"
+tonic-build = "0.7"
 
 [dependencies]
 arci = "0.0.6"
-prost = "0.9"
-prost-types = "0.9"
+prost = "0.10"
+prost-types = "0.10"
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
 tonic = "0.7"
 tracing = "0.1"
