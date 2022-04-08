@@ -416,12 +416,9 @@ where
 
         let velocity = self.current_velocity();
         debug!(?velocity, "send_velocity");
-        match self.move_base.send_velocity(&velocity) {
-            Err(e) => {
-                error!("{e}");
-                self.errors.other = Some(e.to_string());
-            }
-            Ok(()) => {}
+        if let Err(e) = self.move_base.send_velocity(&velocity) {
+            error!("{e}");
+            self.errors.other = Some(e.to_string());
         }
         Command::none()
     }
