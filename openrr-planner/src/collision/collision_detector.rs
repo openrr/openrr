@@ -22,6 +22,7 @@ use std::{
 use k::nalgebra as na;
 use na::RealField;
 use ncollide3d::{
+    partitioning::{BVH, BVT},
     query,
     shape::{Compound, Shape, ShapeHandle},
 };
@@ -153,52 +154,84 @@ where
         }
         let (j1, j2) = &self.self_collision_pairs[self.index];
         self.index += 1;
-        let obj_vec1_opt = self.detector.name_collision_model_map.get(j1);
-        let obj_vec2_opt = self.detector.name_collision_model_map.get(j2);
-        if obj_vec1_opt.is_none() {
-            warn!("Collision model {j1} not found");
-            return self.next();
-        }
-        if obj_vec2_opt.is_none() {
-            warn!("Collision model {j2} not found");
-            return self.next();
-        }
-        let node1_opt = self.robot.find(j1);
-        let node2_opt = self.robot.find(j2);
-        if node1_opt.is_none() {
-            warn!("self_colliding: joint {j1} not found");
-            return self.next();
-        }
-        if node2_opt.is_none() {
-            warn!("self_colliding: joint {j2} not found");
-            return self.next();
-        }
-        let obj_vec1 = obj_vec1_opt.unwrap();
-        let obj_vec2 = obj_vec2_opt.unwrap();
-        let node1 = node1_opt.unwrap();
-        let node2 = node2_opt.unwrap();
-        let mut last_time = Instant::now();
+
+        // Get the collision models of the specified 2 nodes
+        let obj_vec1 = match self.detector.name_collision_model_map.get(j1) {
+            Some(v) => v,
+            None => {
+                warn!("Collision model {j1} not found");
+                return self.next();
+            }
+        };
+        let obj_vec2 = match self.detector.name_collision_model_map.get(j2) {
+            Some(v) => v,
+            None => {
+                warn!("Collision model {j2} not found");
+                return self.next();
+            }
+        };
+
+        // Get the absolute (world) poses of the specified 2 nodes
+        let pose1 = match self.robot.find(j1) {
+            Some(v) => v.world_transform().unwrap(),
+            None => {
+                warn!("self_colliding: joint {j1} not found");
+                return self.next();
+            }
+        };
+        let pose2 = match self.robot.find(j2) {
+            Some(v) => v.world_transform().unwrap(),
+            None => {
+                warn!("self_colliding: joint {j2} not found");
+                return self.next();
+            }
+        };
+
+        // Check potential conflicts by an AABB-based sweep and prune algorithm
         for obj1 in obj_vec1 {
-            for obj2 in obj_vec2 {
-                let trans1 = node1.world_transform().unwrap();
-                let trans2 = node2.world_transform().unwrap();
-                // proximity and predict does not work correctly for mesh
-                let dist =
-                    query::distance(&(trans1 * obj1.1), &*obj1.0, &(trans2 * obj2.1), &*obj2.0);
-                debug!("name: {j1}, name: {j2} dist={dist}");
-                if dist < self.detector.prediction {
-                    return Some((j1.to_owned(), j2.to_owned()));
+            let aabb1 = obj1.0.aabb(&(pose1 * obj1.1));
+
+            let index_and_aabb = obj_vec2
+                .iter()
+                .enumerate()
+                .map(|(index, obj)| (index, obj.0.aabb(&(pose2 * obj.1))))
+                .collect();
+            let bvt = BVT::new_balanced(index_and_aabb);
+
+            let mut collector = Vec::<usize>::new();
+            let mut visitor =
+                query::visitors::BoundingVolumeInterferencesCollector::new(&aabb1, &mut collector);
+
+            bvt.visit(&mut visitor);
+
+            let mut last_time = Instant::now();
+
+            if collector.is_empty() {
+                // a case without conflict possibility
+                break;
+            } else {
+                // Check conflicts precisely
+                for index in collector {
+                    let obj2 = &obj_vec2[index];
+
+                    // proximity and predict does not work correctly for mesh
+                    let dist =
+                        query::distance(&(pose1 * obj1.1), &*obj1.0, &(pose2 * obj2.1), &*obj2.0);
+                    debug!("name: {j1}, name: {j2} dist={dist}");
+                    if dist < self.detector.prediction {
+                        return Some((j1.to_owned(), j2.to_owned()));
+                    }
+                    let elapsed = last_time.elapsed();
+                    *self
+                        .used_duration
+                        .entry(j1.to_owned())
+                        .or_insert_with(|| Duration::from_nanos(0)) += elapsed;
+                    *self
+                        .used_duration
+                        .entry(j2.to_owned())
+                        .or_insert_with(|| Duration::from_nanos(0)) += elapsed;
+                    last_time = Instant::now();
                 }
-                let elapsed = last_time.elapsed();
-                *self
-                    .used_duration
-                    .entry(j1.to_owned())
-                    .or_insert_with(|| Duration::from_nanos(0)) += elapsed;
-                *self
-                    .used_duration
-                    .entry(j2.to_owned())
-                    .or_insert_with(|| Duration::from_nanos(0)) += elapsed;
-                last_time = Instant::now();
             }
         }
         self.next()
