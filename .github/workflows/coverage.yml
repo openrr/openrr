@@ -36,7 +36,7 @@ jobs:
             ros-foxy-ros-core ros-foxy-geometry-msgs ros-foxy-nav2-msgs ros-foxy-ros2-control ros-foxy-ros2-controllers
       - name: Install Rust
         run: rustup toolchain install stable --component llvm-tools-preview
-      - uses: Swatinem/rust-cache@v1
+      # - uses: Swatinem/rust-cache@v1
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage

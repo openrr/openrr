@@ -194,10 +194,10 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: Swatinem/rust-cache@v1
-        with:
-          # Swatinem/rust-cache does not recognize the matrix.
-          key: ros2_arci_ros2-${{ matrix.distro }}
+      # - uses: Swatinem/rust-cache@v1
+      #   with:
+      #     # Swatinem/rust-cache does not recognize the matrix.
+      #     key: ros2_arci_ros2-${{ matrix.distro }}
       - run: ci/ubuntu-setup-lld.sh
       - name: cargo build
         shell: bash -ieo pipefail {0}
@@ -282,7 +282,7 @@ jobs:
           toolchain: stable
           override: true
           components: clippy
-      - uses: Swatinem/rust-cache@v1
+      # - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-install-dependencies.sh
       - name: Install ROS2
         run: |
