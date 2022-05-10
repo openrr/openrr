@@ -2,9 +2,8 @@ use std::{f64, mem, num::FpCategory, ops::RangeInclusive, usize};
 
 use arci::{BaseVelocity, MoveBase};
 use iced::{
-    button, slider, text_input, window, Align, Application, Button, Checkbox, Clipboard, Column,
-    Command, Container, Element, HorizontalAlignment, Length, Row, Settings, Slider, Text,
-    TextInput,
+    alignment, button, slider, text_input, window, Alignment, Application, Button, Checkbox,
+    Column, Command, Container, Element, Length, Row, Settings, Slider, Text, TextInput,
 };
 use tracing::{debug, error, warn};
 
@@ -135,7 +134,7 @@ impl ButtonState {
             Button::new(
                 &mut self.button,
                 Text::new(self.alt)
-                    .horizontal_alignment(HorizontalAlignment::Center)
+                    .horizontal_alignment(alignment::Horizontal::Center)
                     .width(Length::Fill),
             )
             .padding(10)
@@ -330,7 +329,7 @@ where
         "Velocity Sender".into()
     }
 
-    fn update(&mut self, message: Message, _clipboard: &mut Clipboard) -> Command<Message> {
+    fn update(&mut self, message: Message) -> Command<Message> {
         if self.errors.skip_update(&message) {
             debug!("skip update");
             return Command::none();
@@ -431,7 +430,7 @@ where
             .height(Length::Fill)
             .push(
                 Column::new()
-                    .align_items(Align::Center)
+                    .align_items(Alignment::Center)
                     .width(Length::Fill)
                     .height(Length::Fill)
                     .push(self.up_button.button(&self.velocity_state))
@@ -445,7 +444,7 @@ where
                                 Button::new(
                                     &mut self.stop_button,
                                     Text::new("Stop")
-                                        .horizontal_alignment(HorizontalAlignment::Center)
+                                        .horizontal_alignment(alignment::Horizontal::Center)
                                         .width(Length::Fill),
                                 )
                                 .padding(10)
@@ -470,7 +469,7 @@ where
                 .step(0.01);
 
                 let joint_name = Text::new(state.name)
-                    .horizontal_alignment(HorizontalAlignment::Left)
+                    .horizontal_alignment(alignment::Horizontal::Left)
                     .width(Length::Fill);
 
                 // TODO: set horizontal_alignment on TextInput, once https://github.com/hecrj/iced/pull/373 merged and released.
@@ -493,7 +492,7 @@ where
         content = content.push(
             Row::new()
                 .width(Length::Fill)
-                .align_items(Align::End)
+                .align_items(Alignment::End)
                 .push(Text::new(" ").width(Length::Fill))
                 .push(
                     Checkbox::new(self.show_velocity, "Show details", Message::CheckboxToggled)
@@ -521,7 +520,7 @@ where
                 errors = errors.push(
                     Text::new(&format!("Error: {msg}"))
                         .size(style::ERROR_TEXT_SIZE)
-                        .horizontal_alignment(HorizontalAlignment::Left)
+                        .horizontal_alignment(alignment::Horizontal::Left)
                         .width(Length::Fill)
                         .color(style::ERRORED),
                 );
@@ -530,7 +529,7 @@ where
                 errors = errors.push(
                     Text::new("Error: Please resolve the above error first")
                         .size(style::ERROR_TEXT_SIZE)
-                        .horizontal_alignment(HorizontalAlignment::Left)
+                        .horizontal_alignment(alignment::Horizontal::Left)
                         .width(Length::Fill)
                         .color(style::ERRORED),
                 );
