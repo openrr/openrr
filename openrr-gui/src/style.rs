@@ -11,61 +11,61 @@ use iced::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Theme;
 
-impl From<Theme> for Box<dyn container::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn container::StyleSheet + 'a> {
     fn from(_: Theme) -> Self {
         Container.into()
     }
 }
 
-impl From<Theme> for Box<dyn radio::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn radio::StyleSheet + 'a> {
     fn from(_: Theme) -> Self {
         Radio.into()
     }
 }
 
-impl From<Theme> for Box<dyn text_input::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn text_input::StyleSheet> {
     fn from(_: Theme) -> Self {
         TextInput::Default.into()
     }
 }
 
-impl From<Theme> for Box<dyn button::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn button::StyleSheet + 'a> {
     fn from(_: Theme) -> Self {
         Button::Default.into()
     }
 }
 
-impl From<Theme> for Box<dyn scrollable::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn scrollable::StyleSheet + 'a> {
     fn from(_: Theme) -> Self {
         Scrollable.into()
     }
 }
 
-impl From<Theme> for Box<dyn slider::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn slider::StyleSheet + 'a> {
     fn from(_: Theme) -> Self {
         Slider.into()
     }
 }
 
-impl From<Theme> for Box<dyn progress_bar::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn progress_bar::StyleSheet + 'a> {
     fn from(_: Theme) -> Self {
         ProgressBar.into()
     }
 }
 
-impl From<Theme> for Box<dyn checkbox::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn checkbox::StyleSheet + 'a> {
     fn from(_: Theme) -> Self {
         Checkbox.into()
     }
 }
 
-impl From<Theme> for Box<dyn rule::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn rule::StyleSheet + 'a> {
     fn from(_: Theme) -> Self {
         Rule.into()
     }
 }
 
-impl From<Theme> for Box<dyn pick_list::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn pick_list::StyleSheet + 'a> {
     fn from(_: Theme) -> Self {
         PickList.into()
     }
@@ -121,6 +121,7 @@ impl radio::StyleSheet for Radio {
             dot_color: ACTIVE,
             border_width: 1.0,
             border_color: ACTIVE,
+            text_color: Some(Color::WHITE),
         }
     }
 
@@ -348,6 +349,7 @@ impl checkbox::StyleSheet for Checkbox {
             border_radius: 2.0,
             border_width: 1.0,
             border_color: ACTIVE,
+            text_color: Some(Color::WHITE),
         }
     }
 

@@ -2,9 +2,9 @@ use std::{collections::HashMap, f64, sync::Arc, time::Duration, usize};
 
 use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation};
 use iced::{
-    button, pick_list, scrollable, slider, text_input, window, Application, Button, Clipboard,
-    Column, Command, Container, Element, HorizontalAlignment, Length, PickList, Row, Scrollable,
-    Settings, Slider, Text, TextInput,
+    alignment, button, pick_list, scrollable, slider, text_input, window, Application, Button,
+    Column, Command, Container, Element, Length, PickList, Row, Scrollable, Settings, Slider, Text,
+    TextInput,
 };
 use openrr_client::RobotClient;
 use rand::Rng;
@@ -280,7 +280,7 @@ where
         "Joint Position Sender".into()
     }
 
-    fn update(&mut self, message: Message, _clipboard: &mut Clipboard) -> Command<Message> {
+    fn update(&mut self, message: Message) -> Command<Message> {
         let debug_span = |joint_trajectory_client| {
             debug_span!("Joint Position Sender", ?joint_trajectory_client)
         };
@@ -484,7 +484,7 @@ where
         let randomize_button = Button::new(
             &mut self.randomize_button,
             Text::new("Randomize")
-                .horizontal_alignment(HorizontalAlignment::Center)
+                .horizontal_alignment(alignment::Horizontal::Center)
                 .width(Length::Fill),
         )
         .padding(10)
@@ -495,7 +495,7 @@ where
         let zero_button = Button::new(
             &mut self.zero_button,
             Text::new("Zero")
-                .horizontal_alignment(HorizontalAlignment::Center)
+                .horizontal_alignment(alignment::Horizontal::Center)
                 .width(Length::Fill),
         )
         .padding(10)
@@ -525,7 +525,7 @@ where
             .step(0.01);
 
             let joint_name = Text::new(&self.joints[&joint_state.name].name)
-                .horizontal_alignment(HorizontalAlignment::Left)
+                .horizontal_alignment(alignment::Horizontal::Left)
                 .width(Length::Fill);
 
             // TODO: set horizontal_alignment on TextInput, once https://github.com/hecrj/iced/pull/373 merged and released.
@@ -597,7 +597,7 @@ where
                 errors = errors.push(
                     Text::new(&format!("Error: {msg}"))
                         .size(style::ERROR_TEXT_SIZE)
-                        .horizontal_alignment(HorizontalAlignment::Left)
+                        .horizontal_alignment(alignment::Horizontal::Left)
                         .width(Length::Fill)
                         .color(style::ERRORED),
                 );
@@ -606,7 +606,7 @@ where
                 errors = errors.push(
                     Text::new("Error: Please resolve the above error first")
                         .size(style::ERROR_TEXT_SIZE)
-                        .horizontal_alignment(HorizontalAlignment::Left)
+                        .horizontal_alignment(alignment::Horizontal::Left)
                         .width(Length::Fill)
                         .color(style::ERRORED),
                 );
