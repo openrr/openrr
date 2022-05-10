@@ -177,7 +177,7 @@ jobs:
       matrix:
         distro:
           - foxy
-          - galactic
+          # - galactic # TODO
     runs-on: ubuntu-20.04
     container:
       image: docker://ros:${{ matrix.distro }}
