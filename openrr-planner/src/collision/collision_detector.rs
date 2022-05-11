@@ -302,7 +302,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_collision_checking() {
+    fn test_environmental_collision_detection() {
         let urdf_robot = urdf_rs::read_file("sample.urdf").unwrap();
         let robot = k::Chain::<f32>::from(&urdf_robot);
         let detector = CollisionDetector::from_urdf_robot(&urdf_robot, 0.01);
@@ -349,6 +349,36 @@ mod tests {
                 "l_gripper_linear1",
             ]
         );
+    }
+
+    #[test]
+    fn test_self_collision_detection() {
+        let urdf_robot = urdf_rs::read_file("sample.urdf").unwrap();
+        let robot = k::Chain::<f32>::from(&urdf_robot);
+        let detector = CollisionDetector::from_urdf_robot(&urdf_robot, 0.01);
+
+        let collision_check_pairs = parse_colon_separated_pairs(&[
+            "root:l_shoulder_roll".to_owned(),
+            "root:l_elbow_pitch".to_owned(),
+            "root:l_wrist_yaw".to_owned(),
+            "root:l_wrist_pitch".to_owned(),
+        ])
+        .unwrap();
+        let (correct_collisions, _) = collision_check_pairs.split_at(2);
+
+        let angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        robot.set_joint_positions(&angles).unwrap();
+        assert!(detector
+            .detect_self(&robot, &collision_check_pairs)
+            .next()
+            .is_none());
+
+        let angles = [-1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        robot.set_joint_positions(&angles).unwrap();
+        let result: Vec<(String, String)> = detector
+            .detect_self(&robot, &collision_check_pairs)
+            .collect();
+        assert_eq!(result, correct_collisions.to_vec());
     }
 }
 
