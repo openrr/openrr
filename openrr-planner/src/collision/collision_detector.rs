@@ -368,10 +368,10 @@ mod tests {
 
         let angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
         robot.set_joint_positions(&angles).unwrap();
-        let result: Vec<(String, String)> = detector
+        assert!(detector
             .detect_self(&robot, &collision_check_pairs)
-            .collect();
-        assert!(result.is_empty());
+            .next()
+            .is_none());
 
         let angles = [-1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
         robot.set_joint_positions(&angles).unwrap();
