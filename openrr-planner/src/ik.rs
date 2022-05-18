@@ -145,7 +145,9 @@ mod tests {
         let chain = k::Chain::<f32>::from_urdf_file("sample.urdf").unwrap();
 
         // Set initial joint angles
-        let angles = vec![0.2, 0.2, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0];
+        let angles = vec![
+            0.0, 0.0, 0.0, -0.78, 0.0, -0.78, 0.0, 0.0, 0.0, -0.78, 0.0, -0.78,
+        ];
 
         chain.set_joint_positions(&angles).unwrap();
         println!("initial angles={:?}", chain.joint_positions());
@@ -166,10 +168,10 @@ mod tests {
             &arm,
             &target,
             &k::Constraints::default(),
-            na::Vector3::new(0.8, 0.9, 0.9),
-            na::Vector3::new(0.0, -0.9, 0.0),
+            na::Vector3::new(1.0, 0.9, 1.0),
+            na::Vector3::new(-1.0, 0.0, -1.0),
             0.1,
         );
-        assert_eq!(regions.len(), 174);
+        assert_eq!(regions.len(), 46);
     }
 }

@@ -158,44 +158,50 @@ pub fn create_self_collision_checker<P: AsRef<Path>>(
     )
 }
 
+// NOTE: this test is corresponding to test_self_collision_detection
 #[test]
 fn test_create_self_collision_checker() {
     let urdf_robot = urdf_rs::read_file("sample.urdf").unwrap();
     let robot = Arc::new(k::Chain::<f64>::from(&urdf_robot));
     let self_collision_checker = create_self_collision_checker(
         "sample.urdf",
-        &["root:l_shoulder_roll".into()],
+        &[
+            "root:r_shoulder_roll".to_owned(),
+            "root:r_elbow_pitch".to_owned(),
+            "root:r_wrist_yaw".to_owned(),
+            "root:r_wrist_pitch".to_owned(),
+        ],
         &SelfCollisionCheckerConfig::default(),
         robot.clone(),
     );
 
     assert!(self_collision_checker
-        .check_joint_positions(&[0.0; 8], &[0.0; 8], std::time::Duration::new(1, 0),)
+        .check_joint_positions(&[0.0; 12], &[0.0; 12], std::time::Duration::new(1, 0),)
         .is_ok());
     assert!(self_collision_checker
         .check_joint_positions(
-            &[0.0; 8],
-            &[1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            &[0.0; 12],
+            &[0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             std::time::Duration::new(1, 0),
         )
         .is_err());
 
-    let nodes = robot.iter().take(2).map(|node| (*node).clone()).collect();
+    let nodes = robot.iter().take(4).map(|node| (*node).clone()).collect();
     let using_joints = k::Chain::<f64>::from_nodes(nodes);
 
     assert!(self_collision_checker
         .check_partial_joint_positions(
             &using_joints,
-            &[0.0],
-            &[0.0],
+            &[0.0; 3],
+            &[0.0; 3],
             std::time::Duration::new(1, 0),
         )
         .is_ok());
     assert!(self_collision_checker
         .check_partial_joint_positions(
             &using_joints,
-            &[0.0],
-            &[1.57],
+            &[0.0; 3],
+            &[0.0, 0.0, 1.0],
             std::time::Duration::new(1, 0),
         )
         .is_err());

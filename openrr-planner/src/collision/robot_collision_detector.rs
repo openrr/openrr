@@ -144,14 +144,21 @@ pub fn create_robot_collision_detector<P: AsRef<Path>>(
     RobotCollisionDetector::new(robot, collision_detector, self_collision_pairs)
 }
 
+// NOTE: this test is corresponding to test_self_collision_detection
 #[test]
 fn test_robot_collision_detector() {
     let urdf_path = Path::new("sample.urdf");
-    let self_collision_pairs = vec![("root".into(), "l_shoulder_roll".into())];
+    let collision_check_pairs = crate::collision::parse_colon_separated_pairs(&[
+        "root:r_shoulder_roll".to_owned(),
+        "root:r_elbow_pitch".to_owned(),
+        "root:r_wrist_yaw".to_owned(),
+        "root:r_wrist_pitch".to_owned(),
+    ])
+    .unwrap();
     let robot_collision_detector = create_robot_collision_detector(
         urdf_path,
         RobotCollisionDetectorConfig::default(),
-        self_collision_pairs,
+        collision_check_pairs,
     );
 
     robot_collision_detector
@@ -161,6 +168,6 @@ fn test_robot_collision_detector() {
 
     robot_collision_detector
         .robot
-        .set_joint_positions_clamped(&[1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+        .set_joint_positions_clamped(&[0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     assert!(robot_collision_detector.is_self_collision_detected());
 }

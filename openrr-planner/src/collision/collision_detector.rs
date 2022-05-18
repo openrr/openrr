@@ -307,46 +307,29 @@ mod tests {
         let robot = k::Chain::<f32>::from(&urdf_robot);
         let detector = CollisionDetector::from_urdf_robot(&urdf_robot, 0.01);
 
-        let target = Cuboid::new(Vector3::new(0.5, 1.0, 0.5));
-        let target_pose = Isometry3::new(Vector3::new(0.9, 0.0, 0.0), na::zero());
+        let target = Cuboid::new(Vector3::new(0.2, 0.2, 0.2));
+        let target_pose = Isometry3::new(Vector3::new(0.4, 0.4, 0.0), na::zero());
 
-        let names: Vec<String> = detector.detect_env(&robot, &target, &target_pose).collect();
-        assert_eq!(
-            names,
-            vec![
-                "l_elbow_pitch",
-                "l_wrist_yaw",
-                "l_wrist_pitch",
-                "l_gripper_linear2",
-                "l_gripper_linear1",
-            ]
-        );
+        assert!(detector
+            .detect_env(&robot, &target, &target_pose)
+            .next()
+            .is_none());
 
-        let angles = [-1.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let angles = vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.57, 0.0, 0.0];
         robot.set_joint_positions(&angles).unwrap();
         let names: Vec<String> = detector.detect_env(&robot, &target, &target_pose).collect();
-        assert_eq!(
-            names,
-            vec![
-                "l_wrist_yaw",
-                "l_wrist_pitch",
-                "l_gripper_linear2",
-                "l_gripper_linear1"
-            ]
-        );
+        assert_eq!(names, vec!["l_wrist_yaw", "l_wrist_pitch",]);
 
-        let target_pose = Isometry3::new(Vector3::new(0.7, 0.0, 0.0), na::zero());
+        let target_pose = Isometry3::new(Vector3::new(0.0, 0.4, 0.0), na::zero());
         let names: Vec<String> = detector.detect_env(&robot, &target, &target_pose).collect();
         assert_eq!(
             names,
             vec![
-                "root",
+                "l_shoulder_yaw",
+                "l_shoulder_pitch",
                 "l_shoulder_roll",
                 "l_elbow_pitch",
-                "l_wrist_yaw",
-                "l_wrist_pitch",
-                "l_gripper_linear2",
-                "l_gripper_linear1",
+                "l_wrist_yaw"
             ]
         );
     }
@@ -358,22 +341,22 @@ mod tests {
         let detector = CollisionDetector::from_urdf_robot(&urdf_robot, 0.01);
 
         let collision_check_pairs = parse_colon_separated_pairs(&[
-            "root:l_shoulder_roll".to_owned(),
-            "root:l_elbow_pitch".to_owned(),
-            "root:l_wrist_yaw".to_owned(),
-            "root:l_wrist_pitch".to_owned(),
+            "root:r_shoulder_roll".to_owned(),
+            "root:r_elbow_pitch".to_owned(),
+            "root:r_wrist_yaw".to_owned(),
+            "root:r_wrist_pitch".to_owned(),
         ])
         .unwrap();
-        let (correct_collisions, _) = collision_check_pairs.split_at(2);
+        let (_, correct_collisions) = collision_check_pairs.split_at(2);
 
-        let angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let angles = [0.0; 12];
         robot.set_joint_positions(&angles).unwrap();
         assert!(detector
             .detect_self(&robot, &collision_check_pairs)
             .next()
             .is_none());
 
-        let angles = [-1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let angles = [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
         robot.set_joint_positions(&angles).unwrap();
         let result: Vec<(String, String)> = detector
             .detect_self(&robot, &collision_check_pairs)
