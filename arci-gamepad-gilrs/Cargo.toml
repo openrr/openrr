@@ -11,7 +11,7 @@ repository = "https://github.com/openrr/openrr"
 [dependencies]
 arci = "0.0.6"
 flume = "0.10"
-gilrs = { version = "0.8.1", features = ["serde-serialize"] }
+gilrs = { version = "0.9.0", features = ["serde-serialize"] }
 schemars = "0.8.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_with = "1.5"
