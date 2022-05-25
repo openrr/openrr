@@ -156,11 +156,13 @@ fn test_robot_collision_detector() {
 
     robot_collision_detector
         .robot
-        .set_joint_positions_clamped(&[0.0; 8]);
+        .set_joint_positions_clamped(&[0.0; 16]);
     assert!(!robot_collision_detector.is_self_collision_detected());
 
     robot_collision_detector
         .robot
-        .set_joint_positions_clamped(&[1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+        .set_joint_positions_clamped(&[
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        ]);
     assert!(robot_collision_detector.is_self_collision_detected());
 }

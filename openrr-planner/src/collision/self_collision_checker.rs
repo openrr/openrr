@@ -170,18 +170,18 @@ fn test_create_self_collision_checker() {
     );
 
     assert!(self_collision_checker
-        .check_joint_positions(&[0.0; 8], &[0.0; 8], std::time::Duration::new(1, 0),)
+        .check_joint_positions(&[0.0; 16], &[0.0; 16], std::time::Duration::new(1, 0),)
         .is_ok());
     assert!(self_collision_checker
         .check_joint_positions(
-            &[0.0; 8],
-            &[1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            &[0.0; 16],
+            &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             std::time::Duration::new(1, 0),
         )
         .is_err());
 
-    let nodes = robot.iter().take(2).map(|node| (*node).clone()).collect();
-    let using_joints = k::Chain::<f64>::from_nodes(nodes);
+    let l_shoulder_yaw_node = robot.find("l_shoulder_yaw").unwrap();
+    let using_joints = k::SerialChain::from_end(l_shoulder_yaw_node);
 
     assert!(self_collision_checker
         .check_partial_joint_positions(
