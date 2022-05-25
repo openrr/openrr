@@ -365,7 +365,7 @@ struct Opt {
         default_value = "obstacles.urdf"
     )]
     obstacle_urdf_path: PathBuf,
-    #[clap(short = 'e', long = "end-link", default_value = "l_tool_fixed")]
+    #[clap(short = 'e', long = "end-link", default_value = "l_wrist_pitch")]
     end_link: String,
     #[clap(short = 's', long = "self-collision-pair")]
     self_collision_pair: Vec<String>,

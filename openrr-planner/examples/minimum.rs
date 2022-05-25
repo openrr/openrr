@@ -29,22 +29,24 @@ fn main() {
     let solver = openrr_planner::RandomInitializeIkSolver::new(solver, 100);
     // Create path planner with IK solver
     let mut planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);
-    let target_name = "l_tool_fixed";
+    let target_name = "l_wrist_pitch";
     // Create obstacles
     let obstacles = Compound::from_urdf_file("obstacles.urdf").expect("obstacle file not found");
 
     // Set IK target transformation
     let mut ik_target_pose = na::Isometry3::from_parts(
-        na::Translation3::new(0.40, 0.20, 0.3),
-        na::UnitQuaternion::from_euler_angles(0.0, -0.1, 0.0),
+        na::Translation3::new(0.4, 0.4, 0.0),
+        na::UnitQuaternion::from_euler_angles(0.0, -1.57, 0.0),
     );
+
     // Plan the path, path is the vector of joint angles for root to target_name
     let plan1 = planner
         .plan_with_ik(target_name, &ik_target_pose, &obstacles)
         .unwrap();
     println!("plan1 = {plan1:?}");
-    ik_target_pose.translation.vector[2] += 0.50;
-    // plan the path from previous result
+
+    // Plan the path from previous result
+    ik_target_pose.translation.vector[0] += 0.1;
     let plan2 = planner
         .plan_with_ik(target_name, &ik_target_pose, &obstacles)
         .unwrap();
