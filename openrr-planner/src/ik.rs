@@ -142,15 +142,15 @@ mod tests {
 
     #[test]
     fn get_region() {
-        let chain = k::Chain::<f32>::from_urdf_file("sample.urdf").unwrap();
+        let robot = k::Chain::<f32>::from_urdf_file("sample.urdf").unwrap();
+        let target_link = robot.find("l_tool_fixed").unwrap();
+        let chain = k::SerialChain::from_end(target_link);
 
         // Set initial joint angles
-        let angles = vec![0.2, 0.2, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0];
+        let angles = vec![0.2, 0.2, 0.0, -1.0, 0.0, 0.0];
 
         chain.set_joint_positions(&angles).unwrap();
         println!("initial angles={:?}", chain.joint_positions());
-
-        let target_link = chain.find("l_wrist_pitch").unwrap();
 
         // Get the transform of the end of the manipulator (forward kinematics)
         chain.update_transforms();
@@ -170,6 +170,6 @@ mod tests {
             na::Vector3::new(0.0, -0.9, 0.0),
             0.1,
         );
-        assert_eq!(regions.len(), 174);
+        assert_eq!(regions.len(), 114);
     }
 }
