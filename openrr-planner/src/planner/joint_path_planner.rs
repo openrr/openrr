@@ -152,6 +152,10 @@ where
             step_length,
             num_smoothing,
         );
+
+        // The joint positions of using_joint can be changed in the smoothing,
+        // so we need to surely set the goal at the end.
+        using_joints.set_joint_positions(goal_angles)?;
         Ok(path)
     }
 
