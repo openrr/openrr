@@ -2,7 +2,7 @@
   <!-- links -->
   <link name="obj1">
     <visual>
-      <origin xyz="0.7 0.0 0.1" rpy="0.0 0.0 0.0" />
+      <origin xyz="0.6 0.0 -0.2" rpy="0.0 0.0 0.0" />
       <geometry>
         <box size="0.4 0.8 0.2" />
       </geometry>
@@ -11,7 +11,7 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0.7 0.0 0.1" rpy="0 0 0"/>
+      <origin xyz="0.6 0.0 -0.2" rpy="0 0 0"/>
       <geometry>
         <box size="0.4 0.8 0.2" />
       </geometry>
@@ -19,7 +19,7 @@
   </link>
   <link name="obj2">
     <visual>
-      <origin xyz="0.7 0.0 0.6" rpy="0.0 0.0 0.0" />
+      <origin xyz="0.6 0.0 0.3" rpy="0.0 0.0 0.0" />
       <geometry>
         <box size="0.4 0.6 0.2" />
       </geometry>
@@ -28,7 +28,7 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0.7 0.0 0.6" rpy="0 0 0"/>
+      <origin xyz="0.6 0.0 0.3" rpy="0 0 0"/>
       <geometry>
         <box size="0.4 0.6 0.2" />
       </geometry>
