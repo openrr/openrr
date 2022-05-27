@@ -107,6 +107,8 @@ async fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use super::*;
 
     #[test]
@@ -127,5 +129,59 @@ mod tests {
     #[test]
     fn assert_app() {
         RobotCommandArgs::command().debug_assert();
+    }
+
+    const SAMPLE_COMMAND_PATH: &str = "command/sample_cmd_urdf_viz.txt";
+
+    #[test]
+    fn assert_sample_command() {
+        let bin = env!("CARGO_BIN_NAME");
+        let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+
+        let config_path = manifest_dir.join("config/sample_robot_client_for_urdf_viz.toml");
+        let config_path_arg = "--config-path=".to_string() + config_path.to_str().unwrap();
+        let sample_command_path = manifest_dir.join(SAMPLE_COMMAND_PATH);
+
+        let sample_command = RobotCommandArgs::try_parse_from(&[
+            bin,
+            config_path_arg.as_str(),
+            "load_commands",
+            sample_command_path.to_str().unwrap(),
+        ])
+        .unwrap();
+
+        let command = sample_command.command.ok_or(Error::NoCommand).unwrap();
+        assert!(check_sample_command(&command));
+    }
+
+    fn check_sample_command(command: &RobotCommand) -> bool {
+        match &command {
+            RobotCommand::LoadCommands { command_file_path } => {
+                let target_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+                let target_command_file_path = target_dir.join(SAMPLE_COMMAND_PATH);
+                *command_file_path == target_command_file_path
+            }
+            RobotCommand::List => true,
+            RobotCommand::Speak { name, message } => {
+                let name_test = name == "Default";
+                let message_test = *message == ["This is sample robot".to_string()];
+                name_test && message_test
+            }
+            RobotCommand::GetNavigationCurrentPose => true,
+            RobotCommand::SendNavigationGoal {
+                x,
+                y,
+                yaw,
+                frame_id: _,
+                timeout_secs: _,
+            } => {
+                let x_test = *x == 0.0;
+                let y_test = *y == 0.0;
+                let yaw_test = *yaw == 0.0;
+                x_test && y_test && yaw_test
+            }
+            // ToDo: Add pattern for other commands.
+            _ => false,
+        }
     }
 }
