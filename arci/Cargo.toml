@@ -11,7 +11,7 @@ repository = "https://github.com/openrr/openrr"
 [dependencies]
 anyhow = "1.0"
 async-trait = "0.1"
-auto_impl = "0.5"
+auto_impl = "1.0"
 futures = "0.3"
 nalgebra = "0.30"
 once_cell = "1"
