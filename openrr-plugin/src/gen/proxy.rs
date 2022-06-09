@@ -4,25 +4,35 @@
 #![allow(unused_variables)]
 #![allow(clippy::useless_conversion, clippy::unit_arg)]
 
-use abi_stable::{
-    rtry,
-    std_types::{RBox, RDuration, ROk, RResult, RStr},
-};
-
+use abi_stable::{rtry, std_types::{RBox, RDuration, ROk, RResult, RStr}};
 use super::*;
 pub(crate) type PluginTraitObject = RPluginTrait_TO<RBox<()>>;
 #[sabi_trait]
 pub(crate) trait RPluginTrait: Send + Sync + 'static {
-    fn new_gamepad(&self, args: RString) -> RResult<ROption<crate::GamepadProxy>, RError>;
+    fn new_gamepad(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::GamepadProxy>, RError>;
     fn new_joint_trajectory_client(
         &self,
         args: RString,
     ) -> RResult<ROption<crate::JointTrajectoryClientProxy>, RError>;
-    fn new_localization(&self, args: RString)
-        -> RResult<ROption<crate::LocalizationProxy>, RError>;
-    fn new_move_base(&self, args: RString) -> RResult<ROption<crate::MoveBaseProxy>, RError>;
-    fn new_navigation(&self, args: RString) -> RResult<ROption<crate::NavigationProxy>, RError>;
-    fn new_speaker(&self, args: RString) -> RResult<ROption<crate::SpeakerProxy>, RError>;
+    fn new_localization(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::LocalizationProxy>, RError>;
+    fn new_move_base(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::MoveBaseProxy>, RError>;
+    fn new_navigation(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::NavigationProxy>, RError>;
+    fn new_speaker(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::SpeakerProxy>, RError>;
     fn new_transform_resolver(
         &self,
         args: RString,
@@ -32,57 +42,72 @@ impl<T> RPluginTrait for T
 where
     T: crate::Plugin,
 {
-    fn new_gamepad(&self, args: RString) -> RResult<ROption<crate::GamepadProxy>, RError> {
-        ROk(rtry!(crate::Plugin::new_gamepad(self, args.into()))
-            .map(crate::GamepadProxy::new)
-            .into())
+    fn new_gamepad(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::GamepadProxy>, RError> {
+        ROk(
+            rtry!(crate ::Plugin::new_gamepad(self, args.into()))
+                .map(crate::GamepadProxy::new)
+                .into(),
+        )
     }
-
     fn new_joint_trajectory_client(
         &self,
         args: RString,
     ) -> RResult<ROption<crate::JointTrajectoryClientProxy>, RError> {
-        ROk(rtry!(crate::Plugin::new_joint_trajectory_client(
-            self,
-            args.into()
-        ))
-        .map(crate::JointTrajectoryClientProxy::new)
-        .into())
+        ROk(
+            rtry!(crate ::Plugin::new_joint_trajectory_client(self, args.into()))
+                .map(crate::JointTrajectoryClientProxy::new)
+                .into(),
+        )
     }
-
     fn new_localization(
         &self,
         args: RString,
     ) -> RResult<ROption<crate::LocalizationProxy>, RError> {
-        ROk(rtry!(crate::Plugin::new_localization(self, args.into()))
-            .map(crate::LocalizationProxy::new)
-            .into())
+        ROk(
+            rtry!(crate ::Plugin::new_localization(self, args.into()))
+                .map(crate::LocalizationProxy::new)
+                .into(),
+        )
     }
-
-    fn new_move_base(&self, args: RString) -> RResult<ROption<crate::MoveBaseProxy>, RError> {
-        ROk(rtry!(crate::Plugin::new_move_base(self, args.into()))
-            .map(crate::MoveBaseProxy::new)
-            .into())
+    fn new_move_base(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::MoveBaseProxy>, RError> {
+        ROk(
+            rtry!(crate ::Plugin::new_move_base(self, args.into()))
+                .map(crate::MoveBaseProxy::new)
+                .into(),
+        )
     }
-
-    fn new_navigation(&self, args: RString) -> RResult<ROption<crate::NavigationProxy>, RError> {
-        ROk(rtry!(crate::Plugin::new_navigation(self, args.into()))
-            .map(crate::NavigationProxy::new)
-            .into())
+    fn new_navigation(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::NavigationProxy>, RError> {
+        ROk(
+            rtry!(crate ::Plugin::new_navigation(self, args.into()))
+                .map(crate::NavigationProxy::new)
+                .into(),
+        )
     }
-
-    fn new_speaker(&self, args: RString) -> RResult<ROption<crate::SpeakerProxy>, RError> {
-        ROk(rtry!(crate::Plugin::new_speaker(self, args.into()))
-            .map(crate::SpeakerProxy::new)
-            .into())
+    fn new_speaker(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::SpeakerProxy>, RError> {
+        ROk(
+            rtry!(crate ::Plugin::new_speaker(self, args.into()))
+                .map(crate::SpeakerProxy::new)
+                .into(),
+        )
     }
-
     fn new_transform_resolver(
         &self,
         args: RString,
     ) -> RResult<ROption<crate::TransformResolverProxy>, RError> {
         ROk(
-            rtry!(crate::Plugin::new_transform_resolver(self, args.into()))
+            rtry!(crate ::Plugin::new_transform_resolver(self, args.into()))
                 .map(crate::TransformResolverProxy::new)
                 .into(),
         )
@@ -112,9 +137,8 @@ where
     T: arci::MoveBase + 'static,
 {
     fn send_velocity(&self, velocity: RBaseVelocity) -> RResult<(), RError> {
-        ROk(rtry!(arci::MoveBase::send_velocity(self, &velocity.into())).into())
+        ROk(rtry!(arci::MoveBase::send_velocity(self, & velocity.into())).into())
     }
-
     fn current_velocity(&self) -> RResult<RBaseVelocity, RError> {
         ROk(rtry!(arci::MoveBase::current_velocity(self)).into())
     }
@@ -140,15 +164,14 @@ where
         frame_id: RStr<'_>,
         timeout: RDuration,
     ) -> RResult<RBlockingWait, RError> {
-        ROk(rtry!(arci::Navigation::send_goal_pose(
-            self,
-            goal.into(),
-            frame_id.into(),
-            timeout.into()
-        ))
-        .into())
+        ROk(
+            rtry!(
+                arci::Navigation::send_goal_pose(self, goal.into(), frame_id.into(),
+                timeout.into())
+            )
+                .into(),
+        )
     }
-
     fn cancel(&self) -> RResult<(), RError> {
         ROk(rtry!(arci::Navigation::cancel(self)).into())
     }
@@ -186,12 +209,12 @@ where
         to: RStr<'_>,
         time: RSystemTime,
     ) -> RResult<RIsometry3F64, RError> {
-        ROk(rtry!(arci::TransformResolver::resolve_transformation(
-            self,
-            from.into(),
-            to.into(),
-            rtry!(time.try_into())
-        ))
-        .into())
+        ROk(
+            rtry!(
+                arci::TransformResolver::resolve_transformation(self, from.into(), to
+                .into(), rtry!(time.try_into()))
+            )
+                .into(),
+        )
     }
 }

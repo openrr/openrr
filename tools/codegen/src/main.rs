@@ -1,12 +1,9 @@
 mod plugin;
 mod rpc;
 
-use std::{
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use fs_err as fs;
 use proc_macro2::TokenStream;
 
@@ -98,30 +95,9 @@ fn header() -> String {
     .into()
 }
 
-fn write(path: &Path, contents: &TokenStream) -> Result<()> {
-    let contents = &contents.to_string();
-
-    let tmpdir = tempfile::Builder::new().prefix("codegen").tempdir()?;
-    let tmpfile = &tmpdir.path().join("generated");
-    fs::write(tmpfile, &contents)?;
-    fs::copy(
-        workspace_root().join("rustfmt.toml"),
-        tmpdir.path().join(".rustfmt.toml"),
-    )?;
-
-    let status = Command::new("rustfmt")
-        .arg(tmpfile)
-        .args(&[
-            "--config",
-            "normalize_doc_attributes=true,format_macro_matchers=true",
-        ])
-        .status()?;
-    if !status.success() {
-        bail!("rustfmt didn't exit successfully");
-    }
-
+fn write(path: &Path, contents: TokenStream) -> Result<()> {
     let mut out = header().into_bytes();
-    out.append(&mut fs::read(tmpfile)?);
+    out.extend_from_slice(prettyplease::unparse(&syn::parse2(contents).unwrap()).as_bytes());
     if path.is_file() && fs::read(&path)? == out {
         return Ok(());
     }

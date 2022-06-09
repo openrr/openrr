@@ -235,9 +235,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install protobuf-compiler
       - name: Install Rust
-        run: |
-          rustup toolchain install ${{ env.nightly }} --component rustfmt
-          rustup default ${{ env.nightly }}
+        run: rustup update stable
       - uses: Swatinem/rust-cache@v1
       - run: tools/gen-code.sh
       - run: git diff --exit-code

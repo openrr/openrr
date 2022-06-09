@@ -8,6 +8,7 @@ mod pb {
     include!("generated/arci.rs");
 }
 
+#[rustfmt::skip]
 #[path = "gen/impls.rs"]
 mod impls;
 
