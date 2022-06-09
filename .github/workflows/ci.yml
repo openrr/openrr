@@ -16,7 +16,7 @@ env:
   RUSTDOCFLAGS: -D warnings
   RUSTFLAGS: -D warnings
   RUSTUP_MAX_RETRIES: 10
-  nightly: nightly-2021-11-22
+  nightly: nightly-2022-06-08
 
 jobs:
   windows:
