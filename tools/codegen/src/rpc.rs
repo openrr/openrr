@@ -57,7 +57,7 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
         #items
     };
 
-    write(&out_dir.join("impls.rs"), &items)?;
+    write(&out_dir.join("impls.rs"), items)?;
     Ok(())
 }
 

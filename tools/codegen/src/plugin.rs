@@ -192,8 +192,8 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
         #proxy_impls
     };
 
-    write(&out_dir.join("api.rs"), &api)?;
-    write(&out_dir.join("proxy.rs"), &proxy)?;
+    write(&out_dir.join("api.rs"), api)?;
+    write(&out_dir.join("proxy.rs"), proxy)?;
     Ok(())
 }
 
