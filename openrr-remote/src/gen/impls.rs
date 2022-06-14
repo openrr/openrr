@@ -5,7 +5,6 @@
 #![allow(clippy::useless_conversion, clippy::unit_arg)]
 
 use arci::{BaseVelocity, Error, Isometry2, Isometry3, WaitFuture};
-
 use super::*;
 #[derive(Debug, Clone)]
 pub struct RemoteGamepadSender {
@@ -25,7 +24,6 @@ impl RemoteGamepadSender {
             })?;
         Ok(Self { client })
     }
-
     /// Create a new sender.
     pub fn new(channel: tonic::transport::Channel) -> Self {
         Self {
@@ -45,12 +43,10 @@ where
     pub fn new(inner: T) -> Self {
         Self { inner }
     }
-
     /// Convert this receiver into a tower service.
     pub fn into_service(self) -> pb::gamepad_server::GamepadServer<Self> {
         pb::gamepad_server::GamepadServer::new(self)
     }
-
     pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
         tonic::transport::Server::builder()
             .add_service(self.into_service())
@@ -64,8 +60,9 @@ where
 }
 #[derive(Debug, Clone)]
 pub struct RemoteJointTrajectoryClientSender {
-    pub(crate) client:
-        pb::joint_trajectory_client_client::JointTrajectoryClientClient<tonic::transport::Channel>,
+    pub(crate) client: pb::joint_trajectory_client_client::JointTrajectoryClientClient<
+        tonic::transport::Channel,
+    >,
 }
 impl RemoteJointTrajectoryClientSender {
     /// Attempt to create a new sender by connecting to a given endpoint.
@@ -74,18 +71,21 @@ impl RemoteJointTrajectoryClientSender {
         D: TryInto<tonic::transport::Endpoint>,
         D::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
     {
-        let client = pb::joint_trajectory_client_client::JointTrajectoryClientClient::connect(dst)
+        let client = pb::joint_trajectory_client_client::JointTrajectoryClientClient::connect(
+                dst,
+            )
             .await
             .map_err(|e| arci::Error::Connection {
                 message: e.to_string(),
             })?;
         Ok(Self { client })
     }
-
     /// Create a new sender.
     pub fn new(channel: tonic::transport::Channel) -> Self {
         Self {
-            client: pb::joint_trajectory_client_client::JointTrajectoryClientClient::new(channel),
+            client: pb::joint_trajectory_client_client::JointTrajectoryClientClient::new(
+                channel,
+            ),
         }
     }
 }
@@ -101,14 +101,12 @@ where
     pub fn new(inner: T) -> Self {
         Self { inner }
     }
-
     /// Convert this receiver into a tower service.
     pub fn into_service(
         self,
     ) -> pb::joint_trajectory_client_server::JointTrajectoryClientServer<Self> {
         pb::joint_trajectory_client_server::JointTrajectoryClientServer::new(self)
     }
-
     pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
         tonic::transport::Server::builder()
             .add_service(self.into_service())
@@ -122,7 +120,9 @@ where
 }
 #[derive(Debug, Clone)]
 pub struct RemoteLocalizationSender {
-    pub(crate) client: pb::localization_client::LocalizationClient<tonic::transport::Channel>,
+    pub(crate) client: pb::localization_client::LocalizationClient<
+        tonic::transport::Channel,
+    >,
 }
 impl RemoteLocalizationSender {
     /// Attempt to create a new sender by connecting to a given endpoint.
@@ -138,7 +138,6 @@ impl RemoteLocalizationSender {
             })?;
         Ok(Self { client })
     }
-
     /// Create a new sender.
     pub fn new(channel: tonic::transport::Channel) -> Self {
         Self {
@@ -158,12 +157,10 @@ where
     pub fn new(inner: T) -> Self {
         Self { inner }
     }
-
     /// Convert this receiver into a tower service.
     pub fn into_service(self) -> pb::localization_server::LocalizationServer<Self> {
         pb::localization_server::LocalizationServer::new(self)
     }
-
     pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
         tonic::transport::Server::builder()
             .add_service(self.into_service())
@@ -179,10 +176,12 @@ impl arci::Localization for RemoteLocalizationSender {
     fn current_pose(&self, frame_id: &str) -> Result<Isometry2<f64>, Error> {
         let mut client = self.client.clone();
         let args = tonic::Request::new(frame_id.into());
-        Ok(block_in_place(client.current_pose(args))
-            .map_err(|e| arci::Error::Other(e.into()))?
-            .into_inner()
-            .into())
+        Ok(
+            block_in_place(client.current_pose(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
     }
 }
 #[tonic::async_trait]
@@ -219,7 +218,6 @@ impl RemoteMoveBaseSender {
             })?;
         Ok(Self { client })
     }
-
     /// Create a new sender.
     pub fn new(channel: tonic::transport::Channel) -> Self {
         Self {
@@ -239,12 +237,10 @@ where
     pub fn new(inner: T) -> Self {
         Self { inner }
     }
-
     /// Convert this receiver into a tower service.
     pub fn into_service(self) -> pb::move_base_server::MoveBaseServer<Self> {
         pb::move_base_server::MoveBaseServer::new(self)
     }
-
     pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
         tonic::transport::Server::builder()
             .add_service(self.into_service())
@@ -260,19 +256,22 @@ impl arci::MoveBase for RemoteMoveBaseSender {
     fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error> {
         let mut client = self.client.clone();
         let args = tonic::Request::new((*velocity).into());
-        Ok(block_in_place(client.send_velocity(args))
-            .map_err(|e| arci::Error::Other(e.into()))?
-            .into_inner()
-            .into())
+        Ok(
+            block_in_place(client.send_velocity(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
     }
-
     fn current_velocity(&self) -> Result<BaseVelocity, Error> {
         let mut client = self.client.clone();
         let args = tonic::Request::new(());
-        Ok(block_in_place(client.current_velocity(args))
-            .map_err(|e| arci::Error::Other(e.into()))?
-            .into_inner()
-            .into())
+        Ok(
+            block_in_place(client.current_velocity(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
     }
 }
 #[tonic::async_trait]
@@ -290,7 +289,6 @@ where
             .into();
         Ok(tonic::Response::new(res))
     }
-
     async fn current_velocity(
         &self,
         request: tonic::Request<()>,
@@ -304,7 +302,9 @@ where
 }
 #[derive(Debug, Clone)]
 pub struct RemoteNavigationSender {
-    pub(crate) client: pb::navigation_client::NavigationClient<tonic::transport::Channel>,
+    pub(crate) client: pb::navigation_client::NavigationClient<
+        tonic::transport::Channel,
+    >,
 }
 impl RemoteNavigationSender {
     /// Attempt to create a new sender by connecting to a given endpoint.
@@ -320,7 +320,6 @@ impl RemoteNavigationSender {
             })?;
         Ok(Self { client })
     }
-
     /// Create a new sender.
     pub fn new(channel: tonic::transport::Channel) -> Self {
         Self {
@@ -340,12 +339,10 @@ where
     pub fn new(inner: T) -> Self {
         Self { inner }
     }
-
     /// Convert this receiver into a tower service.
     pub fn into_service(self) -> pb::navigation_server::NavigationServer<Self> {
         pb::navigation_server::NavigationServer::new(self)
     }
-
     pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
         tonic::transport::Server::builder()
             .add_service(self.into_service())
@@ -366,18 +363,21 @@ impl arci::Navigation for RemoteNavigationSender {
     ) -> Result<WaitFuture, Error> {
         let mut client = self.client.clone();
         let args = tonic::Request::new((goal, frame_id, timeout).into());
-        Ok(wait_from_handle(tokio::spawn(async move {
-            client.send_goal_pose(args).await
-        })))
+        Ok(
+            wait_from_handle(
+                tokio::spawn(async move { client.send_goal_pose(args).await }),
+            ),
+        )
     }
-
     fn cancel(&self) -> Result<(), Error> {
         let mut client = self.client.clone();
         let args = tonic::Request::new(());
-        Ok(block_in_place(client.cancel(args))
-            .map_err(|e| arci::Error::Other(e.into()))?
-            .into_inner()
-            .into())
+        Ok(
+            block_in_place(client.cancel(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
     }
 }
 #[tonic::async_trait]
@@ -391,18 +391,17 @@ where
     ) -> Result<tonic::Response<()>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::Navigation::send_goal_pose(
-            &self.inner,
-            request.goal.unwrap().into(),
-            &request.frame_id,
-            request.timeout.unwrap().try_into().unwrap(),
-        )
-        .map_err(|e| tonic::Status::unknown(e.to_string()))?
-        .await
-        .map_err(|e| tonic::Status::unknown(e.to_string()))?
-        .into();
+                &self.inner,
+                request.goal.unwrap().into(),
+                &request.frame_id,
+                request.timeout.unwrap().try_into().unwrap(),
+            )
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?
+            .await
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?
+            .into();
         Ok(tonic::Response::new(res))
     }
-
     async fn cancel(
         &self,
         request: tonic::Request<()>,
@@ -432,7 +431,6 @@ impl RemoteSpeakerSender {
             })?;
         Ok(Self { client })
     }
-
     /// Create a new sender.
     pub fn new(channel: tonic::transport::Channel) -> Self {
         Self {
@@ -452,12 +450,10 @@ where
     pub fn new(inner: T) -> Self {
         Self { inner }
     }
-
     /// Convert this receiver into a tower service.
     pub fn into_service(self) -> pb::speaker_server::SpeakerServer<Self> {
         pb::speaker_server::SpeakerServer::new(self)
     }
-
     pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
         tonic::transport::Server::builder()
             .add_service(self.into_service())
@@ -473,9 +469,7 @@ impl arci::Speaker for RemoteSpeakerSender {
     fn speak(&self, message: &str) -> Result<WaitFuture, Error> {
         let mut client = self.client.clone();
         let args = tonic::Request::new(message.into());
-        Ok(wait_from_handle(tokio::spawn(async move {
-            client.speak(args).await
-        })))
+        Ok(wait_from_handle(tokio::spawn(async move { client.speak(args).await })))
     }
 }
 #[tonic::async_trait]
@@ -498,8 +492,9 @@ where
 }
 #[derive(Debug, Clone)]
 pub struct RemoteTransformResolverSender {
-    pub(crate) client:
-        pb::transform_resolver_client::TransformResolverClient<tonic::transport::Channel>,
+    pub(crate) client: pb::transform_resolver_client::TransformResolverClient<
+        tonic::transport::Channel,
+    >,
 }
 impl RemoteTransformResolverSender {
     /// Attempt to create a new sender by connecting to a given endpoint.
@@ -515,7 +510,6 @@ impl RemoteTransformResolverSender {
             })?;
         Ok(Self { client })
     }
-
     /// Create a new sender.
     pub fn new(channel: tonic::transport::Channel) -> Self {
         Self {
@@ -535,12 +529,12 @@ where
     pub fn new(inner: T) -> Self {
         Self { inner }
     }
-
     /// Convert this receiver into a tower service.
-    pub fn into_service(self) -> pb::transform_resolver_server::TransformResolverServer<Self> {
+    pub fn into_service(
+        self,
+    ) -> pb::transform_resolver_server::TransformResolverServer<Self> {
         pb::transform_resolver_server::TransformResolverServer::new(self)
     }
-
     pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
         tonic::transport::Server::builder()
             .add_service(self.into_service())
@@ -561,14 +555,17 @@ impl arci::TransformResolver for RemoteTransformResolverSender {
     ) -> Result<Isometry3<f64>, Error> {
         let mut client = self.client.clone();
         let args = tonic::Request::new((from, to, time).into());
-        Ok(block_in_place(client.resolve_transformation(args))
-            .map_err(|e| arci::Error::Other(e.into()))?
-            .into_inner()
-            .into())
+        Ok(
+            block_in_place(client.resolve_transformation(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
     }
 }
 #[tonic::async_trait]
-impl<T> pb::transform_resolver_server::TransformResolver for RemoteTransformResolverReceiver<T>
+impl<T> pb::transform_resolver_server::TransformResolver
+for RemoteTransformResolverReceiver<T>
 where
     T: arci::TransformResolver + 'static,
 {
@@ -578,13 +575,13 @@ where
     ) -> Result<tonic::Response<pb::Isometry3>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::TransformResolver::resolve_transformation(
-            &self.inner,
-            &request.from,
-            &request.to,
-            request.time.unwrap().try_into().unwrap(),
-        )
-        .map_err(|e| tonic::Status::unknown(e.to_string()))?
-        .into();
+                &self.inner,
+                &request.from,
+                &request.to,
+                request.time.unwrap().try_into().unwrap(),
+            )
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?
+            .into();
         Ok(tonic::Response::new(res))
     }
 }

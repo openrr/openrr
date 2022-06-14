@@ -6,6 +6,7 @@
 
 mod proxy;
 
+#[rustfmt::skip]
 #[path = "gen/api.rs"]
 mod api;
 

@@ -2,6 +2,7 @@
 //! used in arci and openrr-plugin. The types defined by this module will never
 //! appear in the public API, and the conversion is done internally.
 
+#[rustfmt::skip]
 #[path = "gen/proxy.rs"]
 mod impls;
 
