@@ -15,7 +15,7 @@ assimp = ["openrr-client/assimp"]
 [dependencies]
 arci = "0.0.6"
 async-recursion = "1.0"
-clap = { version = "~3.1", features = ["derive"] }
+clap = { version = "~3.2", features = ["derive"] }
 clap_complete = "~3.1"
 k = "0.28"
 openrr-client = { version = "0.0.6", default-features = false }
