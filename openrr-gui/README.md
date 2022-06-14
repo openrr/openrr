@@ -1,6 +1,6 @@
 # OpenRR GUI
 
-[![crates.io](https://img.shields.io/crates/v/openrr-gui.svg)](https://crates.io/crates/openrr-gui) [![docs](https://docs.rs/openrr-gui/badge.svg)](https://docs.rs/openrr-gui)
+[![crates.io](https://img.shields.io/crates/v/openrr-gui.svg)](https://crates.io/crates/openrr-gui) [![docs](https://docs.rs/openrr-gui/badge.svg)](https://docs.rs/openrr-gui) [![docs](https://img.shields.io/badge/docs-main-blue)](https://openrr.github.io/openrr/openrr-gui)
 
 ## Troubleshooting
 

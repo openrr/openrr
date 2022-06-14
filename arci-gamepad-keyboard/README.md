@@ -1,6 +1,6 @@
 # arci-gamepad-keyboard
 
-[![crates.io](https://img.shields.io/crates/v/arci-gamepad-keyboard.svg)](https://crates.io/crates/arci-gamepad-keyboard) [![docs](https://docs.rs/arci-gamepad-keyboard/badge.svg)](https://docs.rs/arci-gamepad-keyboard)
+[![crates.io](https://img.shields.io/crates/v/arci-gamepad-keyboard.svg)](https://crates.io/crates/arci-gamepad-keyboard) [![docs](https://docs.rs/arci-gamepad-keyboard/badge.svg)](https://docs.rs/arci-gamepad-keyboard) [![docs](https://img.shields.io/badge/docs-main-blue)](https://openrr.github.io/openrr/arci-gamepad-keyboard)
 
 [`arci::Gamepad`](https://docs.rs/arci/*/arci/trait.Gamepad.html) implementation for keyboard.
 
