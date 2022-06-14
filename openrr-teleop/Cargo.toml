@@ -16,7 +16,7 @@ assimp = ["openrr-client/assimp"]
 arci = "0.0.6"
 async-trait = "0.1"
 auto_impl = "1.0.0"
-clap = { version = "3.1", features = ["derive"] }
+clap = { version = "~3.1", features = ["derive"] }
 k = "0.28"
 openrr-client = { version = "0.0.6", default-features = false }
 openrr-command = { version = "0.0.6", default-features = false }
