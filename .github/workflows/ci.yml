@@ -309,6 +309,14 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-install-dependencies.sh
       - run: cargo doc --workspace --all-features --exclude arci-ros2
+      - name: Publish documentation
+        run: |
+          cd target/doc
+          git init
+          git add .
+          git -c user.name='ci' -c user.email='ci' commit -m 'Deploy OpenRR API documentation'
+          git push -f -q https://git:${{ secrets.github_token }}@github.com/${{ github.repository }} HEAD:gh-pages
+        if: github.event_name == 'push' && github.event.ref == 'refs/heads/main' && github.repository_owner == 'openrr'
 
   shellcheck:
     runs-on: ubuntu-latest
