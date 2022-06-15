@@ -181,21 +181,12 @@ where
         for node2 in robot.iter() {
             let joint2_name = node2.joint().name.clone();
 
-            let mut is_this_pair_valid = true;
-
-            // Ignore the self-pair
-            if joint1_name == joint2_name {
-                is_this_pair_valid = false;
-            }
-
-            // Ignore pairs of the parent and child
-            if node1.parent().is_some() && node1.parent().unwrap().joint().name == joint2_name {
-                is_this_pair_valid = false;
-            }
-
-            if node2.parent().is_some() && node2.parent().unwrap().joint().name == joint1_name {
-                is_this_pair_valid = false;
-            }
+            // A flag to ignore a self-pair and a pair of the parent and child
+            let is_this_pair_valid = !(joint1_name == joint2_name
+                || (node1.parent().is_some()
+                    && node1.parent().unwrap().joint().name == joint2_name)
+                || (node2.parent().is_some()
+                    && node2.parent().unwrap().joint().name == joint1_name));
 
             // Index the names in dictionary order to clarify duplicates
             if is_this_pair_valid {
