@@ -231,3 +231,46 @@ fn test_create_all_collision_pairs() {
     //  ("r_shoulder_roll", "r_shoulder_yaw"), ("r_shoulder_roll", "root")] .
     assert_eq!(create_all_collision_pairs(&sub_chain).len(), 6);
 }
+
+#[test]
+fn test_create_all_collision_pairs_without_urdf() {
+    use k::{joint::*, node::*};
+
+    let joint0 = NodeBuilder::new()
+        .name("joint0")
+        .translation(na::Translation3::new(0.1, 0.0, 0.0))
+        .joint_type(JointType::Rotational {
+            axis: na::Vector3::y_axis(),
+        })
+        .into_node();
+    let joint1 = NodeBuilder::new()
+        .name("joint1")
+        .translation(na::Translation3::new(0.1, 0.0, 0.0))
+        .joint_type(JointType::Rotational {
+            axis: na::Vector3::y_axis(),
+        })
+        .into_node();
+    let joint2 = NodeBuilder::new()
+        .name("joint2")
+        .translation(na::Translation3::new(0.1, 0.0, 0.0))
+        .joint_type(JointType::Rotational {
+            axis: na::Vector3::y_axis(),
+        })
+        .into_node();
+    let joint3 = NodeBuilder::new()
+        .name("joint3")
+        .translation(na::Translation3::new(0.1, 0.0, 0.0))
+        .joint_type(JointType::Rotational {
+            axis: na::Vector3::y_axis(),
+        })
+        .into_node();
+    joint1.set_parent(&joint0);
+    joint2.set_parent(&joint1);
+    joint3.set_parent(&joint2);
+
+    let chain = k::Chain::from_root(joint0);
+
+    // Created pairs are:
+    // [("joint0", "joint2"), ("joint0", "joint3"), ("joint1", "joint3")]
+    assert_eq!(create_all_collision_pairs(&chain).len(), 3);
+}
