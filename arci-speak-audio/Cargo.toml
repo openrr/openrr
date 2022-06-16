@@ -16,6 +16,6 @@ tracing = { version = "0.1", features = ["log"] }
 tokio = { version = "1", features = ["sync", "parking_lot"] }
 
 [dev-dependencies]
-clap = { version = "~3.1", features = ["derive"] }
+clap = { version = "3.1", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }
 tracing-subscriber = "0.3"
