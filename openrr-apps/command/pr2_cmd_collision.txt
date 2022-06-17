@@ -1,5 +1,5 @@
-openrr_apps_robot_command send_joints l_arm_with_torso_ik -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.2 7=0.0
-openrr_apps_robot_command send_joints r_arm_with_torso_ik -j 0=0.05 1=0.0 2=0.0 3=0.0 4=-0.7 5=0.0 6=-0.2 7=0.0
+openrr_apps_robot_command send_joints l_arm_with_torso_ik -j 0=0.05 -j 1=0.0 -j 2=0.0 -j 3=0.0 -j 4=-0.7 -j 5=0.0 -j 6=-0.2 -j 7=0.0
+openrr_apps_robot_command send_joints r_arm_with_torso_ik -j 0=0.05 -j 1=0.0 -j 2=0.0 -j 3=0.0 -j 4=-0.7 -j 5=0.0 -j 6=-0.2 -j 7=0.0
 
 openrr_apps_robot_command send_joints l_arm_with_torso -j 1=0.0
 openrr_apps_robot_command send_joints r_arm_with_torso -j 1=0.0

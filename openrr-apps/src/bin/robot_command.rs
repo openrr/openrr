@@ -107,7 +107,10 @@ async fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
+    use std::{env, path::Path};
+
+    use openrr_command::load_command_file_and_filter;
+    use tracing::log::error;
 
     use super::*;
 
@@ -131,57 +134,142 @@ mod tests {
         RobotCommandArgs::command().debug_assert();
     }
 
-    const SAMPLE_COMMAND_PATH: &str = "command/sample_cmd_urdf_viz.txt";
+    const COMMAND_PATHS: [&str; 11] = [
+        "command/sample_cmd_urdf_viz.txt",
+        "command/pr2_cmd_collision.txt",
+        "command/pr2_cmd_ik.txt",
+        "command/pr2_cmd_joints.txt",
+        "command/pr2_cmd_ros.txt",
+        "command/pr2_cmd_urdf_viz.txt",
+        "command/ur10_cmd_collision.txt",
+        "command/ur10_cmd_ik.txt",
+        "command/ur10_cmd_joints.txt",
+        "command/ur10_cmd_ros.txt",
+        "command/ur10_cmd_urdf_viz.txt",
+    ];
 
     #[test]
-    fn assert_sample_command() {
-        let bin = env!("CARGO_BIN_NAME");
-        let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    fn assert_commands() {
+        for command_path in COMMAND_PATHS {
+            let bin = env!("CARGO_BIN_NAME");
+            let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
 
-        let config_path = manifest_dir.join("config/sample_robot_client_for_urdf_viz.toml");
-        let config_path_arg = "--config-path=".to_string() + config_path.to_str().unwrap();
-        let sample_command_path = manifest_dir.join(SAMPLE_COMMAND_PATH);
+            let config_path = manifest_dir.join("config/sample_robot_client_for_urdf_viz.toml");
+            let config_path_arg = "--config-path=".to_string() + config_path.to_str().unwrap();
+            let sample_command_path = manifest_dir.join(command_path);
 
-        let sample_command = RobotCommandArgs::try_parse_from(&[
-            bin,
-            config_path_arg.as_str(),
-            "load_commands",
-            sample_command_path.to_str().unwrap(),
-        ])
-        .unwrap();
+            let sample_command = RobotCommandArgs::try_parse_from(&[
+                bin,
+                config_path_arg.as_str(),
+                "load_commands",
+                sample_command_path.to_str().unwrap(),
+            ])
+            .unwrap();
+            let mut results = Vec::new();
 
-        let command = sample_command.command.ok_or(Error::NoCommand).unwrap();
-        assert!(check_sample_command(&command));
+            let command = sample_command.command.ok_or(Error::NoCommand).unwrap();
+
+            check_command(&command, &mut results, command_path);
+
+            for result in results {
+                assert!(result);
+            }
+        }
     }
 
-    fn check_sample_command(command: &RobotCommand) -> bool {
+    fn check_command(command: &RobotCommand, log: &mut Vec<bool>, command_path: &str) {
         match &command {
+            RobotCommand::SendJoints {
+                name: _,
+                duration,
+                use_interpolation: _,
+                joint: _,
+                max_resolution_for_interpolation: _,
+                min_number_of_points_for_interpolation: _,
+            } => {
+                log.push(*duration >= 0f64);
+            }
+            RobotCommand::SendJointsPose {
+                name: _,
+                pose_name: _,
+                duration,
+            } => {
+                log.push(*duration >= 0f64);
+            }
+            RobotCommand::MoveIk {
+                name: _,
+                x: _,
+                y: _,
+                z: _,
+                yaw: _,
+                pitch: _,
+                roll: _,
+                duration,
+                use_interpolation: _,
+                is_local: _,
+                max_resolution_for_interpolation: _,
+                min_number_of_points_for_interpolation: _,
+            } => {
+                log.push(*duration >= 0f64);
+            }
+            RobotCommand::GetState { name: _ } => log.push(true),
             RobotCommand::LoadCommands { command_file_path } => {
                 let target_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-                let target_command_file_path = target_dir.join(SAMPLE_COMMAND_PATH);
-                *command_file_path == target_command_file_path
+                let target_command_file_path = target_dir.join(command_path);
+                log.push(*command_file_path == target_command_file_path);
+
+                for command in load_command_file_and_filter(target_command_file_path).unwrap() {
+                    let command_parsed_iter = command.split_whitespace();
+                    let read_opt = RobotCommand::try_parse_from(command_parsed_iter);
+                    match read_opt {
+                        Ok(robot_command) => {
+                            check_command(&robot_command, log, command_path);
+                        }
+                        Err(err) => {
+                            error!("Error in {:?}: {}", command_file_path, err);
+                            log.push(false);
+                        }
+                    }
+                }
             }
-            RobotCommand::List => true,
-            RobotCommand::Speak { name, message } => {
-                let name_test = name == "Default";
-                let message_test = *message == ["This is sample robot".to_string()];
-                name_test && message_test
+            RobotCommand::List => {
+                log.push(true);
             }
-            RobotCommand::GetNavigationCurrentPose => true,
+            RobotCommand::Speak {
+                name: _,
+                message: _,
+            } => {
+                log.push(true);
+            }
+            RobotCommand::ExecuteCommand { command: _ } => {
+                log.push(true);
+            }
+            RobotCommand::GetNavigationCurrentPose => {
+                log.push(true);
+            }
             RobotCommand::SendNavigationGoal {
-                x,
-                y,
-                yaw,
+                x: _,
+                y: _,
+                yaw: _,
                 frame_id: _,
                 timeout_secs: _,
             } => {
-                let x_test = *x == 0.0;
-                let y_test = *y == 0.0;
-                let yaw_test = *yaw == 0.0;
-                x_test && y_test && yaw_test
+                log.push(true);
             }
-            // ToDo: Add pattern for other commands.
-            _ => false,
+            RobotCommand::CancelNavigationGoal => {
+                log.push(true);
+            }
+            RobotCommand::SendBaseVelocity {
+                x: _,
+                y: _,
+                theta: _,
+                duration_secs,
+            } => {
+                log.push(*duration_secs >= 0f64);
+            }
+            _ => {
+                log.push(false);
+            }
         }
     }
 }
