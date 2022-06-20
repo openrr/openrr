@@ -287,6 +287,7 @@ enum Message {
     SliderChanged { index: usize, value: f64 },
     SliderTextInputChanged { index: usize, value: String },
     CheckboxToggled(bool),
+    Retained,
 }
 
 impl Message {
@@ -411,6 +412,7 @@ where
                     state.update_value(state.value.abs() * sign as f64);
                 }
             }
+            Message::Retained => {}
         }
 
         let velocity = self.current_velocity();
@@ -420,6 +422,11 @@ where
             self.errors.other = Some(e.to_string());
         }
         Command::none()
+    }
+
+    fn subscription(&self) -> iced::Subscription<Self::Message> {
+        iced_futures::backend::native::tokio::time::every(std::time::Duration::from_millis(100))
+            .map(|_| Message::Retained)
     }
 
     fn view(&mut self) -> Element<'_, Message> {
