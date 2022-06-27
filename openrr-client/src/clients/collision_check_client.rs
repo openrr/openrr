@@ -79,24 +79,31 @@ pub fn create_collision_check_client<P: AsRef<Path>>(
     self_collision_check_pairs: &[String],
     config: &SelfCollisionCheckerConfig,
     client: Arc<dyn JointTrajectoryClient>,
-    full_chain: Arc<k::Chain<f64>>,
+    reference_robot: Arc<k::Chain<f64>>,
 ) -> CollisionCheckClient<Arc<dyn JointTrajectoryClient>> {
+    let collision_checker = Arc::new(create_self_collision_checker(
+        urdf_path,
+        self_collision_check_pairs,
+        config,
+        reference_robot,
+    ));
+
+    // Reconstruct a robot chain to define using_joints
     let joint_names = client.joint_names();
     let nodes = joint_names
         .iter()
-        .map(|joint_name| (*full_chain.find(joint_name).unwrap()).clone())
+        .map(|joint_name| {
+            (*collision_checker
+                .robot_collision_detector
+                .robot
+                .find(joint_name)
+                .unwrap())
+            .clone()
+        })
         .collect();
     let using_joints = k::Chain::<f64>::from_nodes(nodes);
-    CollisionCheckClient::new(
-        client,
-        using_joints,
-        Arc::new(create_self_collision_checker(
-            urdf_path,
-            self_collision_check_pairs,
-            config,
-            full_chain,
-        )),
-    )
+
+    CollisionCheckClient::new(client, using_joints, collision_checker)
 }
 
 #[cfg(test)]
