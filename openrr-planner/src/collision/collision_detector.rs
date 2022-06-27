@@ -188,6 +188,7 @@ where
         };
 
         // Check potential conflicts by an AABB-based sweep and prune algorithm
+        let start_time = Instant::now();
         for obj1 in obj_vec1 {
             let aabb1 = obj1.0.aabb(&(pose1 * obj1.1));
 
@@ -204,8 +205,6 @@ where
 
             bvt.visit(&mut visitor);
 
-            let mut last_time = Instant::now();
-
             if collector.is_empty() {
                 // a case without conflict possibility
                 break;
@@ -221,19 +220,21 @@ where
                     if dist < self.detector.prediction {
                         return Some((j1.to_owned(), j2.to_owned()));
                     }
-                    let elapsed = last_time.elapsed();
-                    *self
-                        .used_duration
-                        .entry(j1.to_owned())
-                        .or_insert_with(|| Duration::from_nanos(0)) += elapsed;
-                    *self
-                        .used_duration
-                        .entry(j2.to_owned())
-                        .or_insert_with(|| Duration::from_nanos(0)) += elapsed;
-                    last_time = Instant::now();
                 }
             }
         }
+
+        // Record the time used for this collision checking
+        let elapsed = start_time.elapsed();
+        *self
+            .used_duration
+            .entry(j1.to_owned())
+            .or_insert_with(|| Duration::from_nanos(0)) += elapsed;
+        *self
+            .used_duration
+            .entry(j2.to_owned())
+            .or_insert_with(|| Duration::from_nanos(0)) += elapsed;
+
         self.next()
     }
 }
