@@ -272,33 +272,23 @@ pub fn init_tracing_with_file_appender(config: LogConfig, name: String) -> Worke
     guard
 }
 
-#[derive(Deserialize, Debug, PartialEq, Clone)]
+#[derive(Deserialize, Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum LogLevel {
     TRACE,
     DEBUG,
+    #[default]
     INFO,
     WARN,
     ERROR,
 }
 
-impl Default for LogLevel {
-    fn default() -> Self {
-        Self::INFO
-    }
-}
-
-#[derive(Deserialize, PartialEq, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum LogRotation {
     MINUTELY,
+    #[default]
     HOURLY,
     DAILY,
     NEVER,
-}
-
-impl Default for LogRotation {
-    fn default() -> Self {
-        Self::HOURLY
-    }
 }
 
 #[derive(Deserialize, PartialEq, Clone)]

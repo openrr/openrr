@@ -183,12 +183,13 @@ where
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 enum SendJointPositionsTarget {
     Some {
         trajectory: Vec<TrajectoryPoint>,
         sender: oneshot::Sender<Result<(), arci::Error>>,
     },
+    #[default]
     None,
     Abort,
 }
@@ -202,12 +203,6 @@ impl SendJointPositionsTarget {
         let (sender, receiver) = oneshot::channel();
         *self = Self::Some { trajectory, sender };
         WaitFuture::new(async move { receiver.await.map_err(anyhow::Error::from)? })
-    }
-}
-
-impl Default for SendJointPositionsTarget {
-    fn default() -> Self {
-        Self::None
     }
 }
 

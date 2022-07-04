@@ -260,21 +260,16 @@ impl JsonSchema for JointPositionLimit {
         JointPositionLimitRepr::json_schema(gen)
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, JsonSchema, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, JsonSchema, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum JointPositionLimiterStrategy {
     /// If the position is out of the limit, handle it as the same value as the limit.
+    #[default]
     Clamp,
     /// If the position is out of the limit, handle it as the same value as the limit with warning.
     ClampWithWarn,
     /// If the position is out of the limit, return an error.
     Error,
-}
-
-impl Default for JointPositionLimiterStrategy {
-    fn default() -> Self {
-        Self::Clamp
-    }
 }
 
 #[cfg(test)]
