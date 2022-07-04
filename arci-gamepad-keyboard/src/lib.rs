@@ -222,10 +222,8 @@ impl KeyboardGamepad {
                                        // that we will modify
         new_termios.c_lflag &= !(termios::ICANON | termios::ECHO); // no echo and canonical mode
         tcsetattr(stdin, termios::TCSANOW, &new_termios).unwrap();
-        let stdout = io::stdout();
         let mut reader = io::stdin();
-        stdout.lock().flush().unwrap();
-        drop(stdout);
+        io::stdout().lock().flush().unwrap();
         std::thread::spawn(move || {
             let mut state = State::new(sender);
             while is_running_cloned.load(Relaxed) {
