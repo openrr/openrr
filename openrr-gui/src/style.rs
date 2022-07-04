@@ -23,7 +23,7 @@ impl<'a> From<Theme> for Box<dyn radio::StyleSheet + 'a> {
     }
 }
 
-impl<'a> From<Theme> for Box<dyn text_input::StyleSheet> {
+impl<'a> From<Theme> for Box<dyn text_input::StyleSheet + 'a> {
     fn from(_: Theme) -> Self {
         TextInput::Default.into()
     }
