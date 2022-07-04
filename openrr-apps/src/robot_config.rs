@@ -65,11 +65,12 @@ impl Default for ClientKind {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "type", content = "args")]
 #[serde(deny_unknown_fields)]
 #[non_exhaustive] // The variants will increase depending on the feature flag.
 pub enum SpeakConfig {
+    #[default]
     Print,
     Command,
     #[cfg(feature = "ros")]
@@ -87,12 +88,6 @@ pub enum SpeakConfig {
     Audio {
         map: HashMap<String, PathBuf>,
     },
-}
-
-impl Default for SpeakConfig {
-    fn default() -> Self {
-        SpeakConfig::Print
-    }
 }
 
 impl SpeakConfig {
