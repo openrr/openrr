@@ -54,7 +54,7 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
                                 return quote! { #pat.try_into()?, };
                             }
                         }
-                        if matches!(&*arg.ty, syn::Type::Reference(_)) && !is_str(&*arg.ty) {
+                        if matches!(&*arg.ty, syn::Type::Reference(_)) && !is_str(&arg.ty) {
                             return quote! { (*#pat).into(), };
                         }
                         // TODO: handle Vec
@@ -132,7 +132,7 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
                                 return quote! { rtry!(#pat.try_into()) };
                             }
                         }
-                        if matches!(&*arg.ty, syn::Type::Reference(_)) && !is_str(&*arg.ty) {
+                        if matches!(&*arg.ty, syn::Type::Reference(_)) && !is_str(&arg.ty) {
                             return quote! { &#pat.into() };
                         }
                         // TODO: handle Vec
