@@ -38,5 +38,5 @@ tracing-subscriber = "0.3"
 urdf-viz = "0.37"
 
 [[bench]]
-name = "self_collision_detection"
+name = "collision_detection"
 harness = false
