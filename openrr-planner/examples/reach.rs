@@ -103,19 +103,11 @@ impl CollisionAvoidApp {
 
     fn update_robot(&mut self) {
         // this is hack to handle invalid mimic joints
-        let ja = self
-            .planner
-            .path_planner
-            .robot_collision_detector
-            .robot
-            .joint_positions();
-        self.planner
-            .path_planner
-            .robot_collision_detector
-            .robot
-            .set_joint_positions_clamped(&ja);
-        self.viewer
-            .update(&self.planner.path_planner.robot_collision_detector.robot);
+        let robot = &self.planner.path_planner.robot_collision_detector.robot;
+        let ja = robot.joint_positions();
+        robot.set_joint_positions_clamped(&ja);
+        robot.update_transforms();
+        self.viewer.update(robot);
     }
 
     fn update_ik_target(&mut self) {
@@ -147,7 +139,7 @@ impl CollisionAvoidApp {
 
         while window.render_with_camera(&mut self.viewer.arc_ball) {
             if !plans.is_empty() {
-                self.arm.set_joint_positions(&plans.pop().unwrap()).unwrap();
+                self.arm.set_joint_positions_clamped(&plans.pop().unwrap());
                 self.update_robot();
             }
             std::thread::sleep(std::time::Duration::from_millis(10));
@@ -220,42 +212,52 @@ impl CollisionAvoidApp {
                                 rotation_z: !self.ignore_rotation_z,
                                 ..Default::default()
                             };
+                            let initial_joint_positions = self.arm.joint_positions();
                             let result = self.planner.solve_ik_with_constraints(
                                 &self.arm,
                                 &self.ik_target_pose,
                                 &c,
                             );
-                            if result.is_err() {
-                                println!("fail!! {result:?}");
-                            }
-                            self.update_robot();
+                            plans = match result {
+                                Ok(_) => vec![self.arm.joint_positions()],
+                                Err(error) => {
+                                    println!("fail!! {error:?}");
+                                    vec![initial_joint_positions]
+                                }
+                            };
                         }
                         Key::G => {
                             self.reset_colliding_link_colors();
-                            match self.planner.plan_with_ik_with_constraints(
+                            let initial_joint_positions = self.arm.joint_positions();
+
+                            let result = self.planner.plan_with_ik_with_constraints(
                                 &self.end_link_name,
                                 &self.ik_target_pose,
                                 &self.obstacles,
                                 &c,
-                            ) {
+                            );
+                            plans = match result {
                                 Ok(mut plan) => {
                                     plan.reverse();
-                                    plans = openrr_planner::interpolate(&plan, 5.0, 0.1)
+                                    openrr_planner::interpolate(&plan, 5.0, 0.1)
                                         .unwrap()
                                         .into_iter()
                                         .map(|point| point.position)
-                                        .collect();
+                                        .collect()
                                 }
                                 Err(error) => {
-                                    self.update_robot();
                                     println!("failed to reach!! {error}");
+                                    vec![initial_joint_positions]
                                 }
                             };
                         }
                         Key::R => {
                             self.reset_colliding_link_colors();
-                            openrr_planner::set_random_joint_positions(&self.arm).unwrap();
-                            self.update_robot();
+                            let limits = self.arm.iter_joints().map(|j| j.limits).collect();
+                            plans =
+                                vec![openrr_planner::generate_random_joint_positions_from_limits(
+                                    &limits,
+                                )];
                         }
                         Key::C => {
                             self.reset_colliding_link_colors();
