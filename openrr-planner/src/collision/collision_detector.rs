@@ -79,21 +79,42 @@ where
         }
         let joint = self.joints[self.index];
         self.index += 1;
-        let trans = joint.world_transform().unwrap();
+
+        // Get the absolute (world) pose and name of the specified node
+        let joint_pose = joint.world_transform().unwrap();
         let joint_name = &joint.joint().name;
+
         match self.detector.name_collision_model_map.get(joint_name) {
             Some(obj_vec) => {
+                // Check potential conflicts by an AABB-based sweep and prune algorithm
                 for obj in obj_vec {
-                    // proximity and prediction does not work for meshes.
-                    let dist = query::distance(
-                        &(trans * obj.1),
-                        &*obj.0,
-                        self.target_pose,
-                        self.target_shape,
+                    let obj_pose = joint_pose * obj.1;
+                    let aabb1 = obj.0.aabb(&(obj_pose));
+                    let aabb2 = self.target_shape.aabb(self.target_pose);
+
+                    let bvt = BVT::new_balanced(vec![(0usize, aabb2)]);
+
+                    let mut collector = Vec::<usize>::new();
+                    let mut visitor = query::visitors::BoundingVolumeInterferencesCollector::new(
+                        &aabb1,
+                        &mut collector,
                     );
-                    if dist < self.detector.prediction {
-                        debug!("name: {joint_name}, dist={dist}");
-                        return Some(joint_name.to_owned());
+
+                    bvt.visit(&mut visitor);
+
+                    if !collector.is_empty() {
+                        // Check conflicts precisely
+                        let dist = query::distance(
+                            &obj_pose,
+                            &*obj.0,
+                            self.target_pose,
+                            self.target_shape,
+                        );
+                        // proximity and prediction does not work correctly for meshes.
+                        if dist < self.detector.prediction {
+                            debug!("name: {joint_name}, dist={dist}");
+                            return Some(joint_name.to_owned());
+                        }
                     }
                 }
             }
