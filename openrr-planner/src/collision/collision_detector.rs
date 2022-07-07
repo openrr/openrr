@@ -205,10 +205,7 @@ where
 
             bvt.visit(&mut visitor);
 
-            if collector.is_empty() {
-                // a case without conflict possibility
-                break;
-            } else {
+            if !collector.is_empty() {
                 // Check conflicts precisely
                 for index in collector {
                     let obj2 = &obj_vec2[index];
