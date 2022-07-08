@@ -18,6 +18,7 @@ BVH
 BVT
 cdylib
 cfg
+charset
 checkbox
 clippy
 cmake
@@ -48,6 +49,7 @@ dof
 DPad
 dst
 dylib
+editorconfig
 enum
 eprintln
 ERRORED
@@ -246,4 +248,5 @@ xorg
 xyzw
 xzy
 yaml
+yml
 Zsh
