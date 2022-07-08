@@ -117,10 +117,6 @@ jobs:
           # Swatinem/rust-cache does not recognize the matrix.
           key: ros1_arci_ros-${{ matrix.distro }}
       - run: ci/ubuntu-setup-lld.sh
-      - run: |
-          cargo generate-lockfile
-          # https://github.com/alexcrichton/cmake-rs/issues/131
-          cargo update -p cmake --precise 0.1.45
       - name: cargo everything
         shell: bash -ieo pipefail {0}
         working-directory: arci-ros
@@ -159,10 +155,6 @@ jobs:
           key: ros1_openrr_apps-${{ matrix.distro }}
       - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
-      - run: |
-          cargo generate-lockfile
-          # https://github.com/alexcrichton/cmake-rs/issues/131
-          cargo update -p cmake --precise 0.1.45
       - name: cargo test
         shell: bash -ieo pipefail {0}
         working-directory: openrr-apps
