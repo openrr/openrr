@@ -7,3 +7,7 @@ target
 Cargo.lock
 
 .cargo/config.toml
+
+/node_modules
+/package-lock.json
+/package.json

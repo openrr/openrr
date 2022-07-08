@@ -255,7 +255,7 @@ jobs:
       - run: cargo hack check --all --feature-powerset --optional-deps --exclude arci-ros2
 
   fmt:
-    name: Rustfmt
+    name: Format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -263,11 +263,16 @@ jobs:
         run: |
           rustup toolchain install ${{ env.nightly }} --component rustfmt
           rustup default ${{ env.nightly }}
+      - name: Install prettier
+        run: npm install -g prettier
       - uses: Swatinem/rust-cache@v1
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all --check
+      - name: Format YAML
+        run: prettier -c $(git ls-files '*.yml') || echo "::warning::Please run \`prettier -l -w \$(git ls-files '*.yml')\` to fix format"
+        if: always()
 
   clippy:
     name: Clippy
