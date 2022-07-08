@@ -173,6 +173,8 @@ gil_gamepad_config.map.axis_value_map = ...
 openrr_apps_robot_teleop --config-path=./openrr-apps/config/sample_teleop_config_urdf_viz.toml
 ```
 
+If you use gamepad, refer to [README of openrr-teleop](../openrr-teleop/).
+
 ### UR10 (urdf-viz)
 
 - Launch urdf-viz.
