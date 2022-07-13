@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 use k::nalgebra as na;
-use ncollide3d::shape::Compound;
+use parry3d::shape::Compound;
 use openrr_planner::FromUrdf;
 
 fn main() {

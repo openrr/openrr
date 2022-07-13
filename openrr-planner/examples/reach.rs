@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 
 use clap::Parser;
 use k::nalgebra as na;
-use ncollide3d::shape::Compound;
+use parry3d::shape::Compound;
 use openrr_planner::FromUrdf;
 use urdf_rs::Robot;
 use urdf_viz::{kiss3d::window::Window, Action, Key, Modifiers, WindowEvent};

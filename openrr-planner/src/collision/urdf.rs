@@ -1,11 +1,7 @@
 use std::path::Path;
 
 use k::{nalgebra as na, RealField, Vector3};
-use ncollide3d::{
-    procedural::IndexBuffer::{Split, Unified},
-    shape::{Ball, Cuboid, Cylinder, ShapeHandle, TriMesh},
-    transformation::ToTriMesh,
-};
+use parry3d::shape::{Ball, Cuboid, Cylinder, SharedShape, TriMesh};
 use tracing::*;
 
 use super::mesh::load_mesh;
@@ -13,7 +9,7 @@ use super::mesh::load_mesh;
 pub(crate) fn urdf_geometry_to_shape_handle<T>(
     collision_geometry: &urdf_rs::Geometry,
     base_dir: Option<&Path>,
-) -> Option<ShapeHandle<T>>
+) -> Option<SharedShape>
 where
     T: RealField + Copy,
 {
@@ -24,38 +20,18 @@ where
                 na::convert(size[1] * 0.5),
                 na::convert(size[2] * 0.5),
             ));
-            Some(ShapeHandle::new(cube))
+            Some(SharedShape::new(cube))
         }
         urdf_rs::Geometry::Cylinder { radius, length } => {
             let y_cylinder = Cylinder::new(na::convert(length * 0.5), na::convert(radius));
-            let tri_mesh = ncollide3d::transformation::convex_hull(
-                &y_cylinder
-                    .to_trimesh(30)
-                    .coords
-                    .iter()
-                    .map(|point| point.xzy())
-                    .collect::<Vec<_>>(),
-            );
-            let ind = match tri_mesh.indices {
-                Unified(ind) => ind
-                    .into_iter()
-                    .map(|p| na::Point3::new(p[0] as usize, p[1] as usize, p[2] as usize))
-                    .collect(),
-                Split(_) => {
-                    panic!("convex_hull implementation has been changed by ncollide3d update?");
-                }
-            };
-            Some(ShapeHandle::new(TriMesh::new(
-                tri_mesh.coords,
-                ind,
-                tri_mesh.uvs,
-            )))
+            let components = y_cylinder.to_trimesh(30);
+            Some(SharedShape::new(TriMesh::new(components.0, components.1)))
         }
         urdf_rs::Geometry::Capsule { .. } => {
             todo!()
         }
         urdf_rs::Geometry::Sphere { radius } => {
-            Some(ShapeHandle::new(Ball::new(na::convert(radius))))
+            Some(SharedShape::new(Ball::new(na::convert(radius))))
         }
         urdf_rs::Geometry::Mesh {
             ref filename,
@@ -69,7 +45,7 @@ where
                 return None;
             }
             match load_mesh(path, &scale) {
-                Ok(mesh) => Some(ShapeHandle::new(mesh)),
+                Ok(mesh) => Some(SharedShape::new(mesh)),
                 Err(err) => {
                     error!("load_mesh {path:?} failed: {err}");
                     None

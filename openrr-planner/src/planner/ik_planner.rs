@@ -16,7 +16,7 @@ limitations under the License.
 #![allow(clippy::trivially_copy_pass_by_ref)]
 use k::nalgebra as na;
 use na::RealField;
-use ncollide3d::shape::Compound;
+use parry3d::shape::Compound;
 
 use super::joint_path_planner::JointPathPlanner;
 use crate::errors::*;
@@ -82,7 +82,7 @@ where
         Ok(self.ik_solver.solve_with_constraints(arm, target_pose, c)?)
     }
 
-    pub fn colliding_link_names(&self, objects: &Compound<T>) -> Vec<String> {
+    pub fn colliding_link_names(&self, objects: &Compound) -> Vec<String> {
         self.path_planner
             .robot_collision_detector
             .env_collision_link_names(objects)
@@ -93,7 +93,7 @@ where
         &mut self,
         target_name: &str,
         target_pose: &na::Isometry3<T>,
-        objects: &Compound<T>,
+        objects: &Compound,
     ) -> Result<Vec<Vec<T>>> {
         self.plan_with_ik_with_constraints(
             target_name,
@@ -108,7 +108,7 @@ where
         &mut self,
         target_name: &str,
         target_pose: &na::Isometry3<T>,
-        objects: &Compound<T>,
+        objects: &Compound,
         constraints: &k::Constraints,
     ) -> Result<Vec<Vec<T>>> {
         let end_link: &k::Node<T> = self
@@ -131,7 +131,7 @@ where
         use_joints: &k::Chain<T>,
         start_angles: &[T],
         goal_angles: &[T],
-        objects: &Compound<T>,
+        objects: &Compound,
     ) -> Result<Vec<Vec<T>>> {
         self.path_planner
             .plan(use_joints, start_angles, goal_angles, objects)

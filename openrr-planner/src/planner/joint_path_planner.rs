@@ -17,7 +17,7 @@ use std::path::Path;
 
 use k::nalgebra as na;
 use na::RealField;
-use ncollide3d::shape::Compound;
+use parry3d::shape::Compound;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::*;
@@ -69,7 +69,7 @@ where
         &self,
         using_joints: &k::Chain<N>,
         joint_positions: &[N],
-        objects: &Compound<N>,
+        objects: &Compound,
     ) -> bool {
         match using_joints.set_joint_positions(joint_positions) {
             Ok(()) => !self.robot_collision_detector.is_collision_detected(objects),
@@ -104,7 +104,7 @@ where
         using_joints: &k::Chain<N>,
         start_angles: &[N],
         goal_angles: &[N],
-        objects: &Compound<N>,
+        objects: &Compound,
     ) -> Result<Vec<Vec<N>>> {
         let limits = using_joints.iter_joints().map(|j| j.limits).collect();
         let step_length = self.step_length;

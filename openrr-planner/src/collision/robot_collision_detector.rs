@@ -2,7 +2,7 @@ use std::path::Path;
 
 use k::nalgebra as na;
 use na::RealField;
-use ncollide3d::shape::{Compound, Shape};
+use parry3d::shape::{Compound, Shape};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -43,7 +43,7 @@ where
     /// target_pose: pose of the environmental object
     pub fn detect_env<'a>(
         &'a self,
-        target_shape: &'a dyn Shape<N>,
+        target_shape: &'a dyn Shape,
         target_pose: &'a na::Isometry3<N>,
     ) -> EnvCollisionNames<'a, 'a, N> {
         self.robot.update_transforms();
@@ -69,7 +69,7 @@ where
 
     /// Gets names of links colliding with environmental objects
     /// objects: environmental objects
-    pub fn env_collision_link_names(&self, objects: &Compound<N>) -> Vec<String> {
+    pub fn env_collision_link_names(&self, objects: &Compound) -> Vec<String> {
         let mut ret = Vec::new();
         for shape in objects.shapes() {
             let mut colliding_names = self.detect_env(&*shape.1, &shape.0).collect();
@@ -85,7 +85,7 @@ where
 
     /// Returns whether any collision of the robot with environmental objects is detected or not
     /// objects: environmental objects
-    pub fn is_env_collision_detected(&self, objects: &Compound<N>) -> bool {
+    pub fn is_env_collision_detected(&self, objects: &Compound) -> bool {
         for shape in objects.shapes() {
             if self.detect_env(&*shape.1, &shape.0).next().is_some() {
                 return true;
@@ -101,7 +101,7 @@ where
 
     /// Returns whether any collision is detected or not
     /// objects: environmental objects
-    pub fn is_collision_detected(&self, objects: &Compound<N>) -> bool {
+    pub fn is_collision_detected(&self, objects: &Compound) -> bool {
         self.is_env_collision_detected(objects) | self.is_self_collision_detected()
     }
 }

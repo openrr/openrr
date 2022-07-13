@@ -21,17 +21,17 @@ use std::{
 
 use k::nalgebra as na;
 use na::RealField;
-use ncollide3d::{
-    partitioning::{BVH, BVT},
-    query,
-    shape::{Compound, Shape, ShapeHandle},
+use parry3d::{
+    partitioning::{SimdVisitor, QBVH},
+    query::{distance, visitors::BoundingVolumeIntersectionsVisitor},
+    shape::{Compound, Shape, SharedShape},
 };
 use tracing::{debug, warn};
 
 use super::urdf::urdf_geometry_to_shape_handle;
 use crate::errors::*;
 
-type NameShapeMap<T> = HashMap<String, Vec<(ShapeHandle<T>, na::Isometry3<T>)>>;
+type NameShapeMap<T> = HashMap<String, Vec<(SharedShape, na::Isometry3<T>)>>;
 
 /// Lists collisions between a robot and an object
 pub struct EnvCollisionNames<'a, 'b, T>
@@ -39,7 +39,7 @@ where
     T: RealField + Copy,
 {
     detector: &'a CollisionDetector<T>,
-    target_shape: &'b dyn Shape<T>,
+    target_shape: &'b dyn Shape,
     target_pose: &'b na::Isometry3<T>,
     joints: Vec<&'b k::Node<T>>,
     index: usize,
@@ -52,7 +52,7 @@ where
     pub fn new(
         detector: &'a CollisionDetector<T>,
         robot: &'b k::Chain<T>,
-        target_shape: &'b dyn Shape<T>,
+        target_shape: &'b dyn Shape,
         target_pose: &'b na::Isometry3<T>,
     ) -> Self {
         robot.update_transforms();
@@ -89,27 +89,22 @@ where
                 // Check potential conflicts by an AABB-based sweep and prune algorithm
                 for obj in obj_vec {
                     let obj_pose = joint_pose * obj.1;
-                    let aabb1 = obj.0.aabb(&(obj_pose));
-                    let aabb2 = self.target_shape.aabb(self.target_pose);
+                    let aabb1 = obj.0.compute_aabb(&(obj_pose as na::Quaternion<f32>));
+                    let aabb2 = self.target_shape.compute_aabb(self.target_pose);
 
-                    let bvt = BVT::new_balanced(vec![(0usize, aabb2)]);
+                    let mut bvh = QBVH::new();
+                    bvh.clear_and_rebuild(vec![(0usize, aabb2)], 0.0);
 
                     let mut collector = Vec::<usize>::new();
-                    let mut visitor = query::visitors::BoundingVolumeInterferencesCollector::new(
-                        &aabb1,
-                        &mut collector,
-                    );
+                    let mut visitor =
+                        BoundingVolumeIntersectionsVisitor::new(&aabb1, &mut collector);
 
-                    bvt.visit(&mut visitor);
+                    bvh.visit(&mut visitor);
 
                     if !collector.is_empty() {
                         // Check conflicts precisely
-                        let dist = query::distance(
-                            &obj_pose,
-                            &*obj.0,
-                            self.target_pose,
-                            self.target_shape,
-                        );
+                        let dist =
+                            distance(&obj_pose, &*obj.0, self.target_pose, self.target_shape);
                         // proximity and prediction does not work correctly for meshes.
                         if dist < self.detector.prediction {
                             debug!("name: {joint_name}, dist={dist}");
@@ -218,13 +213,13 @@ where
                 .enumerate()
                 .map(|(index, obj)| (index, obj.0.aabb(&(pose2 * obj.1))))
                 .collect();
-            let bvt = BVT::new_balanced(index_and_aabb);
+            let mut bvh = QBVH::new();
+            bvh.clear_and_rebuild(index_and_aabb, 0.0);
 
             let mut collector = Vec::<usize>::new();
-            let mut visitor =
-                query::visitors::BoundingVolumeInterferencesCollector::new(&aabb1, &mut collector);
+            let mut visitor = BoundingVolumeIntersectionsVisitor::new(&aabb1, &mut collector);
 
-            bvt.visit(&mut visitor);
+            bvh.visit(&mut visitor);
 
             if !collector.is_empty() {
                 // Check conflicts precisely
@@ -232,8 +227,7 @@ where
                     let obj2 = &obj_vec2[index];
 
                     // proximity and predict does not work correctly for mesh
-                    let dist =
-                        query::distance(&(pose1 * obj1.1), &*obj1.0, &(pose2 * obj2.1), &*obj2.0);
+                    let dist = distance(&(pose1 * obj1.1), &*obj1.0, &(pose2 * obj2.1), &*obj2.0);
                     debug!("name: {j1}, name: {j2} dist={dist}");
                     if dist < self.detector.prediction {
                         return Some((j1.to_owned(), j2.to_owned()));
@@ -325,7 +319,7 @@ where
     pub fn detect_env<'a>(
         &'a self,
         robot: &'a k::Chain<T>,
-        target_shape: &'a dyn Shape<T>,
+        target_shape: &'a dyn Shape,
         target_pose: &'a na::Isometry3<T>,
     ) -> EnvCollisionNames<'a, 'a, T> {
         robot.update_transforms();
@@ -349,7 +343,7 @@ where
 #[cfg(test)]
 mod tests {
     use na::{Isometry3, Vector3};
-    use ncollide3d::shape::Cuboid;
+    use parry3d::shape::Cuboid;
 
     use super::*;
 
@@ -422,7 +416,7 @@ mod tests {
     }
 }
 
-/// Convert urdf object into openrr_planner/ncollide3d object
+/// Convert urdf object into openrr_planner/parry3d object
 pub trait FromUrdf {
     fn from_urdf_robot(robot: &urdf_rs::Robot) -> Self;
     fn from_urdf_file<P>(path: P) -> ::std::result::Result<Self, urdf_rs::UrdfError>
@@ -481,7 +475,7 @@ mod test {
 ///
 /// The `<link>` elements are used as obstacles. set the origin/geometry of
 /// `<visual>` and `<collision>`. You can skip `<inertia>`.
-impl FromUrdf for Compound<f64> {
+impl FromUrdf for Compound {
     fn from_urdf_robot(urdf_obstacle: &urdf_rs::Robot) -> Self {
         let compound_data = urdf_obstacle
             .links
