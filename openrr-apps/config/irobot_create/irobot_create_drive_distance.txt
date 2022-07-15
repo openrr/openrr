@@ -1,0 +1,1 @@
+openrr_apps_robot_commands execute_command -- ros2 action send_goal /drive_distance irobot_create_msgs/action/DriveDistance "{distance: 0.5,max_translation_speed: 0.15}"

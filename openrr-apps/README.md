@@ -244,6 +244,31 @@ Change urdf path and joystick settings (see [here](#joystick)) in [the setting f
 openrr_apps_robot_teleop --config-path=./openrr-apps/config/pr2_teleop_config_ros.toml
 ```
 
+### iRobot Create
+
+[What is `iRobot Create`...](https://iroboteducation.github.io/create3_docs/)
+
+- Build again to feature ROS2.
+
+```bash
+cargo build --release --feature ros2
+```
+
+- Run teleop.
+
+```bash
+openrr_apps_robot_teleop \
+  --config-path ./openrr-apps/config/irobot_create_teleop_config_ros2.toml
+```
+
+```bash
+PrintSpeaker: base
+PrintSpeaker: command dock command
+PrintSpeaker: command undock command
+```
+
+When the `dock command` is executed, `iRobot Create` docks to the station; when the `undock command` is executed, the robot undocks. These are based ROS2 action and follow [official description](https://iroboteducation.github.io/create3_docs/api/docking/).
+
 ## How to run openrr_apps_joint_position_sender
 
 ### Sample robot
@@ -280,6 +305,21 @@ urdf-viz ./openrr-planner/sample.urdf &
 ```bash
 openrr_apps_velocity_sender \
   --config-path ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
+```
+
+### iRobot Create
+
+- Build again to feature ROS2.
+
+```bash
+cargo build --release --feature ros2
+```
+
+- Launch openrr_apps_velocity_sender.
+
+```bash
+openrr_apps_velocity_sender \
+  --config-path ./openrr-apps/config/irobot_create_robot_client_config_ros2.toml
 ```
 
 ## Environmental Variables
