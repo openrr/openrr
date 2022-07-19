@@ -19,4 +19,6 @@ pub enum Error {
     Arci(#[from] arci::Error),
     #[error("openrr-command: openrr-client: {:?}", .0)]
     OpenrrClient(#[from] openrr_client::Error),
+    #[error("openrr-command: rustyline: {:?}", .0)]
+    Rustyline(#[from] rustyline::error::ReadlineError),
 }
