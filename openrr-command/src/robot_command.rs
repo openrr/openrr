@@ -423,7 +423,7 @@ impl RobotCommandExecutor {
         M: MoveBase,
         N: Navigation,
     {
-        let mut rl = Editor::<()>::new();
+        let mut rl = Editor::<()>::new()?;
         const HISTORY_FILE_NAME: &str = "openrr_apps_robot_command_log.txt";
         // no problem if there are no log file.
         let _ = rl.load_history(HISTORY_FILE_NAME);
