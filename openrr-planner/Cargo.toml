@@ -35,7 +35,7 @@ criterion = "0.3"
 nalgebra = "0.30"
 rand = "0.8"
 tracing-subscriber = "0.3"
-urdf-viz = "0.37"
+urdf-viz = "0.38"
 
 [[bench]]
 name = "collision_detection"
