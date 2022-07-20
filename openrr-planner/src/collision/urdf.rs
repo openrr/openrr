@@ -79,5 +79,45 @@ where
     }
 }
 
+pub(crate) fn k_link_geometry_to_shape_handle<T>(
+    collision_geometry: &k::link::Geometry<T>,
+) -> Option<ShapeHandle<T>>
+where
+    T: RealField + Copy + k::SubsetOf<f64>,
+{
+    let converted_geometry = match collision_geometry {
+        k::link::Geometry::Box {
+            depth,
+            width,
+            height,
+        } => urdf_rs::Geometry::Box {
+            size: [
+                na::convert(*depth),
+                na::convert(*width),
+                na::convert(*height),
+            ],
+        },
+        k::link::Geometry::Cylinder { radius, length } => urdf_rs::Geometry::Cylinder {
+            radius: na::convert(*radius),
+            length: na::convert(*length),
+        },
+        k::link::Geometry::Capsule { .. } => {
+            todo!()
+        }
+        k::link::Geometry::Sphere { radius } => urdf_rs::Geometry::Sphere {
+            radius: na::convert(*radius),
+        },
+        k::link::Geometry::Mesh { filename, scale } => urdf_rs::Geometry::Mesh {
+            filename: filename.to_string(),
+            scale: Some([
+                na::convert(scale[0]),
+                na::convert(scale[1]),
+                na::convert(scale[2]),
+            ]),
+        },
+    };
+    urdf_geometry_to_shape_handle(&converted_geometry, None)
+}
+
 // https://github.com/openrr/urdf-rs/pull/3/files#diff-0fb2eeea3273a4c9b3de69ee949567f546dc8c06b1e190336870d00b54ea0979L36-L38
 const DEFAULT_MESH_SCALE: [f64; 3] = [1.0f64; 3];
