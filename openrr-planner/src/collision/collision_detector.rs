@@ -28,7 +28,7 @@ use ncollide3d::{
 };
 use tracing::{debug, warn};
 
-use super::urdf::urdf_geometry_to_shape_handle;
+use super::urdf::{k_link_geometry_to_shape_handle, urdf_geometry_to_shape_handle};
 use crate::errors::*;
 
 type NameShapeMap<T> = HashMap<String, Vec<(ShapeHandle<T>, na::Isometry3<T>)>>;
@@ -309,6 +309,34 @@ where
                 if let Some(joint_name) = link_joint_map.get(&l.name) {
                     name_collision_model_map.insert(joint_name.to_owned(), col_pose_vec);
                 }
+            }
+        }
+        CollisionDetector {
+            name_collision_model_map,
+            prediction,
+        }
+    }
+
+    /// Create CollisionDetector from k::Chain
+    pub fn from_robot(robot: &k::Chain<T>, prediction: T) -> Self {
+        let mut name_collision_model_map = HashMap::new();
+        for node in robot.iter() {
+            let link = match node.link().clone() {
+                Some(v) => v,
+                None => break,
+            };
+
+            let col_pose_vec = link
+                .collisions
+                .iter()
+                .filter_map(|c| {
+                    k_link_geometry_to_shape_handle(&c.geometry).map(|col| (col, *c.origin()))
+                })
+                .collect::<Vec<_>>();
+
+            debug!("name={}, ln={}", link.name, col_pose_vec.len());
+            if !col_pose_vec.is_empty() {
+                name_collision_model_map.insert(node.joint().name.to_owned(), col_pose_vec);
             }
         }
         CollisionDetector {
