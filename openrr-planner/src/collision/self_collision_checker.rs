@@ -17,11 +17,11 @@ where
     N: RealField + Copy + k::SubsetOf<f64>,
 {
     /// Robot for reference (read only and assumed to hold the latest full states)
-    pub reference_robot: Arc<k::Chain<N>>,
+    reference_robot: Arc<k::Chain<N>>,
     /// Robot collision detector
-    pub robot_collision_detector: RobotCollisionDetector<N>,
+    robot_collision_detector: RobotCollisionDetector<N>,
     /// Rate of time interpolation
-    pub time_interpolate_rate: N,
+    time_interpolate_rate: N,
 }
 
 impl<N> SelfCollisionChecker<N>
@@ -53,17 +53,27 @@ where
         positions: &[N],
         duration: std::time::Duration,
     ) -> Result<()> {
-        self.check_partial_joint_positions(
-            &self.robot_collision_detector.robot,
+        self.check_partial_joint_positions_inner(None, current, positions, duration)
+    }
+
+    pub fn check_partial_joint_positions(
+        &self,
+        using_joint_names: &[String],
+        current: &[N],
+        positions: &[N],
+        duration: std::time::Duration,
+    ) -> Result<()> {
+        self.check_partial_joint_positions_inner(
+            Some(using_joint_names),
             current,
             positions,
             duration,
         )
     }
 
-    pub fn check_partial_joint_positions(
+    fn check_partial_joint_positions_inner(
         &self,
-        using_joints: &k::Chain<N>,
+        using_joint_names: Option<&[String]>,
         current: &[N],
         positions: &[N],
         duration: std::time::Duration,
@@ -76,7 +86,7 @@ where
         ) {
             Some(interpolated) => {
                 debug!("interpolated len={}", interpolated.len());
-                self.check_partial_joint_trajectory(using_joints, &interpolated)
+                self.check_partial_joint_trajectory_inner(using_joint_names, &interpolated)
             }
             None => Err(Error::InterpolationError(
                 "failed to interpolate".to_owned(),
@@ -85,12 +95,20 @@ where
     }
 
     pub fn check_joint_trajectory(&self, trajectory: &[TrajectoryPoint<N>]) -> Result<()> {
-        self.check_partial_joint_trajectory(&self.robot_collision_detector.robot, trajectory)
+        self.check_partial_joint_trajectory_inner(None, trajectory)
     }
 
     pub fn check_partial_joint_trajectory(
         &self,
-        using_joints: &k::Chain<N>,
+        using_joint_names: &[String],
+        trajectory: &[TrajectoryPoint<N>],
+    ) -> Result<()> {
+        self.check_partial_joint_trajectory_inner(Some(using_joint_names), trajectory)
+    }
+
+    fn check_partial_joint_trajectory_inner(
+        &self,
+        using_joint_names: Option<&[String]>,
         trajectory: &[TrajectoryPoint<N>],
     ) -> Result<()> {
         // Synchronize with the reference robot states for joints not included using_joints
@@ -100,7 +118,21 @@ where
 
         // Check the partial trajectory
         for v in trajectory {
-            using_joints.set_joint_positions_clamped(&v.position);
+            match using_joint_names {
+                Some(joint_names) => {
+                    for (joint_name, position) in joint_names.iter().zip(v.position.clone()) {
+                        match self.robot_collision_detector.robot.find(joint_name) {
+                            Some(node) => node.set_joint_position_clamped(position),
+                            None => return Err(Error::NotFound(joint_name.to_string())),
+                        }
+                    }
+                }
+                None => self
+                    .robot_collision_detector
+                    .robot
+                    .set_joint_positions_clamped(&v.position),
+            }
+
             self.robot_collision_detector.robot.update_transforms();
             let mut self_checker = self.robot_collision_detector.detect_self();
             if let Some(names) = self_checker.next() {
@@ -198,10 +230,14 @@ fn test_create_self_collision_checker() {
         .find("l_shoulder_yaw")
         .unwrap();
     let using_joints = k::SerialChain::from_end(l_shoulder_yaw_node);
+    let using_joint_names = using_joints
+        .iter_joints()
+        .map(|j| (*j).name.to_owned())
+        .collect::<Vec<String>>();
 
     assert!(self_collision_checker
         .check_partial_joint_positions(
-            &using_joints,
+            using_joint_names.as_slice(),
             &[0.0],
             &[0.0],
             std::time::Duration::new(1, 0),
@@ -209,7 +245,7 @@ fn test_create_self_collision_checker() {
         .is_ok());
     assert!(self_collision_checker
         .check_partial_joint_positions(
-            &using_joints,
+            using_joint_names.as_slice(),
             &[0.0],
             &[1.57],
             std::time::Duration::new(1, 0),

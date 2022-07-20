@@ -10,8 +10,6 @@ where
     T: JointTrajectoryClient,
 {
     pub client: T,
-    /// using_joints must be a part of collision_checker.collision_check_robot.
-    pub using_joints: k::Chain<f64>,
     pub collision_checker: Arc<SelfCollisionChecker<f64>>,
 }
 
@@ -19,14 +17,9 @@ impl<T> CollisionCheckClient<T>
 where
     T: JointTrajectoryClient,
 {
-    pub fn new(
-        client: T,
-        using_joints: k::Chain<f64>,
-        collision_checker: Arc<SelfCollisionChecker<f64>>,
-    ) -> Self {
+    pub fn new(client: T, collision_checker: Arc<SelfCollisionChecker<f64>>) -> Self {
         Self {
             client,
-            using_joints,
             collision_checker,
         }
     }
@@ -51,7 +44,7 @@ where
     ) -> Result<WaitFuture, Error> {
         self.collision_checker
             .check_partial_joint_positions(
-                &self.using_joints,
+                self.joint_names().as_slice(),
                 &self.current_joint_positions()?,
                 &positions,
                 duration,
@@ -68,7 +61,7 @@ where
             })
             .collect::<Vec<_>>();
         self.collision_checker
-            .check_partial_joint_trajectory(&self.using_joints, &position_trajectory)
+            .check_partial_joint_trajectory(self.joint_names().as_slice(), &position_trajectory)
             .map_err(|e| Error::Other(e.into()))?;
         self.client.send_joint_trajectory(trajectory)
     }
@@ -88,22 +81,7 @@ pub fn create_collision_check_client<P: AsRef<Path>>(
         reference_robot,
     ));
 
-    // Reconstruct a robot chain to define using_joints
-    let joint_names = client.joint_names();
-    let nodes = joint_names
-        .iter()
-        .map(|joint_name| {
-            (*collision_checker
-                .robot_collision_detector
-                .robot
-                .find(joint_name)
-                .unwrap())
-            .clone()
-        })
-        .collect();
-    let using_joints = k::Chain::<f64>::from_nodes(nodes);
-
-    CollisionCheckClient::new(client, using_joints, collision_checker)
+    CollisionCheckClient::new(client, collision_checker)
 }
 
 #[cfg(test)]
