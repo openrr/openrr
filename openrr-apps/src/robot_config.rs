@@ -40,6 +40,8 @@ pub enum ClientKind {
     Builtin(BuiltinClient),
     // Use plugin.
     Plugin(String),
+    // Use plugin.
+    Remote,
     // true: auto-selection
     // false: disable
     Auto(bool),
@@ -142,6 +144,12 @@ impl SpeakConfig {
     fn create_ros_espeak_client(&self, _config: &toml::Value) -> Box<dyn Speaker> {
         unreachable!()
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RpcConfig {
+    pub endpoint: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -411,6 +419,8 @@ pub struct RobotConfig {
 
     #[serde(default)]
     pub openrr_clients_config: OpenrrClientsConfig,
+
+    pub rpc_config: Option<RpcConfig>,
 
     #[serde(default)]
     pub plugins: HashMap<String, PluginConfig>,
