@@ -353,6 +353,7 @@ impl RobotCommandExecutor {
                 client.speak(name, &message.join(" "))?.await?;
             }
             RobotCommand::ExecuteCommand { command } => {
+                let command = filter_escape_double_quote(command);
                 let mut iter = command.iter();
                 let cmd_str = iter
                     .next()
@@ -481,6 +482,27 @@ pub fn load_command_file_and_filter(file_path: PathBuf) -> Result<Vec<String>, O
         .collect())
 }
 
+fn filter_escape_double_quote(robot_command: &[String]) -> Vec<String> {
+    let mut is_concatenation = false;
+    let mut command_vector: Vec<String> = Vec::new();
+
+    for element in robot_command {
+        let command_element = element.replace('\"', "");
+        if is_concatenation {
+            let new_command = command_vector
+                .pop()
+                .expect("Parse double quote logic error. Vector command_vector is empty.");
+            command_vector.push(format!("{new_command} {command_element}"));
+        } else {
+            command_vector.push(command_element.to_string());
+        }
+        if element.match_indices('\"').count() == 1 {
+            is_concatenation = !is_concatenation;
+        }
+    }
+    command_vector
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -489,5 +511,45 @@ mod test {
         let val: (usize, usize) = parse_joints("0=2").unwrap();
         assert_eq!(val.0, 0);
         assert_eq!(val.1, 2);
+    }
+
+    #[test]
+    fn test_filter_escape_double_quote() {
+        // This situation assumes that `command foo/bar "baz qux"` has been entered.
+        let expected_command: Vec<String> = vec![
+            "command".to_string(),
+            "foo/bar".to_string(),
+            "baz qux".to_string(),
+        ];
+
+        let robot_command: Vec<String> = vec![
+            "command".to_string(),
+            "foo/bar".to_string(),
+            "\"baz".to_string(),
+            "qux\"".to_string(),
+        ];
+        let result_command = filter_escape_double_quote(&robot_command);
+
+        assert_eq!(expected_command, result_command);
+
+        // This situation assumes that `command -f "{ type: Message, value: 1.0 }"` has been entered.
+        let expected_dict_command: Vec<String> = vec![
+            "command".to_string(),
+            "-f".to_string(),
+            "{ type: Message, value: 1.0 }".to_string(),
+        ];
+        let robot_dict_command: Vec<String> = vec![
+            "command".to_string(),
+            "-f".to_string(),
+            "\"{".to_string(),
+            "type:".to_string(),
+            "Message,".to_string(),
+            "value:".to_string(),
+            "1.0".to_string(),
+            "}\"".to_string(),
+        ];
+        let result_dict_command = filter_escape_double_quote(&robot_dict_command);
+
+        assert_eq!(expected_dict_command, result_dict_command);
     }
 }
