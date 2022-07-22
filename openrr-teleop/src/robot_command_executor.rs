@@ -7,7 +7,7 @@ use arci::{
 use async_trait::async_trait;
 use clap::Parser;
 use openrr_client::{resolve_relative_path, ArcRobotClient};
-use openrr_command::{load_command_file_and_filter, RobotCommand};
+use openrr_command::{load_command_file_and_filter, robot_command_editor, RobotCommand};
 use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -139,7 +139,10 @@ where
                             }
                             let command_parsed_iter = command.split_whitespace();
                             // Parse the command
-                            let read_opt = RobotCommand::parse_from(command_parsed_iter);
+                            let mut read_opt = RobotCommand::parse_from(command_parsed_iter);
+                            if let RobotCommand::ExecuteCommand { command: _ } = read_opt {
+                                read_opt = robot_command_editor(&read_opt);
+                            }
                             // Execute the parsed command
                             info!("Executing {command} {i}/{commands_len}");
 

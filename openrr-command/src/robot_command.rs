@@ -481,6 +481,35 @@ pub fn load_command_file_and_filter(file_path: PathBuf) -> Result<Vec<String>, O
         .collect())
 }
 
+pub fn robot_command_editor(robot_command: &RobotCommand) -> RobotCommand {
+    match robot_command {
+        RobotCommand::ExecuteCommand { command } => {
+            let mut concatenation = false;
+            let mut command_vector: Vec<String> = Vec::new();
+
+            for element in command {
+                let command_element = element.replace('\"', "");
+                if concatenation {
+                    let mut new_command = command_vector.pop().unwrap() + " ";
+                    new_command += command_element.as_str();
+                    command_vector.push(new_command);
+                } else {
+                    command_vector.push(command_element.to_string());
+                }
+                if element.match_indices('\"').count() == 1 {
+                    concatenation = !concatenation;
+                }
+            }
+            RobotCommand::ExecuteCommand {
+                command: command_vector,
+            }
+        }
+        _ => {
+            panic!("not supported {robot_command:?}");
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
