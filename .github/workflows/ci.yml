@@ -24,11 +24,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
       - uses: actions-rs/cargo@v1
         with:
@@ -39,11 +35,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
       - uses: actions-rs/cargo@v1
         with:
@@ -54,11 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
@@ -71,11 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
@@ -107,11 +91,7 @@ jobs:
       - run: |
           apt-get update
           apt-get -y install curl
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
         with:
           # Swatinem/rust-cache does not recognize the matrix.
@@ -144,11 +124,7 @@ jobs:
       - run: |
           apt-get update
           apt-get -y install curl ros-${{ matrix.distro }}-pr2-description
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
         with:
           # Swatinem/rust-cache does not recognize the matrix.
@@ -181,11 +157,7 @@ jobs:
           apt-get update
           apt-get -y install curl libclang-dev
           apt-get -y install ros-${{ matrix.distro }}-geometry-msgs ros-${{ matrix.distro }}-nav2-msgs ros-${{ matrix.distro }}-ros2-control ros-${{ matrix.distro }}-ros2-controllers
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
         with:
           # Swatinem/rust-cache does not recognize the matrix.
@@ -226,8 +198,7 @@ jobs:
       - run: |
           sudo apt-get update
           sudo apt-get -y install protobuf-compiler
-      - name: Install Rust
-        run: rustup update stable
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
       - run: tools/gen-code.sh
       - run: git diff --exit-code
@@ -238,8 +209,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install Rust
-        run: rustup update stable
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-install-dependencies.sh
       - name: Install cargo-hack
@@ -251,10 +221,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install Rust
-        run: |
-          rustup toolchain install ${{ env.nightly }} --component rustfmt
-          rustup default ${{ env.nightly }}
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ env.nightly }}
+          components: rustfmt
       - name: Install prettier
         run: npm install -g prettier
       - uses: Swatinem/rust-cache@v1
@@ -271,11 +241,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
           components: clippy
       - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-install-dependencies.sh
@@ -298,11 +265,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-install-dependencies.sh
       - name: Install ROS2
