@@ -26,9 +26,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
+      - run: cargo build
 
   macos:
     name: Build on MacOS
@@ -37,9 +35,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
+      - run: cargo build
 
   build:
     name: Build on Linux
@@ -50,9 +46,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
+      - run: cargo build
 
   test:
     name: Test Suite
@@ -64,10 +58,7 @@ jobs:
       - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
       # testing arci-ros/arci-ros2 is done in ros1.yaml, ros2.yaml
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --exclude arci-ros --exclude arci-ros2 --exclude openrr-apps
+      - run: cargo test --workspace --exclude arci-ros --exclude arci-ros2 --exclude openrr-apps
       - name: cargo test (openrr-apps without ros)
         working-directory: openrr-apps
         run: cargo test --no-default-features --features gui,assimp
@@ -221,17 +212,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@v1
+      - uses: dtolnay/rust-toolchain@nightly
         with:
           toolchain: ${{ env.nightly }}
           components: rustfmt
       - name: Install prettier
         run: npm install -g prettier
       - uses: Swatinem/rust-cache@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all --check
+      - run: cargo fmt --all --check
       - name: Format YAML
         run: prettier -c $(git ls-files '*.yml') || echo "::warning::Please run \`prettier -l -w \$(git ls-files '*.yml')\` to fix format"
         if: always()
