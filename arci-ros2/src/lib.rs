@@ -8,9 +8,6 @@
     single_use_lifetimes,
     unreachable_pub
 )]
-// This lint is unable to correctly determine if an atomic is sufficient to replace the mutex use.
-// https://github.com/rust-lang/rust-clippy/issues/4295
-#![allow(clippy::mutex_atomic)]
 
 mod cmd_vel_move_base;
 mod navigation;
