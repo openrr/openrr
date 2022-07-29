@@ -24,6 +24,7 @@ clippy
 cmake
 cmp
 codegen
+codename
 concat
 Condvar
 config
@@ -47,6 +48,7 @@ dll
 dobot
 dof
 DPad
+Dpkg
 dst
 dylib
 editorconfig
@@ -64,6 +66,7 @@ github
 githubusercontent
 google
 gpg
+grep
 gui
 hashmap
 html
@@ -220,6 +223,7 @@ tmppath
 todo
 tokio
 toml
+toolchain
 traj
 trimesh
 turtlebot
@@ -232,6 +236,7 @@ ureq
 URI
 url
 usize
+usr
 utf
 utils
 uuid

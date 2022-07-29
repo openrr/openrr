@@ -1,53 +1,49 @@
+# See https://github.com/check-spelling/spell-check-this/blob/main/.github/workflows/spelling.yml
+
 name: Spell checking
 on:
-  pull_request_target:
   push:
+    branches: ["**"]
+    tags-ignore: ["**"]
+  pull_request_target:
   issue_comment:
     types: [created]
 
 jobs:
   spelling:
-    name: Spell checking
+    name: Check Spelling
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+    outputs:
+      followup: ${{ steps.spelling.outputs.followup }}
     runs-on: ubuntu-latest
+    if: "contains(github.event_name, 'pull_request') || github.event_name == 'push'"
+    concurrency:
+      group: spelling-${{ github.event.pull_request.number || github.ref }}
+      # note: If you use only_check_changed_files, you do not want cancel-in-progress
+      cancel-in-progress: true
     steps:
-      - name: checkout-merge
-        if: contains(github.event_name, 'pull_request')
-        uses: actions/checkout@v3
-        with:
-          ref: refs/pull/${{github.event.pull_request.number}}/merge
-      - name: checkout
-        if: ${{ github.event_name == 'push' ||
-          (
-          contains(github.event.comment.body, '@check-spelling-bot apply')
-          ) }}
-        uses: actions/checkout@v3
-      - uses: check-spelling/check-spelling@main
-        id: spelling
-        if: ${{ github.event_name != 'issue_comment' ||
-          (
-          contains(github.event.comment.body, '@check-spelling-bot apply')
-          ) }}
-        with:
-          experimental_apply_changes_via_bot: 1
-          extra_dictionaries: |
-            cspell:cpp/cpp.txt
-            cspell:filetypes/filetypes.txt
-            cspell:django/django.txt
-            cspell:golang/go.txt
-            cspell:aws/aws.txt
-            cspell:npm/npm.txt
-            cspell:rust/rust.txt
-            cspell:css/css.txt
-            cspell:python/python.txt
-            cspell:html/html.txt
-            cspell:scala/scala.txt
-            cspell:java/java.txt
-            cspell:lua/lua.txt
-            cspell:fullstack/fullstack.txt
-            cspell:csharp/csharp.txt
-            cspell:php/php.txt
-            cspell:dotnet/dotnet.txt
-            cspell:bash/bash-words.txt
-            cspell:ruby/ruby.txt
-            cspell:node/node.txt
-            cspell:ada/ada.txt
+    - name: check-spelling
+      id: spelling
+      uses: check-spelling/check-spelling@v0.0.20
+      with:
+        suppress_push_for_open_pull_request: 1
+        checkout: true
+        post_comment: 0
+
+  comment:
+    name: Report
+    runs-on: ubuntu-latest
+    needs: spelling
+    permissions:
+      contents: write
+      pull-requests: write
+    if: (success() || failure()) && needs.spelling.outputs.followup
+    steps:
+    - name: comment
+      uses: check-spelling/check-spelling@v0.0.20
+      with:
+        checkout: true
+        task: ${{ needs.spelling.outputs.followup }}
