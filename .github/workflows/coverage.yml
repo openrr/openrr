@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-install-dependencies.sh
       - run: ci/ubuntu-setup-lld.sh
       - name: Install ROS1 and ROS2

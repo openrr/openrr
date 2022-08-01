@@ -66,7 +66,7 @@ impl arci::JointTrajectoryClient for RemoteJointTrajectoryClientSender {
             client
                 .send_joint_positions(pb::JointPositionsRequest {
                     positions,
-                    duration: Some(duration.into()),
+                    duration: Some(duration.try_into().unwrap()),
                 })
                 .await
         })))
@@ -194,7 +194,7 @@ impl From<arci::TrajectoryPoint> for pb::TrajectoryPoint {
         Self {
             positions: val.positions,
             velocities: val.velocities.unwrap_or_default(),
-            time_from_start: Some(val.time_from_start.into()),
+            time_from_start: Some(val.time_from_start.try_into().unwrap()),
         }
     }
 }
@@ -298,7 +298,7 @@ impl From<(arci::Isometry2<f64>, &str, Duration)> for pb::GoalPoseRequest {
         Self {
             goal: Some(goal.into()),
             frame_id: frame_id.into(),
-            timeout: Some(timeout.into()),
+            timeout: Some(timeout.try_into().unwrap()),
         }
     }
 }

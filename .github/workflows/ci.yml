@@ -26,6 +26,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
+      - uses: taiki-e/install-action@protoc
       - run: cargo build
 
   macos:
@@ -35,6 +36,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
+      - uses: taiki-e/install-action@protoc
       - run: cargo build
 
   build:
@@ -44,6 +46,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
+      - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
       - run: cargo build
@@ -55,6 +58,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
+      - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-setup-lld.sh
       - run: ci/ubuntu-install-dependencies.sh
       # testing arci-ros/arci-ros2 is done in ros1.yaml, ros2.yaml
@@ -182,15 +186,11 @@ jobs:
   # When this job failed, run tools/gen-code.sh and commit result changes.
   codegen:
     runs-on: ubuntu-latest
-    env:
-      PROTOC: /usr/bin/protoc
     steps:
       - uses: actions/checkout@v3
-      - run: |
-          sudo apt-get update
-          sudo apt-get -y install protobuf-compiler
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
+      - uses: taiki-e/install-action@protoc
       - run: tools/gen-code.sh
       - run: git diff --exit-code
 
@@ -205,6 +205,7 @@ jobs:
       - run: ci/ubuntu-install-dependencies.sh
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
+      - uses: taiki-e/install-action@protoc
       - run: cargo hack check --all --feature-powerset --optional-deps --exclude arci-ros2
 
   fmt:
@@ -233,6 +234,7 @@ jobs:
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v1
+      - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-install-dependencies.sh
       - name: Install ROS2
         run: |
@@ -255,6 +257,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
+      - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-install-dependencies.sh
       - name: Install ROS2
         run: |
