@@ -23,6 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-install-dependencies.sh
       - run: cargo build
       - uses: taiki-e/create-gh-release-action@v1
