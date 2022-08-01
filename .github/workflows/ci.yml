@@ -222,7 +222,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - run: cargo fmt --all --check
       - name: Format YAML
-        run: prettier -c $(git ls-files '*.yml') || echo "::warning::Please run \`prettier -l -w \$(git ls-files '*.yml')\` to fix format"
+        run: prettier -c $(git ls-files '*.yml') || (echo "::warning::Please run \`prettier -l -w \$(git ls-files '*.yml')\` to fix format" && exit 1)
         if: always()
 
   clippy:
