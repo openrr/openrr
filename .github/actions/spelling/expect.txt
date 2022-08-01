@@ -12,6 +12,7 @@ args
 assimp
 attr
 backend
+baz
 bringup
 buf
 BVH
@@ -106,7 +107,7 @@ millis
 mpsc
 msgs
 mul
-mutex
+Mutex
 nalgebra
 namespace
 nanos
@@ -131,6 +132,7 @@ protobuf
 ptr
 pwd
 Qos
+qux
 RAII
 RAxis
 RBase
