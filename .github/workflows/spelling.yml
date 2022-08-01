@@ -3,8 +3,8 @@
 name: Spell checking
 on:
   push:
-    branches: ["**"]
-    tags-ignore: ["**"]
+    branches: ['**']
+    tags-ignore: ['**']
   pull_request_target:
   issue_comment:
     types: [created]
@@ -25,13 +25,13 @@ jobs:
       # note: If you use only_check_changed_files, you do not want cancel-in-progress
       cancel-in-progress: true
     steps:
-    - name: check-spelling
-      id: spelling
-      uses: check-spelling/check-spelling@v0.0.20
-      with:
-        suppress_push_for_open_pull_request: 1
-        checkout: true
-        post_comment: 0
+      - name: check-spelling
+        id: spelling
+        uses: check-spelling/check-spelling@v0.0.20
+        with:
+          suppress_push_for_open_pull_request: 1
+          checkout: true
+          post_comment: 0
 
   comment:
     name: Report
@@ -42,8 +42,8 @@ jobs:
       pull-requests: write
     if: (success() || failure()) && needs.spelling.outputs.followup
     steps:
-    - name: comment
-      uses: check-spelling/check-spelling@v0.0.20
-      with:
-        checkout: true
-        task: ${{ needs.spelling.outputs.followup }}
+      - name: comment
+        uses: check-spelling/check-spelling@v0.0.20
+        with:
+          checkout: true
+          task: ${{ needs.spelling.outputs.followup }}
