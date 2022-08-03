@@ -110,7 +110,7 @@ pub enum RobotCommand {
         #[clap(short, long, default_value = "100.0")]
         timeout_secs: f64,
     },
-    /// Cancel navigation gaol.
+    /// Cancel navigation goal.
     CancelNavigationGoal,
     /// Send base velocity.
     SendBaseVelocity {
