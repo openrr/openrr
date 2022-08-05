@@ -203,6 +203,23 @@
         "Unknown"
       ]
     },
+    "CommandConfigs": {
+      "type": "object",
+      "required": [
+        "name",
+        "file_path"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of this command.",
+          "type": "string"
+        },
+        "file_path": {
+          "description": "Path to the command text file.",
+          "type": "string"
+        }
+      }
+    },
     "ControlNodesConfig": {
       "type": "object",
       "required": [
@@ -210,6 +227,12 @@
         "joy_joint_teleop_configs"
       ],
       "properties": {
+        "command_configs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CommandConfigs"
+          }
+        },
         "ik_node_teleop_configs": {
           "type": "array",
           "items": {
