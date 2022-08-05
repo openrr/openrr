@@ -1,5 +1,5 @@
 [[urdf_viz_clients_configs]]
-name = "arm"
+name = "l_arm"
 joint_names = [
     "l_shoulder_yaw",
     "l_shoulder_pitch",
@@ -7,6 +7,17 @@ joint_names = [
     "l_elbow_pitch",
     "l_wrist_yaw",
     "l_wrist_pitch",
+]
+
+[[urdf_viz_clients_configs]]
+name = "r_arm"
+joint_names = [
+    "r_shoulder_yaw",
+    "r_shoulder_pitch",
+    "r_shoulder_roll",
+    "r_elbow_pitch",
+    "r_wrist_yaw",
+    "r_wrist_pitch",
 ]
 
 [speak_configs."print"]
@@ -24,21 +35,41 @@ sine = "../audio/sine.mp3"
 
 [openrr_clients_config]
 urdf_path = "../../openrr-planner/sample.urdf"
-self_collision_check_pairs = ["l_shoulder_yaw:l_gripper_linear1"]
+self_collision_check_pairs = [
+    "l_shoulder_yaw:l_gripper_linear1",
+    "r_shoulder_yaw:r_gripper_linear1",
+]
 
 [[openrr_clients_config.collision_check_clients_configs]]
-name = "arm_collision_checked"
-client_name = "arm"
+name = "l_arm_collision_checked"
+client_name = "l_arm"
 
 [[openrr_clients_config.ik_clients_configs]]
-name = "arm_ik"
-client_name = "arm_collision_checked"
-solver_name = "arm_ik_solver"
+name = "l_arm_ik"
+client_name = "l_arm_collision_checked"
+solver_name = "l_arm_ik_solver"
 
 [[openrr_clients_config.joints_poses]]
 pose_name = "zero"
-client_name = "arm_collision_checked"
+client_name = "l_arm_collision_checked"
 positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-[openrr_clients_config.ik_solvers_configs.arm_ik_solver]
+[openrr_clients_config.ik_solvers_configs.l_arm_ik_solver]
 ik_target = "l_tool_fixed"
+
+[[openrr_clients_config.collision_check_clients_configs]]
+name = "r_arm_collision_checked"
+client_name = "r_arm"
+
+[[openrr_clients_config.ik_clients_configs]]
+name = "r_arm_ik"
+client_name = "r_arm_collision_checked"
+solver_name = "r_arm_ik_solver"
+
+[[openrr_clients_config.joints_poses]]
+pose_name = "zero"
+client_name = "r_arm_collision_checked"
+positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+[openrr_clients_config.ik_solvers_configs.r_arm_ik_solver]
+ik_target = "r_tool_fixed"
