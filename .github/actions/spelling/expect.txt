@@ -143,6 +143,7 @@ RDuration
 readline
 README
 recv
+Reloadable
 RError
 RGamepad
 rgb
@@ -245,6 +246,7 @@ uuid
 uvs
 vec
 vels
+wasm
 wiki
 wikipedia
 winapi

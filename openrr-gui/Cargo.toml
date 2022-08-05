@@ -19,6 +19,7 @@ glow = ["iced/glow"]
 arci = "0.0.6"
 iced = { version = "0.4.2", features = ["image"] }
 iced_futures = { version = "0.4.1", features = ["tokio"] }
+iced_style_config = "0.2"
 openrr-client = { version = "0.0.6", default-features = false }
 rand = "0.8"
 thiserror = "1"

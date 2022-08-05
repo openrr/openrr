@@ -1,22 +1,23 @@
-use std::{f64, mem, num::FpCategory, ops::RangeInclusive, usize};
+use std::{f64, mem, num::FpCategory, ops::RangeInclusive, path::Path, usize};
 
 use arci::{BaseVelocity, MoveBase};
 use iced::{
-    alignment, button, slider, text_input, window, Alignment, Application, Button, Checkbox,
-    Column, Command, Container, Element, Length, Row, Settings, Slider, Text, TextInput,
+    alignment, button, slider, text_input, window, Alignment, Application, Button, Column, Command,
+    Element, Length, Row, Settings, Text,
 };
+use iced_style_config::ReloadableTheme as Theme;
 use tracing::{debug, error, warn};
 
 use crate::{style, Error};
 
-const THEME: style::Theme = style::Theme;
-
 /// Launches GUI that send base velocity from GUI to the given `move_base`.
-pub fn velocity_sender<M>(move_base: M) -> Result<(), Error>
+pub fn velocity_sender<M>(move_base: M, theme_path: Option<&Path>) -> Result<(), Error>
 where
     M: MoveBase + 'static,
 {
-    let gui = VelocitySender::new(move_base);
+    let theme = style::theme(theme_path)?;
+
+    let gui = VelocitySender::new(move_base, theme);
 
     // Should we expose some of the settings to the user?
     let settings = Settings {
@@ -210,13 +211,14 @@ where
     stop_button: button::State,
 
     errors: Errors,
+    theme: Theme,
 }
 
 impl<M> VelocitySender<M>
 where
     M: MoveBase + 'static,
 {
-    fn new(move_base: M) -> Self {
+    fn new(move_base: M, theme: Theme) -> Self {
         // https://github.com/hecrj/iced/issues/846
         #[cfg(feature = "glow")]
         warn!("glow backend is not fully supported");
@@ -263,6 +265,7 @@ where
             ),
             stop_button: Default::default(),
             errors: Default::default(),
+            theme,
         }
     }
 
@@ -288,6 +291,7 @@ enum Message {
     SliderTextInputChanged { index: usize, value: String },
     CheckboxToggled(bool),
     Retained,
+    ReloadTheme,
 }
 
 impl Message {
@@ -413,6 +417,12 @@ where
                 }
             }
             Message::Retained => {}
+            Message::ReloadTheme => {
+                if let Err(e) = self.theme.reload() {
+                    error!("{e}");
+                    self.errors.other = Some(e.to_string());
+                }
+            }
         }
 
         let velocity = self.current_velocity();
@@ -425,8 +435,13 @@ where
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        iced_futures::backend::native::tokio::time::every(std::time::Duration::from_millis(100))
-            .map(|_| Message::Retained)
+        iced::Subscription::batch([
+            iced_futures::backend::native::tokio::time::every(std::time::Duration::from_millis(
+                100,
+            ))
+            .map(|_| Message::Retained),
+            self.theme.subscription().map(|_| Message::ReloadTheme),
+        ])
     }
 
     fn view(&mut self) -> Element<'_, Message> {
@@ -466,28 +481,29 @@ where
 
         if self.show_velocity {
             for (index, state) in self.velocity_state.iter_mut().enumerate() {
-                let slider = Slider::new(
-                    &mut state.slider,
-                    state.range.clone(),
-                    state.value,
-                    move |value| Message::SliderChanged { index, value },
-                )
-                .style(THEME)
-                .step(0.01);
+                let slider = self
+                    .theme
+                    .slider()
+                    .new(
+                        &mut state.slider,
+                        state.range.clone(),
+                        state.value,
+                        move |value| Message::SliderChanged { index, value },
+                    )
+                    .step(0.01);
 
                 let joint_name = Text::new(state.name)
                     .horizontal_alignment(alignment::Horizontal::Left)
                     .width(Length::Fill);
 
                 // TODO: set horizontal_alignment on TextInput, once https://github.com/hecrj/iced/pull/373 merged and released.
-                let current_value =
-                    TextInput::new(&mut state.input_state, "", &state.input, move |value| {
-                        Message::SliderTextInputChanged { index, value }
-                    })
-                    .style(match self.errors.velocity_state {
-                        Some((i, _)) if i == index => style::TextInput::Error,
-                        _ => style::TextInput::Default,
-                    });
+                let current_value = match self.errors.velocity_state {
+                    Some((i, _)) if i == index => &self.theme.text_input()["error"],
+                    _ => self.theme.text_input(),
+                }
+                .new(&mut state.input_state, "", &state.input, move |value| {
+                    Message::SliderTextInputChanged { index, value }
+                });
 
                 let c = Column::new()
                     .push(Row::new().push(joint_name).push(current_value))
@@ -502,19 +518,16 @@ where
                 .align_items(Alignment::End)
                 .push(Text::new(" ").width(Length::Fill))
                 .push(
-                    Checkbox::new(self.show_velocity, "Show details", Message::CheckboxToggled)
-                        .style(THEME)
+                    self.theme
+                        .checkbox()
+                        .new(self.show_velocity, "Show details", Message::CheckboxToggled)
                         .size(16)
                         .spacing(10),
                 ),
         );
 
         if self.errors.is_none() {
-            content = content.push(
-                Text::new(" ")
-                    .size(style::ERROR_TEXT_SIZE)
-                    .width(Length::Fill),
-            );
+            content = content.push(self.theme.text()["error"].new(" "));
         } else {
             let mut errors = Column::new().max_width(400);
             for msg in [
@@ -524,33 +537,17 @@ where
             .iter()
             .filter_map(|e| e.as_ref())
             {
-                errors = errors.push(
-                    Text::new(&format!("Error: {msg}"))
-                        .size(style::ERROR_TEXT_SIZE)
-                        .horizontal_alignment(alignment::Horizontal::Left)
-                        .width(Length::Fill)
-                        .color(style::ERRORED),
-                );
+                errors = errors.push(self.theme.text()["error"].new(&format!("Error: {msg}")));
             }
             if self.errors.update_on_error {
                 errors = errors.push(
-                    Text::new("Error: Please resolve the above error first")
-                        .size(style::ERROR_TEXT_SIZE)
-                        .horizontal_alignment(alignment::Horizontal::Left)
-                        .width(Length::Fill)
-                        .color(style::ERRORED),
+                    self.theme.text()["error"].new("Error: Please resolve the above error first"),
                 );
             }
             content = content.push(errors);
         }
 
-        Container::new(content)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center_x()
-            .center_y()
-            .style(THEME)
-            .into()
+        self.theme.container().new(content).into()
     }
 }
 

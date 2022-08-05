@@ -18,6 +18,10 @@ struct Opt {
     /// setting file specified by --config-path.
     #[clap(long)]
     config: Option<String>,
+    // For developing GUI (enabling hot reloading of theme)
+    #[doc(hidden)]
+    #[clap(long)]
+    theme: Option<PathBuf>,
 }
 
 fn main() -> Result<()> {
@@ -35,7 +39,7 @@ fn main() -> Result<()> {
         Some(path) => urdf_rs::utils::read_urdf_or_xacro(path)?,
         None => arci_urdf_viz::UrdfVizWebClient::default().get_urdf()?,
     };
-    joint_position_sender(client, robot)?;
+    joint_position_sender(client, robot, opt.theme.as_deref())?;
     Ok(())
 }
 

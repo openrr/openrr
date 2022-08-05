@@ -18,6 +18,10 @@ struct Opt {
     /// setting file specified by --config-path.
     #[clap(long)]
     config: Option<String>,
+    // For developing GUI (enabling hot reloading of theme)
+    #[doc(hidden)]
+    #[clap(long)]
+    theme: Option<PathBuf>,
 }
 
 fn main() -> Result<()> {
@@ -31,7 +35,7 @@ fn main() -> Result<()> {
 
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &config);
     let client: BoxRobotClient = config.create_robot_client()?;
-    velocity_sender(client)?;
+    velocity_sender(client, opt.theme.as_deref())?;
     Ok(())
 }
 
