@@ -1,11 +1,11 @@
-use std::{collections::HashMap, f64, sync::Arc, time::Duration, usize};
+use std::{collections::HashMap, f64, path::Path, sync::Arc, time::Duration, usize};
 
 use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation};
 use iced::{
-    alignment, button, pick_list, scrollable, slider, text_input, window, Application, Button,
-    Column, Command, Container, Element, Length, PickList, Row, Scrollable, Settings, Slider, Text,
-    TextInput,
+    alignment, button, pick_list, scrollable, slider, text_input, window, Application, Column,
+    Command, Element, Length, Row, Settings, Text,
 };
+use iced_style_config::ReloadableTheme as Theme;
 use openrr_client::RobotClient;
 use rand::Rng;
 use tracing::{debug, debug_span, error, warn};
@@ -13,12 +13,11 @@ use urdf_rs::JointType;
 
 use crate::{style, Error};
 
-const THEME: style::Theme = style::Theme;
-
 /// Launches GUI that send joint positions from GUI to the given `robot_client`.
 pub fn joint_position_sender<L, M, N>(
     robot_client: RobotClient<L, M, N>,
     robot: urdf_rs::Robot,
+    theme_path: Option<&Path>,
 ) -> Result<(), Error>
 where
     L: Localization + 'static,
@@ -28,7 +27,9 @@ where
     let joints = joint_map(robot);
     validate_joints(&joints, &robot_client)?;
 
-    let gui = JointPositionSender::new(robot_client, joints)?;
+    let theme = style::theme(theme_path)?;
+
+    let gui = JointPositionSender::new(robot_client, joints, theme)?;
 
     // Should we expose some of the settings to the user?
     let settings = Settings {
@@ -126,6 +127,7 @@ where
     duration_input_state: text_input::State,
 
     errors: Errors,
+    theme: Theme,
 }
 
 #[derive(Debug, Default)]
@@ -185,6 +187,7 @@ where
     fn new(
         robot_client: RobotClient<L, M, N>,
         joints: HashMap<String, urdf_rs::Joint>,
+        theme: Theme,
     ) -> Result<Self, Error> {
         let mut joint_trajectory_client_names = robot_client.joint_trajectory_clients_names();
         joint_trajectory_client_names.sort_unstable();
@@ -222,6 +225,7 @@ where
             duration_input: "0.1".into(),
             duration_input_state: Default::default(),
             errors: Default::default(),
+            theme,
         };
 
         let joint_trajectory_client = this.current_joint_trajectory_client();
@@ -259,6 +263,7 @@ enum Message {
     SliderTextInputChanged { index: usize, position: String },
     DurationTextInputChanged(String),
     PickListChanged(String),
+    ReloadTheme,
 }
 
 impl<L, M, N> Application for JointPositionSender<L, M, N>
@@ -449,6 +454,12 @@ where
                     }
                 }
             }
+            Message::ReloadTheme => {
+                if let Err(e) = self.theme.reload() {
+                    error!("{e}");
+                    self.errors.other = Some(e.to_string());
+                }
+            }
         }
 
         let joint_positions = self.current_joint_positions();
@@ -468,43 +479,51 @@ where
 
     fn view(&mut self) -> Element<'_, Message> {
         let pick_list = if self.joint_trajectory_client_names.len() > 1 {
-            let pick_list = PickList::new(
-                &mut self.pick_list,
-                &self.joint_trajectory_client_names,
-                Some(self.current_joint_trajectory_client.clone()),
-                Message::PickListChanged,
-            )
-            .style(THEME)
-            .width(Length::Fill);
+            let pick_list = self
+                .theme
+                .pick_list()
+                .new(
+                    &mut self.pick_list,
+                    &self.joint_trajectory_client_names,
+                    Some(self.current_joint_trajectory_client.clone()),
+                    Message::PickListChanged,
+                )
+                .width(Length::Fill);
             Some(pick_list)
         } else {
             None
         };
 
-        let randomize_button = Button::new(
-            &mut self.randomize_button,
-            Text::new("Randomize")
-                .horizontal_alignment(alignment::Horizontal::Center)
-                .width(Length::Fill),
-        )
-        .padding(10)
-        .on_press(Message::RandomizeButtonPressed)
-        .style(THEME)
-        .width(Length::Fill);
+        let randomize_button = self
+            .theme
+            .button()
+            .new(
+                &mut self.randomize_button,
+                Text::new("Randomize")
+                    .horizontal_alignment(alignment::Horizontal::Center)
+                    .width(Length::Fill),
+            )
+            .padding(10)
+            .on_press(Message::RandomizeButtonPressed)
+            .width(Length::Fill);
 
-        let zero_button = Button::new(
-            &mut self.zero_button,
-            Text::new("Zero")
-                .horizontal_alignment(alignment::Horizontal::Center)
-                .width(Length::Fill),
-        )
-        .padding(10)
-        .on_press(Message::ZeroButtonPressed)
-        .style(THEME)
-        .width(Length::Fill);
+        let zero_button = self
+            .theme
+            .button()
+            .new(
+                &mut self.zero_button,
+                Text::new("Zero")
+                    .horizontal_alignment(alignment::Horizontal::Center)
+                    .width(Length::Fill),
+            )
+            .padding(10)
+            .on_press(Message::ZeroButtonPressed)
+            .width(Length::Fill);
 
-        let mut sliders = Scrollable::new(&mut self.scroll)
-            .style(THEME)
+        let mut sliders = self
+            .theme
+            .scrollable()
+            .new(&mut self.scroll)
             .width(Length::Fill)
             .height(Length::Fill);
         for (index, joint_state) in self
@@ -515,30 +534,32 @@ where
             .enumerate()
         {
             let limit = &self.joints[&joint_state.name].limit;
-            let slider = Slider::new(
-                &mut joint_state.slider,
-                limit.lower..=limit.upper,
-                joint_state.position,
-                move |position| Message::SliderChanged { index, position },
-            )
-            .style(THEME)
-            .step(0.01);
+            let slider = self
+                .theme
+                .slider()
+                .new(
+                    &mut joint_state.slider,
+                    limit.lower..=limit.upper,
+                    joint_state.position,
+                    move |position| Message::SliderChanged { index, position },
+                )
+                .step(0.01);
 
             let joint_name = Text::new(&self.joints[&joint_state.name].name)
                 .horizontal_alignment(alignment::Horizontal::Left)
                 .width(Length::Fill);
 
             // TODO: set horizontal_alignment on TextInput, once https://github.com/hecrj/iced/pull/373 merged and released.
-            let current_position = TextInput::new(
+            let current_position = match self.errors.joint_states {
+                Some((i, _)) if i == index => &self.theme.text_input()["error"],
+                _ => self.theme.text_input(),
+            }
+            .new(
                 &mut joint_state.position_input_state,
                 "",
                 &joint_state.position_input,
                 move |position| Message::SliderTextInputChanged { index, position },
-            )
-            .style(match self.errors.joint_states {
-                Some((i, _)) if i == index => style::TextInput::Error,
-                _ => style::TextInput::Default,
-            });
+            );
 
             let content = Column::new()
                 .push(Row::new().push(joint_name).push(current_position))
@@ -551,17 +572,17 @@ where
             .padding(5)
             .push(Text::new("Duration (sec)").width(Length::Fill))
             .push(
-                TextInput::new(
+                if self.errors.duration_input.is_none() {
+                    self.theme.text_input()
+                } else {
+                    &self.theme.text_input()["error"]
+                }
+                .new(
                     &mut self.duration_input_state,
                     "",
                     &self.duration_input,
                     Message::DurationTextInputChanged,
-                )
-                .style(if self.errors.duration_input.is_none() {
-                    style::TextInput::Default
-                } else {
-                    style::TextInput::Error
-                }),
+                ),
             );
 
         let mut content = Column::new()
@@ -579,11 +600,7 @@ where
             .push(duration);
 
         if self.errors.is_none() {
-            content = content.push(
-                Text::new(" ")
-                    .size(style::ERROR_TEXT_SIZE)
-                    .width(Length::Fill),
-            );
+            content = content.push(self.theme.text()["error"].new(" ").width(Length::Fill));
         } else {
             let mut errors = Column::new().max_width(400);
             for msg in [
@@ -595,32 +612,27 @@ where
             .filter_map(|e| e.as_ref())
             {
                 errors = errors.push(
-                    Text::new(&format!("Error: {msg}"))
-                        .size(style::ERROR_TEXT_SIZE)
-                        .horizontal_alignment(alignment::Horizontal::Left)
-                        .width(Length::Fill)
-                        .color(style::ERRORED),
+                    self.theme.text()["error"]
+                        .new(&format!("Error: {msg}"))
+                        .width(Length::Fill),
                 );
             }
+
             if self.errors.update_on_error {
                 errors = errors.push(
-                    Text::new("Error: Please resolve the above error first")
-                        .size(style::ERROR_TEXT_SIZE)
-                        .horizontal_alignment(alignment::Horizontal::Left)
-                        .width(Length::Fill)
-                        .color(style::ERRORED),
+                    self.theme.text()["error"]
+                        .new("Error: Please resolve the above error first")
+                        .width(Length::Fill),
                 );
             }
             content = content.push(errors);
         }
 
-        Container::new(content)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center_x()
-            .center_y()
-            .style(THEME)
-            .into()
+        self.theme.container().new(content).into()
+    }
+
+    fn subscription(&self) -> iced::Subscription<Self::Message> {
+        self.theme.subscription().map(|_| Message::ReloadTheme)
     }
 }
 
