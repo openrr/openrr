@@ -2,9 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "RobotConfig",
   "type": "object",
-  "required": [
-    "openrr_clients_config"
-  ],
   "properties": {
     "joint_trajectory_clients": {
       "description": "Joint trajectory clients to be used.",
@@ -44,13 +41,29 @@
       ]
     },
     "openrr_clients_config": {
-      "$ref": "#/definitions/OpenrrClientsConfig"
+      "default": {
+        "ik_solvers_configs": {},
+        "self_collision_check_pairs": [],
+        "urdf_full_path": null,
+        "urdf_path": null
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/OpenrrClientsConfig"
+        }
+      ]
     },
     "plugins": {
       "default": {},
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/PluginConfig"
+      }
+    },
+    "ros_action_clients_configs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/RosControlActionClientConfig"
       }
     },
     "ros_clients_configs": {
@@ -201,6 +214,7 @@
         "constraints": {
           "description": "A bundle of flags determining which coordinates are constrained for a target",
           "default": {
+            "ignored_joint_names": [],
             "position_x": true,
             "position_y": true,
             "position_z": true,
@@ -282,6 +296,14 @@
           "format": "double"
         }
       }
+    },
+    "JointPositionLimiterStrategy": {
+      "type": "string",
+      "enum": [
+        "Clamp",
+        "ClampWithWarn",
+        "Error"
+      ]
     },
     "JointTrajectoryClientsContainerConfig": {
       "type": "object",
@@ -461,6 +483,99 @@
       },
       "additionalProperties": false
     },
+    "RosControlActionClientConfig": {
+      "type": "object",
+      "required": [
+        "complete_allowable_errors",
+        "controller_name",
+        "joint_names",
+        "name",
+        "state_topic_name"
+      ],
+      "properties": {
+        "complete_allowable_errors": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "complete_timeout_sec": {
+          "default": 10.0,
+          "type": "number",
+          "format": "double"
+        },
+        "controller_name": {
+          "type": "string"
+        },
+        "joint_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "joint_position_difference_limits": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "joint_position_limiter_strategy": {
+          "default": "Clamp",
+          "allOf": [
+            {
+              "$ref": "#/definitions/JointPositionLimiterStrategy"
+            }
+          ]
+        },
+        "joint_position_limits": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/JointPositionLimit"
+          }
+        },
+        "joint_velocity_limits": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "send_partial_joints_goal": {
+          "default": false,
+          "type": "boolean"
+        },
+        "state_topic_name": {
+          "type": "string"
+        },
+        "wrap_with_joint_position_difference_limiter": {
+          "default": false,
+          "type": "boolean"
+        },
+        "wrap_with_joint_position_limiter": {
+          "default": false,
+          "type": "boolean"
+        },
+        "wrap_with_joint_velocity_limiter": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
     "RosControlClientConfig": {
       "type": "object",
       "required": [
@@ -490,6 +605,24 @@
           "items": {
             "type": "string"
           }
+        },
+        "joint_position_difference_limits": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "joint_position_limiter_strategy": {
+          "default": "Clamp",
+          "allOf": [
+            {
+              "$ref": "#/definitions/JointPositionLimiterStrategy"
+            }
+          ]
         },
         "joint_position_limits": {
           "type": [
@@ -523,6 +656,10 @@
             "null"
           ]
         },
+        "wrap_with_joint_position_difference_limiter": {
+          "default": false,
+          "type": "boolean"
+        },
         "wrap_with_joint_position_limiter": {
           "default": false,
           "type": "boolean"
@@ -552,6 +689,14 @@
         "request_final_nomotion_update_hack"
       ],
       "properties": {
+        "amcl_pose_topic_name": {
+          "default": "/amcl_pose",
+          "type": "string"
+        },
+        "nomotion_update_service_name": {
+          "default": "request_nomotion_update",
+          "type": "string"
+        },
         "request_final_nomotion_update_hack": {
           "type": "boolean"
         }
@@ -567,6 +712,18 @@
       "properties": {
         "clear_costmap_before_start": {
           "type": "boolean"
+        },
+        "clear_costmap_service_name": {
+          "default": "/move_base/clear_costmaps",
+          "type": "string"
+        },
+        "move_base_action_base_name": {
+          "default": "/move_base",
+          "type": "string"
+        },
+        "nomotion_update_service_name": {
+          "default": "request_nomotion_update",
+          "type": "string"
         },
         "request_final_nomotion_update_hack": {
           "type": "boolean"
@@ -591,7 +748,7 @@
       "additionalProperties": false
     },
     "SpeakConfig": {
-      "anyOf": [
+      "oneOf": [
         {
           "type": "object",
           "required": [
@@ -686,12 +843,14 @@
     "UrdfVizWebClientConfig": {
       "type": "object",
       "required": [
-        "joint_names",
         "name"
       ],
       "properties": {
         "joint_names": {
-          "type": "array",
+          "type": [
+            "array",
+            "null"
+          ],
           "items": {
             "type": "string"
           }

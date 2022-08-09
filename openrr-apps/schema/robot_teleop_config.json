@@ -3,8 +3,7 @@
   "title": "RobotTeleopConfig",
   "type": "object",
   "required": [
-    "control_nodes_config",
-    "robot_config_path"
+    "control_nodes_config"
   ],
   "properties": {
     "control_nodes_config": {
@@ -24,12 +23,12 @@
         "map": {
           "axis_map": [
             [
-              "RightStickY",
-              "RightStickY"
+              "LeftStickY",
+              "LeftStickY"
             ],
             [
-              "DPadX",
-              "DPadX"
+              "LeftStickX",
+              "LeftStickX"
             ],
             [
               "DPadY",
@@ -40,12 +39,12 @@
               "RightStickX"
             ],
             [
-              "LeftStickX",
-              "LeftStickX"
+              "RightStickY",
+              "RightStickY"
             ],
             [
-              "LeftStickY",
-              "LeftStickY"
+              "DPadX",
+              "DPadX"
             ]
           ],
           "axis_value_map": [
@@ -60,72 +59,72 @@
           ],
           "button_map": [
             [
-              "LeftTrigger2",
-              "LeftTrigger2"
-            ],
-            [
-              "Start",
-              "Start"
-            ],
-            [
-              "West",
-              "West"
+              "LeftTrigger",
+              "LeftTrigger"
             ],
             [
               "RightTrigger2",
               "RightTrigger2"
             ],
             [
-              "DPadRight",
-              "DPadRight"
+              "RightThumb",
+              "RightThumb"
             ],
             [
-              "Mode",
-              "Mode"
-            ],
-            [
-              "East",
-              "East"
-            ],
-            [
-              "Select",
-              "Select"
-            ],
-            [
-              "DPadLeft",
-              "DPadLeft"
+              "DPadDown",
+              "DPadDown"
             ],
             [
               "RightTrigger",
               "RightTrigger"
             ],
             [
-              "North",
-              "North"
+              "DPadRight",
+              "DPadRight"
             ],
             [
-              "LeftThumb",
-              "LeftThumb"
-            ],
-            [
-              "RightThumb",
-              "RightThumb"
+              "DPadLeft",
+              "DPadLeft"
             ],
             [
               "DPadUp",
               "DPadUp"
             ],
             [
-              "LeftTrigger",
-              "LeftTrigger"
-            ],
-            [
               "South",
               "South"
             ],
             [
-              "DPadDown",
-              "DPadDown"
+              "West",
+              "West"
+            ],
+            [
+              "LeftTrigger2",
+              "LeftTrigger2"
+            ],
+            [
+              "East",
+              "East"
+            ],
+            [
+              "North",
+              "North"
+            ],
+            [
+              "Select",
+              "Select"
+            ],
+            [
+              "Start",
+              "Start"
+            ],
+            [
+              "Mode",
+              "Mode"
+            ],
+            [
+              "LeftThumb",
+              "LeftThumb"
             ]
           ]
         }
@@ -154,7 +153,10 @@
       ]
     },
     "robot_config_path": {
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     }
   },
   "additionalProperties": false,
@@ -203,34 +205,13 @@
         "Unknown"
       ]
     },
-    "CommandConfigs": {
-      "type": "object",
-      "required": [
-        "name",
-        "file_path"
-      ],
-      "properties": {
-        "name": {
-          "description": "Name of this command.",
-          "type": "string"
-        },
-        "file_path": {
-          "description": "Path to the command text file.",
-          "type": "string"
-        }
-      }
-    },
     "ControlNodesConfig": {
       "type": "object",
-      "required": [
-        "ik_node_teleop_configs",
-        "joy_joint_teleop_configs"
-      ],
       "properties": {
         "command_configs": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/CommandConfigs"
+            "$ref": "#/definitions/RobotCommandConfig"
           }
         },
         "ik_node_teleop_configs": {
@@ -287,6 +268,14 @@
           "default": {
             "axis_map": [
               [
+                "DPadY",
+                "DPadY"
+              ],
+              [
+                "RightStickX",
+                "RightStickX"
+              ],
+              [
                 "LeftStickX",
                 "LeftStickX"
               ],
@@ -295,20 +284,12 @@
                 "RightStickY"
               ],
               [
-                "DPadX",
-                "DPadX"
-              ],
-              [
-                "DPadY",
-                "DPadY"
-              ],
-              [
                 "LeftStickY",
                 "LeftStickY"
               ],
               [
-                "RightStickX",
-                "RightStickX"
+                "DPadX",
+                "DPadX"
               ]
             ],
             "axis_value_map": [
@@ -323,72 +304,72 @@
             ],
             "button_map": [
               [
-                "DPadDown",
-                "DPadDown"
-              ],
-              [
-                "West",
-                "West"
-              ],
-              [
-                "LeftTrigger",
-                "LeftTrigger"
-              ],
-              [
-                "LeftTrigger2",
-                "LeftTrigger2"
-              ],
-              [
-                "North",
-                "North"
-              ],
-              [
                 "RightThumb",
                 "RightThumb"
-              ],
-              [
-                "Mode",
-                "Mode"
-              ],
-              [
-                "RightTrigger",
-                "RightTrigger"
-              ],
-              [
-                "DPadLeft",
-                "DPadLeft"
-              ],
-              [
-                "DPadUp",
-                "DPadUp"
               ],
               [
                 "South",
                 "South"
               ],
               [
-                "LeftThumb",
-                "LeftThumb"
-              ],
-              [
-                "Select",
-                "Select"
-              ],
-              [
-                "Start",
-                "Start"
+                "DPadDown",
+                "DPadDown"
               ],
               [
                 "DPadRight",
                 "DPadRight"
               ],
               [
-                "RightTrigger2",
-                "RightTrigger2"
+                "LeftTrigger",
+                "LeftTrigger"
               ],
               [
                 "East",
                 "East"
+              ],
+              [
+                "West",
+                "West"
+              ],
+              [
+                "DPadUp",
+                "DPadUp"
+              ],
+              [
+                "Select",
+                "Select"
+              ],
+              [
+                "LeftTrigger2",
+                "LeftTrigger2"
+              ],
+              [
+                "RightTrigger2",
+                "RightTrigger2"
+              ],
+              [
+                "Mode",
+                "Mode"
+              ],
+              [
+                "LeftThumb",
+                "LeftThumb"
+              ],
+              [
+                "RightTrigger",
+                "RightTrigger"
+              ],
+              [
+                "Start",
+                "Start"
+              ],
+              [
+                "North",
+                "North"
+              ],
+              [
+                "DPadLeft",
+                "DPadLeft"
               ]
             ]
           },
@@ -616,6 +597,22 @@
           }
         }
       }
+    },
+    "RobotCommandConfig": {
+      "type": "object",
+      "required": [
+        "file_path",
+        "name"
+      ],
+      "properties": {
+        "file_path": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     },
     "TeleopPluginConfig": {
       "type": "object",
