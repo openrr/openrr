@@ -59,7 +59,7 @@ where
                 }
             }
             offset += current_positions.len();
-            waits.push(c.send_joint_positions(current_positions, duration)?);
+            waits.push_back(c.send_joint_positions(current_positions, duration)?);
         }
         Ok(WaitFuture::from_stream(waits))
     }
@@ -100,7 +100,7 @@ where
                     time_from_start: full_point.time_from_start,
                 });
             }
-            waits.push(client.send_joint_trajectory(partial_trajectory)?);
+            waits.push_back(client.send_joint_trajectory(partial_trajectory)?);
             offset += partial_dof;
         }
         Ok(WaitFuture::from_stream(waits))
