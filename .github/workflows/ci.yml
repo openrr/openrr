@@ -71,12 +71,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-18.04
-            distro: melodic
-          - os: ubuntu-20.04
-            distro: noetic
-    runs-on: ${{ matrix.os }}
+        distro:
+          - melodic
+          - noetic
+    runs-on: ubuntu-latest
     container:
       image: docker://ros:${{ matrix.distro }}-ros-base
     env:
@@ -104,12 +102,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-18.04
-            distro: melodic
-          - os: ubuntu-20.04
-            distro: noetic
-    runs-on: ${{ matrix.os }}
+        distro:
+          - melodic
+          - noetic
+    runs-on: ubuntu-latest
     container:
       image: docker://ros:${{ matrix.distro }}-ros-base
     env:
