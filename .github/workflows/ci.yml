@@ -134,10 +134,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro:
-          - foxy
-          # - galactic # TODO
-    runs-on: ubuntu-20.04
+        include:
+          - distro: foxy
+            os: ubuntu-20.04
+          - distro: humble
+            os: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
     container:
       image: docker://ros:${{ matrix.distro }}
     env:
