@@ -14,13 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+use std::{path::Path, sync::Arc};
+
 use k::nalgebra as na;
 use ncollide3d::shape::Compound;
 use openrr_planner::FromUrdf;
 
 fn main() {
+    let urdf_path = Path::new("sample.urdf");
+    let robot = Arc::new(k::Chain::from_urdf_file(urdf_path).unwrap());
+
     // Create path planner with loading urdf file and set end link name
-    let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file("sample.urdf")
+    let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file(urdf_path, robot.clone())
         .expect("failed to create planner from urdf file")
         .collision_check_margin(0.01)
         .finalize();
@@ -43,8 +48,13 @@ fn main() {
         .plan_with_ik(target_name, &ik_target_pose, &obstacles)
         .unwrap();
     println!("plan1 = {plan1:?}");
+
+    // Apply plan1 to the reference robot (regarded as the real robot)
+    let arm = k::Chain::from_end(robot.find(target_name).unwrap());
+    arm.set_joint_positions_clamped(plan1.iter().last().unwrap());
+
+    // Plan the path from previous result
     ik_target_pose.translation.vector[2] += 0.50;
-    // plan the path from previous result
     let plan2 = planner
         .plan_with_ik(target_name, &ik_target_pose, &obstacles)
         .unwrap();

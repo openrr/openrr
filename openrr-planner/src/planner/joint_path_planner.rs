@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-use std::path::Path;
+use std::{path::Path, sync::Arc};
 
 use k::nalgebra as na;
 use na::RealField;
@@ -33,6 +33,8 @@ pub struct JointPathPlanner<N>
 where
     N: RealField + Copy + k::SubsetOf<f64>,
 {
+    /// Robot for reference (read only and assumed to hold the latest full states)
+    reference_robot: Arc<k::Chain<N>>,
     /// Robot collision detector
     pub robot_collision_detector: RobotCollisionDetector<N>,
     /// Unit length for searching
@@ -51,12 +53,14 @@ where
 {
     /// Create `JointPathPlanner`
     pub fn new(
+        reference_robot: Arc<k::Chain<N>>,
         robot_collision_detector: RobotCollisionDetector<N>,
         step_length: N,
         max_try: usize,
         num_smoothing: usize,
     ) -> Self {
         JointPathPlanner {
+            reference_robot,
             robot_collision_detector,
             step_length,
             max_try,
@@ -65,7 +69,7 @@ where
     }
 
     /// Check if the joint_positions are OK
-    pub fn is_feasible(
+    fn is_feasible(
         &self,
         using_joints: &k::Chain<N>,
         joint_positions: &[N],
@@ -81,7 +85,7 @@ where
     }
 
     /// Check if the joint_positions are OK
-    pub fn is_feasible_with_self(&self, using_joints: &k::Chain<N>, joint_positions: &[N]) -> bool {
+    fn is_feasible_with_self(&self, using_joints: &k::Chain<N>, joint_positions: &[N]) -> bool {
         match using_joints.set_joint_positions(joint_positions) {
             Ok(()) => !self.robot_collision_detector.is_self_collision_detected(),
             Err(err) => {
@@ -89,6 +93,22 @@ where
                 false
             }
         }
+    }
+
+    /// Create a sub-chain of the collision check model by a name list
+    fn create_chain_from_names(&self, using_joint_names: &[String]) -> Result<k::Chain<N>> {
+        let nodes = using_joint_names
+            .iter()
+            .map(|joint_name| {
+                self.robot_collision_detector
+                    .robot
+                    .find(joint_name)
+                    .ok_or_else(|| Error::NotFound(joint_name.to_owned()))
+                    .unwrap()
+                    .clone()
+            })
+            .collect::<Vec<k::Node<N>>>();
+        Ok(k::Chain::from_nodes(nodes))
     }
 
     /// Plan the sequence of joint angles of `using_joints`
@@ -101,17 +121,20 @@ where
     /// - `objects`: The collision between `self.collision_check_robot` and `objects` will be checked.
     pub fn plan(
         &self,
-        using_joints: &k::Chain<N>,
+        using_joint_names: &[String],
         start_angles: &[N],
         goal_angles: &[N],
         objects: &Compound<N>,
     ) -> Result<Vec<Vec<N>>> {
+        self.sync_joint_positions();
+
+        let using_joints = self.create_chain_from_names(using_joint_names)?;
         let limits = using_joints.iter_joints().map(|j| j.limits).collect();
         let step_length = self.step_length;
         let max_try = self.max_try;
         let current_angles = using_joints.joint_positions();
 
-        if !self.is_feasible(using_joints, start_angles, objects) {
+        if !self.is_feasible(&using_joints, start_angles, objects) {
             let collision_link_names = self
                 .robot_collision_detector
                 .env_collision_link_names(objects);
@@ -120,7 +143,7 @@ where
                 point: UnfeasibleTrajectory::StartPoint,
                 collision_link_names,
             });
-        } else if !self.is_feasible(using_joints, goal_angles, objects) {
+        } else if !self.is_feasible(&using_joints, goal_angles, objects) {
             let collision_link_names = self
                 .robot_collision_detector
                 .env_collision_link_names(objects);
@@ -134,7 +157,7 @@ where
         let mut path = match rrt::dual_rrt_connect(
             start_angles,
             goal_angles,
-            |angles: &[N]| self.is_feasible(using_joints, angles, objects),
+            |angles: &[N]| self.is_feasible(&using_joints, angles, objects),
             || generate_random_joint_positions_from_limits(&limits),
             step_length,
             max_try,
@@ -148,7 +171,7 @@ where
         let num_smoothing = self.num_smoothing;
         rrt::smooth_path(
             &mut path,
-            |angles: &[N]| self.is_feasible(using_joints, angles, objects),
+            |angles: &[N]| self.is_feasible(&using_joints, angles, objects),
             step_length,
             num_smoothing,
         );
@@ -168,23 +191,26 @@ where
     /// - `goal_angles`: goal joint angles of `using_joints`.
     pub fn plan_avoid_self_collision(
         &self,
-        using_joints: &k::Chain<N>,
+        using_joint_names: &[String],
         start_angles: &[N],
         goal_angles: &[N],
     ) -> Result<Vec<Vec<N>>> {
+        self.sync_joint_positions();
+
+        let using_joints = self.create_chain_from_names(using_joint_names)?;
         let limits = using_joints.iter_joints().map(|j| j.limits).collect();
         let step_length = self.step_length;
         let max_try = self.max_try;
         let current_angles = using_joints.joint_positions();
 
-        if !self.is_feasible_with_self(using_joints, start_angles) {
+        if !self.is_feasible_with_self(&using_joints, start_angles) {
             let collision_link_names = self.robot_collision_detector.self_collision_link_pairs();
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::SelfCollision {
                 point: UnfeasibleTrajectory::StartPoint,
                 collision_link_names,
             });
-        } else if !self.is_feasible_with_self(using_joints, goal_angles) {
+        } else if !self.is_feasible_with_self(&using_joints, goal_angles) {
             let collision_link_names = self.robot_collision_detector.self_collision_link_pairs();
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::SelfCollision {
@@ -196,7 +222,7 @@ where
         let mut path = match rrt::dual_rrt_connect(
             start_angles,
             goal_angles,
-            |angles: &[N]| self.is_feasible_with_self(using_joints, angles),
+            |angles: &[N]| self.is_feasible_with_self(&using_joints, angles),
             || generate_random_joint_positions_from_limits(&limits),
             step_length,
             max_try,
@@ -210,11 +236,18 @@ where
         let num_smoothing = self.num_smoothing;
         rrt::smooth_path(
             &mut path,
-            |angles: &[N]| self.is_feasible_with_self(using_joints, angles),
+            |angles: &[N]| self.is_feasible_with_self(&using_joints, angles),
             step_length,
             num_smoothing,
         );
         Ok(path)
+    }
+
+    /// Synchronize joint positions of the planning robot model with the reference robot
+    pub fn sync_joint_positions(&self) {
+        self.robot_collision_detector
+            .robot
+            .set_joint_positions_clamped(self.reference_robot.joint_positions().as_slice());
     }
 
     /// Calculate the transforms of all of the links
@@ -237,6 +270,7 @@ pub struct JointPathPlannerBuilder<N>
 where
     N: RealField + Copy + k::SubsetOf<f64>,
 {
+    reference_robot: Arc<k::Chain<N>>,
     robot_collision_detector: RobotCollisionDetector<N>,
     step_length: N,
     max_try: usize,
@@ -252,8 +286,12 @@ where
     /// Create from components
     ///
     /// There are also some utility functions to create from urdf
-    pub fn new(robot_collision_detector: RobotCollisionDetector<N>) -> Self {
+    pub fn new(
+        reference_robot: Arc<k::Chain<N>>,
+        robot_collision_detector: RobotCollisionDetector<N>,
+    ) -> Self {
         JointPathPlannerBuilder {
+            reference_robot,
             robot_collision_detector,
             step_length: na::convert(0.1),
             max_try: 5000,
@@ -293,6 +331,7 @@ where
             self.robot_collision_detector.collision_detector.prediction = margin;
         }
         let mut planner = JointPathPlanner::new(
+            self.reference_robot,
             self.robot_collision_detector,
             self.step_length,
             self.max_try,
@@ -303,22 +342,31 @@ where
     }
 
     /// Try to create `JointPathPlannerBuilder` instance from URDF file and end link name
-    pub fn from_urdf_file<P>(file: P) -> Result<JointPathPlannerBuilder<N>>
+    pub fn from_urdf_file<P>(
+        file: P,
+        reference_robot: Arc<k::Chain<N>>,
+    ) -> Result<JointPathPlannerBuilder<N>>
     where
         P: AsRef<Path>,
     {
         let urdf_robot = urdf_rs::utils::read_urdf_or_xacro(file.as_ref())?;
-        Ok(JointPathPlannerBuilder::from_urdf_robot(urdf_robot))
+        Ok(JointPathPlannerBuilder::from_urdf_robot(
+            urdf_robot,
+            reference_robot,
+        ))
     }
 
     /// Try to create `JointPathPlannerBuilder` instance from `urdf_rs::Robot` instance
-    pub fn from_urdf_robot(urdf_robot: urdf_rs::Robot) -> JointPathPlannerBuilder<N> {
+    pub fn from_urdf_robot(
+        urdf_robot: urdf_rs::Robot,
+        reference_robot: Arc<k::Chain<N>>,
+    ) -> JointPathPlannerBuilder<N> {
         let robot = k::Chain::from(&urdf_robot);
         let default_margin = na::convert(0.0);
         let collision_detector = CollisionDetector::from_urdf_robot(&urdf_robot, default_margin);
         let robot_collision_detector =
             RobotCollisionDetector::new(robot, collision_detector, vec![]);
-        JointPathPlannerBuilder::new(robot_collision_detector)
+        JointPathPlannerBuilder::new(reference_robot, robot_collision_detector)
     }
 }
 
@@ -366,8 +414,9 @@ pub fn create_joint_path_planner<P: AsRef<Path>>(
     urdf_path: P,
     self_collision_check_pairs: Vec<(String, String)>,
     config: &JointPathPlannerConfig,
+    robot: Arc<k::Chain<f64>>,
 ) -> JointPathPlanner<f64> {
-    JointPathPlannerBuilder::from_urdf_file(urdf_path)
+    JointPathPlannerBuilder::from_urdf_file(urdf_path, robot)
         .unwrap()
         .step_length(config.step_length)
         .max_try(config.max_try)
@@ -383,18 +432,24 @@ mod tests {
 
     #[test]
     fn from_urdf() {
-        let _planner = JointPathPlannerBuilder::from_urdf_file("sample.urdf")
-            .unwrap()
-            .collision_check_margin(0.01)
-            .finalize();
+        let urdf_path = Path::new("sample.urdf");
+        let _planner = JointPathPlannerBuilder::from_urdf_file(
+            urdf_path,
+            Arc::new(k::Chain::from_urdf_file(urdf_path).unwrap()),
+        )
+        .unwrap()
+        .collision_check_margin(0.01)
+        .finalize();
     }
 
     #[test]
     fn test_create_joint_path_planner() {
+        let urdf_path = Path::new("sample.urdf");
         let _planner = create_joint_path_planner(
-            "sample.urdf",
+            urdf_path,
             vec![("root".into(), "l_shoulder_roll".into())],
             &JointPathPlannerConfig::default(),
+            Arc::new(k::Chain::from_urdf_file(urdf_path).unwrap()),
         );
     }
 }

@@ -13,7 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use clap::Parser;
 use k::nalgebra as na;
@@ -39,6 +42,7 @@ struct CollisionAvoidApp {
     ignore_rotation_z: bool,
     self_collision_pairs: Vec<(String, String)>,
     urdf_robot: Robot,
+    reference_robot: Arc<k::Chain<f64>>,
 }
 
 impl CollisionAvoidApp {
@@ -51,10 +55,14 @@ impl CollisionAvoidApp {
         ignore_rotation_z: bool,
         self_collision_pairs: Vec<(String, String)>,
     ) -> Self {
-        let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file(&robot_path)
-            .unwrap()
-            .collision_check_margin(0.01f64)
-            .finalize();
+        let reference_robot = Arc::new(k::Chain::from_urdf_file(robot_path).unwrap());
+        let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file(
+            &robot_path,
+            reference_robot.clone(),
+        )
+        .unwrap()
+        .collision_check_margin(0.01f64)
+        .finalize();
         let solver = openrr_planner::JacobianIkSolver::new(0.001f64, 0.005, 0.2, 100);
         let solver = openrr_planner::RandomInitializeIkSolver::new(solver, 100);
         let planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);
@@ -98,11 +106,24 @@ impl CollisionAvoidApp {
             ignore_rotation_z,
             self_collision_pairs,
             urdf_robot,
+            reference_robot,
         }
     }
 
     fn update_robot(&mut self) {
-        // this is hack to handle invalid mimic joints
+        // update the reference robot
+        self.reference_robot.set_joint_positions_clamped(
+            &self
+                .planner
+                .path_planner
+                .robot_collision_detector
+                .robot
+                .joint_positions(),
+        );
+        self.reference_robot.update_transforms();
+
+        // update the visualized robot
+        // the following re-assignment is hack to handle invalid mimic joints
         let robot = &self.planner.path_planner.robot_collision_detector.robot;
         let ja = robot.joint_positions();
         robot.set_joint_positions_clamped(&ja);
