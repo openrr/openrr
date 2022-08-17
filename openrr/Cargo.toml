@@ -26,7 +26,6 @@ openrr-client = { version = "0.0.6", default-features = false }
 openrr-config = { version = "0.0.6", default-features = false }
 openrr-command = { version = "0.0.6", default-features = false }
 openrr-planner = { version = "0.0.6", default-features = false }
-openrr-sleep = "0.0.6"
 openrr-teleop = { version = "0.0.6", default-features = false }
 
 [dependencies.openrr-apps]

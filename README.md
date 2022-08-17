@@ -47,7 +47,7 @@ OpenRR contains..
 * concrete implementation of the interfaces (`arci-ros`, `arci-urdf-viz`, ...)
 * library which uses the interfaces (`openrr-client`, ...)
 * tools (`openrr-apps`)
-* pure libraries nothing to do with `arci` (`openrr-planner`, `openrr-sleep`, ...)
+* pure libraries nothing to do with `arci` (`openrr-planner`, ...)
 
 ## Tools
 
