@@ -18,7 +18,6 @@ members = [
     "openrr-planner",
     "openrr-plugin",
     "openrr-remote",
-    "openrr-sleep",
     "openrr-teleop",
 
     # internal
@@ -46,7 +45,6 @@ openrr-gui = { path = "openrr-gui" }
 openrr-planner = { path = "openrr-planner" }
 openrr-plugin = { path = "openrr-plugin" }
 openrr-remote = { path = "openrr-remote" }
-openrr-sleep = { path = "openrr-sleep" }
 openrr-teleop = { path = "openrr-teleop" }
 
 # TODO: remove this once https://github.com/rust-lang/cmake-rs/pull/146 released.

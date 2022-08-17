@@ -7,7 +7,6 @@ IFS=$'\n\t'
 # It will be published in the order listed.
 MEMBERS=(
   "arci"
-  "openrr-sleep"
   "openrr-planner"
   "openrr-config"
 

@@ -19,10 +19,6 @@ pub mod planner {
     pub use openrr_planner::*;
 }
 
-pub mod sleep {
-    pub use openrr_sleep::*;
-}
-
 pub mod teleop {
     pub use openrr_teleop::*;
 }

@@ -5,9 +5,9 @@ use arci::{
     nalgebra as na, BaseVelocity, JointPositionLimit, JointPositionLimiter, JointTrajectoryClient,
     JointVelocityLimiter, Localization, MoveBase, Navigation, TrajectoryPoint, WaitFuture,
 };
-use openrr_sleep::ScopedSleep;
 use parking_lot::Mutex;
 use schemars::JsonSchema;
+use scoped_sleep::ScopedSleep;
 use serde::{Deserialize, Serialize};
 use tokio::sync::oneshot;
 use tracing::debug;
