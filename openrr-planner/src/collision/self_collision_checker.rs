@@ -232,7 +232,7 @@ fn test_create_self_collision_checker() {
     let using_joints = k::SerialChain::from_end(l_shoulder_yaw_node);
     let using_joint_names = using_joints
         .iter_joints()
-        .map(|j| (*j).name.to_owned())
+        .map(|j| j.name.to_owned())
         .collect::<Vec<String>>();
 
     assert!(self_collision_checker

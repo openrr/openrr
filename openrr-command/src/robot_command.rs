@@ -477,7 +477,12 @@ pub fn load_command_file_and_filter(file_path: PathBuf) -> Result<Vec<String>, O
             let command_parsed_iter = command.split_whitespace();
             // Ignore empty lines and comment lines
             command_parsed_iter.clone().count() > 0
-                && command_parsed_iter.clone().next().unwrap().find('#') == None
+                && command_parsed_iter
+                    .clone()
+                    .next()
+                    .unwrap()
+                    .find('#')
+                    .is_none()
         })
         .collect())
 }
