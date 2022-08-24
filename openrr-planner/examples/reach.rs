@@ -56,13 +56,12 @@ impl CollisionAvoidApp {
         self_collision_pairs: Vec<(String, String)>,
     ) -> Self {
         let reference_robot = Arc::new(k::Chain::from_urdf_file(robot_path).unwrap());
-        let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file(
-            &robot_path,
-            reference_robot.clone(),
-        )
-        .unwrap()
-        .collision_check_margin(0.01f64)
-        .finalize();
+        let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file(&robot_path)
+            .unwrap()
+            .collision_check_margin(0.01f64)
+            .reference_robot(reference_robot.clone())
+            .finalize()
+            .unwrap();
         let solver = openrr_planner::JacobianIkSolver::new(0.001f64, 0.005, 0.2, 100);
         let solver = openrr_planner::RandomInitializeIkSolver::new(solver, 100);
         let planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);

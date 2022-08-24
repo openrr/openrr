@@ -48,10 +48,12 @@ where
     /// ```
     /// // Create path planner with loading urdf file and set end link name
     /// let robot = k::Chain::from_urdf_file("sample.urdf").unwrap();
-    /// let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file("sample.urdf", std::sync::Arc::new(robot))
+    /// let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file("sample.urdf")
     ///     .unwrap()
     ///     .collision_check_margin(0.01)
-    ///     .finalize();
+    ///     .reference_robot(std::sync::Arc::new(robot))
+    ///     .finalize()
+    ///     .unwrap();
     /// // Create inverse kinematics solver
     /// let solver = openrr_planner::JacobianIkSolver::default();
     /// // Create path planner with IK solver

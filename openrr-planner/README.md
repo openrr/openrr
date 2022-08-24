@@ -25,10 +25,12 @@ fn main() {
     let robot = Arc::new(k::Chain::from_urdf_file(urdf_path).unwrap());
 
     // Create path planner with loading urdf file and set end link name
-    let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file(urdf_path, robot.clone())
+    let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file(urdf_path)
         .expect("failed to create planner from urdf file")
         .collision_check_margin(0.01)
-        .finalize();
+        .reference_robot(robot.clone())
+        .finalize()
+        .unwrap();
     // Create inverse kinematics solver
     let solver = openrr_planner::JacobianIkSolver::default();
     let solver = openrr_planner::RandomInitializeIkSolver::new(solver, 100);

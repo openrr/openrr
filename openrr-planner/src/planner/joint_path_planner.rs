@@ -270,7 +270,7 @@ pub struct JointPathPlannerBuilder<N>
 where
     N: RealField + Copy + k::SubsetOf<f64>,
 {
-    reference_robot: Arc<k::Chain<N>>,
+    reference_robot: Option<Arc<k::Chain<N>>>,
     robot_collision_detector: RobotCollisionDetector<N>,
     step_length: N,
     max_try: usize,
@@ -286,12 +286,9 @@ where
     /// Create from components
     ///
     /// There are also some utility functions to create from urdf
-    pub fn new(
-        reference_robot: Arc<k::Chain<N>>,
-        robot_collision_detector: RobotCollisionDetector<N>,
-    ) -> Self {
+    pub fn new(robot_collision_detector: RobotCollisionDetector<N>) -> Self {
         JointPathPlannerBuilder {
-            reference_robot,
+            reference_robot: None,
             robot_collision_detector,
             step_length: na::convert(0.1),
             max_try: 5000,
@@ -299,6 +296,11 @@ where
             collision_check_margin: None,
             self_collision_pairs: vec![],
         }
+    }
+
+    pub fn reference_robot(mut self, robot: Arc<k::Chain<N>>) -> Self {
+        self.reference_robot = Some(robot);
+        self
     }
 
     pub fn collision_check_margin(mut self, length: N) -> Self {
@@ -326,47 +328,44 @@ where
         self
     }
 
-    pub fn finalize(mut self) -> JointPathPlanner<N> {
+    pub fn finalize(mut self) -> Result<JointPathPlanner<N>> {
         if let Some(margin) = self.collision_check_margin {
             self.robot_collision_detector.collision_detector.prediction = margin;
         }
-        let mut planner = JointPathPlanner::new(
-            self.reference_robot,
-            self.robot_collision_detector,
-            self.step_length,
-            self.max_try,
-            self.num_smoothing,
-        );
-        planner.robot_collision_detector.self_collision_pairs = self.self_collision_pairs;
-        planner
+
+        match self.reference_robot {
+            Some(robot) => {
+                let mut planner = JointPathPlanner::new(
+                    robot,
+                    self.robot_collision_detector,
+                    self.step_length,
+                    self.max_try,
+                    self.num_smoothing,
+                );
+                planner.robot_collision_detector.self_collision_pairs = self.self_collision_pairs;
+                Ok(planner)
+            }
+            None => Err(Error::ReferenceRobot("JointPathBuilder".to_owned())),
+        }
     }
 
     /// Try to create `JointPathPlannerBuilder` instance from URDF file and end link name
-    pub fn from_urdf_file<P>(
-        file: P,
-        reference_robot: Arc<k::Chain<N>>,
-    ) -> Result<JointPathPlannerBuilder<N>>
+    pub fn from_urdf_file<P>(file: P) -> Result<JointPathPlannerBuilder<N>>
     where
         P: AsRef<Path>,
     {
         let urdf_robot = urdf_rs::utils::read_urdf_or_xacro(file.as_ref())?;
-        Ok(JointPathPlannerBuilder::from_urdf_robot(
-            urdf_robot,
-            reference_robot,
-        ))
+        Ok(JointPathPlannerBuilder::from_urdf_robot(urdf_robot))
     }
 
     /// Try to create `JointPathPlannerBuilder` instance from `urdf_rs::Robot` instance
-    pub fn from_urdf_robot(
-        urdf_robot: urdf_rs::Robot,
-        reference_robot: Arc<k::Chain<N>>,
-    ) -> JointPathPlannerBuilder<N> {
+    pub fn from_urdf_robot(urdf_robot: urdf_rs::Robot) -> JointPathPlannerBuilder<N> {
         let robot = k::Chain::from(&urdf_robot);
         let default_margin = na::convert(0.0);
         let collision_detector = CollisionDetector::from_urdf_robot(&urdf_robot, default_margin);
         let robot_collision_detector =
             RobotCollisionDetector::new(robot, collision_detector, vec![]);
-        JointPathPlannerBuilder::new(reference_robot, robot_collision_detector)
+        JointPathPlannerBuilder::new(robot_collision_detector)
     }
 }
 
@@ -416,14 +415,16 @@ pub fn create_joint_path_planner<P: AsRef<Path>>(
     config: &JointPathPlannerConfig,
     robot: Arc<k::Chain<f64>>,
 ) -> JointPathPlanner<f64> {
-    JointPathPlannerBuilder::from_urdf_file(urdf_path, robot)
+    JointPathPlannerBuilder::from_urdf_file(urdf_path)
         .unwrap()
         .step_length(config.step_length)
         .max_try(config.max_try)
         .num_smoothing(config.num_smoothing)
         .collision_check_margin(config.margin)
         .self_collision_pairs(self_collision_check_pairs)
+        .reference_robot(robot)
         .finalize()
+        .unwrap()
 }
 
 #[cfg(test)]
@@ -433,13 +434,10 @@ mod tests {
     #[test]
     fn from_urdf() {
         let urdf_path = Path::new("sample.urdf");
-        let _planner = JointPathPlannerBuilder::from_urdf_file(
-            urdf_path,
-            Arc::new(k::Chain::from_urdf_file(urdf_path).unwrap()),
-        )
-        .unwrap()
-        .collision_check_margin(0.01)
-        .finalize();
+        let _planner = JointPathPlannerBuilder::from_urdf_file(urdf_path)
+            .unwrap()
+            .collision_check_margin(0.01)
+            .finalize();
     }
 
     #[test]
