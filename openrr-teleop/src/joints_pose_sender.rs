@@ -178,3 +178,209 @@ fn default_mode() -> String {
 fn default_duration_secs() -> f64 {
     2.0
 }
+
+#[cfg(test)]
+mod test {
+    use arci::DummyJointTrajectoryClient;
+    use assert_approx_eq::*;
+    use openrr_client::PrintSpeaker;
+
+    use super::*;
+
+    #[test]
+    fn test_joints_pose_sender_inner() {
+        let joints_poses = vec![
+            JointsPose {
+                pose_name: String::from("pose0"),
+                client_name: String::from("client0"),
+                positions: vec![1.2, 3.4, 5.6],
+            },
+            JointsPose {
+                pose_name: String::from("pose1"),
+                client_name: String::from("client1"),
+                positions: vec![7.8, 9.1, 2.3],
+            },
+        ];
+        let mut inner = JointsPoseSenderInner::new(joints_poses);
+
+        assert_eq!(inner.get_target_name_positions().0, String::from("client0"));
+        assert_approx_eq!(inner.get_target_name_positions().1[0], 1.2f64);
+        assert_approx_eq!(inner.get_target_name_positions().1[1], 3.4f64);
+        assert_approx_eq!(inner.get_target_name_positions().1[2], 5.6f64);
+
+        // Change submode
+        inner.handle_event(GamepadEvent::ButtonPressed(Button::East));
+        assert_eq!(inner.submode, String::from(" client1 pose1"));
+        assert_eq!(inner.pose_index, 1);
+
+        // Case that enable switch is on
+        inner.handle_event(GamepadEvent::ButtonPressed(Button::RightTrigger2));
+        assert!(inner.is_trigger_holding);
+        assert!(!inner.is_sending);
+
+        // Case that enable switch becomes off
+        inner.handle_event(GamepadEvent::ButtonReleased(Button::RightTrigger2));
+        assert!(!inner.is_trigger_holding);
+        assert!(!inner.is_sending);
+
+        // Send pose
+        inner.handle_event(GamepadEvent::ButtonPressed(Button::West));
+        assert!(inner.is_sending);
+
+        // Stop send command
+        inner.handle_event(GamepadEvent::ButtonReleased(Button::West));
+        assert!(!inner.is_sending);
+
+        // Disconnected
+        inner.handle_event(GamepadEvent::Disconnected);
+        assert!(!inner.is_trigger_holding);
+        assert!(!inner.is_sending);
+    }
+
+    #[test]
+    fn test_joints_pose_sender() {
+        let mode = String::from("test_mode");
+        let joints_poses = vec![JointsPose {
+            pose_name: String::from("pose0"),
+            client_name: String::from("client0"),
+            positions: vec![1.2, 3.4, 5.6],
+        }];
+        let joint_names = vec![String::from("test_joint1")];
+        let joint_trajectory_clients = HashMap::from([(
+            String::from("client0"),
+            DummyJointTrajectoryClient::new(joint_names.clone()),
+        )]);
+        let speaker = PrintSpeaker::new();
+        let duration = Duration::from_millis(5);
+
+        let inner = Mutex::new(JointsPoseSenderInner::new(joints_poses.clone()));
+
+        let joints_pose_sender = JointsPoseSender::new(
+            mode.clone(),
+            joints_poses,
+            joint_trajectory_clients,
+            speaker,
+            duration,
+        );
+
+        // Test for generate joints_pose_sender
+        assert_eq!(joints_pose_sender.mode, mode);
+        assert_eq!(
+            format!("{:?}", DummyJointTrajectoryClient::new(joint_names)),
+            format!(
+                "{:?}",
+                joints_pose_sender.joint_trajectory_clients["client0"]
+            )
+        );
+        assert!(duration.eq(&joints_pose_sender.duration));
+        assert_eq!(
+            format!("{:?}", joints_pose_sender.inner.lock().joints_poses),
+            format!("{:?}", inner.lock().joints_poses)
+        );
+
+        // Test fot getting mode of joints_pose_sender
+        let joints_pose_sender_mode = joints_pose_sender.mode();
+        assert_eq!(joints_pose_sender_mode, mode);
+        let submode = joints_pose_sender.submode();
+        assert_eq!(joints_pose_sender.inner.lock().submode, submode);
+    }
+
+    #[tokio::test]
+    async fn test_joints_pose_sender_proc() {
+        let joints_poses = vec![JointsPose {
+            pose_name: String::from("pose0"),
+            client_name: String::from("client0"),
+            positions: vec![1.2, 3.4, 5.6],
+        }];
+        let joint_names = vec![
+            String::from("joint1"),
+            String::from("joint2"),
+            String::from("joint3"),
+        ];
+
+        let joints_pose_sender = JointsPoseSender {
+            mode: String::from("test_mode"),
+            joint_trajectory_clients: HashMap::from([(
+                String::from("client0"),
+                DummyJointTrajectoryClient::new(joint_names.clone()),
+            )]),
+            speaker: PrintSpeaker::new(),
+            duration: Duration::from_millis(5),
+            inner: Mutex::new(JointsPoseSenderInner {
+                joints_poses: joints_poses.clone(),
+                submode: String::from("submode"),
+                pose_index: 0,
+                is_trigger_holding: false,
+                is_sending: false,
+            }),
+        };
+        joints_pose_sender.proc().await;
+
+        let current_state = joints_pose_trajectory_client_current_state(&joints_pose_sender);
+
+        assert_approx_eq!(current_state[0], 0.0);
+        assert_approx_eq!(current_state[1], 0.0);
+        assert_approx_eq!(current_state[2], 0.0);
+
+        let joints_pose_sender = JointsPoseSender {
+            mode: String::from("test_mode"),
+            joint_trajectory_clients: HashMap::from([(
+                String::from("client0"),
+                DummyJointTrajectoryClient::new(joint_names.clone()),
+            )]),
+            speaker: PrintSpeaker::new(),
+            duration: Duration::from_millis(5),
+            inner: Mutex::new(JointsPoseSenderInner {
+                joints_poses: joints_poses.clone(),
+                submode: String::from("submode"),
+                pose_index: 0,
+                is_trigger_holding: true,
+                is_sending: true,
+            }),
+        };
+        joints_pose_sender.proc().await;
+
+        let current_state = joints_pose_trajectory_client_current_state(&joints_pose_sender);
+
+        assert_approx_eq!(current_state[0], 1.2);
+        assert_approx_eq!(current_state[1], 3.4);
+        assert_approx_eq!(current_state[2], 5.6);
+    }
+
+    fn joints_pose_trajectory_client_current_state(
+        joints_pose_sender: &JointsPoseSender<PrintSpeaker, DummyJointTrajectoryClient>,
+    ) -> Vec<f64> {
+        let inner = joints_pose_sender.inner.lock();
+        let (name, target) = inner.get_target_name_positions();
+
+        let client = joints_pose_sender
+            .joint_trajectory_clients
+            .get(&name)
+            .unwrap();
+        let _ = client
+            .send_joint_positions(
+                if inner.is_sending && inner.is_trigger_holding {
+                    target
+                } else {
+                    client.current_joint_positions().unwrap()
+                },
+                joints_pose_sender.duration,
+            )
+            .unwrap();
+
+        joints_pose_sender.joint_trajectory_clients[&name]
+            .current_joint_positions()
+            .unwrap()
+    }
+
+    #[test]
+    fn test_default_mode() {
+        assert_eq!(default_mode(), "pose".to_string());
+    }
+
+    #[test]
+    fn test_default_duration_secs() {
+        let def = default_duration_secs();
+        assert_approx_eq!(def, 2.0f64);
+    }
+}

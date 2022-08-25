@@ -9,6 +9,7 @@ use crate::{
 };
 
 /// Dummy JointTrajectoryClient for debug or tests.
+#[derive(Debug)]
 pub struct DummyJointTrajectoryClient {
     pub joint_names: Vec<String>,
     pub positions: Arc<Mutex<Vec<f64>>>,
