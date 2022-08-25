@@ -556,3 +556,128 @@ fn round_f64(n: f64) -> f64 {
     let n = format!("{n:.2}");
     n.parse().unwrap()
 }
+
+#[cfg(test)]
+mod test {
+    use arci::DummyMoveBase;
+    use assert_approx_eq::assert_approx_eq;
+
+    use super::*;
+
+    #[test]
+    fn test_slider_state() {
+        let name = "slider";
+        let range = RangeInclusive::new(-5., 10.);
+        let mut slider_state = SliderState::new(name, range);
+
+        assert_eq!(slider_state.name, "slider");
+        assert_eq!(slider_state.range, RangeInclusive::new(-5., 10.));
+
+        assert!(slider_state.is_zero());
+
+        slider_state.update_value(-1.0);
+        assert_eq!(slider_state.sign, -1);
+        assert_eq!(slider_state.input, String::from("-1.00"));
+        assert_approx_eq!(slider_state.prev, 0.);
+
+        slider_state.restore_prev(1);
+        assert_approx_eq!(slider_state.value, 0.25);
+        assert_eq!(slider_state.input, String::from("0.25"));
+
+        slider_state.update_value(5.0);
+        assert_eq!(slider_state.sign, 1);
+        assert_eq!(slider_state.input, String::from("5.00"));
+        assert_approx_eq!(slider_state.prev, 0.25);
+    }
+
+    #[test]
+    fn test_error() {
+        let mut errors = Errors {
+            velocity_state: Some((10, String::from("ten"))),
+            other: Some(String::from("other")),
+            update_on_error: true,
+        };
+
+        assert!(!errors.is_none());
+        assert!(errors.skip_update(&Message::RightButtonPressed));
+
+        assert!(!errors.skip_update(&Message::SliderChanged {
+            index: 10,
+            value: 2.
+        }));
+        assert!(!errors.update_on_error);
+    }
+
+    #[test]
+    fn test_velocity_sender() {
+        let move_base = DummyMoveBase::new();
+        let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let theme_path = manifest_dir.join("dark_theme.toml");
+        let theme = Theme::from_file(theme_path).unwrap();
+
+        let velocity_sender = VelocitySender::new(move_base, theme);
+
+        assert_eq!(velocity_sender.velocity_state[0].name, "x");
+        assert_eq!(velocity_sender.velocity_state[0].range, -1.0..=1.0);
+
+        assert_approx_eq!(velocity_sender.current_velocity().x, 0.0);
+        assert_approx_eq!(velocity_sender.current_velocity().y, 0.0);
+        assert_approx_eq!(velocity_sender.current_velocity().theta, 0.0);
+    }
+
+    #[test]
+    fn test_message() {
+        assert_eq!(Message::UpButtonPressed.state_index(), 0);
+        assert_eq!(Message::LeftButtonPressed.state_index(), 1);
+        assert_eq!(Message::CounterclockwiseButtonPressed.state_index(), 2);
+
+        assert_eq!(Message::UpButtonPressed.state_sign(), 1);
+        assert_eq!(Message::DownButtonPressed.state_sign(), -1);
+    }
+
+    #[test]
+    fn test_application() {
+        let move_base = DummyMoveBase::new();
+        let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let theme = Theme::from_file(manifest_dir.join("dark_theme.toml")).unwrap();
+        let velocity_sender = VelocitySender::new(move_base, theme);
+
+        let (mut application, _): (VelocitySender<DummyMoveBase>, Command<Message>) =
+            Application::new(Some(velocity_sender));
+        assert_eq!(application.title(), String::from("Velocity Sender"));
+
+        application.update(Message::SliderChanged {
+            index: 1,
+            value: 0.5,
+        });
+        assert_eq!(application.velocity_state[1].input, String::from("0.50"));
+
+        application.update(Message::SliderTextInputChanged {
+            index: 0,
+            value: String::from("-0.20"),
+        });
+        assert_approx_eq!(application.velocity_state[0].value, -0.2);
+
+        application.update(Message::UpButtonPressed);
+        assert_approx_eq!(application.velocity_state[0].value, 0.25);
+
+        application.update(Message::StopButtonPressed);
+        assert_approx_eq!(application.velocity_state[0].value, 0.0);
+        assert_approx_eq!(application.velocity_state[1].value, 0.0);
+
+        application.update(Message::CheckboxToggled(false));
+        assert!(!application.show_velocity);
+
+        application.update(Message::SliderTextInputChanged {
+            index: 0,
+            value: String::from("one"),
+        });
+        assert!(application.errors.velocity_state.is_some());
+    }
+
+    #[test]
+    fn test_round_f64() {
+        let num = 0.12324;
+        assert_approx_eq!(round_f64(num), 0.12);
+    }
+}

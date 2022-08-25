@@ -25,3 +25,6 @@ rand = "0.8"
 thiserror = "1"
 tracing = { version = "0.1", features = ["log"] }
 urdf-rs = "0.6"
+
+[dev-dependencies]
+assert_approx_eq = "1.1"
