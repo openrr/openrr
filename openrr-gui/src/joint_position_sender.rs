@@ -641,3 +641,285 @@ fn round_f64(n: f64) -> f64 {
     let n = format!("{n:.2}");
     n.parse().unwrap()
 }
+
+#[cfg(test)]
+mod test {
+    use arci::{
+        DummyJointTrajectoryClient, DummyLocalization, DummyMoveBase, DummyNavigation,
+        DummySpeaker, Speaker,
+    };
+    use assert_approx_eq::assert_approx_eq;
+    use openrr_client::OpenrrClientsConfig;
+    use urdf_rs::{Axis, Joint, JointLimit, LinkName, Pose, Robot};
+
+    use super::*;
+
+    #[test]
+    fn test_joint_state() {
+        let mut joint_state = JointState {
+            name: String::from("joint_state"),
+            slider: slider::State::new(),
+            position: 0.,
+            position_input: String::from("0.00"),
+            position_input_state: text_input::State::new(),
+        };
+        joint_state.update_position(1.);
+        assert_approx_eq!(joint_state.position, 1.);
+        assert_eq!(joint_state.position_input, String::from("1.00"));
+    }
+
+    #[test]
+    fn test_joint_map() {
+        let joint = dummy_joint();
+
+        assert_eq!(joint["dummy_joint1"].name, String::from("dummy_joint1"));
+        assert_approx_eq!(joint["dummy_joint1"].limit.lower, -f64::consts::PI);
+        assert_approx_eq!(joint["dummy_joint1"].limit.upper, f64::consts::PI);
+        assert_approx_eq!(joint["dummy_joint2"].limit.upper, 2.7);
+        assert_approx_eq!(joint["dummy_joint1"].limit.effort, 0.2);
+        assert_eq!(
+            joint["dummy_joint1"].child.link,
+            String::from("dummy_child1")
+        );
+        assert_eq!(
+            joint["dummy_joint2"].parent.link,
+            String::from("dummy_parent2")
+        );
+    }
+
+    #[test]
+    fn test_validate_joints() {
+        let joints = dummy_joint();
+
+        let mut raw_joint_trajectory_clients = HashMap::from([(
+            String::from("dummy"),
+            Arc::new(DummyJointTrajectoryClient::new(vec![String::from(
+                "dummy_joint1",
+            )])) as Arc<dyn JointTrajectoryClient>,
+        )]);
+        let speakers = HashMap::from([(
+            String::from("speaker"),
+            Arc::new(DummySpeaker::new()) as Arc<dyn Speaker>,
+        )]);
+
+        let ok_client = dummy_robot_client(raw_joint_trajectory_clients.clone(), speakers.clone());
+
+        raw_joint_trajectory_clients
+            .entry(String::from("err"))
+            .or_insert(Arc::new(DummyJointTrajectoryClient::new(vec![String::from(
+                "no_exist_joint",
+            )])) as Arc<dyn JointTrajectoryClient>);
+
+        let err_client = dummy_robot_client(raw_joint_trajectory_clients, speakers);
+
+        assert!(validate_joints(&joints, &ok_client).is_ok());
+        assert!(validate_joints(&joints, &err_client).is_err());
+    }
+
+    #[test]
+    fn test_error() {
+        let mut errors = Errors {
+            joint_states: Some((10, String::from("ten"))),
+            duration_input: Some(String::from("duration")),
+            other: Some(String::from("option")),
+            update_on_error: false,
+        };
+
+        assert!(!errors.skip_update(&Message::DurationTextInputChanged(String::new())));
+        assert!(!errors.skip_update(&Message::SliderChanged {
+            index: 10,
+            position: 2.
+        }));
+        assert!(!errors.skip_update(&Message::ZeroButtonPressed));
+        assert!(errors.skip_update(&Message::PickListChanged(String::new())));
+        assert!(errors.update_on_error);
+
+        errors.joint_states = None;
+        errors.duration_input = None;
+        assert!(!errors.skip_update(&Message::ZeroButtonPressed));
+        assert!(errors.is_none());
+    }
+
+    #[test]
+    fn test_joint_position_sender() {
+        let raw_joint_trajectory_clients = HashMap::from([(
+            String::from("dummy"),
+            Arc::new(DummyJointTrajectoryClient::new(vec![String::from(
+                "dummy_joint1",
+            )])) as Arc<dyn JointTrajectoryClient>,
+        )]);
+        let speakers = HashMap::from([(
+            String::from("speaker"),
+            Arc::new(DummySpeaker::new()) as Arc<dyn Speaker>,
+        )]);
+
+        let robot_client = dummy_robot_client(raw_joint_trajectory_clients, speakers);
+
+        let joint_position_sender =
+            JointPositionSender::new(robot_client, dummy_joint(), style::theme(None).unwrap())
+                .unwrap();
+
+        assert_eq!(
+            joint_position_sender.current_joint_trajectory_client,
+            String::from("dummy")
+        );
+        assert_approx_eq!(joint_position_sender.duration.as_secs_f64(), 0.1);
+    }
+
+    #[test]
+    fn test_application() {
+        let raw_joint_trajectory_clients = HashMap::from([(
+            String::from("dummy"),
+            Arc::new(DummyJointTrajectoryClient::new(vec![String::from(
+                "dummy_joint1",
+            )])) as Arc<dyn JointTrajectoryClient>,
+        )]);
+        let speakers = HashMap::from([(
+            String::from("speaker"),
+            Arc::new(DummySpeaker::new()) as Arc<dyn Speaker>,
+        )]);
+        let robot_client = dummy_robot_client(raw_joint_trajectory_clients, speakers);
+        let joint_position_sender =
+            JointPositionSender::new(robot_client, dummy_joint(), style::theme(None).unwrap())
+                .unwrap();
+
+        let (mut application, _): (
+            JointPositionSender<DummyLocalization, DummyMoveBase, DummyNavigation>,
+            Command<Message>,
+        ) = Application::new(Some(joint_position_sender));
+        assert_eq!(application.title(), String::from("Joint Position Sender"));
+
+        application.update(Message::RandomizeButtonPressed);
+        assert!(application.joint_states["dummy"][0].position.abs() > 0.0);
+
+        application.update(Message::ZeroButtonPressed);
+        assert_approx_eq!(application.joint_states["dummy"][0].position, 0.0);
+
+        application.update(Message::SliderChanged {
+            index: 0,
+            position: 1.5,
+        });
+        assert_approx_eq!(application.joint_states["dummy"][0].position, 1.5);
+        assert_eq!(
+            application.joint_states["dummy"][0].position_input,
+            String::from("1.50")
+        );
+
+        application.update(Message::SliderTextInputChanged {
+            index: 0,
+            position: String::from("2.72"),
+        });
+        assert_approx_eq!(application.joint_states["dummy"][0].position, 2.72);
+        assert_eq!(
+            application.joint_states["dummy"][0].position_input,
+            String::from("2.72")
+        );
+
+        application.update(Message::SliderTextInputChanged {
+            index: 0,
+            position: String::from("6.28"),
+        });
+        assert!(application.errors.joint_states.is_some());
+
+        application.errors.joint_states = None;
+        application.update(Message::SliderTextInputChanged {
+            index: 0,
+            position: String::from("pi"),
+        });
+        assert!(application.errors.joint_states.is_some());
+
+        application.errors.joint_states = None;
+        application.update(Message::DurationTextInputChanged(String::from("-1e400")));
+        assert!(application.errors.duration_input.is_some());
+
+        application.errors.duration_input = None;
+        application.update(Message::DurationTextInputChanged(String::from("-1")));
+        assert!(application.errors.duration_input.is_some());
+
+        application.update(Message::DurationTextInputChanged(String::from("0.5")));
+        assert!(application.errors.duration_input.is_none());
+
+        application.update(Message::DurationTextInputChanged(String::from("one")));
+        assert!(application.errors.duration_input.is_some());
+    }
+
+    #[test]
+    fn test_round_f64() {
+        let num = 0.12324;
+        assert_approx_eq!(round_f64(num), 0.12);
+    }
+
+    fn dummy_robot_client(
+        raw_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
+        speakers: HashMap<String, Arc<dyn Speaker>>,
+    ) -> RobotClient<DummyLocalization, DummyMoveBase, DummyNavigation> {
+        RobotClient::new(
+            OpenrrClientsConfig::default(),
+            raw_joint_trajectory_clients,
+            speakers,
+            Some(DummyLocalization::new()),
+            Some(DummyMoveBase::new()),
+            Some(DummyNavigation::new()),
+        )
+        .unwrap()
+    }
+
+    fn dummy_joint() -> HashMap<String, Joint> {
+        let robot = Robot {
+            name: String::from("dummy"),
+            links: vec![],
+            joints: vec![
+                Joint {
+                    name: String::from("dummy_joint1"),
+                    joint_type: JointType::Continuous,
+                    origin: Pose {
+                        xyz: [0., 1., 2.],
+                        rpy: [3., 4., 5.],
+                    },
+                    parent: LinkName {
+                        link: String::from("dummy_parent1"),
+                    },
+                    child: LinkName {
+                        link: String::from("dummy_child1"),
+                    },
+                    axis: Axis { xyz: [6., 7., 8.] },
+                    limit: JointLimit {
+                        lower: 0.1,
+                        upper: 2.7,
+                        effort: 0.2,
+                        velocity: 0.3,
+                    },
+                    dynamics: None,
+                    mimic: None,
+                    safety_controller: None,
+                },
+                Joint {
+                    name: String::from("dummy_joint2"),
+                    joint_type: JointType::Revolute,
+                    origin: Pose {
+                        xyz: [1., 1., 2.],
+                        rpy: [3., 4., 5.],
+                    },
+                    parent: LinkName {
+                        link: String::from("dummy_parent2"),
+                    },
+                    child: LinkName {
+                        link: String::from("dummy_child2"),
+                    },
+                    axis: Axis { xyz: [6., 7., 8.] },
+                    limit: JointLimit {
+                        lower: 0.1,
+                        upper: 2.7,
+                        effort: 0.2,
+                        velocity: 0.3,
+                    },
+                    dynamics: None,
+                    mimic: None,
+                    safety_controller: None,
+                },
+            ],
+            materials: vec![],
+        };
+        joint_map(robot)
+    }
+}
