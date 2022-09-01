@@ -44,7 +44,10 @@ pub enum RobotCommand {
         /// If you use this flag, joint values are not used as references but used in forward kinematics.
         #[clap(name = "interpolate", short, long)]
         use_interpolation: bool,
-        #[clap(short, parse(try_from_str = parse_joints))]
+        /// Specify joint parameters.
+        /// Like `--joint 0=1.2`.
+        /// In accordance with the sequence in which the "joint names" are defined in the configuration, they are numbered starting at 0.
+        #[clap(short, parse(try_from_str = parse_joints), long)]
         joint: Vec<(usize, f64)>,
         #[clap(long, default_value = "0.05")]
         max_resolution_for_interpolation: f64,
