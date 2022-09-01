@@ -77,3 +77,42 @@ fn play_audio_file(path: &Path) -> Result<WaitFuture, Error> {
             .map_err(|e| arci::Error::Other(e.into()))
     }))
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_audio_speaker_new() {
+        let audio_speaker = AudioSpeaker::new(HashMap::from([(
+            String::from("name"),
+            PathBuf::from("path"),
+        )]));
+        assert_eq!(
+            audio_speaker.message_to_file_path["name"],
+            PathBuf::from("path")
+        );
+    }
+
+    #[test]
+    fn test_audio_speaker_speak() {
+        let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let root_dir = manifest_dir.parent().unwrap();
+        let audio_path = root_dir.join("openrr-apps/audio/sine.mp3");
+        let audio_speaker = AudioSpeaker::new(HashMap::from([(String::from("name"), audio_path)]));
+
+        assert!(audio_speaker.speak("name").is_ok());
+        assert!(audio_speaker.speak("not_exist").is_err());
+    }
+
+    #[test]
+    fn test_play_audio_file() {
+        let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let root_dir = manifest_dir.parent().unwrap();
+        let audio_path = root_dir.join("openrr-apps/audio/sine.mp3");
+        let fake_path = root_dir.join("fake/audio/sine.mp3");
+
+        assert!(play_audio_file(&audio_path).is_ok());
+        assert!(play_audio_file(&fake_path).is_err());
+    }
+}
