@@ -81,3 +81,17 @@ fn run_local_command(message: &str) -> io::Result<()> {
         ))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_local_command() {
+        let local_command = LocalCommand::new();
+
+        let wait = local_command.speak("message");
+
+        assert!(wait.is_ok());
+    }
+}
