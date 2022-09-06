@@ -39,3 +39,36 @@ pub fn find_nodes(joint_names: &[String], chain: &k::Chain<f64>) -> Option<Vec<k
     }
     Some(nodes)
 }
+
+#[cfg(test)]
+mod test {
+    use k::{Chain, Joint, JointType, Node};
+
+    use super::*;
+
+    #[test]
+    fn test_wait_joint_positions() {
+        let client = DummyJointTrajectoryClient::new(vec![String::from("joint")]);
+        let target = [1f64];
+        let timeout = std::time::Duration::from_millis(1000);
+        let allowable_total_diff = 10.;
+        let impossible_total_diff = 0.01;
+        assert!(wait_joint_positions(&client, &target, timeout, allowable_total_diff).is_ok());
+        assert!(wait_joint_positions(&client, &target, timeout, impossible_total_diff).is_err());
+    }
+
+    #[test]
+    fn test_find_nodes() {
+        let joint_names = [String::from("joint")];
+        let fake_joint_names = [String::from("fake_joint")];
+        let chain: Chain<f64> = Chain::from_nodes(vec![Node::new(Joint::new(
+            "joint",
+            JointType::Linear {
+                axis: Vector3::y_axis(),
+            },
+        ))]);
+
+        assert!(find_nodes(&joint_names, &chain).is_some());
+        assert!(find_nodes(&fake_joint_names, &chain).is_none());
+    }
+}
