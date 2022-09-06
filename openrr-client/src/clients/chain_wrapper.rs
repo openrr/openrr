@@ -60,3 +60,43 @@ impl JointTrajectoryClient for ChainWrapper {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::time::Duration;
+
+    use arci::{TrajectoryPoint, Vector3};
+    use assert_approx_eq::assert_approx_eq;
+    use k::{Joint, JointType, Node};
+
+    use super::*;
+
+    #[test]
+    fn test_chain_wrapper() {
+        let chain_wrapper = ChainWrapper::new(
+            vec![String::from("joint")],
+            Arc::new(k::Chain::from_nodes(vec![Node::new(Joint::new(
+                "joint",
+                JointType::Linear {
+                    axis: Vector3::y_axis(),
+                },
+            ))])),
+        );
+
+        assert_eq!(chain_wrapper.joint_names(), vec![String::from("joint")]);
+
+        let _ = chain_wrapper
+            .send_joint_positions(vec![1.0], Duration::from_secs(1))
+            .unwrap();
+        assert_approx_eq!(chain_wrapper.current_joint_positions().unwrap()[0], 1.0);
+
+        let _ = chain_wrapper
+            .send_joint_trajectory(vec![TrajectoryPoint {
+                positions: vec![1.5],
+                velocities: Some(vec![1.0]),
+                time_from_start: Duration::from_secs(1),
+            }])
+            .unwrap();
+        assert_approx_eq!(chain_wrapper.current_joint_positions().unwrap()[0], 1.5);
+    }
+}
