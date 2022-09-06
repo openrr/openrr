@@ -45,11 +45,11 @@ pub enum ClientKind {
     Auto(bool),
 }
 
-#[cfg(feature = "ros")]
 impl ClientKind {
     /// Returns true if the use of the ros client is explicitly specified.
     ///
     /// This is always false when ros feature is disabled. (ensured by validate_ros_config)
+    #[cfg(feature = "ros")]
     fn is_builtin_ros(&self) -> bool {
         matches!(self, Self::Builtin(BuiltinClient::Ros))
     }
@@ -347,12 +347,15 @@ pub struct RobotConfig {
     /// Speakers to be used.
     pub speakers: Option<Vec<String>>,
     /// Localization to be used. `"ros"`, `"urdf-viz"`, `false`, or plugin instance name.
+    #[serde(skip_serializing_if = "ClientKind::is_auto")]
     #[serde(default)]
     pub localization: ClientKind,
     /// MoveBase to be used. `"ros"`, `"urdf-viz"`, `false`, or plugin instance name.
+    #[serde(skip_serializing_if = "ClientKind::is_auto")]
     #[serde(default)]
     pub move_base: ClientKind,
     /// Navigation to be used. `"ros"`, `"urdf-viz"`, `false`, or plugin instance name.
+    #[serde(skip_serializing_if = "ClientKind::is_auto")]
     #[serde(default)]
     pub navigation: ClientKind,
 
