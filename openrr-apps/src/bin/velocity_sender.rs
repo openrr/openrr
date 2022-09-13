@@ -19,8 +19,7 @@ struct Opt {
     #[clap(long)]
     config: Option<String>,
     // For developing GUI (enabling hot reloading of theme)
-    #[doc(hidden)]
-    #[clap(long)]
+    #[clap(long, hide = true)]
     theme: Option<PathBuf>,
 }
 
