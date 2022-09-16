@@ -121,17 +121,7 @@ jobs:
           # Swatinem/rust-cache does not recognize the matrix.
           key: ros1_openrr_apps-${{ matrix.distro }}
       - run: ci/ubuntu-setup-lld.sh
-      # See ci/ubuntu-install-dependencies.sh
-      - run: |
-          sudo apt-get update
-          sudo apt-get install -y --allow-downgrades \
-            libudev1=237-3ubuntu10.53 \
-            libudev-dev=237-3ubuntu10.53 \
-            libasound2-dev \
-            libxkbcommon-dev
-        if: matrix.distro == 'melodic'
       - run: ci/ubuntu-install-dependencies.sh
-        if: matrix.distro != 'melodic'
       - name: cargo test
         shell: bash -ieo pipefail {0}
         working-directory: openrr-apps
