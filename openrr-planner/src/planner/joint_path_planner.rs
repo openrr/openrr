@@ -36,7 +36,7 @@ where
     /// Robot for reference (read only and assumed to hold the latest full states)
     reference_robot: Arc<k::Chain<N>>,
     /// Robot collision detector
-    pub robot_collision_detector: RobotCollisionDetector<N>,
+    robot_collision_detector: RobotCollisionDetector<N>,
     /// Unit length for searching
     ///
     /// If the value is large, the path become sparse.
@@ -262,6 +262,23 @@ where
             .iter_joints()
             .map(|j| j.name.clone())
             .collect()
+    }
+
+    // Get the robot model used for collision checking
+    pub fn collision_check_robot(&self) -> &k::Chain<N> {
+        &self.robot_collision_detector.robot
+    }
+
+    /// Get names of links colliding with environmental objects
+    /// objects: environmental objects
+    pub fn env_collision_link_names(&self, objects: &Compound<N>) -> Vec<String> {
+        self.robot_collision_detector
+            .env_collision_link_names(objects)
+    }
+
+    /// Get names of self-colliding links
+    pub fn self_collision_link_pairs(&self) -> Vec<(String, String)> {
+        self.robot_collision_detector.self_collision_link_pairs()
     }
 }
 

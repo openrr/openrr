@@ -35,13 +35,14 @@ struct CollisionAvoidApp {
     colliding_link_names: Vec<String>,
     viewer: urdf_viz::Viewer,
     window: Option<Window>,
+    // a movable robot chain; a part of reference_robot
     arm: k::SerialChain<f64>,
     end_link_name: String,
     ignore_rotation_x: bool,
     ignore_rotation_y: bool,
     ignore_rotation_z: bool,
-    self_collision_pairs: Vec<(String, String)>,
     urdf_robot: Robot,
+    // a robot model behaving as a real robot
     reference_robot: Arc<k::Chain<f64>>,
 }
 
@@ -60,6 +61,7 @@ impl CollisionAvoidApp {
             .unwrap()
             .collision_check_margin(0.01f64)
             .reference_robot(reference_robot.clone())
+            .self_collision_pairs(self_collision_pairs)
             .finalize()
             .unwrap();
         let solver = openrr_planner::JacobianIkSolver::new(0.001f64, 0.005, 0.2, 100);
@@ -75,15 +77,9 @@ impl CollisionAvoidApp {
             urdf_rs::utils::read_urdf_or_xacro(obstacle_path).expect("obstacle file not found");
         let obstacles = Compound::from_urdf_robot(&urdf_obstacles);
         viewer.add_robot(&mut window, &urdf_obstacles);
-        println!(
-            "robot={}",
-            planner.path_planner.robot_collision_detector.robot
-        );
+        println!("robot={}", *reference_robot);
         let arm = {
-            let end_link = planner
-                .path_planner
-                .robot_collision_detector
-                .robot
+            let end_link = reference_robot
                 .find(end_link_name)
                 .unwrap_or_else(|| panic!("{end_link_name} not found"));
             k::SerialChain::from_end(end_link)
@@ -103,27 +99,15 @@ impl CollisionAvoidApp {
             ignore_rotation_x,
             ignore_rotation_y,
             ignore_rotation_z,
-            self_collision_pairs,
             urdf_robot,
             reference_robot,
         }
     }
 
     fn update_robot(&mut self) {
-        // update the reference robot
-        self.reference_robot.set_joint_positions_clamped(
-            &self
-                .planner
-                .path_planner
-                .robot_collision_detector
-                .robot
-                .joint_positions(),
-        );
-        self.reference_robot.update_transforms();
-
         // update the visualized robot
         // the following re-assignment is hack to handle invalid mimic joints
-        let robot = &self.planner.path_planner.robot_collision_detector.robot;
+        let robot = &self.reference_robot;
         let ja = robot.joint_positions();
         robot.set_joint_positions_clamped(&ja);
         robot.update_transforms();
@@ -291,16 +275,8 @@ impl CollisionAvoidApp {
                         }
                         Key::S => {
                             self.reset_colliding_link_colors();
-                            let pairs: Vec<_> = self
-                                .planner
-                                .path_planner
-                                .robot_collision_detector
-                                .collision_detector
-                                .detect_self(
-                                    &self.planner.path_planner.robot_collision_detector.robot,
-                                    &self.self_collision_pairs,
-                                )
-                                .collect();
+                            let pairs: Vec<_> =
+                                self.planner.path_planner.self_collision_link_pairs();
                             self.colliding_link_names.clear();
                             for p in pairs {
                                 self.colliding_link_names.push(p.0);
@@ -322,8 +298,7 @@ impl CollisionAvoidApp {
                                 None,
                                 is_collide_show,
                             );
-                            self.viewer
-                                .update(&self.planner.path_planner.robot_collision_detector.robot);
+                            self.viewer.update(&self.reference_robot);
                         }
                         Key::X => {
                             println!("start reachable region calculation");

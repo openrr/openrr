@@ -86,9 +86,7 @@ where
     }
 
     pub fn colliding_link_names(&self, objects: &Compound<T>) -> Vec<String> {
-        self.path_planner
-            .robot_collision_detector
-            .env_collision_link_names(objects)
+        self.path_planner.env_collision_link_names(objects)
     }
 
     /// Solve IK and get the path to the final joint positions
@@ -118,8 +116,7 @@ where
 
         let end_link = self
             .path_planner
-            .robot_collision_detector
-            .robot
+            .collision_check_robot()
             .find(target_name)
             .ok_or_else(|| Error::NotFound(target_name.to_owned()))?;
         let arm = k::SerialChain::from_end(end_link);
