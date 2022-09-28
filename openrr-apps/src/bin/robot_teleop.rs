@@ -200,10 +200,10 @@ mod tests {
     #[test]
     fn parse_args() {
         let bin = env!("CARGO_BIN_NAME");
-        assert!(RobotTeleopArgs::try_parse_from(&[bin]).is_ok());
-        assert!(RobotTeleopArgs::try_parse_from(&[bin, "--show-default-config"]).is_ok());
-        assert!(RobotTeleopArgs::try_parse_from(&[bin, "--config-path", "path"]).is_ok());
-        assert!(RobotTeleopArgs::try_parse_from(&[
+        assert!(RobotTeleopArgs::try_parse_from([bin]).is_ok());
+        assert!(RobotTeleopArgs::try_parse_from([bin, "--show-default-config"]).is_ok());
+        assert!(RobotTeleopArgs::try_parse_from([bin, "--config-path", "path"]).is_ok());
+        assert!(RobotTeleopArgs::try_parse_from([
             bin,
             "--show-default-config",
             "--config-path",
