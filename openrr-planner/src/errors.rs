@@ -67,6 +67,8 @@ pub enum Error {
     ParseError(String),
     #[error("Mesh error {}", .0)]
     MeshError(String),
+    #[error("Reference robot is not set to {}", .0)]
+    ReferenceRobot(String),
 }
 
 /// Result for `openrr_planner`

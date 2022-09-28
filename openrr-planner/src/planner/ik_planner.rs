@@ -47,10 +47,13 @@ where
     ///
     /// ```
     /// // Create path planner with loading urdf file and set end link name
+    /// let robot = k::Chain::from_urdf_file("sample.urdf").unwrap();
     /// let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file("sample.urdf")
     ///     .unwrap()
     ///     .collision_check_margin(0.01)
-    ///     .finalize();
+    ///     .reference_robot(std::sync::Arc::new(robot))
+    ///     .finalize()
+    ///     .unwrap();
     /// // Create inverse kinematics solver
     /// let solver = openrr_planner::JacobianIkSolver::default();
     /// // Create path planner with IK solver
@@ -111,7 +114,9 @@ where
         objects: &Compound<T>,
         constraints: &k::Constraints,
     ) -> Result<Vec<Vec<T>>> {
-        let end_link: &k::Node<T> = self
+        self.path_planner.sync_joint_positions_with_reference();
+
+        let end_link = self
             .path_planner
             .robot_collision_detector
             .robot
@@ -119,22 +124,27 @@ where
             .ok_or_else(|| Error::NotFound(target_name.to_owned()))?;
         let arm = k::SerialChain::from_end(end_link);
         let initial = arm.joint_positions();
+        let using_joint_names = arm
+            .iter_joints()
+            .map(|j| j.name.clone())
+            .collect::<Vec<String>>();
         self.ik_solver
             .solve_with_constraints(&arm, target_pose, constraints)?;
         let goal = arm.joint_positions();
-        self.path_planner.plan(&arm, &initial, &goal, objects)
+        self.path_planner
+            .plan(using_joint_names.as_slice(), &initial, &goal, objects)
     }
 
     /// Do not solve IK but get the path to the target joint positions
     pub fn plan_joints<K>(
         &mut self,
-        use_joints: &k::Chain<T>,
+        using_joint_names: &[String],
         start_angles: &[T],
         goal_angles: &[T],
         objects: &Compound<T>,
     ) -> Result<Vec<Vec<T>>> {
         self.path_planner
-            .plan(use_joints, start_angles, goal_angles, objects)
+            .plan(using_joint_names, start_angles, goal_angles, objects)
     }
 
     /// Calculate the transforms of all of the links

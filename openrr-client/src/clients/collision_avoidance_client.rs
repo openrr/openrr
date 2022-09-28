@@ -69,7 +69,7 @@ where
         let current = self.using_joints.joint_positions();
         let traj = self
             .planner
-            .plan_avoid_self_collision(&self.using_joints, &current, &positions)
+            .plan_avoid_self_collision(&self.joint_names(), &current, &positions)
             .map_err(|e| Error::Other(e.into()))?;
         self.client
             .send_joint_trajectory(trajectory_from_positions(&traj, duration))
@@ -84,7 +84,7 @@ where
         let current = self.using_joints.joint_positions();
         let positions = self
             .planner
-            .plan_avoid_self_collision(&self.using_joints, &current, &trajectory[0].positions)
+            .plan_avoid_self_collision(&self.joint_names(), &current, &trajectory[0].positions)
             .map_err(|e| Error::Other(e.into()))?;
         let mut trajs = trajectory_from_positions(&positions, trajectory[0].time_from_start);
 
@@ -92,7 +92,7 @@ where
             let positions = self
                 .planner
                 .plan_avoid_self_collision(
-                    &self.using_joints,
+                    &self.joint_names(),
                     &trajectory[i - 1].positions,
                     &trajectory[i].positions,
                 )
@@ -111,11 +111,13 @@ pub fn create_collision_avoidance_client<P: AsRef<Path>>(
     self_collision_check_pairs: Vec<(String, String)>,
     joint_path_planner_config: &JointPathPlannerConfig,
     client: Arc<dyn JointTrajectoryClient>,
+    reference_robot: Arc<k::Chain<f64>>,
 ) -> CollisionAvoidanceClient<Arc<dyn JointTrajectoryClient>> {
     let planner = create_joint_path_planner(
         urdf_path,
         self_collision_check_pairs,
         joint_path_planner_config,
+        reference_robot,
     );
 
     let nodes = planner
@@ -155,6 +157,7 @@ mod tests {
             vec![("root".to_owned(), "l_shoulder_roll".to_owned())],
             &JointPathPlannerConfig::default(),
             Arc::new(client),
+            robot,
         );
 
         assert_eq!(
