@@ -121,8 +121,7 @@ pub fn create_collision_avoidance_client<P: AsRef<Path>>(
     );
 
     let nodes = planner
-        .robot_collision_detector
-        .robot
+        .collision_check_robot()
         .iter()
         .map(|node| (*node).clone())
         .collect();
