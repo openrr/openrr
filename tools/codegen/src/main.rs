@@ -98,7 +98,7 @@ fn header() -> String {
 fn write(path: &Path, contents: TokenStream) -> Result<()> {
     let mut out = header().into_bytes();
     out.extend_from_slice(prettyplease::unparse(&syn::parse2(contents).unwrap()).as_bytes());
-    if path.is_file() && fs::read(&path)? == out {
+    if path.is_file() && fs::read(path)? == out {
         return Ok(());
     }
     fs::write(path, out)?;

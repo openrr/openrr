@@ -56,7 +56,7 @@ impl CollisionAvoidApp {
         self_collision_pairs: Vec<(String, String)>,
     ) -> Self {
         let reference_robot = Arc::new(k::Chain::from_urdf_file(robot_path).unwrap());
-        let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file(&robot_path)
+        let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file(robot_path)
             .unwrap()
             .collision_check_margin(0.01f64)
             .reference_robot(reference_robot.clone())
@@ -67,7 +67,7 @@ impl CollisionAvoidApp {
         let planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);
         let (mut viewer, mut window) = urdf_viz::Viewer::new("openrr_planner: example reach");
         let urdf_robot =
-            urdf_rs::utils::read_urdf_or_xacro(&robot_path).expect("robot file not found");
+            urdf_rs::utils::read_urdf_or_xacro(robot_path).expect("robot file not found");
         viewer.add_robot_with_base_dir(&mut window, &urdf_robot, robot_path.parent());
         viewer.add_axis_cylinders(&mut window, "origin", 1.0);
 

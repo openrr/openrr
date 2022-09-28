@@ -88,8 +88,7 @@ where
             ik_solvers,
         ) = if let Some(urdf_full_path) = config.urdf_full_path() {
             debug!("Loading {urdf_full_path:?}");
-            let full_chain_for_collision_checker =
-                Arc::new(Chain::from_urdf_file(&urdf_full_path)?);
+            let full_chain_for_collision_checker = Arc::new(Chain::from_urdf_file(urdf_full_path)?);
 
             let collision_check_clients = create_collision_check_clients(
                 urdf_full_path,

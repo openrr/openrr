@@ -117,10 +117,10 @@ mod tests {
     #[test]
     fn parse_args() {
         let bin = env!("CARGO_BIN_NAME");
-        assert!(RobotCommandArgs::try_parse_from(&[bin]).is_ok());
-        assert!(RobotCommandArgs::try_parse_from(&[bin, "--show-default-config"]).is_ok());
-        assert!(RobotCommandArgs::try_parse_from(&[bin, "--config-path", "path", "list"]).is_ok());
-        assert!(RobotCommandArgs::try_parse_from(&[
+        assert!(RobotCommandArgs::try_parse_from([bin]).is_ok());
+        assert!(RobotCommandArgs::try_parse_from([bin, "--show-default-config"]).is_ok());
+        assert!(RobotCommandArgs::try_parse_from([bin, "--config-path", "path", "list"]).is_ok());
+        assert!(RobotCommandArgs::try_parse_from([
             bin,
             "--show-default-config",
             "--config-path",
@@ -158,7 +158,7 @@ mod tests {
             let config_path_arg = "--config-path=".to_string() + config_path.to_str().unwrap();
             let sample_command_path = manifest_dir.join(command_path);
 
-            let sample_command = RobotCommandArgs::try_parse_from(&[
+            let sample_command = RobotCommandArgs::try_parse_from([
                 bin,
                 config_path_arg.as_str(),
                 "load_commands",

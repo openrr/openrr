@@ -293,7 +293,7 @@ struct TestClientConfig {
     }
 
     let status = Command::new("cargo")
-        .args(&["build", "--release", "--manifest-path"])
+        .args(["build", "--release", "--manifest-path"])
         .arg(&tmpdir_path.join("Cargo.toml"))
         .status()?;
     assert!(status.success());
