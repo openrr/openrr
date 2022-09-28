@@ -126,7 +126,7 @@ where
         goal_angles: &[N],
         objects: &Compound<N>,
     ) -> Result<Vec<Vec<N>>> {
-        self.sync_joint_positions();
+        self.sync_joint_positions_with_reference();
 
         let using_joints = self.create_chain_from_names(using_joint_names)?;
         let limits = using_joints.iter_joints().map(|j| j.limits).collect();
@@ -195,7 +195,7 @@ where
         start_angles: &[N],
         goal_angles: &[N],
     ) -> Result<Vec<Vec<N>>> {
-        self.sync_joint_positions();
+        self.sync_joint_positions_with_reference();
 
         let using_joints = self.create_chain_from_names(using_joint_names)?;
         let limits = using_joints.iter_joints().map(|j| j.limits).collect();
@@ -244,7 +244,7 @@ where
     }
 
     /// Synchronize joint positions of the planning robot model with the reference robot
-    pub fn sync_joint_positions(&self) {
+    pub fn sync_joint_positions_with_reference(&self) {
         self.robot_collision_detector
             .robot
             .set_joint_positions_clamped(self.reference_robot.joint_positions().as_slice());

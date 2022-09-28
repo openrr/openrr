@@ -114,7 +114,7 @@ where
         objects: &Compound<T>,
         constraints: &k::Constraints,
     ) -> Result<Vec<Vec<T>>> {
-        self.path_planner.sync_joint_positions();
+        self.path_planner.sync_joint_positions_with_reference();
 
         let end_link = self
             .path_planner
