@@ -154,6 +154,7 @@ pub struct RobotCommandExecutor {}
 
 impl RobotCommandExecutor {
     #[async_recursion]
+    #[allow(clippy::only_used_in_recursion)]
     pub async fn execute<L, M, N>(
         &self,
         client: &RobotClient<L, M, N>,
