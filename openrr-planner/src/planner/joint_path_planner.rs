@@ -100,8 +100,7 @@ where
         let nodes = using_joint_names
             .iter()
             .map(|joint_name| {
-                self.robot_collision_detector
-                    .robot
+                self.collision_check_robot()
                     .find(joint_name)
                     .ok_or_else(|| Error::NotFound(joint_name.to_owned()))
                     .unwrap()
@@ -135,18 +134,14 @@ where
         let current_angles = using_joints.joint_positions();
 
         if !self.is_feasible(&using_joints, start_angles, objects) {
-            let collision_link_names = self
-                .robot_collision_detector
-                .env_collision_link_names(objects);
+            let collision_link_names = self.env_collision_link_names(objects);
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::Collision {
                 point: UnfeasibleTrajectory::StartPoint,
                 collision_link_names,
             });
         } else if !self.is_feasible(&using_joints, goal_angles, objects) {
-            let collision_link_names = self
-                .robot_collision_detector
-                .env_collision_link_names(objects);
+            let collision_link_names = self.env_collision_link_names(objects);
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::Collision {
                 point: UnfeasibleTrajectory::GoalPoint,
@@ -204,14 +199,14 @@ where
         let current_angles = using_joints.joint_positions();
 
         if !self.is_feasible_with_self(&using_joints, start_angles) {
-            let collision_link_names = self.robot_collision_detector.self_collision_link_pairs();
+            let collision_link_names = self.self_collision_link_pairs();
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::SelfCollision {
                 point: UnfeasibleTrajectory::StartPoint,
                 collision_link_names,
             });
         } else if !self.is_feasible_with_self(&using_joints, goal_angles) {
-            let collision_link_names = self.robot_collision_detector.self_collision_link_pairs();
+            let collision_link_names = self.self_collision_link_pairs();
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::SelfCollision {
                 point: UnfeasibleTrajectory::GoalPoint,
@@ -245,20 +240,18 @@ where
 
     /// Synchronize joint positions of the planning robot model with the reference robot
     pub fn sync_joint_positions_with_reference(&self) {
-        self.robot_collision_detector
-            .robot
+        self.collision_check_robot()
             .set_joint_positions_clamped(self.reference_robot.joint_positions().as_slice());
     }
 
     /// Calculate the transforms of all of the links
     pub fn update_transforms(&self) -> Vec<na::Isometry3<N>> {
-        self.robot_collision_detector.robot.update_transforms()
+        self.collision_check_robot().update_transforms()
     }
 
     /// Get the names of the links
     pub fn joint_names(&self) -> Vec<String> {
-        self.robot_collision_detector
-            .robot
+        self.collision_check_robot()
             .iter_joints()
             .map(|j| j.name.clone())
             .collect()
