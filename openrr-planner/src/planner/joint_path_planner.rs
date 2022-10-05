@@ -447,6 +447,7 @@ pub fn create_joint_path_planner<P: AsRef<Path>>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::collision::create_all_collision_pairs;
 
     #[test]
     fn from_urdf() {
@@ -460,11 +461,77 @@ mod tests {
     #[test]
     fn test_create_joint_path_planner() {
         let urdf_path = Path::new("sample.urdf");
-        let _planner = create_joint_path_planner(
+        let robot = k::Chain::from_urdf_file(urdf_path).unwrap();
+        let planner = create_joint_path_planner(
             urdf_path,
-            vec![("root".into(), "l_shoulder_roll".into())],
+            create_all_collision_pairs(&robot),
             &JointPathPlannerConfig::default(),
-            Arc::new(k::Chain::from_urdf_file(urdf_path).unwrap()),
+            Arc::new(robot),
         );
+
+        let l_shoulder_yaw_node = planner
+            .collision_check_robot()
+            .find("l_shoulder_yaw")
+            .unwrap();
+        let using_joints = k::SerialChain::from_end(l_shoulder_yaw_node);
+        let using_joint_names = using_joints
+            .iter_joints()
+            .map(|j| j.name.to_owned())
+            .collect::<Vec<String>>();
+
+        assert!(planner
+            .plan_avoid_self_collision(using_joint_names.as_slice(), &[0.0], &[0.0],)
+            .is_ok());
+        // an error occurs in the start
+        assert!(planner
+            .plan_avoid_self_collision(using_joint_names.as_slice(), &[1.57], &[0.0],)
+            .is_err());
+        // an error occurs in the goal
+        assert!(planner
+            .plan_avoid_self_collision(using_joint_names.as_slice(), &[0.0], &[1.57],)
+            .is_err());
+    }
+
+    // This test potentially fails because of RRT-based planning,
+    // i.e. the success rate is not 100%.
+    // Therefore, this test is treated as a `flaky test`.
+    #[flaky_test::flaky_test]
+    fn test_plan_avoid_self_collision() {
+        let urdf_path = Path::new("sample.urdf");
+        let robot = k::Chain::from_urdf_file(urdf_path).unwrap();
+
+        // cross the arms only by moving the right arm
+        k::SerialChain::from_end(robot.find("r_tool_fixed").unwrap())
+            .set_joint_positions_clamped(&[0.9, 0.0, 0.0, 0.0, 0.67, 0.0]);
+
+        let planner = create_joint_path_planner(
+            urdf_path,
+            create_all_collision_pairs(&robot),
+            &JointPathPlannerConfig::default(),
+            Arc::new(robot),
+        );
+
+        let l_tool_node = planner
+            .collision_check_robot()
+            .find("l_tool_fixed")
+            .unwrap();
+        let using_joints = k::SerialChain::from_end(l_tool_node);
+        let using_joint_names = using_joints
+            .iter_joints()
+            .map(|j| j.name.to_owned())
+            .collect::<Vec<String>>();
+
+        // an error occurs since the arms collide
+        assert!(planner
+            .plan_avoid_self_collision(using_joint_names.as_slice(), &[0.0; 6], &[0.0; 6],)
+            .is_err());
+        // the planner PROBABLY generates a trajectory avoiding self-collisions
+        assert!(planner
+            .plan_avoid_self_collision(
+                using_joint_names.as_slice(),
+                &[0.0, -0.3, 0.0, 0.0, 0.0, 0.0],
+                &[0.0, 0.3, 0.0, 0.0, 0.0, 0.0],
+            )
+            .is_ok());
     }
 }
