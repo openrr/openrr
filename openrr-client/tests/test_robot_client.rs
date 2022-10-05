@@ -175,6 +175,10 @@ fn new_joint_client(
 urdf_path = "{}/openrr-planner/sample.urdf"
 self_collision_check_pairs = ["l_shoulder_yaw:l_gripper_linear1"]
 
+[[collision_avoidance_clients_configs]]
+name = "arm_collision_avoidance"
+client_name = "arm"
+
 [[collision_check_clients_configs]]
 name = "arm_collision_checked"
 client_name = "arm"
@@ -304,6 +308,9 @@ fn test_manipulation_accessors() {
     let hash_joint_trajectory_clients = client.joint_trajectory_clients();
     assert_eq!(hash_joint_trajectory_clients.keys().len(), 3);
 
+    let hash_collision_avoidance_clients = client.collision_avoidance_clients();
+    assert_eq!(hash_collision_avoidance_clients.keys().len(), 1);
+
     let hash_collision_checkers = client.self_collision_checkers();
     assert_eq!(hash_collision_checkers.keys().len(), 1);
 
@@ -312,6 +319,9 @@ fn test_manipulation_accessors() {
 
     let hash_ik_clients = client.ik_clients();
     assert_eq!(hash_ik_clients.keys().len(), 1);
+
+    let collision_avoidance_clients_names = client.collision_avoidance_clients_names();
+    assert_eq!(collision_avoidance_clients_names.len(), 1);
 
     let collision_check_names = client.collision_check_clients_names();
     assert_eq!(collision_check_names.len(), 1);
