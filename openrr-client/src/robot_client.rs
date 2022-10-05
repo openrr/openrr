@@ -10,16 +10,21 @@ use arci::{
     Localization, MoveBase, Navigation, Speaker, WaitFuture,
 };
 use k::{nalgebra::Isometry2, Chain, Isometry3};
-use openrr_planner::{SelfCollisionChecker, SelfCollisionCheckerConfig};
+use openrr_planner::{
+    collision::parse_colon_separated_pairs, JointPathPlannerConfig, SelfCollisionChecker,
+    SelfCollisionCheckerConfig,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::{
-    create_collision_check_client, create_ik_solver_with_chain, CollisionCheckClient, Error,
-    IkClient, IkSolverConfig, IkSolverWithChain,
+    create_collision_avoidance_client, create_collision_check_client, create_ik_solver_with_chain,
+    CollisionAvoidanceClient, CollisionCheckClient, Error, IkClient, IkSolverConfig,
+    IkSolverWithChain,
 };
 
+type ArcCollisionAvoidanceClient = Arc<CollisionAvoidanceClient<Arc<dyn JointTrajectoryClient>>>;
 type ArcIkClient = Arc<IkClient<Arc<dyn JointTrajectoryClient>>>;
 pub type ArcRobotClient =
     RobotClient<Arc<dyn Localization>, Arc<dyn MoveBase>, Arc<dyn Navigation>>;
@@ -37,6 +42,7 @@ where
     full_chain_for_collision_checker: Option<Arc<Chain<f64>>>,
     raw_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
     all_joint_trajectory_clients: HashMap<String, Arc<dyn JointTrajectoryClient>>,
+    collision_avoidance_clients: HashMap<String, ArcCollisionAvoidanceClient>,
     collision_check_clients:
         HashMap<String, Arc<CollisionCheckClient<Arc<dyn JointTrajectoryClient>>>>,
     ik_clients: HashMap<String, ArcIkClient>,
@@ -82,6 +88,7 @@ where
 
         let (
             full_chain_for_collision_checker,
+            collision_avoidance_clients,
             collision_check_clients,
             ik_clients,
             self_collision_checkers,
@@ -89,6 +96,14 @@ where
         ) = if let Some(urdf_full_path) = config.urdf_full_path() {
             debug!("Loading {urdf_full_path:?}");
             let full_chain_for_collision_checker = Arc::new(Chain::from_urdf_file(urdf_full_path)?);
+
+            let collision_avoidance_clients = create_collision_avoidance_clients(
+                urdf_full_path,
+                &config.self_collision_check_pairs,
+                &config.collision_avoidance_clients_configs,
+                &all_joint_trajectory_clients,
+                full_chain_for_collision_checker.clone(),
+            );
 
             let collision_check_clients = create_collision_check_clients(
                 urdf_full_path,
@@ -127,6 +142,7 @@ where
             }
             (
                 Some(full_chain_for_collision_checker),
+                collision_avoidance_clients,
                 collision_check_clients,
                 ik_clients,
                 self_collision_checkers,
@@ -135,6 +151,7 @@ where
         } else {
             (
                 None,
+                HashMap::new(),
                 HashMap::new(),
                 HashMap::new(),
                 HashMap::new(),
@@ -155,6 +172,7 @@ where
             full_chain_for_collision_checker,
             raw_joint_trajectory_clients,
             all_joint_trajectory_clients,
+            collision_avoidance_clients,
             collision_check_clients,
             ik_clients,
             self_collision_checkers,
@@ -214,6 +232,10 @@ where
         self.all_joint_trajectory_clients.contains_key(name)
     }
 
+    pub fn is_collision_avoidance_client(&self, name: &str) -> bool {
+        self.collision_avoidance_clients.contains_key(name)
+    }
+
     pub fn is_collision_check_client(&self, name: &str) -> bool {
         self.collision_check_clients.contains_key(name)
     }
@@ -251,6 +273,10 @@ where
 
     pub fn ik_solvers(&self) -> &HashMap<String, Arc<IkSolverWithChain>> {
         &self.ik_solvers
+    }
+
+    pub fn collision_avoidance_clients(&self) -> &HashMap<String, ArcCollisionAvoidanceClient> {
+        &self.collision_avoidance_clients
     }
 
     pub fn ik_clients(&self) -> &HashMap<String, ArcIkClient> {
@@ -386,6 +412,13 @@ where
             .collect::<Vec<String>>()
     }
 
+    pub fn collision_avoidance_clients_names(&self) -> Vec<String> {
+        self.collision_avoidance_clients
+            .keys()
+            .map(|k| k.to_owned())
+            .collect::<Vec<String>>()
+    }
+
     pub fn collision_check_clients_names(&self) -> Vec<String> {
         self.collision_check_clients
             .keys()
@@ -487,6 +520,10 @@ pub struct OpenrrClientsConfig {
     #[serde(default)]
     // https://github.com/alexcrichton/toml-rs/issues/258
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub collision_avoidance_clients_configs: Vec<CollisionAvoidanceClientConfig>,
+    #[serde(default)]
+    // https://github.com/alexcrichton/toml-rs/issues/258
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub collision_check_clients_configs: Vec<CollisionCheckClientConfig>,
     #[serde(default)]
     // https://github.com/alexcrichton/toml-rs/issues/258
@@ -565,6 +602,38 @@ pub fn create_ik_clients(
             Arc::new(IkClient::new(
                 name_to_joint_trajectory_client[&config.client_name].clone(),
                 name_to_ik_solvers[&config.solver_name].clone(),
+            )),
+        );
+    }
+    clients
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct CollisionAvoidanceClientConfig {
+    pub name: String,
+    pub client_name: String,
+    #[serde(default)]
+    pub joint_path_planner_config: JointPathPlannerConfig,
+}
+
+pub fn create_collision_avoidance_clients<P: AsRef<Path>>(
+    urdf_path: P,
+    self_collision_check_pairs: &[String],
+    configs: &[CollisionAvoidanceClientConfig],
+    name_to_joint_trajectory_client: &HashMap<String, Arc<dyn JointTrajectoryClient>>,
+    full_chain: Arc<k::Chain<f64>>,
+) -> HashMap<String, Arc<CollisionAvoidanceClient<Arc<dyn JointTrajectoryClient>>>> {
+    let mut clients = HashMap::new();
+    for config in configs {
+        clients.insert(
+            config.name.clone(),
+            Arc::new(create_collision_avoidance_client(
+                &urdf_path,
+                parse_colon_separated_pairs(self_collision_check_pairs).unwrap(),
+                &config.joint_path_planner_config,
+                name_to_joint_trajectory_client[&config.client_name].clone(),
+                full_chain.clone(),
             )),
         );
     }
