@@ -112,8 +112,7 @@ where
         trajectory: &[TrajectoryPoint<N>],
     ) -> Result<()> {
         // Synchronize with the reference robot states for joints not included using_joints
-        self.robot_collision_detector
-            .robot
+        self.collision_check_robot()
             .set_joint_positions_clamped(self.reference_robot.joint_positions().as_slice());
 
         // Check the partial trajectory
@@ -122,19 +121,18 @@ where
             match using_joint_names {
                 Some(joint_names) => {
                     for (joint_name, position) in joint_names.iter().zip(v.position.clone()) {
-                        match self.robot_collision_detector.robot.find(joint_name) {
+                        match self.collision_check_robot().find(joint_name) {
                             Some(node) => node.set_joint_position_clamped(position),
                             None => return Err(Error::NotFound(joint_name.to_string())),
                         }
                     }
                 }
                 None => self
-                    .robot_collision_detector
-                    .robot
+                    .collision_check_robot()
                     .set_joint_positions_clamped(&v.position),
             }
 
-            self.robot_collision_detector.robot.update_transforms();
+            self.collision_check_robot().update_transforms();
             let mut self_checker = self.robot_collision_detector.detect_self();
             if let Some(names) = self_checker.next() {
                 return Err(Error::Collision {
@@ -155,6 +153,11 @@ where
             debug!("detailed: {vec_used:?}");
         }
         Ok(())
+    }
+
+    // Get the robot model used for collision checking
+    pub fn collision_check_robot(&self) -> &k::Chain<N> {
+        &self.robot_collision_detector.robot
     }
 }
 
@@ -230,8 +233,7 @@ fn test_create_self_collision_checker() {
         .is_err());
 
     let l_shoulder_yaw_node = self_collision_checker
-        .robot_collision_detector
-        .robot
+        .collision_check_robot()
         .find("l_shoulder_yaw")
         .unwrap();
     let using_joints = k::SerialChain::from_end(l_shoulder_yaw_node);
