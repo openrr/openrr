@@ -195,3 +195,24 @@ where
     let limits = robot.iter_joints().map(|j| j.limits).collect();
     robot.set_joint_positions(&generate_random_joint_positions_from_limits(&limits))
 }
+
+/// Create a sub-chain of the collision check model by a name list
+pub fn create_chain_from_joint_names<N>(
+    robot: &k::Chain<N>,
+    joint_names: &[String],
+) -> Result<k::Chain<N>>
+where
+    N: RealField + num_traits::Float + k::SubsetOf<f64>,
+{
+    let nodes = joint_names
+        .iter()
+        .map(|joint_name| {
+            robot
+                .find(joint_name)
+                .ok_or_else(|| Error::NotFound(joint_name.to_owned()))
+                .unwrap()
+                .clone()
+        })
+        .collect::<Vec<k::Node<N>>>();
+    Ok(k::Chain::from_nodes(nodes))
+}
