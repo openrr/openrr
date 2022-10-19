@@ -243,26 +243,38 @@ async fn test_joint_positions() {
     .collect();
     let client = new_joint_client(joint_names.clone());
     assert_eq!(client.joint_names("arm").unwrap(), joint_names);
-    let positions = vec![0.1, -0.1, 1.0, 2.0, -1.0, 0.2];
+
+    let valid_positions = vec![0.1, -0.1, 1.0, 1.0, -1.0, 0.2];
     client
-        .send_joint_positions("arm", &positions, 0.1)
+        .send_joint_positions("arm", &valid_positions, 0.1)
         .unwrap()
         .await
         .unwrap();
     let p1 = client.current_joint_positions("arm").unwrap();
-    assert_eq!(p1.len(), positions.len());
-    for (l, r) in p1.iter().zip(positions.iter()) {
+    assert_eq!(p1.len(), valid_positions.len());
+    for (l, r) in p1.iter().zip(valid_positions.iter()) {
+        assert_approx_eq!(l, r);
+    }
+
+    // reference of the 4th joint (2.0) is larger than its upper limit (1.5)
+    let invalid_positions = vec![0.1, -0.1, 1.0, 2.0, -1.0, 0.2];
+    assert!(client
+        .send_joint_positions("arm_collision_checked", &invalid_positions, 0.1)
+        .is_err());
+    let p2 = client.current_joint_positions("arm").unwrap();
+    // positions are not changed with invalid commands
+    for (l, r) in p2.iter().zip(valid_positions.iter()) {
         assert_approx_eq!(l, r);
     }
 
     client
-        .send_joint_positions("arm_ik", &positions, 0.1)
+        .send_joint_positions("arm_ik", &valid_positions, 0.1)
         .unwrap()
         .await
         .unwrap();
     let p1 = client.current_joint_positions("arm").unwrap();
-    assert_eq!(p1.len(), positions.len());
-    for (l, r) in p1.iter().zip(positions.iter()) {
+    assert_eq!(p1.len(), valid_positions.len());
+    for (l, r) in p1.iter().zip(valid_positions.iter()) {
         assert_approx_eq!(l, r);
     }
 
