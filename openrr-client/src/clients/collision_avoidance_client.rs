@@ -25,8 +25,6 @@ where
     T: JointTrajectoryClient,
 {
     pub client: T,
-    /// using_joints must be a part of planner.collision_check_robot.
-    pub using_joints: k::Chain<f64>,
     pub planner: openrr_planner::JointPathPlanner<f64>,
 }
 
@@ -34,16 +32,8 @@ impl<T> CollisionAvoidanceClient<T>
 where
     T: JointTrajectoryClient,
 {
-    pub fn new(
-        client: T,
-        using_joints: k::Chain<f64>,
-        planner: openrr_planner::JointPathPlanner<f64>,
-    ) -> Self {
-        Self {
-            client,
-            using_joints,
-            planner,
-        }
+    pub fn new(client: T, planner: openrr_planner::JointPathPlanner<f64>) -> Self {
+        Self { client, planner }
     }
 }
 
@@ -64,12 +54,13 @@ where
         positions: Vec<f64>,
         duration: std::time::Duration,
     ) -> Result<WaitFuture, Error> {
-        self.using_joints
-            .set_joint_positions_clamped(&self.current_joint_positions()?);
-        let current = self.using_joints.joint_positions();
         let traj = self
             .planner
-            .plan_avoid_self_collision(&self.joint_names(), &current, &positions)
+            .plan_avoid_self_collision(
+                &self.joint_names(),
+                &self.current_joint_positions()?,
+                &positions,
+            )
             .map_err(|e| Error::Other(e.into()))?;
         self.client
             .send_joint_trajectory(trajectory_from_positions(&traj, duration))
@@ -79,12 +70,13 @@ where
         if trajectory.is_empty() {
             return Ok(WaitFuture::ready());
         }
-        self.using_joints
-            .set_joint_positions_clamped(&self.current_joint_positions()?);
-        let current = self.using_joints.joint_positions();
         let positions = self
             .planner
-            .plan_avoid_self_collision(&self.joint_names(), &current, &trajectory[0].positions)
+            .plan_avoid_self_collision(
+                &self.joint_names(),
+                &self.current_joint_positions()?,
+                &trajectory[0].positions,
+            )
             .map_err(|e| Error::Other(e.into()))?;
         let mut trajs = trajectory_from_positions(&positions, trajectory[0].time_from_start);
 
@@ -120,14 +112,7 @@ pub fn create_collision_avoidance_client<P: AsRef<Path>>(
         reference_robot,
     );
 
-    let nodes = planner
-        .collision_check_robot()
-        .iter()
-        .map(|node| (*node).clone())
-        .collect();
-    let using_joints = k::Chain::<f64>::from_nodes(nodes);
-
-    CollisionAvoidanceClient::new(client, using_joints, planner)
+    CollisionAvoidanceClient::new(client, planner)
 }
 
 #[cfg(test)]
