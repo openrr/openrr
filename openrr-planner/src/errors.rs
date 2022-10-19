@@ -21,6 +21,7 @@ use thiserror::Error;
 #[derive(Debug)]
 pub enum UnfeasibleTrajectory {
     StartPoint,
+    Waypoint,
     GoalPoint,
 }
 
