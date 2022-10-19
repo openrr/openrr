@@ -9,6 +9,7 @@ use tracing::debug;
 use crate::{
     collision::{parse_colon_separated_pairs, RobotCollisionDetector},
     errors::*,
+    funcs::create_chain_from_joint_names,
     interpolate, CollisionDetector, TrajectoryPoint,
 };
 
@@ -115,24 +116,26 @@ where
         self.collision_check_robot()
             .set_joint_positions_clamped(self.reference_robot.joint_positions().as_slice());
 
+        let using_joints = match using_joint_names {
+            Some(joint_names) => {
+                create_chain_from_joint_names(self.collision_check_robot(), joint_names).unwrap()
+            }
+            None => {
+                let nodes = self
+                    .collision_check_robot()
+                    .iter()
+                    .map(|node| (*node).clone())
+                    .collect::<Vec<k::Node<N>>>();
+                k::Chain::from_nodes(nodes)
+            }
+        };
+
         // Check the partial trajectory
         let last_index = trajectory.len() - 1;
         for (i, v) in trajectory.iter().enumerate() {
-            match using_joint_names {
-                Some(joint_names) => {
-                    for (joint_name, position) in joint_names.iter().zip(v.position.clone()) {
-                        match self.collision_check_robot().find(joint_name) {
-                            Some(node) => node.set_joint_position_clamped(position),
-                            None => return Err(Error::NotFound(joint_name.to_string())),
-                        }
-                    }
-                }
-                None => self
-                    .collision_check_robot()
-                    .set_joint_positions_clamped(&v.position),
-            }
-
+            using_joints.set_joint_positions(&v.position)?;
             self.collision_check_robot().update_transforms();
+
             let mut self_checker = self.robot_collision_detector.detect_self();
             if let Some(names) = self_checker.next() {
                 return Err(Error::Collision {

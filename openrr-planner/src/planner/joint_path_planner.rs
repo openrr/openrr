@@ -95,21 +95,6 @@ where
         }
     }
 
-    /// Create a sub-chain of the collision check model by a name list
-    fn create_chain_from_names(&self, using_joint_names: &[String]) -> Result<k::Chain<N>> {
-        let nodes = using_joint_names
-            .iter()
-            .map(|joint_name| {
-                self.collision_check_robot()
-                    .find(joint_name)
-                    .ok_or_else(|| Error::NotFound(joint_name.to_owned()))
-                    .unwrap()
-                    .clone()
-            })
-            .collect::<Vec<k::Node<N>>>();
-        Ok(k::Chain::from_nodes(nodes))
-    }
-
     /// Plan the sequence of joint angles of `using_joints`
     ///
     /// # Arguments
@@ -127,7 +112,8 @@ where
     ) -> Result<Vec<Vec<N>>> {
         self.sync_joint_positions_with_reference();
 
-        let using_joints = self.create_chain_from_names(using_joint_names)?;
+        let using_joints =
+            create_chain_from_joint_names(self.collision_check_robot(), using_joint_names)?;
         let limits = using_joints.iter_joints().map(|j| j.limits).collect();
         let step_length = self.step_length;
         let max_try = self.max_try;
@@ -192,7 +178,8 @@ where
     ) -> Result<Vec<Vec<N>>> {
         self.sync_joint_positions_with_reference();
 
-        let using_joints = self.create_chain_from_names(using_joint_names)?;
+        let using_joints =
+            create_chain_from_joint_names(self.collision_check_robot(), using_joint_names)?;
         let limits = using_joints.iter_joints().map(|j| j.limits).collect();
         let step_length = self.step_length;
         let max_try = self.max_try;
