@@ -123,14 +123,14 @@ where
             let collision_link_names = self.env_collision_link_names(objects);
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::Collision {
-                point: UnfeasibleTrajectory::StartPoint,
+                point: UnfeasibleTrajectoryPoint::Start,
                 collision_link_names,
             });
         } else if !self.is_feasible(&using_joints, goal_angles, objects) {
             let collision_link_names = self.env_collision_link_names(objects);
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::Collision {
-                point: UnfeasibleTrajectory::GoalPoint,
+                point: UnfeasibleTrajectoryPoint::Goal,
                 collision_link_names,
             });
         }
@@ -189,14 +189,14 @@ where
             let collision_link_names = self.self_collision_link_pairs();
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::SelfCollision {
-                point: UnfeasibleTrajectory::StartPoint,
+                point: UnfeasibleTrajectoryPoint::Start,
                 collision_link_names,
             });
         } else if !self.is_feasible_with_self(&using_joints, goal_angles) {
             let collision_link_names = self.self_collision_link_pairs();
             using_joints.set_joint_positions(&current_angles)?;
             return Err(Error::SelfCollision {
-                point: UnfeasibleTrajectory::GoalPoint,
+                point: UnfeasibleTrajectoryPoint::Goal,
                 collision_link_names,
             });
         }
