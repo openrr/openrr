@@ -117,7 +117,8 @@ where
             .set_joint_positions_clamped(self.reference_robot.joint_positions().as_slice());
 
         // Check the partial trajectory
-        for v in trajectory {
+        let last_index = trajectory.len() - 1;
+        for (i, v) in trajectory.iter().enumerate() {
             match using_joint_names {
                 Some(joint_names) => {
                     for (joint_name, position) in joint_names.iter().zip(v.position.clone()) {
@@ -137,7 +138,11 @@ where
             let mut self_checker = self.robot_collision_detector.detect_self();
             if let Some(names) = self_checker.next() {
                 return Err(Error::Collision {
-                    point: UnfeasibleTrajectory::StartPoint,
+                    point: match i {
+                        0 => UnfeasibleTrajectory::StartPoint,
+                        index if index == last_index => UnfeasibleTrajectory::GoalPoint,
+                        _ => UnfeasibleTrajectory::Waypoint,
+                    },
                     collision_link_names: vec![names.0, names.1],
                 });
             }
