@@ -158,7 +158,7 @@ where
         Ok(())
     }
 
-    // Get the robot model used for collision checking
+    /// Get the robot model used for collision checking
     pub fn collision_check_robot(&self) -> &k::Chain<N> {
         &self.robot_collision_detector.robot
     }
