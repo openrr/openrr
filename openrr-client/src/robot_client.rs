@@ -105,6 +105,10 @@ where
                 full_chain_for_collision_checker.clone(),
             );
 
+            for (name, client) in &collision_avoidance_clients {
+                all_joint_trajectory_clients.insert(name.to_owned(), client.clone());
+            }
+
             let collision_check_clients = create_collision_check_clients(
                 urdf_full_path,
                 &config.self_collision_check_pairs,

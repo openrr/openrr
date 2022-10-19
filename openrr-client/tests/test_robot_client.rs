@@ -288,7 +288,7 @@ async fn test_joint_positions() {
     assert_eq!(client_names[0], "arm");
 
     let client_names = client.joint_trajectory_clients_names();
-    assert_eq!(client_names.len(), 3);
+    assert_eq!(client_names.len(), 4);
 }
 
 #[test]
@@ -306,7 +306,7 @@ fn test_manipulation_accessors() {
     .collect();
     let client = new_joint_client(joint_names);
     let hash_joint_trajectory_clients = client.joint_trajectory_clients();
-    assert_eq!(hash_joint_trajectory_clients.keys().len(), 3);
+    assert_eq!(hash_joint_trajectory_clients.keys().len(), 4);
 
     let hash_collision_avoidance_clients = client.collision_avoidance_clients();
     assert_eq!(hash_collision_avoidance_clients.keys().len(), 1);
