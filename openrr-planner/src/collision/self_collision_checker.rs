@@ -140,9 +140,9 @@ where
             if let Some(names) = self_checker.next() {
                 return Err(Error::Collision {
                     point: match i {
-                        0 => UnfeasibleTrajectory::StartPoint,
-                        index if index == last_index => UnfeasibleTrajectory::GoalPoint,
-                        _ => UnfeasibleTrajectory::Waypoint,
+                        0 => UnfeasibleTrajectoryPoint::Start,
+                        index if index == last_index => UnfeasibleTrajectoryPoint::Goal,
+                        _ => UnfeasibleTrajectoryPoint::WayPoint,
                     },
                     collision_link_names: vec![names.0, names.1],
                 });
