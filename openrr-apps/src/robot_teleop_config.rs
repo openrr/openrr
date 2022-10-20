@@ -16,6 +16,7 @@ use crate::{resolve_plugin_path, Error};
 pub enum BuiltinGamepad {
     Gilrs,
     Keyboard,
+    JoyGamepad,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]

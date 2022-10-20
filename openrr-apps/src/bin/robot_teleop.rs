@@ -1,5 +1,5 @@
 #[cfg(feature = "ros")]
-use std::thread;
+use std::{collections::HashMap, thread};
 use std::{fs, path::PathBuf, sync::Arc};
 
 use anyhow::{format_err, Result};
@@ -155,7 +155,29 @@ async fn main() -> Result<()> {
         }
         #[cfg(windows)]
         GamepadKind::Builtin(BuiltinGamepad::Keyboard) => {
-            tracing::warn!("`gamepad = \"Keyboard\"` is not supported on windows");
+            anyhow::bail!("`gamepad = \"keyboard\"` is not supported on windows");
+        }
+        #[cfg(feature = "ros")]
+        GamepadKind::Builtin(BuiltinGamepad::JoyGamepad) => {
+            let mut button_map = HashMap::new();
+            button_map.insert(0, arci::gamepad::Button::West);
+            button_map.insert(1, arci::gamepad::Button::South);
+            button_map.insert(2, arci::gamepad::Button::East);
+            button_map.insert(3, arci::gamepad::Button::North);
+            let mut axis_map = HashMap::new();
+            axis_map.insert(0, arci::gamepad::Axis::LeftStickX);
+            axis_map.insert(1, arci::gamepad::Axis::LeftStickY);
+            axis_map.insert(2, arci::gamepad::Axis::RightStickX);
+            axis_map.insert(5, arci::gamepad::Axis::RightStickY);
+            axis_map.insert(6, arci::gamepad::Axis::DPadY);
+            axis_map.insert(7, arci::gamepad::Axis::DPadX);
+            switcher
+                .main(arci_ros::JoyGamepad::new("joy", button_map, axis_map))
+                .await;
+        }
+        #[cfg(not(feature = "ros"))]
+        GamepadKind::Builtin(BuiltinGamepad::JoyGamepad) => {
+            anyhow::bail!("`gamepad = \"joy-gamepad\"` requires \"ros\" feature");
         }
         GamepadKind::Plugin(name) => {
             let mut gamepad = None;
