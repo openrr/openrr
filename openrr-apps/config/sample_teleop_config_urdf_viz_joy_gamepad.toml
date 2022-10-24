@@ -1,0 +1,38 @@
+robot_config_path = "sample_robot_client_config_for_urdf_viz.toml"
+gamepad = "joy-gamepad"
+
+[joy_gamepad_config]
+axis_map = { '0' = "LeftStickX", '1' = "LeftStickY", '2' = "RightStickX", '3' = "RightStickY", '4' = "DPadX", '5' = "DPadY" }
+button_map = { '0' = "North", '1' = "East", '2' = "South", '3' = "West", '4' = "LeftTrigger", '5' = "RightTrigger", '6' = "LeftTrigger2", '7' = "RightTrigger2" }
+topic_name = "joy"
+
+[control_nodes_config]
+move_base_mode = "base"
+
+[control_nodes_config.joints_pose_sender_config]
+
+[[control_nodes_config.ik_node_teleop_configs]]
+solver_name = "l_arm_ik_solver"
+joint_trajectory_client_name = "l_arm"
+
+[control_nodes_config.ik_node_teleop_configs.config]
+mode = "left i k"
+
+[[control_nodes_config.ik_node_teleop_configs]]
+solver_name = "r_arm_ik_solver"
+joint_trajectory_client_name = "r_arm"
+
+[control_nodes_config.ik_node_teleop_configs.config]
+mode = "right i k"
+
+[[control_nodes_config.joy_joint_teleop_configs]]
+client_name = "l_arm_collision_checked"
+
+[control_nodes_config.joy_joint_teleop_configs.config]
+mode = "l_arm"
+
+[[control_nodes_config.joy_joint_teleop_configs]]
+client_name = "r_arm_collision_checked"
+
+[control_nodes_config.joy_joint_teleop_configs.config]
+mode = "r_arm"
