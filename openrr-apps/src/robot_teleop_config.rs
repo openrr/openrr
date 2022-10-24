@@ -4,6 +4,7 @@ use std::{
 };
 
 use arci_gamepad_gilrs::GilGamepadConfig;
+use arci_ros::JoyGamepadConfig;
 use openrr_client::resolve_relative_path;
 use openrr_teleop::ControlNodesConfig;
 use schemars::JsonSchema;
@@ -57,6 +58,8 @@ pub struct RobotTeleopConfig {
     pub control_nodes_config: ControlNodesConfig,
     #[serde(default)]
     pub gil_gamepad_config: GilGamepadConfig,
+    #[serde(default)]
+    pub joy_gamepad_config: JoyGamepadConfig,
     #[serde(default)]
     pub plugins: HashMap<String, TeleopPluginConfig>,
 }
