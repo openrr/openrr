@@ -79,14 +79,27 @@ impl JoyGamepad {
             _sub,
         }
     }
+
+    pub fn new_from_config(config: &JoyGamepadConfig) -> Self {
+        let topic_name = &config.topic_name;
+        let mut button_map = HashMap::new();
+        for (key, &value) in config.button_map.iter() {
+            button_map.insert(key.parse::<usize>().unwrap(), value);
+        }
+        let mut axis_map = HashMap::new();
+        for (key, &value) in config.axis_map.iter() {
+            axis_map.insert(key.parse::<usize>().unwrap(), value);
+        }
+        Self::new(topic_name, button_map, axis_map)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct JoyGamepadConfig {
     pub topic_name: String,
-    pub button_map: HashMap<usize, Button>,
-    pub axis_map: HashMap<usize, Axis>,
+    pub button_map: HashMap<String, Button>,
+    pub axis_map: HashMap<String, Axis>,
 }
 
 impl JoyGamepadConfig {
@@ -109,27 +122,27 @@ fn default_topic_name() -> String {
     "joy".to_string()
 }
 
-fn default_button_map() -> HashMap<usize, Button> {
+fn default_button_map() -> HashMap<String, Button> {
     let mut button_map = HashMap::new();
-    button_map.insert(0, arci::gamepad::Button::South);
-    button_map.insert(1, arci::gamepad::Button::East);
-    button_map.insert(2, arci::gamepad::Button::West);
-    button_map.insert(3, arci::gamepad::Button::North);
-    button_map.insert(4, arci::gamepad::Button::LeftTrigger2);
-    button_map.insert(5, arci::gamepad::Button::RightTrigger2);
+    button_map.insert("0".to_string(), arci::gamepad::Button::South);
+    button_map.insert("1".to_string(), arci::gamepad::Button::East);
+    button_map.insert("2".to_string(), arci::gamepad::Button::West);
+    button_map.insert("3".to_string(), arci::gamepad::Button::North);
+    button_map.insert("4".to_string(), arci::gamepad::Button::LeftTrigger2);
+    button_map.insert("5".to_string(), arci::gamepad::Button::RightTrigger2);
     button_map
 }
 
-fn default_axis_map() -> HashMap<usize, Axis> {
+fn default_axis_map() -> HashMap<String, Axis> {
     let mut axis_map = HashMap::new();
-    axis_map.insert(0, arci::gamepad::Axis::LeftStickX);
-    axis_map.insert(1, arci::gamepad::Axis::LeftStickY);
-    axis_map.insert(2, arci::gamepad::Axis::LeftTrigger);
-    axis_map.insert(3, arci::gamepad::Axis::RightStickX);
-    axis_map.insert(4, arci::gamepad::Axis::RightStickY);
-    axis_map.insert(5, arci::gamepad::Axis::RightTrigger);
-    axis_map.insert(6, arci::gamepad::Axis::DPadX);
-    axis_map.insert(7, arci::gamepad::Axis::DPadY);
+    axis_map.insert("0".to_string(), arci::gamepad::Axis::LeftStickX);
+    axis_map.insert("1".to_string(), arci::gamepad::Axis::LeftStickY);
+    axis_map.insert("2".to_string(), arci::gamepad::Axis::LeftTrigger);
+    axis_map.insert("3".to_string(), arci::gamepad::Axis::RightStickX);
+    axis_map.insert("4".to_string(), arci::gamepad::Axis::RightStickY);
+    axis_map.insert("5".to_string(), arci::gamepad::Axis::RightTrigger);
+    axis_map.insert("6".to_string(), arci::gamepad::Axis::DPadX);
+    axis_map.insert("7".to_string(), arci::gamepad::Axis::DPadY);
     axis_map
 }
 

@@ -161,10 +161,8 @@ async fn main() -> Result<()> {
         GamepadKind::Builtin(BuiltinGamepad::JoyGamepad) => {
             arci_ros::init("joy_gamepad");
             switcher
-                .main(arci_ros::JoyGamepad::new(
-                    &teleop_config.joy_gamepad_config.topic_name,
-                    teleop_config.joy_gamepad_config.button_map,
-                    teleop_config.joy_gamepad_config.axis_map,
+                .main(arci_ros::JoyGamepad::new_from_config(
+                    &teleop_config.joy_gamepad_config,
                 ))
                 .await;
         }
