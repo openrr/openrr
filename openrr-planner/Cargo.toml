@@ -36,7 +36,7 @@ flaky_test = "0.1"
 nalgebra = "0.30"
 rand = "0.8"
 tracing-subscriber = "0.3"
-urdf-viz = "0.38"
+urdf-viz = "0.40"
 
 [[bench]]
 name = "collision_detection"

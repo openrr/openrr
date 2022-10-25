@@ -70,13 +70,18 @@ impl CollisionAvoidApp {
         let (mut viewer, mut window) = urdf_viz::Viewer::new("openrr_planner: example reach");
         let urdf_robot =
             urdf_rs::utils::read_urdf_or_xacro(robot_path).expect("robot file not found");
-        viewer.add_robot_with_base_dir(&mut window, &urdf_robot, robot_path.parent());
+        viewer.add_robot_with_base_dir(
+            &mut window,
+            &urdf_robot,
+            robot_path.parent(),
+            &Default::default(),
+        );
         viewer.add_axis_cylinders(&mut window, "origin", 1.0);
 
         let urdf_obstacles =
             urdf_rs::utils::read_urdf_or_xacro(obstacle_path).expect("obstacle file not found");
         let obstacles = Compound::from_urdf_robot(&urdf_obstacles);
-        viewer.add_robot(&mut window, &urdf_obstacles);
+        viewer.add_robot(&mut window, &urdf_obstacles, &Default::default());
         println!("robot={}", *reference_robot);
         let arm = {
             let end_link = reference_robot
@@ -297,6 +302,7 @@ impl CollisionAvoidApp {
                                 ref_robot,
                                 None,
                                 is_collide_show,
+                                &Default::default(),
                             );
                             self.viewer.update(&self.reference_robot);
                         }
