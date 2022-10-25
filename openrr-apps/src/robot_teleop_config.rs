@@ -63,6 +63,8 @@ pub struct RobotTeleopConfig {
     #[serde(default)]
     pub joy_gamepad_config: JoyGamepadConfig,
     #[serde(default)]
+    pub joy_gamepad_config: JoyGamepadConfig,
+    #[serde(default)]
     pub plugins: HashMap<String, TeleopPluginConfig>,
 }
 
