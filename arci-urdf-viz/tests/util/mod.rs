@@ -18,7 +18,7 @@ pub impl WebServer {
                 .enable_all()
                 .build()
                 .unwrap()
-                .block_on(async move { self.bind().await.unwrap() })
+                .block_on(async move { self.bind().unwrap().await.unwrap() })
         });
         std::thread::spawn(move || loop {
             if let Some(positions) = handle.take_target_joint_positions() {
