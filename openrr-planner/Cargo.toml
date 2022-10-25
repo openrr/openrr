@@ -14,7 +14,7 @@ default = ["assimp"]
 [dependencies]
 assimp = { version = "0.3", optional = true }
 k = "0.28"
-mesh-loader = "0.0.1"
+mesh-loader = "0.0.2"
 ncollide3d = "0.33"
 num-traits = "0.2"
 parking_lot = "0.12"
