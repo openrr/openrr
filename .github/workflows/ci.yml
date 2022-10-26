@@ -135,9 +135,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # TODO: failed to build
-          # - distro: foxy
-          #   os: ubuntu-20.04
+          - distro: foxy
+            os: ubuntu-20.04
           - distro: humble
             os: ubuntu-22.04
     runs-on: ${{ matrix.os }}
