@@ -16,7 +16,7 @@ use tracing::info;
 #[clap(name = env!("CARGO_BIN_NAME"))]
 struct RobotCommandArgs {
     /// Path to the setting file.
-    #[clap(short, long, value_parser)]
+    #[clap(short, long, parse(from_os_str))]
     config_path: Option<PathBuf>,
     /// Set options from command line. These settings take priority over the
     /// setting file specified by --config-path.
@@ -31,7 +31,7 @@ struct RobotCommandArgs {
     #[clap(short, long)]
     interactive: bool,
     /// Path to log directory for tracing FileAppender.
-    #[clap(long, value_parser)]
+    #[clap(long, parse(from_os_str))]
     log_directory: Option<PathBuf>,
 }
 
