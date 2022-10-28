@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use anyhow::Result;
-use clap::{Parser, ValueEnum};
+use clap::{ArgEnum, Parser};
 use openrr_apps::utils::init_tracing;
 use schemars::schema_for;
 use serde::Deserialize;
@@ -19,12 +19,12 @@ enum Subcommand {
     /// Generate JSON schema for the specified config file.
     Schema {
         /// Kind of config file.
-        #[clap(value_enum, ignore_case = true)]
+        #[clap(arg_enum, ignore_case = true)]
         kind: ConfigKind,
     },
     Merge {
         /// Path to the setting file.
-        #[clap(long, value_parser)]
+        #[clap(long, parse(from_os_str))]
         config_path: PathBuf,
         /// Config to overwrite
         #[clap(long)]
@@ -32,7 +32,7 @@ enum Subcommand {
     },
 }
 
-#[derive(Debug, Clone, Copy, ValueEnum)]
+#[derive(Debug, Clone, Copy, ArgEnum)]
 enum ConfigKind {
     RobotConfig,
     RobotTeleopConfig,

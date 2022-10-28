@@ -47,7 +47,7 @@ pub enum RobotCommand {
         /// Specify joint parameters.
         /// Like `--joint 0=1.2`.
         /// In accordance with the sequence in which the "joint names" are defined in the configuration, they are numbered starting at 0.
-        #[clap(short, value_parser = parse_joints::<usize, f64>, long)]
+        #[clap(short, parse(try_from_str = parse_joints), long)]
         joint: Vec<(usize, f64)>,
         #[clap(long, default_value = "0.05")]
         max_resolution_for_interpolation: f64,
@@ -92,7 +92,7 @@ pub enum RobotCommand {
     GetState { name: String },
     /// Load commands from file and execute them.
     LoadCommands {
-        #[clap(value_parser)]
+        #[clap(parse(from_os_str))]
         command_file_path: PathBuf,
     },
     /// List available clients.
