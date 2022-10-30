@@ -159,7 +159,9 @@ async fn main() -> Result<()> {
         }
         #[cfg(feature = "ros")]
         GamepadKind::Builtin(BuiltinGamepad::JoyGamepad) => {
-            arci_ros::init("joy_gamepad");
+            if !use_ros {
+                arci_ros::init(env!("CARGO_BIN_NAME"));
+            }
             switcher
                 .main(arci_ros::JoyGamepad::new_from_config(
                     &teleop_config.joy_gamepad_config,
