@@ -5,7 +5,7 @@ use std::{
 
 use arci_gamepad_gilrs::GilGamepadConfig;
 #[cfg(feature = "ros")]
-use arci_ros::JoyGamepadConfig;
+use arci_ros::RosJoyGamepadConfig;
 use openrr_client::resolve_relative_path;
 use openrr_teleop::ControlNodesConfig;
 use schemars::JsonSchema;
@@ -18,7 +18,7 @@ use crate::{resolve_plugin_path, Error};
 pub enum BuiltinGamepad {
     Gilrs,
     Keyboard,
-    JoyGamepad,
+    RosJoyGamepad,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
@@ -61,7 +61,7 @@ pub struct RobotTeleopConfig {
     pub gil_gamepad_config: GilGamepadConfig,
     #[cfg(feature = "ros")]
     #[serde(default)]
-    pub joy_gamepad_config: JoyGamepadConfig,
+    pub ros_joy_gamepad_config: RosJoyGamepadConfig,
     #[serde(default)]
     pub plugins: HashMap<String, TeleopPluginConfig>,
 }

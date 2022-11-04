@@ -7,13 +7,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::msg::sensor_msgs::Joy;
 
-pub struct JoyGamepad {
+pub struct RosJoyGamepad {
     _last_joy_msg: Arc<Mutex<Joy>>,
     rx: flume::Receiver<GamepadEvent>,
     _sub: rosrust::Subscriber,
 }
 
-impl JoyGamepad {
+impl RosJoyGamepad {
     pub fn new(
         topic_name: &str,
         button_mapping: HashMap<usize, arci::gamepad::Button>,
@@ -80,7 +80,7 @@ impl JoyGamepad {
         }
     }
 
-    pub fn new_from_config(config: &JoyGamepadConfig) -> Self {
+    pub fn new_from_config(config: &RosJoyGamepadConfig) -> Self {
         let topic_name = &config.topic_name;
         let mut button_map = HashMap::new();
         for (key, &value) in config.button_map.iter() {
@@ -96,13 +96,13 @@ impl JoyGamepad {
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(deny_unknown_fields)]
-pub struct JoyGamepadConfig {
+pub struct RosJoyGamepadConfig {
     pub topic_name: String,
     pub button_map: HashMap<String, Button>,
     pub axis_map: HashMap<String, Axis>,
 }
 
-impl JoyGamepadConfig {
+impl RosJoyGamepadConfig {
     pub fn new() -> Self {
         Self {
             topic_name: default_topic_name(),
@@ -112,9 +112,9 @@ impl JoyGamepadConfig {
     }
 }
 
-impl Default for JoyGamepadConfig {
+impl Default for RosJoyGamepadConfig {
     fn default() -> Self {
-        JoyGamepadConfig::new()
+        RosJoyGamepadConfig::new()
     }
 }
 
@@ -147,7 +147,7 @@ fn default_axis_map() -> HashMap<String, Axis> {
 }
 
 #[async_trait]
-impl Gamepad for JoyGamepad {
+impl Gamepad for RosJoyGamepad {
     async fn next_event(&self) -> GamepadEvent {
         if let Ok(ev) = self.rx.recv_async().await {
             ev
