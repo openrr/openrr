@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use arci::{gamepad::GamepadEvent, Gamepad};
-use arci_ros::JoyGamepad;
+use arci_ros::RosJoyGamepad;
 
 mod util;
 use util::run_roscore_and_rosrust_init_once;
@@ -24,7 +24,7 @@ async fn test_joy() {
     axis_map.insert(0, arci::gamepad::Axis::LeftStickX);
     axis_map.insert(1, arci::gamepad::Axis::LeftStickY);
     axis_map.insert(2, arci::gamepad::Axis::RightStickX);
-    let pad = JoyGamepad::new("joy", button_map, axis_map);
+    let pad = RosJoyGamepad::new("joy", button_map, axis_map);
 
     let publisher = rosrust::publish::<Joy>("joy", 100).unwrap();
     while arci_ros::is_ok() && publisher.subscriber_count() == 0 {

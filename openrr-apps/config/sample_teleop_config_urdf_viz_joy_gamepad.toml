@@ -1,7 +1,7 @@
 robot_config_path = "sample_robot_client_config_for_urdf_viz.toml"
-gamepad = "joy-gamepad"
+gamepad = "ros-joy-gamepad"
 
-[joy_gamepad_config]
+[ros_joy_gamepad_config]
 axis_map = { '0' = "LeftStickX", '1' = "LeftStickY", '2' = "RightStickX", '3' = "RightStickY", '4' = "DPadX", '5' = "DPadY" }
 button_map = { '0' = "North", '1' = "East", '2' = "South", '3' = "West", '4' = "LeftTrigger", '5' = "RightTrigger", '6' = "LeftTrigger2", '7' = "RightTrigger2" }
 topic_name = "joy"
