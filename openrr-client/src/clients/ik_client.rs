@@ -48,6 +48,13 @@ impl IkSolverWithChain {
         self.ik_arm.end_transform()
     }
 
+    pub fn joint_names(&self) -> Vec<String> {
+        self.ik_arm
+            .iter_joints()
+            .map(|joint| joint.name.clone())
+            .collect()
+    }
+
     pub fn joint_positions(&self) -> Vec<f64> {
         self.ik_arm.joint_positions()
     }
