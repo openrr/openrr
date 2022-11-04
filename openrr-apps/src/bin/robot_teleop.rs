@@ -158,19 +158,19 @@ async fn main() -> Result<()> {
             anyhow::bail!("`gamepad = \"keyboard\"` is not supported on windows");
         }
         #[cfg(feature = "ros")]
-        GamepadKind::Builtin(BuiltinGamepad::JoyGamepad) => {
+        GamepadKind::Builtin(BuiltinGamepad::RosJoyGamepad) => {
             if !use_ros {
                 arci_ros::init(env!("CARGO_BIN_NAME"));
             }
             switcher
-                .main(arci_ros::JoyGamepad::new_from_config(
-                    &teleop_config.joy_gamepad_config,
+                .main(arci_ros::RosJoyGamepad::new_from_config(
+                    &teleop_config.ros_joy_gamepad_config,
                 ))
                 .await;
         }
         #[cfg(not(feature = "ros"))]
-        GamepadKind::Builtin(BuiltinGamepad::JoyGamepad) => {
-            anyhow::bail!("`gamepad = \"joy-gamepad\"` requires \"ros\" feature");
+        GamepadKind::Builtin(BuiltinGamepad::RosJoyGamepad) => {
+            anyhow::bail!("`gamepad = \"ros-joy-gamepad\"` requires \"ros\" feature");
         }
         GamepadKind::Plugin(name) => {
             let mut gamepad = None;

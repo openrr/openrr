@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::Error;
 use arci::Gamepad;
-use arci_ros::JoyGamepad;
+use arci_ros::RosJoyGamepad;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -19,7 +19,7 @@ async fn main() -> Result<(), Error> {
     axis_map.insert(5, arci::gamepad::Axis::RightStickY);
     axis_map.insert(6, arci::gamepad::Axis::DPadY);
     axis_map.insert(7, arci::gamepad::Axis::DPadX);
-    let pad = JoyGamepad::new("joy", button_map, axis_map);
+    let pad = RosJoyGamepad::new("joy", button_map, axis_map);
     while arci_ros::is_ok() {
         let event = pad.next_event().await;
         println!("{event:?}");
