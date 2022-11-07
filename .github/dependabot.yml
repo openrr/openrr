@@ -15,6 +15,4 @@ updates:
       - dependency-name: prost
       - dependency-name: prost-types
       - dependency-name: tonic-build
-      # TODO
-      - dependency-name: clap
     labels: []
