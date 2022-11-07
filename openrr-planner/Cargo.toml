@@ -30,7 +30,7 @@ urdf-rs = "0.6"
 
 [dev-dependencies]
 assert_approx_eq = "1.1"
-clap = { version = "3.1", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
 criterion = "0.4"
 flaky_test = "0.1"
 nalgebra = "0.30"

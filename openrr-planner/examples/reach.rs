@@ -357,14 +357,14 @@ struct Opt {
     #[clap(
         short = 'r',
         long = "robot",
-        parse(from_os_str),
+        value_parser,
         default_value = "sample.urdf"
     )]
     robot_urdf_path: PathBuf,
     #[clap(
         short = 'o',
         long = "obstacle",
-        parse(from_os_str),
+        value_parser,
         default_value = "obstacles.urdf"
     )]
     obstacle_urdf_path: PathBuf,
