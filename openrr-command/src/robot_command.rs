@@ -341,6 +341,10 @@ impl RobotCommandExecutor {
                 for name in client.joint_trajectory_clients_names() {
                     println!(" {name}");
                 }
+                println!("Collision avoidance clients");
+                for name in client.collision_avoidance_clients_names() {
+                    println!(" {name}");
+                }
                 println!("Collision check clients");
                 for name in client.collision_check_clients_names() {
                     println!(" {name}");
