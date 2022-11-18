@@ -407,8 +407,8 @@ mod tests {
             vec![
                 "l_wrist_yaw",
                 "l_wrist_pitch",
+                "l_gripper_linear1",
                 "l_gripper_linear2",
-                "l_gripper_linear1"
             ]
         );
 

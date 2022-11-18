@@ -11,6 +11,7 @@ repository = "https://github.com/openrr/openrr"
 [dependencies]
 anyhow = "1"
 toml = "0.5"
+toml_edit = "0.15"
 toml-query = "0.10"
 tracing = { version = "0.1", features = ["log"] }
 
