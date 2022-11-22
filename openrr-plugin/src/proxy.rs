@@ -567,7 +567,7 @@ pub(crate) trait RJointTrajectoryClientTrait: Send + Sync + 'static {
 
 impl<T> RJointTrajectoryClientTrait for T
 where
-    T: ?Sized + arci::JointTrajectoryClient,
+    T: ?Sized + arci::JointTrajectoryClient + 'static,
 {
     fn joint_names(&self) -> RVec<RString> {
         arci::JointTrajectoryClient::joint_names(self)

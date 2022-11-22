@@ -15,7 +15,7 @@ crate-type = ["lib", "staticlib", "cdylib"]
 ros2 = ["r2r"]
 
 [dependencies]
-abi_stable = "0.10"
+abi_stable = "0.11"
 anyhow = "1.0"
 arci = "0.0.6"
 futures = "0.3"
