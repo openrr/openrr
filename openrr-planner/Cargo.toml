@@ -13,7 +13,7 @@ default = ["assimp"]
 
 [dependencies]
 assimp = { version = "0.3", optional = true }
-k = "0.28"
+k = "0.29"
 mesh-loader = "0.0.2"
 ncollide3d = "0.33"
 num-traits = "0.2"
@@ -36,7 +36,7 @@ flaky_test = "0.1"
 nalgebra = "0.30"
 rand = "0.8"
 tracing-subscriber = "0.3"
-urdf-viz = "0.40"
+urdf-viz = "0.41"
 
 [[bench]]
 name = "collision_detection"
