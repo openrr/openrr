@@ -17,7 +17,7 @@ arci = "0.0.6"
 async-recursion = "1.0"
 clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
-k = "0.28"
+k = "0.29"
 openrr-client = { version = "0.0.6", default-features = false }
 rustyline = "10.0.0"
 thiserror = "1.0"

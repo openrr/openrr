@@ -398,7 +398,7 @@ mod tests {
             .is_none());
 
         let angles = [
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            -0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         ];
         robot.set_joint_positions(&angles).unwrap();
         let names: Vec<String> = detector.detect_env(&robot, &target, &target_pose).collect();
@@ -407,8 +407,8 @@ mod tests {
             vec![
                 "l_wrist_yaw",
                 "l_wrist_pitch",
-                "l_gripper_linear2",
-                "l_gripper_linear1"
+                "l_gripper_linear1",
+                "l_gripper_linear2"
             ]
         );
 
@@ -440,7 +440,7 @@ mod tests {
             .is_none());
 
         let angles = [
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            -1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         ];
         robot.set_joint_positions(&angles).unwrap();
         let result: Vec<(String, String)> = detector
