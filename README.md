@@ -99,3 +99,10 @@ It can be a reference, a base for the future robotic people, like us.
 
 We appreciate for your any contributions!
 [Create an issue](https://github.com/openrr/openrr/issues/new) at first!
+
+## Using OpenRR
+
+You can read the tutorial books at the following links.
+
+- [English](https://openrr.github.io/openrr-tutorial/en)
+- [Japanese](https://openrr.github.io/openrr-tutorial/ja)
