@@ -18,6 +18,10 @@ env:
   RUSTUP_MAX_RETRIES: 10
   nightly: nightly-2022-06-08
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   windows:
     name: Build on Windows
@@ -27,6 +31,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v1
       - uses: taiki-e/install-action@protoc
+      # https://github.com/actions/runner-images/issues/6627#issuecomment-1328214957
+      - name: Workaround GitHub Actions bug (windows)
+        run: rm -rf C:/Strawberry
       - run: cargo build
 
   macos:
