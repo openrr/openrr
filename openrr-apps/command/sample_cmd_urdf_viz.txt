@@ -5,8 +5,12 @@ openrr_apps_robot_command send_joints_pose l_arm_collision_checked zero
 openrr_apps_robot_command send_joints l_arm -j 0=1.2 -j 1=1.2 -j 2=0.0 -j 3=-1.8 -j 4=-0.5 -j 5=0.0
 openrr_apps_robot_command send_joints l_arm -j 0=0.0 -j 1=0.0 -j 2=0.0 -j 3=0.0 -j 4=0.0 -j 5=0.0
 
-openrr_apps_robot_command send_joints l_arm_collision_checked -j 0=1.2 -j 1=1.2 -j 2=0.0 -j 3=-1.8 -j 4=-0.5 -j 5=0.0
-openrr_apps_robot_command send_joints l_arm_collision_checked -j 0=0.0 -j 1=0.0 -j 2=0.0 -j 3=0.0 -j 4=0.0 -j 5=0.0
+# self-collision avoidance demo
+openrr_apps_robot_command send_joints r_arm -j 0=0.5 -j 1=0.0 -j 2=0.0 -j 3=0.0 -j 4=0.0 -j 5=0.0
+openrr_apps_robot_command send_joints l_arm_collision_avoidance -j 0=-0.7 -j 1=0.3 -j 2=0.0 -j 3=0.0 -j 4=0.0 -j 5=0.0
+openrr_apps_robot_command send_joints l_arm_collision_avoidance -j 0=-0.7 -j 1=-0.3 -j 2=0.0 -j 3=0.0 -j 4=0.0 -j 5=0.0 -d 5.0
+openrr_apps_robot_command send_joints_pose l_arm_collision_checked zero
+openrr_apps_robot_command send_joints_pose r_arm_collision_checked zero
 
 openrr_apps_robot_command send_joints l_arm_ik -j 0=1.2 -j 1=1.2 -j 2=0.0 -j 3=-1.8 -j 4=-0.5 -j 5=0.0
 openrr_apps_robot_command send_joints l_arm_ik -j 0=0.0 -j 1=0.0 -j 2=0.0 -j 3=0.0 -j 4=0.0 -j 5=0.0
