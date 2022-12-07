@@ -1,0 +1,36 @@
+{
+  "version": "0.2",
+  "gitignoreRoot": ".",
+  "useGitignore": true,
+  "dictionaryDefinitions": [
+    {
+      "name": "project-dictionary",
+      "path": "./.github/.cspell/dictionary.txt",
+      "addWords": true
+    }
+  ],
+  "dictionaries": ["project-dictionary"],
+  "ignoreRegExpList": [
+    // Copyright notice
+    "Copyright (\\(c\\) )?.*",
+    // GHA actions/workflows
+    "uses: .+@",
+    // GHA context (repo name, owner name, etc.)
+    "github.\\w+ == '.+'",
+    // GH username
+    "( |\\[)@[\\w_-]+"
+  ],
+  "ignorePaths": [
+    // Licenses
+    "**/LICENSE*",
+    // Imported files
+    "**/ros_msgs/**",
+    // ROS package
+    "**/package.xml",
+    // Generated code
+    "**/schema/*.json",
+    // Binaries
+    "**/*.drawio",
+    "**/*.mp[34]"
+  ]
+}
