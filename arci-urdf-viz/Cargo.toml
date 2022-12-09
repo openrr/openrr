@@ -1,6 +1,6 @@
 [package]
 name = "arci-urdf-viz"
-version = "0.0.6"
+version = "0.0.7"
 edition = "2021"
 license = "Apache-2.0"
 description = "arci implementation using urdf-viz"
@@ -10,8 +10,8 @@ repository = "https://github.com/openrr/openrr"
 
 [dependencies]
 anyhow = "1.0"
-arci = "0.0.6"
-openrr-planner = { version = "0.0.6", default-features = false }
+arci = "0.0.7"
+openrr-planner = { version = "0.0.7", default-features = false }
 scoped-sleep = "0.1"
 parking_lot = "0.12"
 schemars = "0.8.3"

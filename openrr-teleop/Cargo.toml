@@ -1,6 +1,6 @@
 [package]
 name = "openrr-teleop"
-version = "0.0.6"
+version = "0.0.7"
 edition = "2021"
 license = "Apache-2.0"
 description = "openrr teleoperation library"
@@ -13,13 +13,13 @@ default = ["assimp"]
 assimp = ["openrr-client/assimp"]
 
 [dependencies]
-arci = "0.0.6"
+arci = "0.0.7"
 async-trait = "0.1"
 auto_impl = "1.0.0"
 clap = { version = "4", features = ["derive"] }
 k = "0.29"
-openrr-client = { version = "0.0.6", default-features = false }
-openrr-command = { version = "0.0.6", default-features = false }
+openrr-client = { version = "0.0.7", default-features = false }
+openrr-command = { version = "0.0.7", default-features = false }
 parking_lot = "0.12"
 schemars = "0.8.3"
 serde = { version = "1.0", features = ["derive"] }
