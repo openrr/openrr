@@ -1,6 +1,6 @@
 [package]
 name = "arci-ros"
-version = "0.0.6"
+version = "0.0.7"
 edition = "2021"
 license = "Apache-2.0"
 description = "arci implementation using ROS1"
@@ -10,7 +10,7 @@ repository = "https://github.com/openrr/openrr"
 
 [dependencies]
 anyhow = "1.0"
-arci = "0.0.6"
+arci = "0.0.7"
 auto_impl = "1.0"
 flume = "0.10"
 nalgebra = "0.30"

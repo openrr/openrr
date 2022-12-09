@@ -5,5 +5,5 @@ edition = "2021"
 publish = false
 
 [dependencies]
-arci = "0.0.6"
-arci-ros = "0.0.6"
+arci = "0.0.7"
+arci-ros = "0.0.7"

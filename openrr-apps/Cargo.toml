@@ -1,6 +1,6 @@
 [package]
 name = "openrr-apps"
-version = "0.0.6"
+version = "0.0.7"
 edition = "2021"
 license = "Apache-2.0"
 description = "applications using openrr"
@@ -23,19 +23,19 @@ glow = ["openrr-gui/glow"]
 
 [dependencies]
 anyhow = "1.0"
-arci = "0.0.6"
-arci-gamepad-gilrs = "0.0.6"
-arci-speak-audio = "0.0.6"
-arci-speak-cmd = "0.0.6"
-arci-urdf-viz = "0.0.6"
+arci = "0.0.7"
+arci-gamepad-gilrs = "0.0.7"
+arci-speak-audio = "0.0.7"
+arci-speak-cmd = "0.0.7"
+arci-urdf-viz = "0.0.7"
 clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
 k = "0.29"
-openrr-client = { version = "0.0.6", default-features = false }
-openrr-command = { version = "0.0.6", default-features = false }
-openrr-config = "0.0.6"
-openrr-plugin = "0.0.6"
-openrr-teleop = { version = "0.0.6", default-features = false }
+openrr-client = { version = "0.0.7", default-features = false }
+openrr-command = { version = "0.0.7", default-features = false }
+openrr-config = "0.0.7"
+openrr-plugin = "0.0.7"
+openrr-teleop = { version = "0.0.7", default-features = false }
 rand = "0.8.0"
 schemars = "0.8.3"
 serde = { version = "1.0", features = ["derive"] }
@@ -48,11 +48,11 @@ tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 urdf-rs = "0.6"
 
-arci-ros = { version = "0.0.6", optional = true }
-openrr-gui = { version = "0.0.6", optional = true, default-features = false }
+arci-ros = { version = "0.0.7", optional = true }
+openrr-gui = { version = "0.0.7", optional = true, default-features = false }
 
 [target.'cfg(unix)'.dependencies]
-arci-gamepad-keyboard = "0.0.6"
+arci-gamepad-keyboard = "0.0.7"
 
 [dev-dependencies]
 tempfile = "3"

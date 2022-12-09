@@ -1,6 +1,6 @@
 [package]
 name = "openrr-gui"
-version = "0.0.6"
+version = "0.0.7"
 edition = "2021"
 license = "Apache-2.0"
 description = "openrr GUI library"
@@ -16,11 +16,11 @@ assimp = ["openrr-client/assimp"]
 glow = ["iced/glow"]
 
 [dependencies]
-arci = "0.0.6"
+arci = "0.0.7"
 iced = { version = "0.4.2", features = ["image"] }
 iced_futures = { version = "0.4.1", features = ["tokio"] }
 iced_style_config = "0.2"
-openrr-client = { version = "0.0.6", default-features = false }
+openrr-client = { version = "0.0.7", default-features = false }
 rand = "0.8"
 thiserror = "1"
 tracing = { version = "0.1", features = ["log"] }
