@@ -286,7 +286,7 @@ mod tests {
     #[test]
     fn from_urdf() {
         let s = r##"
-            <robot name="robo">
+            <robot name="robot">
                 <joint name="a" type="revolute">
                     <origin xyz="0.0 0.0 0.0" />
                     <parent link="b" />

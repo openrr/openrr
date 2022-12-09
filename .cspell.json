@@ -5,20 +5,36 @@
   "dictionaryDefinitions": [
     {
       "name": "project-dictionary",
-      "path": "./.github/.cspell/dictionary.txt",
+      "path": "./.github/.cspell/project-dictionary.txt",
+      "addWords": true
+    },
+    {
+      "name": "rust-dependencies",
+      "path": "./.github/.cspell/rust-dependencies.txt",
       "addWords": true
     }
   ],
-  "dictionaries": ["project-dictionary"],
+  "dictionaries": ["project-dictionary", "rust-dependencies"],
   "ignoreRegExpList": [
     // Copyright notice
     "Copyright (\\(c\\) )?.*",
     // GHA actions/workflows
     "uses: .+@",
     // GHA context (repo name, owner name, etc.)
-    "github.\\w+ == '.+'",
+    "github.\\w+ (=|!)= '.+'",
     // GH username
-    "( |\\[)@[\\w_-]+"
+    "( |\\[)@[\\w_-]+",
+    // Git config username
+    "git config user.name .*",
+    // Cargo.toml authors
+    "authors *= *\\[.*\\]",
+    "\".* <[\\w_.+-]+@[\\w.-]+>\""
+  ],
+  "languageSettings": [
+    {
+      "languageId": ["*"],
+      "dictionaries": ["rust"]
+    }
   ],
   "ignorePaths": [
     // Licenses
