@@ -1,4 +1,4 @@
-<robot name="robo">
+<robot name="robot">
   <!-- links -->
   <link name="root">
     <inertial>
