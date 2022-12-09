@@ -11,7 +11,7 @@ repository = "https://github.com/openrr/openrr"
 [dependencies]
 abi_stable = "0.11"
 anyhow = "1"
-arci = "0.0.6"
+arci = { path = "../arci", version = "0.0.6" }
 tokio = { version = "1", features = ["sync", "rt-multi-thread", "parking_lot"] }
 
 [dev-dependencies]

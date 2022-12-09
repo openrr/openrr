@@ -10,8 +10,8 @@ repository = "https://github.com/openrr/openrr"
 
 [dependencies]
 anyhow = "1.0"
-arci = "0.0.6"
-openrr-planner = { version = "0.0.6", default-features = false }
+arci = { path = "../arci", version = "0.0.6" }
+openrr-planner = { path = "../openrr-planner", version = "0.0.6", default-features = false }
 scoped-sleep = "0.1"
 parking_lot = "0.12"
 schemars = "0.8.3"

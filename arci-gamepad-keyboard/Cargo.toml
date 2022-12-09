@@ -9,7 +9,7 @@ categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 
 [dependencies]
-arci = "0.0.6"
+arci = { path = "../arci", version = "0.0.6" }
 flume = "0.10"
 tracing = { version = "0.1", features = ["log"] }
 

@@ -13,12 +13,12 @@ default = ["assimp"]
 assimp = ["openrr-client/assimp"]
 
 [dependencies]
-arci = "0.0.6"
+arci = { path = "../arci", version = "0.0.6" }
 async-recursion = "1.0"
 clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
 k = "0.29"
-openrr-client = { version = "0.0.6", default-features = false }
+openrr-client = { path = "../openrr-client", version = "0.0.6", default-features = false }
 rustyline = "10.0.0"
 thiserror = "1.0"
 tracing = { version = "0.1", features = ["log"] }

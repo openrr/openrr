@@ -12,7 +12,7 @@ repository = "https://github.com/openrr/openrr"
 tonic-build = "0.8"
 
 [dependencies]
-arci = "0.0.6"
+arci = { path = "../arci", version = "0.0.6" }
 prost = "0.11"
 prost-types = "0.11"
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }

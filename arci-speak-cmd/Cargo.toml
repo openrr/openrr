@@ -9,7 +9,7 @@ categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 
 [dependencies]
-arci = "0.0.6"
+arci = { path = "../arci", version = "0.0.6" }
 thiserror = "1.0"
 tokio = { version = "1", features = ["sync", "parking_lot"] }
 

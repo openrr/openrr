@@ -17,10 +17,10 @@ ros2 = ["r2r"]
 [dependencies]
 abi_stable = "0.11"
 anyhow = "1.0"
-arci = "0.0.6"
+arci = { path = "../arci", version = "0.0.6" }
 futures = "0.3"
 once_cell = "1"
-openrr-plugin = "0.0.6"
+openrr-plugin = { path = "../openrr-plugin", version = "0.0.6" }
 parking_lot = "0.12"
 r2r = { version = "0.6", optional = true }
 serde = { version = "1", features = ["derive"] }

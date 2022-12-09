@@ -9,7 +9,7 @@ categories = ["science::robotics"]
 repository = "https://github.com/openrr/openrr"
 
 [dependencies]
-arci = "0.0.6"
+arci = { path = "../arci", version = "0.0.6" }
 flume = "0.10"
 gilrs = { version = "0.10.0", features = ["serde-serialize"] }
 schemars = "0.8.3"
