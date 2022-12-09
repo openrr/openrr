@@ -12,7 +12,8 @@ MEMBERS=(
 
   # depend on arci
   "openrr-plugin"
-  "openrr-remote"
+  # TODO: https://github.com/openrr/openrr/issues/747
+  # "openrr-remote"
 
   # depend on arci and openrr-planner
   "openrr-client"
@@ -48,7 +49,7 @@ for i in "${!MEMBERS[@]}"; do
   (
     cd "${MEMBERS[${i}]}"
     cargo clean
-    cargo publish
+    cargo +stable publish
   )
   if [[ $((i + 1)) != "${#MEMBERS[@]}" ]]; then
     sleep 45
