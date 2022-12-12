@@ -32,7 +32,7 @@ sudo apt install cmake build-essential libudev-dev xorg-dev libglu1-mesa-dev lib
 
 ## Architecture
 
-![architecture](img/architecture.png)
+![architecture](https://raw.githubusercontent.com/openrr/openrr/main/img/architecture.png)
 
 `arci` is a hardware abstraction layer for openrr.
 Currently [ROS1](https://ros.org) and [urdf-viz](https://github.com/openrr/urdf-viz) (as a static simulator (actually it's just a viewer)) are implemented.

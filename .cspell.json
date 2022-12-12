@@ -47,6 +47,7 @@
     "**/schema/*.json",
     // Binaries
     "**/*.drawio",
+    "**/*.png",
     "**/*.mp[34]"
   ]
 }
