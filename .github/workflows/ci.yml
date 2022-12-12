@@ -31,9 +31,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@protoc
-      # https://github.com/actions/runner-images/issues/6627#issuecomment-1328214957
-      - name: Workaround GitHub Actions bug (windows)
-        run: rm -rf C:/Strawberry
       - run: cargo build
 
   macos:
