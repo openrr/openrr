@@ -171,7 +171,7 @@ fn proxy_same_crate_send_joint_positions(c: &mut Criterion) {
 
 fn proxy_diff_crate_joint_names(c: &mut Criterion) {
     let plugin_path = test_plugin().unwrap();
-    let plugin = PluginProxy::from_path(&plugin_path).unwrap();
+    let plugin = PluginProxy::from_path(plugin_path).unwrap();
 
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
     let client = plugin
@@ -186,7 +186,7 @@ fn proxy_diff_crate_joint_names(c: &mut Criterion) {
 
 fn proxy_diff_crate_current_joint_positions(c: &mut Criterion) {
     let plugin_path = test_plugin().unwrap();
-    let plugin = PluginProxy::from_path(&plugin_path).unwrap();
+    let plugin = PluginProxy::from_path(plugin_path).unwrap();
 
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
     let client = plugin
@@ -201,7 +201,7 @@ fn proxy_diff_crate_current_joint_positions(c: &mut Criterion) {
 
 fn proxy_diff_crate_send_joint_positions(c: &mut Criterion) {
     let plugin_path = test_plugin().unwrap();
-    let plugin = PluginProxy::from_path(&plugin_path).unwrap();
+    let plugin = PluginProxy::from_path(plugin_path).unwrap();
 
     let joint_names: Vec<_> = (0..100).map(|n| n.to_string()).collect();
     let positions: Vec<_> = (0..joint_names.len()).map(|n| n as f64).collect();

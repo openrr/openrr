@@ -537,7 +537,7 @@ where
             .iter()
             .filter_map(|e| e.as_ref())
             {
-                errors = errors.push(self.theme.text()["error"].new(&format!("Error: {msg}")));
+                errors = errors.push(self.theme.text()["error"].new(format!("Error: {msg}")));
             }
             if self.errors.update_on_error {
                 errors = errors.push(

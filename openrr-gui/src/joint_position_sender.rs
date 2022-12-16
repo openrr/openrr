@@ -613,7 +613,7 @@ where
             {
                 errors = errors.push(
                     self.theme.text()["error"]
-                        .new(&format!("Error: {msg}"))
+                        .new(format!("Error: {msg}"))
                         .width(Length::Fill),
                 );
             }

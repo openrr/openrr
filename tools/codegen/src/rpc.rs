@@ -24,7 +24,7 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
     let mut traits = vec![];
 
     let mut pb_traits = vec![];
-    let pb_file = fs::read_to_string(&workspace_root.join("openrr-remote/src/generated/arci.rs"))?;
+    let pb_file = fs::read_to_string(workspace_root.join("openrr-remote/src/generated/arci.rs"))?;
     CollectTrait(&mut pb_traits).visit_file_mut(&mut syn::parse_file(&pb_file)?);
 
     for item in arci_traits(workspace_root)? {

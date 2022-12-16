@@ -88,7 +88,7 @@ impl RobotTeleopConfig {
             resolve_plugin_path(&mut plugin_config.path, path)?;
             if let Some(args_path) = plugin_config.args_from_path.take() {
                 plugin_config.args_from_path =
-                    Some(openrr_client::resolve_relative_path(path, &args_path)?);
+                    Some(openrr_client::resolve_relative_path(path, args_path)?);
             }
         }
         Ok(config)
