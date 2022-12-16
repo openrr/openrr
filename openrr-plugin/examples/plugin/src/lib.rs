@@ -25,25 +25,25 @@ impl Plugin for MyPlugin {
     }
 
     fn new_speaker(&self, _args: String) -> Result<Option<Box<dyn arci::Speaker>>, arci::Error> {
-        Ok(Some(Box::new(PrintSpeaker::default())))
+        Ok(Some(Box::<PrintSpeaker>::default()))
     }
 
     fn new_move_base(&self, _args: String) -> Result<Option<Box<dyn arci::MoveBase>>, arci::Error> {
-        Ok(Some(Box::new(DummyMoveBase::default())))
+        Ok(Some(Box::<DummyMoveBase>::default()))
     }
 
     fn new_navigation(
         &self,
         _args: String,
     ) -> Result<Option<Box<dyn arci::Navigation>>, arci::Error> {
-        Ok(Some(Box::new(DummyNavigation::default())))
+        Ok(Some(Box::<DummyNavigation>::default()))
     }
 
     fn new_localization(
         &self,
         _args: String,
     ) -> Result<Option<Box<dyn arci::Localization>>, arci::Error> {
-        Ok(Some(Box::new(DummyLocalization::default())))
+        Ok(Some(Box::<DummyLocalization>::default()))
     }
 
     #[cfg(unix)]
