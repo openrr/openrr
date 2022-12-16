@@ -270,11 +270,11 @@ pub fn convert_system_time_to_ros_time(time: &SystemTime) -> Time {
     // https://doc.rust-lang.org/std/time/struct.SystemTime.html#method.duration_since
     if system_now < *time {
         Time::from_nanos(
-            time.duration_since(system_now).unwrap().as_nanos() as i64 + ros_now.nanos() as i64,
+            time.duration_since(system_now).unwrap().as_nanos() as i64 + ros_now.nanos(),
         )
     } else {
         Time::from_nanos(
-            ros_now.nanos() as i64 - system_now.duration_since(*time).unwrap().as_nanos() as i64,
+            ros_now.nanos() - system_now.duration_since(*time).unwrap().as_nanos() as i64,
         )
     }
 }
