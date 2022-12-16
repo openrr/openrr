@@ -151,10 +151,11 @@ where
     fn handle_event(&self, event: GamepadEvent) {
         if let Some(submode) = self.inner.lock().handle_event(event) {
             // do not wait
-            let _ = self
-                .speaker
-                .speak(&format!("{}{submode}", self.mode))
-                .unwrap();
+            drop(
+                self.speaker
+                    .speak(&format!("{}{submode}", self.mode))
+                    .unwrap(),
+            );
         }
     }
 
@@ -167,10 +168,11 @@ where
                 .unwrap();
             let pos = inner.get_target_positions(pos);
             // do not wait
-            let _ = self
-                .joint_trajectory_client
-                .send_joint_positions(pos, self.step_duration)
-                .unwrap();
+            drop(
+                self.joint_trajectory_client
+                    .send_joint_positions(pos, self.step_duration)
+                    .unwrap(),
+            );
         }
     }
 

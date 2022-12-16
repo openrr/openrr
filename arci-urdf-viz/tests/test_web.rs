@@ -66,13 +66,14 @@ fn test_set_get_pose_no_wait() {
     assert_approx_eq!(pose.translation.x, 0.0);
     assert_approx_eq!(pose.translation.y, 0.0);
     assert_approx_eq!(pose.rotation.angle(), f64::consts::PI);
-    let _ = c
-        .send_goal_pose(
+    drop(
+        c.send_goal_pose(
             nalgebra::Isometry2::new(nalgebra::Vector2::new(1.0, 2.0), 3.0),
             "",
             Duration::from_secs(0),
         )
-        .unwrap();
+        .unwrap(),
+    );
     std::thread::sleep(Duration::from_millis(10));
     let pose = c.current_pose("").unwrap();
     assert_approx_eq!(pose.translation.x, 1.0);

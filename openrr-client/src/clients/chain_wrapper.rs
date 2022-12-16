@@ -85,18 +85,22 @@ mod test {
 
         assert_eq!(chain_wrapper.joint_names(), vec![String::from("joint")]);
 
-        let _ = chain_wrapper
-            .send_joint_positions(vec![1.0], Duration::from_secs(1))
-            .unwrap();
+        drop(
+            chain_wrapper
+                .send_joint_positions(vec![1.0], Duration::from_secs(1))
+                .unwrap(),
+        );
         assert_approx_eq!(chain_wrapper.current_joint_positions().unwrap()[0], 1.0);
 
-        let _ = chain_wrapper
-            .send_joint_trajectory(vec![TrajectoryPoint {
-                positions: vec![1.5],
-                velocities: Some(vec![1.0]),
-                time_from_start: Duration::from_secs(1),
-            }])
-            .unwrap();
+        drop(
+            chain_wrapper
+                .send_joint_trajectory(vec![TrajectoryPoint {
+                    positions: vec![1.5],
+                    velocities: Some(vec![1.0]),
+                    time_from_start: Duration::from_secs(1),
+                }])
+                .unwrap(),
+        );
         assert_approx_eq!(chain_wrapper.current_joint_positions().unwrap()[0], 1.5);
     }
 }

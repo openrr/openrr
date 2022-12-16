@@ -44,7 +44,7 @@ mod tests {
         let speaker = DummySpeaker::new();
 
         assert_eq!(speaker.current_message(), "");
-        let _ = speaker.speak("abc").unwrap();
+        drop(speaker.speak("abc").unwrap());
         assert_eq!(speaker.current_message(), "abc");
     }
 }

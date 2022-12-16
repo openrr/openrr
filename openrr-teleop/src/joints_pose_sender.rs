@@ -130,10 +130,11 @@ where
     fn handle_event(&self, event: arci::gamepad::GamepadEvent) {
         if let Some(submode) = self.inner.lock().handle_event(event) {
             // do not wait
-            let _ = self
-                .speaker
-                .speak(&format!("{}{submode}", self.mode))
-                .unwrap();
+            drop(
+                self.speaker
+                    .speak(&format!("{}{submode}", self.mode))
+                    .unwrap(),
+            );
         }
     }
 
@@ -141,16 +142,18 @@ where
         let inner = self.inner.lock();
         let (name, target) = inner.get_target_name_positions();
         let client = self.joint_trajectory_clients.get(&name).unwrap();
-        let _ = client
-            .send_joint_positions(
-                if inner.is_sending && inner.is_trigger_holding {
-                    target
-                } else {
-                    client.current_joint_positions().unwrap()
-                },
-                self.duration,
-            )
-            .unwrap();
+        drop(
+            client
+                .send_joint_positions(
+                    if inner.is_sending && inner.is_trigger_holding {
+                        target
+                    } else {
+                        client.current_joint_positions().unwrap()
+                    },
+                    self.duration,
+                )
+                .unwrap(),
+        );
     }
 
     fn mode(&self) -> &str {
@@ -357,16 +360,18 @@ mod test {
             .joint_trajectory_clients
             .get(&name)
             .unwrap();
-        let _ = client
-            .send_joint_positions(
-                if inner.is_sending && inner.is_trigger_holding {
-                    target
-                } else {
-                    client.current_joint_positions().unwrap()
-                },
-                joints_pose_sender.duration,
-            )
-            .unwrap();
+        drop(
+            client
+                .send_joint_positions(
+                    if inner.is_sending && inner.is_trigger_holding {
+                        target
+                    } else {
+                        client.current_joint_positions().unwrap()
+                    },
+                    joints_pose_sender.duration,
+                )
+                .unwrap(),
+        );
 
         joints_pose_sender.joint_trajectory_clients[&name]
             .current_joint_positions()

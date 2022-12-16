@@ -113,7 +113,7 @@ where
     fn handle_event(&self, event: arci::gamepad::GamepadEvent) {
         if let Some(submode) = self.inner.lock().handle_event(event) {
             // do not wait
-            let _ = self.speaker.speak(&format!("{MODE} {submode}")).unwrap();
+            drop(self.speaker.speak(&format!("{MODE} {submode}")).unwrap());
         }
     }
 

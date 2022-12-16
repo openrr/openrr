@@ -347,7 +347,7 @@ fn test_manipulation_accessors() {
     let hash_speakers = client.speakers();
     assert_eq!(hash_speakers.keys().len(), 1);
 
-    let _ = client.speak("speaker", "aa").unwrap();
+    drop(client.speak("speaker", "aa").unwrap());
 }
 
 #[tokio::test]

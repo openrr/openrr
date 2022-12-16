@@ -209,9 +209,11 @@ fn test_send_joint_positions_no_wait() {
     web_server.start_background();
     let client = UrdfVizWebClient::new(url).unwrap();
     client.run_send_joint_positions_thread();
-    let _ = client
-        .send_joint_positions(vec![1.0], Duration::from_secs(1))
-        .unwrap();
+    drop(
+        client
+            .send_joint_positions(vec![1.0], Duration::from_secs(1))
+            .unwrap(),
+    );
     let v = client.current_joint_positions().unwrap();
     assert_approx_eq!(v[0], 0.0);
     std::thread::sleep(Duration::from_secs(2));
@@ -276,9 +278,11 @@ fn send_joint_positions_without_send_joint_positions_thread() {
     });
     web_server.start_background();
     let client = UrdfVizWebClient::new(url).unwrap();
-    let _ = client
-        .send_joint_positions(vec![1.0], Duration::from_secs(1))
-        .unwrap();
+    drop(
+        client
+            .send_joint_positions(vec![1.0], Duration::from_secs(1))
+            .unwrap(),
+    );
 }
 
 #[test]
