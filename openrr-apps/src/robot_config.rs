@@ -313,7 +313,7 @@ impl PluginMap {
     pub fn load(&mut self, name: impl AsRef<str>) -> Result<Option<Arc<PluginProxy>>, arci::Error> {
         let name = name.as_ref();
         if let Some((name, path)) = self.path.remove_entry(name) {
-            let plugin = Arc::new(PluginProxy::from_path(&path)?);
+            let plugin = Arc::new(PluginProxy::from_path(path)?);
             self.cache.insert(name, plugin.clone());
             Ok(Some(plugin))
         } else {
@@ -914,7 +914,7 @@ impl RobotConfig {
             for instance in &mut plugin_config.instances {
                 if let Some(args_path) = instance.args_from_path.take() {
                     instance.args_from_path =
-                        Some(openrr_client::resolve_relative_path(path, &args_path)?);
+                        Some(openrr_client::resolve_relative_path(path, args_path)?);
                 }
             }
         }

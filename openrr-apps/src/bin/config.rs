@@ -62,7 +62,7 @@ fn main() -> Result<()> {
             config_path,
             config: overwrite,
         } => {
-            let s = &fs::read_to_string(&config_path)?;
+            let s = &fs::read_to_string(config_path)?;
             let s = &openrr_config::overwrite_str(s, &overwrite)?;
             // check if the edited document is valid config.
             let _base: Config = toml::from_str(s)?;

@@ -566,7 +566,7 @@ impl OpenrrClientsConfig {
         if let Some(urdf_path) = self.urdf_path.as_ref() {
             // TODO: pass Some(config_file_dir)
             let urdf_path = openrr_config::evaluate(urdf_path, None)?;
-            self.urdf_full_path = Some(resolve_relative_path(path, &urdf_path)?);
+            self.urdf_full_path = Some(resolve_relative_path(path, urdf_path)?);
         } else {
             return Err(Error::NoUrdfPath);
         }
