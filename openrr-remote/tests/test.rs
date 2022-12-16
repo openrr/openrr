@@ -67,13 +67,13 @@ async fn joint_trajectory_client() -> Result<()> {
     assert_eq!(client.current_joint_positions()?, vec![3.0]);
 
     // no wait
-    let _ = client.send_joint_positions(vec![4.0], Duration::from_secs_f64(0.1))?;
+    drop(client.send_joint_positions(vec![4.0], Duration::from_secs_f64(0.1))?);
     tokio::time::sleep(Duration::from_secs_f64(0.5)).await;
     assert_eq!(client.current_joint_positions()?, vec![4.0]);
-    let _ = client.send_joint_trajectory(vec![TrajectoryPoint::new(
+    drop(client.send_joint_trajectory(vec![TrajectoryPoint::new(
         vec![5.0],
         Duration::from_secs_f64(0.1),
-    )])?;
+    )])?);
     tokio::time::sleep(Duration::from_secs_f64(0.5)).await;
     assert_eq!(client.current_joint_positions()?, vec![5.0]);
 

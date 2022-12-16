@@ -35,8 +35,10 @@ where
     let mut prev_current_position = positions[joint_index];
     positions[joint_index] = target_position;
     // use send_joint_trajectory, to send target trajectory with max velocity from start time.
-    let _ = joint_trajectory_client
-        .send_joint_trajectory(vec![TrajectoryPoint::new(positions, target_duration)])?;
+    drop(
+        joint_trajectory_client
+            .send_joint_trajectory(vec![TrajectoryPoint::new(positions, target_duration)])?,
+    );
     let mut stopped_count: u64 = 0;
     let stopped_count_threshold =
         (stopped_duration.as_secs_f64() / monitor_interval.as_secs_f64()).ceil() as u64;
