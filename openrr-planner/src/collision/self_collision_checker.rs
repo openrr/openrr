@@ -37,8 +37,7 @@ where
     ) -> Self {
         assert!(
             time_interpolate_rate > na::convert(0.0) && time_interpolate_rate <= na::convert(1.0),
-            "time_interpolate_rate must be 0.0~1.0 but {}",
-            time_interpolate_rate
+            "time_interpolate_rate must be 0.0~1.0 but {time_interpolate_rate}",
         );
 
         Self {

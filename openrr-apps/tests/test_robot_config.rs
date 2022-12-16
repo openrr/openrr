@@ -16,9 +16,7 @@ fn verify_sample_configs() {
         if cfg!(not(feature = "ros")) && f.contains("ros") {
             assert!(
                 matches!(result, Err(openrr_apps::Error::ConfigRequireRos(..))),
-                "{:?} {:?}",
-                f,
-                result
+                "{f:?} {result:?}",
             );
         } else if cfg!(not(feature = "ros")) && (f.contains("pr2") || f.contains("ur10")) {
             assert!(
@@ -28,14 +26,12 @@ fn verify_sample_configs() {
                         openrr_client::Error::Other(..)
                     ))
                 ),
-                "{:?} {:?}",
-                f,
-                result
+                "{f:?} {result:?}",
             );
         } else {
-            assert!(result.is_ok(), "{:?} {:?}", f, result);
+            assert!(result.is_ok(), "{f:?} {result:?}");
             let ser_result = toml::to_string(&result.unwrap());
-            assert!(ser_result.is_ok(), "{:?} {:?}", f, ser_result);
+            assert!(ser_result.is_ok(), "{f:?} {ser_result:?}");
         }
     }
 }
