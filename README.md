@@ -100,7 +100,7 @@ It can be a reference, a base for the future robotic people, like us.
 We appreciate for your any contributions!
 [Create an issue](https://github.com/openrr/openrr/issues/new) at first!
 
-(Here)[https://discord.gg/8DAFFKc88B] is a discord server.
+[Here](https://discord.gg/8DAFFKc88B) is a discord server.
 
 ## Using OpenRR
 
