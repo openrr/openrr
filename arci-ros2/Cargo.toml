@@ -22,7 +22,7 @@ futures = "0.3"
 once_cell = "1"
 openrr-plugin = "0.0.7"
 parking_lot = "0.12"
-r2r = { version = "0.6", optional = true }
+r2r = { version = "=0.6.3", optional = true }
 serde = { version = "1", features = ["derive"] }
 thiserror = "1.0"
 tokio = { version = "1.0", features = ["full"] }
