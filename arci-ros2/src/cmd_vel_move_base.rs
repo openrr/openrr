@@ -1,12 +1,13 @@
 use arci::*;
+use parking_lot::Mutex;
 use r2r::geometry_msgs::msg::Twist;
 use serde::{Deserialize, Serialize};
 
 /// Implement arci::MoveBase for ROS2
 pub struct Ros2CmdVelMoveBase {
-    vel_publisher: r2r::Publisher<Twist>,
+    vel_publisher: Mutex<r2r::Publisher<Twist>>,
     // keep not to be dropped
-    _node: r2r::Node,
+    _node: Mutex<r2r::Node>,
 }
 
 impl Ros2CmdVelMoveBase {
@@ -22,16 +23,14 @@ impl Ros2CmdVelMoveBase {
     #[track_caller]
     pub fn from_node(mut node: r2r::Node, cmd_topic_name: &str) -> Self {
         Self {
-            vel_publisher: node
-                .create_publisher(cmd_topic_name, r2r::QosProfile::default())
-                .unwrap(),
-            _node: node,
+            vel_publisher: Mutex::new(
+                node.create_publisher(cmd_topic_name, r2r::QosProfile::default())
+                    .unwrap(),
+            ),
+            _node: Mutex::new(node),
         }
     }
 }
-
-// TODO:
-unsafe impl Sync for Ros2CmdVelMoveBase {}
 
 impl MoveBase for Ros2CmdVelMoveBase {
     fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error> {
@@ -40,6 +39,7 @@ impl MoveBase for Ros2CmdVelMoveBase {
         twist_msg.linear.y = velocity.y;
         twist_msg.angular.z = velocity.theta;
         self.vel_publisher
+            .lock()
             .publish(&twist_msg)
             .map_err(|e| arci::Error::Connection {
                 message: format!("r2r publish error: {e:?}"),

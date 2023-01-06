@@ -26,9 +26,6 @@ pub struct Ros2Navigation {
     current_goal: Arc<Mutex<Option<r2r::ActionClientGoal<NavigateToPose::Action>>>>,
 }
 
-// TODO:
-unsafe impl Sync for Ros2Navigation {}
-
 impl Ros2Navigation {
     /// Creates a new `Ros2Navigation` from ROS2 context and name of action.
     #[track_caller]
