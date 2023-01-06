@@ -148,6 +148,7 @@ jobs:
       image: docker://ros:${{ matrix.distro }}
     env:
       HOME: /root
+      RUST_TEST_THREADS: 1
     steps:
       - uses: actions/checkout@v3
       - run: |
