@@ -28,9 +28,6 @@ pub struct Ros2ControlClient {
     joint_names: Vec<String>,
 }
 
-// TODO:
-unsafe impl Sync for Ros2ControlClient {}
-
 impl Ros2ControlClient {
     /// Creates a new `Ros2ControlClient` from ROS2 context and names of action.
     #[track_caller]
