@@ -17,7 +17,7 @@ glow = ["iced/glow"]
 
 [dependencies]
 arci = "0.0.7"
-iced = { version = "0.4.2", features = ["image"] }
+iced = { version = "0.7.0", features = ["image"] }
 iced_futures = { version = "0.4.1", features = ["tokio"] }
 iced_style_config = "0.2"
 openrr-client = { version = "0.0.7", default-features = false }
