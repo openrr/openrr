@@ -47,9 +47,6 @@ openrr-plugin = { path = "openrr-plugin" }
 openrr-remote = { path = "openrr-remote" }
 openrr-teleop = { path = "openrr-teleop" }
 
-# TODO: remove this once https://github.com/rust-lang/cmake-rs/pull/146 released.
-cmake = { git = "https://github.com/rust-lang/cmake-rs.git", rev = "00e6b220342a8b0ec4548071928ade38fd5f691b" }
-
 [profile.release]
 lto = true
 codegen-units = 1
