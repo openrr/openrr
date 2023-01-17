@@ -47,6 +47,7 @@ enum
 ERRORED
 espeak
 expr
+flac
 func
 funcs
 gamepads
@@ -197,6 +198,7 @@ unparse
 utils
 uuid
 vels
+vorbis
 wasm
 webpki
 wgpu
