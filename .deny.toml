@@ -1,0 +1,59 @@
+# https://embarkstudios.github.io/cargo-deny/checks/advisories/cfg.html
+[advisories]
+vulnerability = "deny"
+unmaintained = "allow" # TODO
+unsound = "deny"
+yanked = "deny"
+notice = "deny"
+ignore = [
+    "RUSTSEC-2020-0027", # traitobject 0.1, transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2020-0071", # time 0.1, transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2021-0078", # hyper 0.10, transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2021-0079", # hyper 0.10, transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2022-0006", # thread_local 0.3, transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2022-0013", # regex 0.2, transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2022-0022", # hyper 0.10, transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2021-0047", # slice-deque 0.3, transitively dep of rodio (via minimp3)
+    "RUSTSEC-2021-0145", # atty 0.2, transitively dep of rosrust (via colored) and r2r (via old bindgen)
+]
+
+# https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html
+[bans]
+multiple-versions = "allow" # TODO
+wildcards = "allow" # https://github.com/EmbarkStudios/cargo-deny/issues/448
+skip = []
+
+# https://embarkstudios.github.io/cargo-deny/checks/licenses/cfg.html
+[licenses]
+default = "deny"
+unlicensed = "deny"
+copyleft = "deny"
+unused-allowed-license = "deny"
+private.ignore = true
+allow = [
+    "Apache-2.0",
+    "MIT",
+    "Unicode-DFS-2016", # unicode-ident
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "ISC",
+    "OpenSSL",
+    "Zlib",
+    "OFL-1.1", # iced_glow/iced_wgpu
+    "MPL-2.0", # webpki-roots
+]
+
+[[licenses.clarify]]
+name = "ring"
+expression = "MIT AND ISC AND OpenSSL"
+license-files = [
+    { path = "LICENSE", hash = 0xbd0eed23 }
+]
+
+# https://embarkstudios.github.io/cargo-deny/checks/sources/cfg.html
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-git = []

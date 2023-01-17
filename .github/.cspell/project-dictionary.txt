@@ -8,6 +8,7 @@ anonymize
 args
 attr
 backend
+bindgen
 bringup
 buildtool
 cdylib
@@ -29,6 +30,7 @@ costmaps
 dearmor
 debian
 dedup
+deque
 deref
 deserialize
 deserializer
@@ -79,6 +81,7 @@ localhost
 macos
 Microsoft
 millis
+minimp
 mpsc
 msgs
 Mutex
@@ -144,6 +147,7 @@ rustc
 rustdocflags
 rustflags
 rustfmt
+RUSTSEC
 rustup
 RVec
 rviz
@@ -180,6 +184,7 @@ tmpfile
 tmppath
 todo
 toolchain
+traitobject
 traj
 trajs
 trimesh
@@ -193,6 +198,8 @@ utils
 uuid
 vels
 wasm
+webpki
+wgpu
 wiki
 wikipedia
 winapi
