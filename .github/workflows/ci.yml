@@ -280,6 +280,16 @@ jobs:
           git push -f -q https://git:${{ secrets.github_token }}@github.com/${{ github.repository }} HEAD:gh-pages
         if: github.event_name == 'push' && github.event.ref == 'refs/heads/main' && github.repository_owner == 'openrr'
 
+  deny:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@cargo-deny
+      # Workaround for https://github.com/EmbarkStudios/cargo-deny/issues/413
+      - uses: taiki-e/install-action@cargo-no-dev-deps
+      - run: cargo no-dev-deps deny --workspace --all-features check
+
   shellcheck:
     runs-on: ubuntu-latest
     steps:
