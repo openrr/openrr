@@ -227,7 +227,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -236,6 +236,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-install-dependencies.sh
+      - run: echo "ROS2_DISTRO=humble" >>"${GITHUB_ENV}"
       - name: Install ROS2
         run: |
           # for arci-ros2
@@ -243,22 +244,23 @@ jobs:
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
           sudo apt-get update
           sudo apt-get install -y \
-            ros-foxy-ros-core ros-foxy-geometry-msgs ros-foxy-nav2-msgs ros-foxy-ros2-control ros-foxy-ros2-controllers
+            ros-$ROS2_DISTRO-ros-core ros-$ROS2_DISTRO-geometry-msgs ros-$ROS2_DISTRO-nav2-msgs ros-$ROS2_DISTRO-ros2-control ros-$ROS2_DISTRO-ros2-controllers
       - name: Run clippy
         run: |
           # for arci-ros2
-          source /opt/ros/foxy/setup.bash
+          source /opt/ros/$ROS2_DISTRO/setup.bash
           cargo clippy --all-features --all-targets
 
   docs:
     name: Docs
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-install-dependencies.sh
+      - run: echo "ROS2_DISTRO=humble" >>"${GITHUB_ENV}"
       - name: Install ROS2
         run: |
           # for arci-ros2
@@ -266,10 +268,10 @@ jobs:
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
           sudo apt-get update
           sudo apt-get install -y \
-            ros-foxy-ros-core ros-foxy-geometry-msgs ros-foxy-nav2-msgs ros-foxy-ros2-control ros-foxy-ros2-controllers
+            ros-$ROS2_DISTRO-ros-core ros-$ROS2_DISTRO-geometry-msgs ros-$ROS2_DISTRO-nav2-msgs ros-$ROS2_DISTRO-ros2-control ros-$ROS2_DISTRO-ros2-controllers
       - run: |
           # for arci-ros2
-          source /opt/ros/foxy/setup.bash
+          source /opt/ros/$ROS2_DISTRO/setup.bash
           cargo doc --workspace --all-features
       - name: Publish documentation
         run: |
