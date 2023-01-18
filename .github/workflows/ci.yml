@@ -139,8 +139,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - distro: foxy
-            os: ubuntu-20.04
+          # TODO: r2r 0.6.5 doesn't support foxy
+          # - distro: foxy
+          #   os: ubuntu-20.04
           - distro: humble
             os: ubuntu-22.04
     runs-on: ${{ matrix.os }}

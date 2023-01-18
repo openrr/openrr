@@ -22,30 +22,25 @@ jobs:
       - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-install-dependencies.sh
       - run: ci/ubuntu-setup-lld.sh
-      - name: Install ROS1 and ROS2
+      - name: Install ROS1
         run: |
-          # ros2
-          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
           # ros1
           sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
           sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 
           sudo apt-get update
           sudo apt-get install -y \
-            ros-noetic-ros-base ros-noetic-joy ros-noetic-pr2-description \
-            ros-foxy-ros-core ros-foxy-geometry-msgs ros-foxy-nav2-msgs ros-foxy-ros2-control ros-foxy-ros2-controllers
+            ros-noetic-ros-base ros-noetic-joy ros-noetic-pr2-description
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
         run: |
-          # for test of arci-ros2
-          source /opt/ros/foxy/setup.bash
           # for test of arci-ros (roscore, rostopic)
           source /opt/ros/noetic/setup.bash
-          cargo llvm-cov --verbose --all-features --workspace --exclude openrr-internal-codegen --lcov --output-path lcov.info
+          # TODO: r2r 0.6.5 doesn't support foxy
+          cargo llvm-cov --verbose --all-features --workspace --exclude openrr-internal-codegen --exclude arci-ros2 --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
