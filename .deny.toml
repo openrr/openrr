@@ -13,7 +13,7 @@ ignore = [
     "RUSTSEC-2022-0006", # thread_local 0.3, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2022-0013", # regex 0.2, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2022-0022", # hyper 0.10, transitively dep of rosrust (via xml-rpc)
-    "RUSTSEC-2021-0145", # atty 0.2, transitively dep of rosrust (via colored, https://github.com/mackwic/colored/pull/122) and r2r (via old bindgen, already fixed but unreleased)
+    "RUSTSEC-2021-0145", # atty 0.2, transitively dep of rosrust (via colored, https://github.com/mackwic/colored/pull/122)
 ]
 
 # https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html
