@@ -4,11 +4,10 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-homepage = "https://openrr.github.io"
+homepage.workspace = true
 description = "Open Rust Robotics framework"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
-readme = "../README.md"
 
 [features]
 default = ["assimp"]
