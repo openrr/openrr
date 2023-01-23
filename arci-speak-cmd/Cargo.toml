@@ -1,12 +1,12 @@
 [package]
 name = "arci-speak-cmd"
-version = "0.0.7"
-edition = "2021"
-license = "Apache-2.0"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 description = "arci::Speaker implementation using local command"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
-repository = "https://github.com/openrr/openrr"
 
 [dependencies]
 arci = "0.0.7"

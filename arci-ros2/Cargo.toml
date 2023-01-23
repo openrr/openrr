@@ -1,12 +1,12 @@
 [package]
 name = "arci-ros2"
-version = "0.0.7"
-edition = "2021"
-license = "Apache-2.0"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 description = "arci implementation using ROS2"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
-repository = "https://github.com/openrr/openrr"
 
 [lib]
 crate-type = ["lib", "staticlib", "cdylib"]
