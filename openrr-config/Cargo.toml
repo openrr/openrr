@@ -1,12 +1,12 @@
 [package]
 name = "openrr-config"
-version = "0.0.7"
-edition = "2021"
-license = "Apache-2.0"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 description = "Utilities for modifying configuration files"
 keywords = ["robotics", "robot"]
 categories = ["science::robotics", "gui"]
-repository = "https://github.com/openrr/openrr"
 
 [dependencies]
 anyhow = "1"

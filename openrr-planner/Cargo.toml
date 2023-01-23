@@ -1,12 +1,12 @@
 [package]
 name = "openrr-planner"
-version = "0.0.7"
-edition = "2021"
-license = "Apache-2.0"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 description = "Collision avoidance path planning for robotics"
 keywords = ["pathplanning", "robotics", "robot"]
 categories = ["algorithms", "science::robotics"]
-repository = "https://github.com/openrr/openrr"
 
 [features]
 default = ["assimp"]

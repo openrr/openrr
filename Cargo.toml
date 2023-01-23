@@ -26,6 +26,12 @@ members = [
     "tools/codegen",
 ]
 
+[workspace.package]
+version = "0.0.7"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/openrr/openrr"
+
 [patch.crates-io]
 
 arci = { path = "arci" }
