@@ -18,16 +18,13 @@ assimp = [
     "openrr-teleop/assimp",
     "openrr-apps/assimp",
 ]
+gui = ["openrr-apps/gui"]
 ros = ["openrr-apps/ros"]
 
 [dependencies]
+openrr-apps = { version = "0.0.7", default-features = false }
 openrr-client = { version = "0.0.7", default-features = false }
-openrr-config = { version = "0.0.7", default-features = false }
 openrr-command = { version = "0.0.7", default-features = false }
+openrr-config = { version = "0.0.7", default-features = false }
 openrr-planner = { version = "0.0.7", default-features = false }
 openrr-teleop = { version = "0.0.7", default-features = false }
-
-[dependencies.openrr-apps]
-version = "0.0.7"
-default-features = false
-features = ["gui"]
