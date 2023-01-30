@@ -67,16 +67,12 @@ fn test_convert_system_time_to_ros_time() {
     let actual_diff = ((ros_time - ros_time_1second_ago).seconds() - 1.0).abs();
     assert!(
         actual_diff < ALLOWABLE_ERROR,
-        "actual {} expected {}",
-        actual_diff,
-        ALLOWABLE_ERROR
+        "actual {actual_diff} expected {ALLOWABLE_ERROR}",
     );
     let actual_diff = ((ros_time_1second - ros_time).seconds() - 1.0).abs();
     assert!(
         actual_diff < ALLOWABLE_ERROR,
-        "actual {} expected {}",
-        actual_diff,
-        ALLOWABLE_ERROR
+        "actual {actual_diff} expected {ALLOWABLE_ERROR}",
     );
 }
 
