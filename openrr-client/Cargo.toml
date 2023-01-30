@@ -21,7 +21,7 @@ openrr-planner = { version = "0.0.7", default-features = false }
 schemars = "0.8.3"
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
-toml = "0.5"
+toml = "0.7"
 tracing = { version = "0.1", features = ["log"] }
 urdf-rs = "0.6"
 
