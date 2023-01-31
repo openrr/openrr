@@ -60,7 +60,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
+      # use stable again once https://github.com/rust-lang/rust/pull/107360 is backported
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: ${{ env.nightly }}
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-setup-lld.sh
