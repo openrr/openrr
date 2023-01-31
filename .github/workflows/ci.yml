@@ -16,7 +16,7 @@ env:
   RUSTDOCFLAGS: -D warnings
   RUSTFLAGS: -D warnings
   RUSTUP_MAX_RETRIES: 10
-  nightly: nightly-2023-01-17
+  nightly: nightly-2023-01-31
 
 defaults:
   run:
