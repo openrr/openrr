@@ -45,6 +45,7 @@ drawio
 dylib
 editorconfig
 enum
+epaint
 ERRORED
 espeak
 expr

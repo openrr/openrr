@@ -13,7 +13,6 @@
   A. There are several possibilities:
 
   - If the error is command-line arguments or IO related, it's likely that the argument is wrong.
-  - If you get the error that "GraphicsAdapterNotFound", try enabling the `glow` feature of openrr-gui or openrr-apps.
   - If that doesn't fix the problem, try passing the `LIBGL_ALWAYS_SOFTWARE=1` environment variable.
   - On VM (e.g., VirtualBox), you may need to disable hardware acceleration.
 
