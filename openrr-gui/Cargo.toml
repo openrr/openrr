@@ -11,15 +11,12 @@ categories = ["science::robotics", "gui"]
 [features]
 default = ["assimp"]
 assimp = ["openrr-client/assimp"]
-# Enables the `iced_glow` renderer on GUI.
-# This might be useful if the default renderer doesn't work.
-glow = ["iced/glow"]
 
 [dependencies]
 arci = "0.0.7"
-iced = { version = "0.4.2", features = ["image"] }
-iced_futures = { version = "0.4.1", features = ["tokio"] }
-iced_style_config = "0.2"
+eframe = "0.20"
+egui_extras = { version = "0.20", features = ["image"] }
+image = { version = "0.24", default-features = false, features = ["png"] }
 openrr-client = { version = "0.0.7", default-features = false }
 rand = "0.8"
 thiserror = "1"
@@ -27,4 +24,6 @@ tracing = { version = "0.1", features = ["log"] }
 urdf-rs = "0.6"
 
 [dev-dependencies]
+anyhow = "1"
 assert_approx_eq = "1.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["ansi", "env-filter"] }

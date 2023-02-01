@@ -20,13 +20,16 @@ complete
 config
 criterion
 easy
+eframe
+egui
+extras
 flaky
 flume
 futures
 gamepad
 gilrs
 heck
-iced
+image
 impl
 json
 keyboard
@@ -59,7 +62,6 @@ serde
 sleep
 speak
 stable
-style
 subscriber
 teleop
 tempfile

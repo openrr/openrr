@@ -4,7 +4,6 @@ use anyhow::Result;
 use clap::Parser;
 use openrr_apps::utils::init_tracing;
 use openrr_client::BoxRobotClient;
-use openrr_gui::velocity_sender;
 use tracing::debug;
 
 /// An openrr GUI tool to send base velocity.
@@ -18,9 +17,6 @@ struct Opt {
     /// setting file specified by --config-path.
     #[clap(long)]
     config: Option<String>,
-    // For developing GUI (enabling hot reloading of theme)
-    #[clap(long, hide = true)]
-    theme: Option<PathBuf>,
 }
 
 fn main() -> Result<()> {
@@ -34,7 +30,7 @@ fn main() -> Result<()> {
 
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &config);
     let client: BoxRobotClient = config.create_robot_client()?;
-    velocity_sender(client, opt.theme.as_deref())?;
+    openrr_gui::velocity_sender(client);
     Ok(())
 }
 

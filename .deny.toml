@@ -36,12 +36,12 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "BSL-1.0",
-    "CC0-1.0",
     "ISC",
     "OpenSSL",
     "Zlib",
-    "OFL-1.1", # iced_glow/iced_wgpu
     "MPL-2.0", # webpki-roots
+    "OFL-1.1", # epaint
+    "LicenseRef-UFL-1.0", # epaint (see https://github.com/emilk/egui/issues/2321)
 ]
 
 [[licenses.clarify]]

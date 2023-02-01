@@ -4,7 +4,6 @@ use anyhow::Result;
 use clap::Parser;
 use openrr_apps::utils::init_tracing;
 use openrr_client::BoxRobotClient;
-use openrr_gui::joint_position_sender;
 use tracing::debug;
 
 /// An openrr GUI tool to send joint positions.
@@ -18,9 +17,6 @@ struct Opt {
     /// setting file specified by --config-path.
     #[clap(long)]
     config: Option<String>,
-    // For developing GUI (enabling hot reloading of theme)
-    #[clap(long, hide = true)]
-    theme: Option<PathBuf>,
 }
 
 fn main() -> Result<()> {
@@ -38,7 +34,7 @@ fn main() -> Result<()> {
         Some(path) => urdf_rs::utils::read_urdf_or_xacro(path)?,
         None => arci_urdf_viz::UrdfVizWebClient::default().get_urdf()?,
     };
-    joint_position_sender(client, robot, opt.theme.as_deref())?;
+    openrr_gui::joint_position_sender(client, robot)?;
     Ok(())
 }
 
