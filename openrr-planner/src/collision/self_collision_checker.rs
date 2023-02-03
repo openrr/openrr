@@ -196,7 +196,7 @@ pub fn create_self_collision_checker<P: AsRef<Path>>(
     robot: Arc<k::Chain<f64>>,
 ) -> SelfCollisionChecker<f64> {
     let collision_detector = CollisionDetector::from_urdf_robot(
-        &urdf_rs::read_file(urdf_path).unwrap(),
+        &urdf_rs::utils::read_urdf_or_xacro(urdf_path.as_ref()).unwrap(),
         config.prediction,
     );
     let robot_collision_detector = RobotCollisionDetector::new(
