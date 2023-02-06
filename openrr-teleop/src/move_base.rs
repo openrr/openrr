@@ -5,19 +5,19 @@ use arci::{
 use async_trait::async_trait;
 use parking_lot::Mutex;
 
-use super::control_node::ControlNode;
+use super::control_mode::ControlMode;
 
 const BASE_LINEAR_VEL_AXIS_GAIN: f64 = 0.5;
 const BASE_ANGULAR_VEL_AXIS_GAIN: f64 = 1.5;
 const BASE_TURBO_GAIN: f64 = 2.0;
 
-struct MoveBaseNodeInner {
+struct MoveBaseModeInner {
     vel: BaseVelocity,
     is_enabled: bool,
     is_turbo: bool,
 }
 
-impl MoveBaseNodeInner {
+impl MoveBaseModeInner {
     fn new() -> Self {
         Self {
             vel: BaseVelocity::default(),
@@ -77,14 +77,14 @@ impl MoveBaseNodeInner {
     }
 }
 
-pub struct MoveBaseNode<T: MoveBase> {
+pub struct MoveBaseMode<T: MoveBase> {
     move_base: T,
     mode: String,
     submode: String,
-    inner: Mutex<MoveBaseNodeInner>,
+    inner: Mutex<MoveBaseModeInner>,
 }
 
-impl<T> MoveBaseNode<T>
+impl<T> MoveBaseMode<T>
 where
     T: MoveBase,
 {
@@ -93,13 +93,13 @@ where
             move_base,
             mode,
             submode: "".to_string(),
-            inner: Mutex::new(MoveBaseNodeInner::new()),
+            inner: Mutex::new(MoveBaseModeInner::new()),
         }
     }
 }
 
 #[async_trait]
-impl<T> ControlNode for MoveBaseNode<T>
+impl<T> ControlMode for MoveBaseMode<T>
 where
     T: MoveBase,
 {
@@ -135,10 +135,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_move_node_new() {
+    fn test_move_mode_new() {
         let mode = String::from("tested");
         let base = DummyMoveBase::new();
-        let node = MoveBaseNode::new(mode.clone(), base);
+        let node = MoveBaseMode::new(mode.clone(), base);
 
         assert_eq!(
             format!("{:?}", node.move_base),
@@ -155,10 +155,10 @@ mod tests {
     }
 
     #[test]
-    fn test_move_node_get() {
+    fn test_move_mode_get() {
         let mode = String::from("tested");
         let base = DummyMoveBase::new();
-        let node = MoveBaseNode::new(mode.clone(), base);
+        let node = MoveBaseMode::new(mode.clone(), base);
 
         let base_mode = node.mode();
         assert_eq!(base_mode, mode);
@@ -167,16 +167,16 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_move_node_proc() {
+    async fn test_move_mode_proc() {
         let mode = String::from("tested");
         const X: f64 = 1.2;
         const Y: f64 = 3.5;
         const THETA: f64 = 1.8;
-        let node = MoveBaseNode {
+        let node = MoveBaseMode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            inner: Mutex::new(MoveBaseNodeInner {
+            inner: Mutex::new(MoveBaseModeInner {
                 vel: BaseVelocity {
                     x: X,
                     y: Y,
@@ -193,11 +193,11 @@ mod tests {
         assert_approx_eq!(current.theta, 0.0);
         println!("{:?} {current:?}", node.inner.lock().vel);
 
-        let node = MoveBaseNode {
+        let node = MoveBaseMode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            inner: Mutex::new(MoveBaseNodeInner {
+            inner: Mutex::new(MoveBaseModeInner {
                 vel: BaseVelocity {
                     x: 1.2,
                     y: 3.5,
@@ -214,11 +214,11 @@ mod tests {
         assert_approx_eq!(current.theta, 0.0);
         println!("{:?} {current:?}", node.inner.lock().vel);
 
-        let node = MoveBaseNode {
+        let node = MoveBaseMode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            inner: Mutex::new(MoveBaseNodeInner {
+            inner: Mutex::new(MoveBaseModeInner {
                 vel: BaseVelocity {
                     x: 1.2,
                     y: 3.5,
@@ -235,11 +235,11 @@ mod tests {
         assert_approx_eq!(current.theta, THETA);
         println!("{:?} {current:?}", node.inner.lock().vel);
 
-        let node = MoveBaseNode {
+        let node = MoveBaseMode {
             move_base: DummyMoveBase::new(),
             mode: mode.clone(),
             submode: "".to_string(),
-            inner: Mutex::new(MoveBaseNodeInner {
+            inner: Mutex::new(MoveBaseModeInner {
                 vel: BaseVelocity {
                     x: 1.2_f64,
                     y: 3.5,

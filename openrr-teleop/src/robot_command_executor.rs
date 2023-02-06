@@ -13,7 +13,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};
 
-use crate::ControlNode;
+use crate::ControlMode;
 
 const MODE: &str = "command";
 
@@ -106,7 +106,7 @@ where
 }
 
 #[async_trait]
-impl<S> ControlNode for RobotCommandExecutor<S>
+impl<S> ControlMode for RobotCommandExecutor<S>
 where
     S: Speaker,
 {

@@ -1,18 +1,18 @@
 robot_config_path = "ur10_robot_client_config_for_ros.toml"
 
-[control_nodes_config]
+[control_modes_config]
 
-[control_nodes_config.joints_pose_sender_config]
+[control_modes_config.joints_pose_sender_config]
 
-[[control_nodes_config.ik_node_teleop_configs]]
+[[control_modes_config.ik_mode_teleop_configs]]
 solver_name = "arm_ik_solver"
 joint_trajectory_client_name = "arm"
 
-[control_nodes_config.ik_node_teleop_configs.config]
+[control_modes_config.ik_mode_teleop_configs.config]
 mode = "i k"
 
-[[control_nodes_config.joy_joint_teleop_configs]]
+[[control_modes_config.joy_joint_teleop_configs]]
 client_name = "arm_collision_checked"
 
-[control_nodes_config.joy_joint_teleop_configs.config]
+[control_modes_config.joy_joint_teleop_configs.config]
 mode = "arm"

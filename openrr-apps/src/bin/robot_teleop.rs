@@ -11,7 +11,7 @@ use openrr_apps::{
 };
 use openrr_client::ArcRobotClient;
 use openrr_plugin::PluginProxy;
-use openrr_teleop::ControlNodeSwitcher;
+use openrr_teleop::ControlModeSwitcher;
 use tracing::info;
 
 /// An openrr teleoperation tool.
@@ -95,8 +95,8 @@ async fn main() -> Result<()> {
     let speaker = client.speakers().values().next().unwrap();
 
     let nodes = teleop_config
-        .control_nodes_config
-        .create_control_nodes(
+        .control_modes_config
+        .create_control_modes(
             args.config_path,
             client.clone(),
             speaker.clone(),
@@ -122,7 +122,7 @@ async fn main() -> Result<()> {
         return Err(Error::NoSpecifiedNode(teleop_config.initial_mode).into());
     };
 
-    let switcher = Arc::new(ControlNodeSwitcher::new(
+    let switcher = Arc::new(ControlModeSwitcher::new(
         nodes,
         speaker.clone(),
         initial_node_index,

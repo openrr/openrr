@@ -14,39 +14,39 @@ use parking_lot::Mutex;
 use tokio::sync::Mutex as TokioMutex;
 use tracing::{debug, warn};
 
-use super::control_node::ControlNode;
+use super::control_mode::ControlMode;
 
-pub struct ControlNodeSwitcher<S>
+pub struct ControlModeSwitcher<S>
 where
     S: Speaker,
 {
     current_index: Arc<Mutex<usize>>,
-    control_nodes: Arc<TokioMutex<Vec<Arc<dyn ControlNode>>>>,
+    control_modes: Arc<TokioMutex<Vec<Arc<dyn ControlMode>>>>,
     speaker: S,
     is_running: Arc<AtomicBool>,
 }
 
-impl<S> ControlNodeSwitcher<S>
+impl<S> ControlModeSwitcher<S>
 where
     S: Speaker,
 {
     #[track_caller]
     pub fn new(
-        control_nodes: Vec<Arc<dyn ControlNode>>,
+        control_modes: Vec<Arc<dyn ControlMode>>,
         speaker: S,
-        initial_node_index: usize,
+        initial_mode_index: usize,
     ) -> Self {
-        assert!(!control_nodes.is_empty());
+        assert!(!control_modes.is_empty());
         Self {
-            current_index: Arc::new(Mutex::new(initial_node_index)),
-            control_nodes: Arc::new(TokioMutex::new(control_nodes)),
+            current_index: Arc::new(Mutex::new(initial_mode_index)),
+            control_modes: Arc::new(TokioMutex::new(control_modes)),
             speaker,
             is_running: Arc::new(AtomicBool::new(false)),
         }
     }
 
     pub async fn increment_mode(&self) -> Result<(), arci::Error> {
-        let len = self.control_nodes.lock().await.len();
+        let len = self.control_modes.lock().await.len();
         {
             let mut index = self.current_index.lock();
             *index = (*index + 1) % len;
@@ -55,10 +55,10 @@ where
     }
 
     pub async fn speak_current_mode(&self) -> Result<(), arci::Error> {
-        let nodes = self.control_nodes.lock().await;
+        let modes = self.control_modes.lock().await;
         let i = self.current_index();
-        let mode = nodes[i].mode();
-        let submode = nodes[i].submode();
+        let mode = modes[i].mode();
+        let submode = modes[i].submode();
         self.speaker.speak(&format!("{mode}{submode}"))?.await
     }
 
@@ -78,7 +78,7 @@ where
     where
         G: 'static + Gamepad,
     {
-        let nodes = self.control_nodes.clone();
+        let modes = self.control_modes.clone();
         let index = self.current_index.clone();
         let is_running = self.is_running.clone();
         self.is_running.store(true, Ordering::Relaxed);
@@ -89,8 +89,8 @@ where
             let mut interval = tokio::time::interval(Duration::from_millis(50));
             while is_running.load(Ordering::Relaxed) {
                 debug!("tick");
-                let node = { nodes.lock().await[*index.lock()].clone() };
-                node.proc().await;
+                let mode = { modes.lock().await[*index.lock()].clone() };
+                mode.proc().await;
                 interval.tick().await;
             }
             gamepad_cloned.stop();
@@ -107,8 +107,8 @@ where
                     self.stop();
                 }
                 _ => {
-                    let node = { self.control_nodes.lock().await[self.current_index()].clone() };
-                    node.handle_event(ev);
+                    let mode = { self.control_modes.lock().await[self.current_index()].clone() };
+                    mode.handle_event(ev);
                 }
             }
         }

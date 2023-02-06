@@ -1,36 +1,36 @@
 robot_config_path = "sample_robot_client_config_for_urdf_viz_with_multiple_speaker.toml"
 
-[control_nodes_config]
+[control_modes_config]
 move_base_mode = "base"
 
-[control_nodes_config.joints_pose_sender_config]
+[control_modes_config.joints_pose_sender_config]
 
-[[control_nodes_config.ik_node_teleop_configs]]
+[[control_modes_config.ik_mode_teleop_configs]]
 solver_name = "l_arm_ik_solver"
 joint_trajectory_client_name = "l_arm"
 
-[control_nodes_config.ik_node_teleop_configs.config]
+[control_modes_config.ik_mode_teleop_configs.config]
 mode = "left i k"
 
-[[control_nodes_config.ik_node_teleop_configs]]
+[[control_modes_config.ik_mode_teleop_configs]]
 solver_name = "r_arm_ik_solver"
 joint_trajectory_client_name = "r_arm"
 
-[control_nodes_config.ik_node_teleop_configs.config]
+[control_modes_config.ik_mode_teleop_configs.config]
 mode = "right i k"
 
-[[control_nodes_config.joy_joint_teleop_configs]]
+[[control_modes_config.joy_joint_teleop_configs]]
 client_name = "l_arm_collision_checked"
 
-[control_nodes_config.joy_joint_teleop_configs.config]
+[control_modes_config.joy_joint_teleop_configs.config]
 mode = "l_arm"
 
-[[control_nodes_config.joy_joint_teleop_configs]]
+[[control_modes_config.joy_joint_teleop_configs]]
 client_name = "r_arm_collision_checked"
 
-[control_nodes_config.joy_joint_teleop_configs.config]
+[control_modes_config.joy_joint_teleop_configs.config]
 mode = "r_arm"
 
-[[control_nodes_config.command_configs]]
+[[control_modes_config.command_configs]]
 name = "audio sine"
 file_path = "sample_robot/sample_robot_speak_audio_sine.txt"

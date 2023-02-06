@@ -7,7 +7,7 @@ use arci_gamepad_gilrs::GilGamepadConfig;
 #[cfg(feature = "ros")]
 use arci_ros::RosJoyGamepadConfig;
 use openrr_client::resolve_relative_path;
-use openrr_teleop::ControlNodesConfig;
+use openrr_teleop::ControlModesConfig;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -56,7 +56,7 @@ pub struct RobotTeleopConfig {
     pub initial_mode: String,
     #[serde(default)]
     pub gamepad: GamepadKind,
-    pub control_nodes_config: ControlNodesConfig,
+    pub control_modes_config: ControlModesConfig,
     #[serde(default)]
     pub gil_gamepad_config: GilGamepadConfig,
     #[cfg(feature = "ros")]

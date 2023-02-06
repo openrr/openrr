@@ -9,12 +9,12 @@ use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::control_node::ControlNode;
+use super::control_mode::ControlMode;
 
 const AXIS_GAIN: f64 = 2.0;
 const JOINT_POSITION_TURBO_GAIN: f64 = 2.0;
 
-struct JoyJointTeleopNodeInner {
+struct JoyJointTeleopModeInner {
     submode: String,
     velocity: f64,
     dof: usize,
@@ -24,7 +24,7 @@ struct JoyJointTeleopNodeInner {
     is_sending: bool,
 }
 
-impl JoyJointTeleopNodeInner {
+impl JoyJointTeleopModeInner {
     fn new(joint_step: f64, dof: usize) -> Self {
         Self {
             dof,
@@ -93,7 +93,7 @@ impl JoyJointTeleopNodeInner {
     }
 }
 
-pub struct JoyJointTeleopNode<J, S>
+pub struct JoyJointTeleopMode<J, S>
 where
     J: JointTrajectoryClient,
     S: Speaker,
@@ -102,10 +102,10 @@ where
     speaker: S,
     mode: String,
     step_duration: Duration,
-    inner: Mutex<JoyJointTeleopNodeInner>,
+    inner: Mutex<JoyJointTeleopModeInner>,
 }
 
-impl<J, S> JoyJointTeleopNode<J, S>
+impl<J, S> JoyJointTeleopMode<J, S>
 where
     J: JointTrajectoryClient,
     S: Speaker,
@@ -123,12 +123,12 @@ where
             speaker,
             mode,
             step_duration,
-            inner: Mutex::new(JoyJointTeleopNodeInner::new(joint_step, dof)),
+            inner: Mutex::new(JoyJointTeleopModeInner::new(joint_step, dof)),
         }
     }
 
     pub fn new_from_config(
-        config: JoyJointTeleopNodeConfig,
+        config: JoyJointTeleopModeConfig,
         joint_trajectory_client: J,
         speaker: S,
     ) -> Self {
@@ -143,7 +143,7 @@ where
 }
 
 #[async_trait]
-impl<N, S> ControlNode for JoyJointTeleopNode<N, S>
+impl<N, S> ControlMode for JoyJointTeleopMode<N, S>
 where
     N: JointTrajectoryClient,
     S: Speaker,
@@ -187,7 +187,7 @@ where
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(deny_unknown_fields)]
-pub struct JoyJointTeleopNodeConfig {
+pub struct JoyJointTeleopModeConfig {
     pub mode: String,
     #[serde(default = "default_joint_step")]
     pub joint_step: f64,

@@ -214,10 +214,10 @@
             "$ref": "#/definitions/RobotCommandConfig"
           }
         },
-        "ik_node_teleop_configs": {
+        "ik_mode_teleop_configs": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/IkNodeTeleopConfig"
+            "$ref": "#/definitions/IkModeTeleopConfig"
           }
         },
         "joints_pose_sender_config": {
