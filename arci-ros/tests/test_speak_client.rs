@@ -25,7 +25,7 @@ fn test_speak_client() {
 
     std::thread::spawn(move || {
         // Wait for starting up receiver
-        std::thread::sleep(std::time::Duration::from_millis(100));
+        std::thread::sleep(std::time::Duration::from_millis(1000));
 
         let _wait_future = speaker.speak(MESSAGE).unwrap();
         println!("[Speaker]: {MESSAGE:?}");
