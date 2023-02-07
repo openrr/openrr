@@ -26,6 +26,7 @@ jobs:
   windows:
     name: Build on Windows
     runs-on: windows-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -36,6 +37,7 @@ jobs:
   macos:
     name: Build on MacOS
     runs-on: macos-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -46,6 +48,7 @@ jobs:
   build:
     name: Build on Linux
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -58,6 +61,7 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       # use stable again once https://github.com/rust-lang/rust/pull/107360 is backported
@@ -82,6 +86,7 @@ jobs:
           - melodic
           - noetic
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     container:
       image: docker://ros:${{ matrix.distro }}-ros-base
     env:
@@ -113,6 +118,7 @@ jobs:
           - melodic
           - noetic
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     container:
       image: docker://ros:${{ matrix.distro }}-ros-base
     env:
@@ -148,6 +154,7 @@ jobs:
           - distro: humble
             os: ubuntu-22.04
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     container:
       image: docker://ros:${{ matrix.distro }}
     env:
@@ -185,6 +192,7 @@ jobs:
   # # When this job failed, run tools/update-schema.sh and commit result changes.
   # schema:
   #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
   #   steps:
   #     - uses: actions/checkout@v3
   #     - run: tools/update-schema.sh
@@ -193,6 +201,7 @@ jobs:
   # When this job failed, run tools/gen-code.sh and commit result changes.
   codegen:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -205,6 +214,7 @@ jobs:
   features:
     name: Check features
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -218,6 +228,7 @@ jobs:
   fmt:
     name: Format
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
@@ -232,6 +243,7 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-22.04
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -258,6 +270,7 @@ jobs:
   docs:
     name: Docs
     runs-on: ubuntu-22.04
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -288,6 +301,7 @@ jobs:
 
   deny:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -298,6 +312,7 @@ jobs:
 
   shellcheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - name: Install latest shellcheck
@@ -306,6 +321,7 @@ jobs:
 
   spell-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - run: tools/spell-check.sh
