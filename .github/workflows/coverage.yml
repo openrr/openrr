@@ -17,6 +17,7 @@ env:
 jobs:
   coverage:
     runs-on: ubuntu-20.04
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: taiki-e/install-action@protoc

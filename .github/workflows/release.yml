@@ -20,6 +20,7 @@ jobs:
   create-release:
     if: github.repository_owner == 'openrr'
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
