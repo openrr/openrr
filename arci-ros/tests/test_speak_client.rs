@@ -1,4 +1,5 @@
-#[cfg(target_os = "linux")]
+#![cfg(target_os = "linux")]
+
 use arci::Speaker;
 mod msg {
     rosrust::rosmsg_include!(std_msgs / String);

@@ -1,4 +1,5 @@
-#[cfg(target_os = "linux")]
+#![cfg(target_os = "linux")]
+
 mod msg {
     rosrust::rosmsg_include!(
         geometry_msgs / PoseWithCovarianceStamped,
