@@ -1,4 +1,5 @@
-#[cfg(target_os = "linux")]
+#![cfg(target_os = "linux")]
+
 use arci::{JointTrajectoryClient, TrajectoryPoint};
 mod msg {
     rosrust::rosmsg_include!(sensor_msgs / JointState, trajectory_msgs / JointTrajectory);
