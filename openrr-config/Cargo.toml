@@ -9,10 +9,10 @@ keywords = ["robotics", "robot"]
 categories = ["science::robotics", "gui"]
 
 [dependencies]
-anyhow = "1"
-toml = "0.5"
-toml-query = "0.10"
-tracing = { version = "0.1", features = ["log"] }
+anyhow.workspace = true
+toml-query.workspace = true
+toml.workspace = true
+tracing.workspace = true
 
 [dev-dependencies]
-assert_approx_eq = "1"
+assert_approx_eq.workspace = true

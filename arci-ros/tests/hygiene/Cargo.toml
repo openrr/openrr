@@ -5,5 +5,5 @@ edition.workspace = true
 publish = false
 
 [dependencies]
-arci = "0.0.7"
-arci-ros = "0.0.7"
+arci-ros.workspace = true
+arci.workspace = true

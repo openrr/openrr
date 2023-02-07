@@ -13,18 +13,18 @@ default = ["assimp"]
 assimp = ["openrr-planner/assimp"]
 
 [dependencies]
-anyhow = "1.0"
-arci = "0.0.7"
-k = { version = "0.29", features = ["serde-serialize"] }
-openrr-config = "0.0.7"
-openrr-planner = { version = "0.0.7", default-features = false }
-schemars = "0.8.3"
-serde = { version = "1.0", features = ["derive"] }
-thiserror = "1.0"
-toml = "0.5"
-tracing = { version = "0.1", features = ["log"] }
-urdf-rs = "0.6"
+anyhow.workspace = true
+arci.workspace = true
+k = { workspace = true, features = ["serde-serialize"] }
+openrr-config.workspace = true
+openrr-planner.workspace = true
+schemars.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+tracing.workspace = true
+urdf-rs.workspace = true
 
 [dev-dependencies]
-assert_approx_eq = "1.1"
-tokio = { version = "1.0", features = ["full"] }
+assert_approx_eq.workspace = true
+tokio = { workspace = true, features = ["full"] }
