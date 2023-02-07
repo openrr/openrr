@@ -9,17 +9,17 @@ keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 
 [build-dependencies]
-tonic-build = "0.8"
+tonic-build.workspace = true
 
 [dependencies]
-arci = "0.0.7"
-prost = "0.11"
-prost-types = "0.11"
-tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
-tonic = "0.8"
-tracing = "0.1"
+arci.workspace = true
+prost-types.workspace = true
+prost.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "parking_lot"] }
+tonic.workspace = true
+tracing.workspace = true
 
 [dev-dependencies]
-anyhow = "1"
-assert_approx_eq = "1"
-tokio = { version = "1", features = ["full"] }
+anyhow.workspace = true
+assert_approx_eq.workspace = true
+tokio = { workspace = true, features = ["full"] }

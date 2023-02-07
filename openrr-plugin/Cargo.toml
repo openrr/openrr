@@ -9,16 +9,16 @@ keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 
 [dependencies]
-abi_stable = "0.11"
-anyhow = "1"
-arci = "0.0.7"
-tokio = { version = "1", features = ["sync", "rt-multi-thread", "parking_lot"] }
+abi_stable.workspace = true
+anyhow.workspace = true
+arci.workspace = true
+tokio = { workspace = true, features = ["sync", "rt-multi-thread", "parking_lot"] }
 
 [dev-dependencies]
-assert_approx_eq = "1"
-criterion = "0.4"
-fs-err = "2"
-tokio = { version = "1", features = ["full"] }
+assert_approx_eq.workspace = true
+criterion.workspace = true
+fs-err.workspace = true
+tokio = { workspace = true, features = ["full"] }
 
 [[bench]]
 name = "proxy"

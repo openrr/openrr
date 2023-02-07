@@ -9,22 +9,22 @@ keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 
 [dependencies]
-anyhow = "1.0"
-async-trait = "0.1"
-auto_impl = "1.0"
-futures = "0.3"
-nalgebra = "0.30"
-once_cell = "1"
-parking_lot = "0.12"
-schemars = "0.8.3"
-serde = { version = "1.0", features = ["derive"] }
-thiserror = "1.0"
-tokio = { version = "1.0", features = ["time", "parking_lot"] }
-tracing = { version = "0.1", features = ["log"] }
-urdf-rs = "0.6"
+anyhow.workspace = true
+async-trait.workspace = true
+auto_impl.workspace = true
+futures.workspace = true
+nalgebra.workspace = true
+once_cell.workspace = true
+parking_lot.workspace = true
+schemars.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["time", "parking_lot"] }
+tracing.workspace = true
+urdf-rs.workspace = true
 
 [dev-dependencies]
-assert_approx_eq = "1.1"
-tokio = { version = "1.0", features = ["full"] }
-tokio-test = "0.4"
-toml = "0.5"
+assert_approx_eq.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tokio-test.workspace = true
+toml.workspace = true

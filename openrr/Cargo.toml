@@ -22,9 +22,9 @@ gui = ["openrr-apps/gui"]
 ros = ["openrr-apps/ros"]
 
 [dependencies]
-openrr-apps = { version = "0.0.7", default-features = false }
-openrr-client = { version = "0.0.7", default-features = false }
-openrr-command = { version = "0.0.7", default-features = false }
-openrr-config = { version = "0.0.7", default-features = false }
-openrr-planner = { version = "0.0.7", default-features = false }
-openrr-teleop = { version = "0.0.7", default-features = false }
+openrr-apps.workspace = true
+openrr-client.workspace = true
+openrr-command.workspace = true
+openrr-config.workspace = true
+openrr-planner.workspace = true
+openrr-teleop.workspace = true

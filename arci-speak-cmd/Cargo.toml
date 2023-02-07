@@ -9,11 +9,11 @@ keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 
 [dependencies]
-arci = "0.0.7"
-thiserror = "1.0"
-tokio = { version = "1", features = ["sync", "parking_lot"] }
+arci.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["sync", "parking_lot"] }
 
 [dev-dependencies]
-clap = { version = "4", features = ["derive"] }
-tokio = { version = "1", features = ["full"] }
-tracing-subscriber = "0.3"
+clap.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tracing-subscriber.workspace = true

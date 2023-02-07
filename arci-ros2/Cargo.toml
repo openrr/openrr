@@ -15,20 +15,20 @@ crate-type = ["lib", "staticlib", "cdylib"]
 ros2 = ["r2r"]
 
 [dependencies]
-abi_stable = "0.11"
-anyhow = "1.0"
-arci = "0.0.7"
-futures = "0.3"
-once_cell = "1"
-openrr-plugin = "0.0.7"
-parking_lot = "0.12"
-r2r = { version = "0.6", optional = true }
-serde = { version = "1", features = ["derive"] }
-thiserror = "1.0"
-tokio = { version = "1.0", features = ["full"] }
-toml = "0.5"
-tracing = { version = "0.1", features = ["log"] }
+abi_stable.workspace = true
+anyhow.workspace = true
+arci.workspace = true
+futures.workspace = true
+once_cell.workspace = true
+openrr-plugin.workspace = true
+parking_lot.workspace = true
+r2r = { workspace = true, optional = true }
+serde.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["full"] }
+toml.workspace = true
+tracing.workspace = true
 
 [dev-dependencies]
-assert_approx_eq = "1.1"
-flaky_test = "0.1"
+assert_approx_eq.workspace = true
+flaky_test.workspace = true

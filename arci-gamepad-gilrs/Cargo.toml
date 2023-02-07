@@ -9,15 +9,15 @@ keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 
 [dependencies]
-arci = "0.0.7"
-flume = "0.10"
-gilrs = { version = "0.10.0", features = ["serde-serialize"] }
-schemars = "0.8.3"
-serde = { version = "1.0", features = ["derive"] }
-serde_with = "2.0"
-tracing = { version = "0.1", features = ["log"] }
+arci.workspace = true
+flume.workspace = true
+gilrs.workspace = true
+schemars.workspace = true
+serde_with.workspace = true
+serde.workspace = true
+tracing.workspace = true
 
 [dev-dependencies]
-assert_approx_eq = "1.1"
-tokio = { version = "1.0", features = ["full"] }
-tracing-subscriber = "0.3"
+assert_approx_eq.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tracing-subscriber.workspace = true
