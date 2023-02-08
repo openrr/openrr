@@ -1,6 +1,10 @@
 # openrr: `Open Rust Robotics`
 
-![Build and Test](https://github.com/openrr/openrr/workflows/Build%20and%20Test/badge.svg) [![crates.io](https://img.shields.io/crates/v/openrr.svg)](https://crates.io/crates/openrr) [![codecov](https://codecov.io/gh/openrr/openrr/branch/main/graph/badge.svg?token=28GTOOT4RY)](https://codecov.io/gh/openrr/openrr) [![docs](https://docs.rs/openrr/badge.svg)](https://docs.rs/openrr) [![docs](https://img.shields.io/badge/docs-main-blue)](https://openrr.github.io/openrr/openrr) [![discord](https://dcbadge.vercel.app/api/server/8DAFFKc88B?style=flat)](https://discord.gg/8DAFFKc88B)
+![Build and Test](https://github.com/openrr/openrr/workflows/Build%20and%20Test/badge.svg) [![crates.io](https://img.shields.io/crates/v/openrr.svg)](https://crates.io/crates/openrr) [![codecov](https://codecov.io/gh/openrr/openrr/branch/main/graph/badge.svg?token=28GTOOT4RY)](https://codecov.io/gh/openrr/openrr) [![docs](https://docs.rs/openrr/badge.svg)](https://docs.rs/openrr)
+
+**For developers and future users**
+
+[![docs](https://img.shields.io/badge/docs-main-blue)](https://openrr.github.io/openrr/openrr) [![discord](https://dcbadge.vercel.app/api/server/8DAFFKc88B?style=flat)](https://discord.gg/8DAFFKc88B) [![tutorial](https://img.shields.io/badge/OpenRR-Tutorial-red)](https://github.com/openrr/openrr-tutorial)
 
 OpenRR (pronounced like "opener") is Open Rust Robotics platform.
 
