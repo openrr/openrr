@@ -11,11 +11,11 @@ use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::control_node::ControlNode;
+use super::control_mode::ControlMode;
 
 const IK_POSITION_TURBO_GAIN: f64 = 2.0;
 
-struct IkNodeInner {
+struct IkModeInner {
     linear_velocity: Vector3<f64>,
     angular_velocity: Vector3<f64>,
     move_step_linear: [f64; 3],
@@ -24,7 +24,7 @@ struct IkNodeInner {
     is_sending: bool,
 }
 
-impl IkNodeInner {
+impl IkModeInner {
     fn new(move_step_linear: [f64; 3], move_step_angular: [f64; 3]) -> Self {
         Self {
             linear_velocity: Vector3::new(0.0, 0.0, 0.0),
@@ -115,7 +115,7 @@ impl IkNodeInner {
     }
 }
 
-pub struct IkNode<J, S>
+pub struct IkMode<J, S>
 where
     J: JointTrajectoryClient,
     S: Speaker,
@@ -126,10 +126,10 @@ where
     submode: String,
     step_duration: Duration,
     ik_solver_with_chain: Arc<IkSolverWithChain>,
-    inner: Mutex<IkNodeInner>,
+    inner: Mutex<IkModeInner>,
 }
 
-impl<J, S> IkNode<J, S>
+impl<J, S> IkMode<J, S>
 where
     J: JointTrajectoryClient,
     S: Speaker,
@@ -150,12 +150,12 @@ where
             submode: "".to_string(),
             step_duration,
             ik_solver_with_chain,
-            inner: Mutex::new(IkNodeInner::new(move_step_linear, move_step_angular)),
+            inner: Mutex::new(IkModeInner::new(move_step_linear, move_step_angular)),
         }
     }
 
     pub fn new_from_config(
-        config: IkNodeConfig,
+        config: IkModeConfig,
         joint_trajectory_client: J,
         speaker: S,
         ik_solver_with_chain: Arc<IkSolverWithChain>,
@@ -173,7 +173,7 @@ where
 }
 
 #[async_trait]
-impl<N, S> ControlNode for IkNode<N, S>
+impl<N, S> ControlMode for IkMode<N, S>
 where
     N: JointTrajectoryClient,
     S: Speaker,
@@ -230,7 +230,7 @@ where
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(deny_unknown_fields)]
-pub struct IkNodeConfig {
+pub struct IkModeConfig {
     pub mode: String,
     #[serde(default = "default_move_step_angular")]
     pub move_step_angular: [f64; 3],

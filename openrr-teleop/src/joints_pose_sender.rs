@@ -10,7 +10,7 @@ use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::ControlNode;
+use crate::ControlMode;
 
 struct JointsPoseSenderInner {
     joints_poses: Vec<JointsPose>,
@@ -122,7 +122,7 @@ where
 }
 
 #[async_trait]
-impl<S, J> ControlNode for JointsPoseSender<S, J>
+impl<S, J> ControlMode for JointsPoseSender<S, J>
 where
     S: Speaker,
     J: JointTrajectoryClient,

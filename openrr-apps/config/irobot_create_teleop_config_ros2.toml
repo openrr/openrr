@@ -1,13 +1,13 @@
 robot_config_path = "irobot_create_robot_client_config_ros2.toml"
 initial_mode = "base"
 
-[control_nodes_config]
+[control_modes_config]
 move_base_mode = "base"
 
-[[control_nodes_config.command_configs]]
+[[control_modes_config.command_configs]]
 name = "dock command"
 file_path = "irobot_create/irobot_create_dock_command.txt"
 
-[[control_nodes_config.command_configs]]
+[[control_modes_config.command_configs]]
 name = "undock command"
 file_path = "irobot_create/irobot_create_undock_command.txt"

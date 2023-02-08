@@ -3,11 +3,11 @@
   "title": "RobotTeleopConfig",
   "type": "object",
   "required": [
-    "control_nodes_config"
+    "control_modes_config"
   ],
   "properties": {
-    "control_nodes_config": {
-      "$ref": "#/definitions/ControlNodesConfig"
+    "control_modes_config": {
+      "$ref": "#/definitions/ControlModesConfig"
     },
     "gamepad": {
       "default": "gilrs",
@@ -205,7 +205,7 @@
         "Unknown"
       ]
     },
-    "ControlNodesConfig": {
+    "ControlModesConfig": {
       "type": "object",
       "properties": {
         "command_configs": {
@@ -214,10 +214,10 @@
             "$ref": "#/definitions/RobotCommandConfig"
           }
         },
-        "ik_node_teleop_configs": {
+        "ik_mode_teleop_configs": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/IkNodeTeleopConfig"
+            "$ref": "#/definitions/IkModeTeleopConfig"
           }
         },
         "joints_pose_sender_config": {
@@ -421,7 +421,7 @@
         "Unknown"
       ]
     },
-    "IkNodeConfig": {
+    "IkModeConfig": {
       "type": "object",
       "required": [
         "mode"
@@ -466,7 +466,7 @@
       },
       "additionalProperties": false
     },
-    "IkNodeTeleopConfig": {
+    "IkModeTeleopConfig": {
       "type": "object",
       "required": [
         "config",
@@ -475,7 +475,7 @@
       ],
       "properties": {
         "config": {
-          "$ref": "#/definitions/IkNodeConfig"
+          "$ref": "#/definitions/IkModeConfig"
         },
         "joint_trajectory_client_name": {
           "type": "string"
@@ -512,12 +512,12 @@
           "type": "string"
         },
         "config": {
-          "$ref": "#/definitions/JoyJointTeleopNodeConfig"
+          "$ref": "#/definitions/JoyJointTeleopModeConfig"
         }
       },
       "additionalProperties": false
     },
-    "JoyJointTeleopNodeConfig": {
+    "JoyJointTeleopModeConfig": {
       "type": "object",
       "required": [
         "mode"

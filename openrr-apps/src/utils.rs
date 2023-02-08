@@ -125,7 +125,7 @@ pub fn resolve_teleop_config(
         }
         (None, overwrite) => {
             let mut config = RobotTeleopConfig::default();
-            config.control_nodes_config.move_base_mode = Some("base".into());
+            config.control_modes_config.move_base_mode = Some("base".into());
             if let Some(overwrite) = overwrite {
                 let s = &toml::to_string(&config)?;
                 let s = &evaluate_overwrite_str(s, overwrite, None)?;
