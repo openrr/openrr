@@ -136,45 +136,45 @@ mod tests {
 
     #[test]
     fn test_move_mode_new() {
-        let mode = String::from("tested");
+        let mode_name = String::from("tested");
         let base = DummyMoveBase::new();
-        let node = MoveBaseMode::new(mode.clone(), base);
+        let mode = MoveBaseMode::new(mode_name.clone(), base);
 
         assert_eq!(
-            format!("{:?}", node.move_base),
+            format!("{:?}", mode.move_base),
             format!("{:?}", DummyMoveBase::new())
         );
-        assert_eq!(node.mode, mode);
-        assert_eq!(node.submode, String::from(""));
+        assert_eq!(mode.mode, mode_name);
+        assert_eq!(mode.submode, String::from(""));
         assert_eq!(
-            format!("{:?}", node.inner.lock().vel),
+            format!("{:?}", mode.inner.lock().vel),
             format!("{:?}", BaseVelocity::default())
         );
-        assert!(!node.inner.lock().is_enabled);
-        assert!(!node.inner.lock().is_turbo);
+        assert!(!mode.inner.lock().is_enabled);
+        assert!(!mode.inner.lock().is_turbo);
     }
 
     #[test]
     fn test_move_mode_get() {
-        let mode = String::from("tested");
+        let mode_name = String::from("tested");
         let base = DummyMoveBase::new();
-        let node = MoveBaseMode::new(mode.clone(), base);
+        let mode = MoveBaseMode::new(mode_name.clone(), base);
 
-        let base_mode = node.mode();
-        assert_eq!(base_mode, mode);
-        let base_sub_mode = node.submode();
+        let base_mode = mode.mode();
+        assert_eq!(base_mode, mode_name);
+        let base_sub_mode = mode.submode();
         assert_eq!(base_sub_mode, String::from(""));
     }
 
     #[tokio::test]
     async fn test_move_mode_proc() {
-        let mode = String::from("tested");
+        let mode_name = String::from("tested");
         const X: f64 = 1.2;
         const Y: f64 = 3.5;
         const THETA: f64 = 1.8;
-        let node = MoveBaseMode {
+        let mode = MoveBaseMode {
             move_base: DummyMoveBase::new(),
-            mode: mode.clone(),
+            mode: mode_name.clone(),
             submode: "".to_string(),
             inner: Mutex::new(MoveBaseModeInner {
                 vel: BaseVelocity {
@@ -186,16 +186,16 @@ mod tests {
                 is_turbo: false,
             }),
         };
-        node.proc().await;
-        let current = node.move_base.current_velocity().unwrap();
+        mode.proc().await;
+        let current = mode.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {current:?}", node.inner.lock().vel);
+        println!("{:?} {current:?}", mode.inner.lock().vel);
 
-        let node = MoveBaseMode {
+        let mode = MoveBaseMode {
             move_base: DummyMoveBase::new(),
-            mode: mode.clone(),
+            mode: mode_name.clone(),
             submode: "".to_string(),
             inner: Mutex::new(MoveBaseModeInner {
                 vel: BaseVelocity {
@@ -207,16 +207,16 @@ mod tests {
                 is_turbo: true,
             }),
         };
-        node.proc().await;
-        let current = node.move_base.current_velocity().unwrap();
+        mode.proc().await;
+        let current = mode.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {current:?}", node.inner.lock().vel);
+        println!("{:?} {current:?}", mode.inner.lock().vel);
 
-        let node = MoveBaseMode {
+        let mode = MoveBaseMode {
             move_base: DummyMoveBase::new(),
-            mode: mode.clone(),
+            mode: mode_name.clone(),
             submode: "".to_string(),
             inner: Mutex::new(MoveBaseModeInner {
                 vel: BaseVelocity {
@@ -228,16 +228,16 @@ mod tests {
                 is_turbo: false,
             }),
         };
-        node.proc().await;
-        let current = node.move_base.current_velocity().unwrap();
+        mode.proc().await;
+        let current = mode.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, X);
         assert_approx_eq!(current.y, Y);
         assert_approx_eq!(current.theta, THETA);
-        println!("{:?} {current:?}", node.inner.lock().vel);
+        println!("{:?} {current:?}", mode.inner.lock().vel);
 
-        let node = MoveBaseMode {
+        let mode = MoveBaseMode {
             move_base: DummyMoveBase::new(),
-            mode: mode.clone(),
+            mode: mode_name.clone(),
             submode: "".to_string(),
             inner: Mutex::new(MoveBaseModeInner {
                 vel: BaseVelocity {
@@ -249,11 +249,11 @@ mod tests {
                 is_turbo: true,
             }),
         };
-        node.proc().await;
-        let current = node.move_base.current_velocity().unwrap();
+        mode.proc().await;
+        let current = mode.move_base.current_velocity().unwrap();
         assert_approx_eq!(current.x, X * 2.0);
         assert_approx_eq!(current.y, Y * 2.0);
         assert_approx_eq!(current.theta, THETA * 2.0);
-        println!("{:?} {current:?}", node.inner.lock().vel);
+        println!("{:?} {current:?}", mode.inner.lock().vel);
     }
 }
