@@ -94,7 +94,7 @@ async fn main() -> Result<()> {
 
     let speaker = client.speakers().values().next().unwrap();
 
-    let nodes = teleop_config
+    let modes = teleop_config
         .control_modes_config
         .create_control_modes(
             args.config_path,
@@ -106,26 +106,26 @@ async fn main() -> Result<()> {
             robot_config.openrr_clients_config.joints_poses,
         )
         .unwrap();
-    if nodes.is_empty() {
-        panic!("No valid nodes");
+    if modes.is_empty() {
+        panic!("No valid modes");
     }
 
-    let initial_node_index = if teleop_config.initial_mode.is_empty() {
-        info!("Use first node as initial node");
+    let initial_mode_index = if teleop_config.initial_mode.is_empty() {
+        info!("Use first mode as initial mode");
         0
-    } else if let Some(initial_node_index) = nodes
+    } else if let Some(initial_mode_index) = modes
         .iter()
-        .position(|node| node.mode() == teleop_config.initial_mode)
+        .position(|mode| mode.mode() == teleop_config.initial_mode)
     {
-        initial_node_index
+        initial_mode_index
     } else {
-        return Err(Error::NoSpecifiedNode(teleop_config.initial_mode).into());
+        return Err(Error::NoSpecifiedMode(teleop_config.initial_mode).into());
     };
 
     let switcher = Arc::new(ControlModeSwitcher::new(
-        nodes,
+        modes,
         speaker.clone(),
-        initial_node_index,
+        initial_mode_index,
     ));
     #[cfg(feature = "ros")]
     if use_ros {
