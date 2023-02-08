@@ -33,6 +33,7 @@ uint8 POWER_SUPPLY_TECHNOLOGY_LIMN = 6
 
 Header  header
 float32 voltage          # Voltage in Volts (Mandatory)
+float32 temperature      # Temperature in Degrees Celsius (If unmeasured NaN)
 float32 current          # Negative when discharging (A)  (If unmeasured NaN)
 float32 charge           # Current charge in Ah  (If unmeasured NaN)
 float32 capacity         # Capacity in Ah (last full capacity)  (If unmeasured NaN)
@@ -45,5 +46,7 @@ bool    present          # True if the battery is present
 
 float32[] cell_voltage   # An array of individual cell voltages for each cell in the pack
                          # If individual voltages unknown but number of cells known set each to NaN
+float32[] cell_temperature  # An array of individual cell temperatures for each cell in the pack
+                            # If individual temperatures unknown but number of cells known set each to NaN
 string location          # The location into which the battery is inserted. (slot number or plug)
 string serial_number     # The best approximation of the battery serial number
