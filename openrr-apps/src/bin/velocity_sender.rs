@@ -30,7 +30,7 @@ fn main() -> Result<()> {
 
     openrr_apps::utils::init(env!("CARGO_BIN_NAME"), &config);
     let client: BoxRobotClient = config.create_robot_client()?;
-    openrr_gui::velocity_sender(client);
+    openrr_gui::velocity_sender(client)?;
     Ok(())
 }
 

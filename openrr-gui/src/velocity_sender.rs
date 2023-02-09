@@ -7,7 +7,7 @@ const DEFAULT_ACTIVE_VELOCITY_VALUE: f64 = 0.25;
 
 /// Launches GUI that send base velocity from GUI to the given `move_base`.
 #[cfg(not(target_family = "wasm"))]
-pub fn velocity_sender<M>(move_base: M)
+pub fn velocity_sender<M>(move_base: M) -> Result<(), crate::Error>
 where
     M: MoveBase + 'static,
 {
@@ -19,7 +19,9 @@ where
         "Velocity Sender",
         native_options,
         Box::new(|_cc| Box::new(VelocitySender::new(move_base))),
-    );
+    )
+    .map_err(|e| crate::Error::Other(e.to_string()))?; // eframe::Error is not Send
+    Ok(())
 }
 
 pub struct VelocitySender<M>
