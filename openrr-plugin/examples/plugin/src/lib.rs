@@ -87,7 +87,7 @@ impl arci::JointTrajectoryClient for MyJointTrajectoryClient {
         &self,
         _trajectory: Vec<TrajectoryPoint>,
     ) -> Result<WaitFuture, Error> {
-        // panic across the ffi boundary will be converted to abort.
+        // panic across the FFI boundary will be converted to abort by abi_stable.
         panic!()
     }
 }
