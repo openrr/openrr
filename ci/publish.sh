@@ -12,8 +12,7 @@ MEMBERS=(
 
   # depend on arci
   "openrr-plugin"
-  # TODO: https://github.com/openrr/openrr/issues/747
-  # "openrr-remote"
+  "openrr-remote"
 
   # depend on arci and openrr-planner
   "openrr-client"
