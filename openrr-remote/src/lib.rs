@@ -4,7 +4,10 @@
 #![allow(clippy::derive_partial_eq_without_eq)]
 
 mod pb {
+    #[cfg(local_out_dir)]
     include!("generated/arci.rs");
+    #[cfg(not(local_out_dir))]
+    tonic::include_proto!("arci");
 }
 
 #[rustfmt::skip]
