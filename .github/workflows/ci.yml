@@ -324,3 +324,38 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: tools/spell-check.sh
+
+  coverage:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v3
+      - uses: taiki-e/install-action@protoc
+      - run: ci/ubuntu-install-dependencies.sh
+      - run: ci/ubuntu-setup-lld.sh
+      - name: Install ROS1
+        run: |
+          # ros1
+          sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+          sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
+          sudo apt-get update
+          sudo apt-get install -y \
+            ros-noetic-ros-base ros-noetic-joy ros-noetic-pr2-description
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate code coverage
+        run: |
+          # for test of arci-ros (roscore, rostopic)
+          source /opt/ros/noetic/setup.bash
+          # TODO: r2r 0.6.5 doesn't support foxy
+          # --no-cfg-coverage due to https://github.com/Smithay/calloop/issues/118
+          cargo llvm-cov --verbose --all-features --workspace --exclude openrr-internal-codegen --exclude arci-ros2 --no-cfg-coverage --lcov --output-path lcov.info
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: lcov.info
+          fail_ci_if_error: true
