@@ -14,7 +14,7 @@ use clap::Parser;
 use clap_complete::Shell;
 use k::nalgebra::{Isometry2, Vector2};
 use openrr_client::{isometry, RobotClient};
-use rustyline::{error::ReadlineError, Editor};
+use rustyline::{error::ReadlineError, DefaultEditor};
 use tracing::{error, info};
 
 use crate::Error as OpenrrCommandError;
@@ -432,7 +432,9 @@ impl RobotCommandExecutor {
         M: MoveBase,
         N: Navigation,
     {
-        let mut rl = Editor::<()>::new()?;
+        let mut rl = DefaultEditor::with_config(
+            rustyline::Config::builder().auto_add_history(true).build(),
+        )?;
         const HISTORY_FILE_NAME: &str = "openrr_apps_robot_command_log.txt";
         // no problem if there are no log file.
         let _ = rl.load_history(HISTORY_FILE_NAME);
@@ -440,7 +442,6 @@ impl RobotCommandExecutor {
             let readline = rl.readline("\x1b[1;32m>> \x1b[0m");
             match readline {
                 Ok(line) => {
-                    rl.add_history_entry(line.as_str());
                     // add dummy to make it the same as load command
                     let line_with_arg0 = format!("dummy {line}");
                     let command_parsed_iter = line_with_arg0.split_whitespace();
