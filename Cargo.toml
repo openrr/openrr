@@ -91,7 +91,7 @@ rodio = { version = "0.16", default-features = false, features = ["flac", "vorbi
 ros-nalgebra = "0.1"
 rosrust = "0.9"
 rrt = "0.7"
-rustyline = "10"
+rustyline = "11"
 schemars = "0.8"
 scoped-sleep = "0.1"
 serde = { version = "1", features = ["derive"] }
