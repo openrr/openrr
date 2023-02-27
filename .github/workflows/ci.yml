@@ -43,8 +43,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@protoc
-        # https://github.com/actions/runner-images/pull/7125
-      - run: brew install pkg-config
       - run: cargo build
 
   build:
