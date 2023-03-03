@@ -8,7 +8,7 @@ fn new_joint_client(
     joint_names: Vec<String>,
 ) -> RobotClient<Box<DummyLocalization>, Box<DummyMoveBase>, Box<DummyNavigation>> {
     let mut root_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    root_dir.pop(); // openrr-config
+    root_dir.pop(); // openrr-command
 
     let mut config: openrr_client::OpenrrClientsConfig = toml::from_str(&format!(
         r#"
