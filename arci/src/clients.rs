@@ -1,5 +1,6 @@
 mod dummy_gamepad;
 mod dummy_localization;
+mod dummy_motor_drive;
 mod dummy_move_base;
 mod dummy_navigation;
 mod dummy_speaker;
@@ -14,6 +15,7 @@ mod partial_joint_trajectory_client;
 
 pub use dummy_gamepad::*;
 pub use dummy_localization::*;
+pub use dummy_motor_drive::*;
 pub use dummy_move_base::*;
 pub use dummy_navigation::*;
 pub use dummy_speaker::*;
