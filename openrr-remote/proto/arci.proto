@@ -44,6 +44,21 @@ service Gamepad {
   rpc Stop(google.protobuf.Empty) returns (google.protobuf.Empty);
 }
 
+service MotorDriveEffort {
+  rpc SetMotorEffort(google.protobuf.DoubleValue) returns (google.protobuf.Empty);
+  rpc GetMotorEffort(google.protobuf.Empty) returns (google.protobuf.DoubleValue);
+}
+
+service MotorDrivePosition {
+  rpc SetMotorPosition(google.protobuf.DoubleValue) returns (google.protobuf.Empty);
+  rpc GetMotorPosition(google.protobuf.Empty) returns (google.protobuf.DoubleValue);
+}
+
+service MotorDriveVelocity {
+  rpc SetMotorVelocity(google.protobuf.DoubleValue) returns (google.protobuf.Empty);
+  rpc GetMotorVelocity(google.protobuf.Empty) returns (google.protobuf.DoubleValue);
+}
+
 message JointNamesResponse {
   repeated string names = 1;
 }
