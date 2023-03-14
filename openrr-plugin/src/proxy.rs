@@ -237,6 +237,28 @@ impl From<RTranslation3F64> for nalgebra::Translation3<f64> {
 // =============================================================================
 // arci::Error
 
+/// FFI-safe equivalent of [`std::f64`].
+#[repr(C)]
+#[derive(StableAbi)]
+pub(crate) struct Rf64 {
+    val: f64,
+}
+
+impl From<f64> for Rf64 {
+    fn from(val: f64) -> Self {
+        Self { val }
+    }
+}
+
+impl From<Rf64> for f64 {
+    fn from(val: Rf64) -> Self {
+        val.into()
+    }
+}
+
+// =============================================================================
+// arci::Error
+
 /// FFI-safe equivalent of [`arci::Error`].
 #[repr(C)]
 #[derive(StableAbi)]
