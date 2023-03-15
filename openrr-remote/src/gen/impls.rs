@@ -201,6 +201,335 @@ where
     }
 }
 #[derive(Debug, Clone)]
+pub struct RemoteMotorDrivePositionSender {
+    pub(crate) client: pb::motor_drive_position_client::MotorDrivePositionClient<
+        tonic::transport::Channel,
+    >,
+}
+impl RemoteMotorDrivePositionSender {
+    /// Attempt to create a new sender by connecting to a given endpoint.
+    pub async fn connect<D>(dst: D) -> Result<Self, arci::Error>
+    where
+        D: TryInto<tonic::transport::Endpoint>,
+        D::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    {
+        let client = pb::motor_drive_position_client::MotorDrivePositionClient::connect(
+                dst,
+            )
+            .await
+            .map_err(|e| arci::Error::Connection {
+                message: e.to_string(),
+            })?;
+        Ok(Self { client })
+    }
+    /// Create a new sender.
+    pub fn new(channel: tonic::transport::Channel) -> Self {
+        Self {
+            client: pb::motor_drive_position_client::MotorDrivePositionClient::new(
+                channel,
+            ),
+        }
+    }
+}
+#[derive(Debug)]
+pub struct RemoteMotorDrivePositionReceiver<T> {
+    pub(crate) inner: T,
+}
+impl<T> RemoteMotorDrivePositionReceiver<T>
+where
+    T: arci::MotorDrivePosition + 'static,
+{
+    /// Create a new receiver.
+    pub fn new(inner: T) -> Self {
+        Self { inner }
+    }
+    /// Convert this receiver into a tower service.
+    pub fn into_service(
+        self,
+    ) -> pb::motor_drive_position_server::MotorDrivePositionServer<Self> {
+        pb::motor_drive_position_server::MotorDrivePositionServer::new(self)
+    }
+    pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
+        tonic::transport::Server::builder()
+            .add_service(self.into_service())
+            .serve(addr)
+            .await
+            .map_err(|e| arci::Error::Connection {
+                message: e.to_string(),
+            })?;
+        Ok(())
+    }
+}
+impl arci::MotorDrivePosition for RemoteMotorDrivePositionSender {
+    fn set_motor_position(&self, position: f64) -> Result<(), Error> {
+        let mut client = self.client.clone();
+        let args = tonic::Request::new(position.into());
+        Ok(
+            block_in_place(client.set_motor_position(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
+    }
+    fn get_motor_position(&self) -> Result<f64, Error> {
+        let mut client = self.client.clone();
+        let args = tonic::Request::new(());
+        Ok(
+            block_in_place(client.get_motor_position(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
+    }
+}
+#[tonic::async_trait]
+impl<T> pb::motor_drive_position_server::MotorDrivePosition
+for RemoteMotorDrivePositionReceiver<T>
+where
+    T: arci::MotorDrivePosition + 'static,
+{
+    async fn set_motor_position(
+        &self,
+        request: tonic::Request<f64>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        let request = request.into_inner();
+        let res = arci::MotorDrivePosition::set_motor_position(
+                &self.inner,
+                request.into(),
+            )
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?
+            .into();
+        Ok(tonic::Response::new(res))
+    }
+    async fn get_motor_position(
+        &self,
+        request: tonic::Request<()>,
+    ) -> Result<tonic::Response<f64>, tonic::Status> {
+        let request = request.into_inner();
+        let res = arci::MotorDrivePosition::get_motor_position(&self.inner)
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?
+            .into();
+        Ok(tonic::Response::new(res))
+    }
+}
+#[derive(Debug, Clone)]
+pub struct RemoteMotorDriveVelocitySender {
+    pub(crate) client: pb::motor_drive_velocity_client::MotorDriveVelocityClient<
+        tonic::transport::Channel,
+    >,
+}
+impl RemoteMotorDriveVelocitySender {
+    /// Attempt to create a new sender by connecting to a given endpoint.
+    pub async fn connect<D>(dst: D) -> Result<Self, arci::Error>
+    where
+        D: TryInto<tonic::transport::Endpoint>,
+        D::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    {
+        let client = pb::motor_drive_velocity_client::MotorDriveVelocityClient::connect(
+                dst,
+            )
+            .await
+            .map_err(|e| arci::Error::Connection {
+                message: e.to_string(),
+            })?;
+        Ok(Self { client })
+    }
+    /// Create a new sender.
+    pub fn new(channel: tonic::transport::Channel) -> Self {
+        Self {
+            client: pb::motor_drive_velocity_client::MotorDriveVelocityClient::new(
+                channel,
+            ),
+        }
+    }
+}
+#[derive(Debug)]
+pub struct RemoteMotorDriveVelocityReceiver<T> {
+    pub(crate) inner: T,
+}
+impl<T> RemoteMotorDriveVelocityReceiver<T>
+where
+    T: arci::MotorDriveVelocity + 'static,
+{
+    /// Create a new receiver.
+    pub fn new(inner: T) -> Self {
+        Self { inner }
+    }
+    /// Convert this receiver into a tower service.
+    pub fn into_service(
+        self,
+    ) -> pb::motor_drive_velocity_server::MotorDriveVelocityServer<Self> {
+        pb::motor_drive_velocity_server::MotorDriveVelocityServer::new(self)
+    }
+    pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
+        tonic::transport::Server::builder()
+            .add_service(self.into_service())
+            .serve(addr)
+            .await
+            .map_err(|e| arci::Error::Connection {
+                message: e.to_string(),
+            })?;
+        Ok(())
+    }
+}
+impl arci::MotorDriveVelocity for RemoteMotorDriveVelocitySender {
+    fn set_motor_velocity(&self, velocity: f64) -> Result<(), Error> {
+        let mut client = self.client.clone();
+        let args = tonic::Request::new(velocity.into());
+        Ok(
+            block_in_place(client.set_motor_velocity(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
+    }
+    fn get_motor_velocity(&self) -> Result<f64, Error> {
+        let mut client = self.client.clone();
+        let args = tonic::Request::new(());
+        Ok(
+            block_in_place(client.get_motor_velocity(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
+    }
+}
+#[tonic::async_trait]
+impl<T> pb::motor_drive_velocity_server::MotorDriveVelocity
+for RemoteMotorDriveVelocityReceiver<T>
+where
+    T: arci::MotorDriveVelocity + 'static,
+{
+    async fn set_motor_velocity(
+        &self,
+        request: tonic::Request<f64>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        let request = request.into_inner();
+        let res = arci::MotorDriveVelocity::set_motor_velocity(
+                &self.inner,
+                request.into(),
+            )
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?
+            .into();
+        Ok(tonic::Response::new(res))
+    }
+    async fn get_motor_velocity(
+        &self,
+        request: tonic::Request<()>,
+    ) -> Result<tonic::Response<f64>, tonic::Status> {
+        let request = request.into_inner();
+        let res = arci::MotorDriveVelocity::get_motor_velocity(&self.inner)
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?
+            .into();
+        Ok(tonic::Response::new(res))
+    }
+}
+#[derive(Debug, Clone)]
+pub struct RemoteMotorDriveEffortSender {
+    pub(crate) client: pb::motor_drive_effort_client::MotorDriveEffortClient<
+        tonic::transport::Channel,
+    >,
+}
+impl RemoteMotorDriveEffortSender {
+    /// Attempt to create a new sender by connecting to a given endpoint.
+    pub async fn connect<D>(dst: D) -> Result<Self, arci::Error>
+    where
+        D: TryInto<tonic::transport::Endpoint>,
+        D::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    {
+        let client = pb::motor_drive_effort_client::MotorDriveEffortClient::connect(dst)
+            .await
+            .map_err(|e| arci::Error::Connection {
+                message: e.to_string(),
+            })?;
+        Ok(Self { client })
+    }
+    /// Create a new sender.
+    pub fn new(channel: tonic::transport::Channel) -> Self {
+        Self {
+            client: pb::motor_drive_effort_client::MotorDriveEffortClient::new(channel),
+        }
+    }
+}
+#[derive(Debug)]
+pub struct RemoteMotorDriveEffortReceiver<T> {
+    pub(crate) inner: T,
+}
+impl<T> RemoteMotorDriveEffortReceiver<T>
+where
+    T: arci::MotorDriveEffort + 'static,
+{
+    /// Create a new receiver.
+    pub fn new(inner: T) -> Self {
+        Self { inner }
+    }
+    /// Convert this receiver into a tower service.
+    pub fn into_service(
+        self,
+    ) -> pb::motor_drive_effort_server::MotorDriveEffortServer<Self> {
+        pb::motor_drive_effort_server::MotorDriveEffortServer::new(self)
+    }
+    pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
+        tonic::transport::Server::builder()
+            .add_service(self.into_service())
+            .serve(addr)
+            .await
+            .map_err(|e| arci::Error::Connection {
+                message: e.to_string(),
+            })?;
+        Ok(())
+    }
+}
+impl arci::MotorDriveEffort for RemoteMotorDriveEffortSender {
+    fn set_motor_effort(&self, effort: f64) -> Result<(), Error> {
+        let mut client = self.client.clone();
+        let args = tonic::Request::new(effort.into());
+        Ok(
+            block_in_place(client.set_motor_effort(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
+    }
+    fn get_motor_effort(&self) -> Result<f64, Error> {
+        let mut client = self.client.clone();
+        let args = tonic::Request::new(());
+        Ok(
+            block_in_place(client.get_motor_effort(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
+    }
+}
+#[tonic::async_trait]
+impl<T> pb::motor_drive_effort_server::MotorDriveEffort
+for RemoteMotorDriveEffortReceiver<T>
+where
+    T: arci::MotorDriveEffort + 'static,
+{
+    async fn set_motor_effort(
+        &self,
+        request: tonic::Request<f64>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        let request = request.into_inner();
+        let res = arci::MotorDriveEffort::set_motor_effort(&self.inner, request.into())
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?
+            .into();
+        Ok(tonic::Response::new(res))
+    }
+    async fn get_motor_effort(
+        &self,
+        request: tonic::Request<()>,
+    ) -> Result<tonic::Response<f64>, tonic::Status> {
+        let request = request.into_inner();
+        let res = arci::MotorDriveEffort::get_motor_effort(&self.inner)
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?
+            .into();
+        Ok(tonic::Response::new(res))
+    }
+}
+#[derive(Debug, Clone)]
 pub struct RemoteMoveBaseSender {
     pub(crate) client: pb::move_base_client::MoveBaseClient<tonic::transport::Channel>,
 }

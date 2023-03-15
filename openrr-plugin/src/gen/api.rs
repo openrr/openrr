@@ -33,6 +33,30 @@ pub trait Plugin: Send + Sync + 'static {
         let _ = args;
         Ok(None)
     }
+    /// Creates a new instance of [`arci::MotorDrivePosition`] with the specified arguments.
+    fn new_motor_drive_position(
+        &self,
+        args: String,
+    ) -> Result<Option<Box<dyn arci::MotorDrivePosition>>, arci::Error> {
+        let _ = args;
+        Ok(None)
+    }
+    /// Creates a new instance of [`arci::MotorDriveVelocity`] with the specified arguments.
+    fn new_motor_drive_velocity(
+        &self,
+        args: String,
+    ) -> Result<Option<Box<dyn arci::MotorDriveVelocity>>, arci::Error> {
+        let _ = args;
+        Ok(None)
+    }
+    /// Creates a new instance of [`arci::MotorDriveEffort`] with the specified arguments.
+    fn new_motor_drive_effort(
+        &self,
+        args: String,
+    ) -> Result<Option<Box<dyn arci::MotorDriveEffort>>, arci::Error> {
+        let _ = args;
+        Ok(None)
+    }
     /// Creates a new instance of [`arci::MoveBase`] with the specified arguments.
     fn new_move_base(
         &self,
@@ -106,6 +130,27 @@ impl PluginProxy {
     ) -> Result<Option<LocalizationProxy>, arci::Error> {
         Ok(self.0.new_localization(args.into()).into_result()?.into_option())
     }
+    /// Creates a new instance of [`arci::MotorDrivePosition`] with the specified arguments.
+    pub fn new_motor_drive_position(
+        &self,
+        args: String,
+    ) -> Result<Option<MotorDrivePositionProxy>, arci::Error> {
+        Ok(self.0.new_motor_drive_position(args.into()).into_result()?.into_option())
+    }
+    /// Creates a new instance of [`arci::MotorDriveVelocity`] with the specified arguments.
+    pub fn new_motor_drive_velocity(
+        &self,
+        args: String,
+    ) -> Result<Option<MotorDriveVelocityProxy>, arci::Error> {
+        Ok(self.0.new_motor_drive_velocity(args.into()).into_result()?.into_option())
+    }
+    /// Creates a new instance of [`arci::MotorDriveEffort`] with the specified arguments.
+    pub fn new_motor_drive_effort(
+        &self,
+        args: String,
+    ) -> Result<Option<MotorDriveEffortProxy>, arci::Error> {
+        Ok(self.0.new_motor_drive_effort(args.into()).into_result()?.into_option())
+    }
     /// Creates a new instance of [`arci::MoveBase`] with the specified arguments.
     pub fn new_move_base(
         &self,
@@ -161,6 +206,103 @@ impl arci::Localization for LocalizationProxy {
 impl std::fmt::Debug for LocalizationProxy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("LocalizationProxy").finish()
+    }
+}
+/// FFI-safe equivalent of [`Box<dyn arci::MotorDrivePosition>`](arci::MotorDrivePosition).
+#[derive(StableAbi)]
+#[repr(C)]
+pub struct MotorDrivePositionProxy(
+    pub(crate) crate::proxy::MotorDrivePositionTraitObject,
+);
+impl MotorDrivePositionProxy {
+    /// Creates a new `MotorDrivePositionProxy`.
+    pub fn new<T>(inner: T) -> Self
+    where
+        T: arci::MotorDrivePosition + 'static,
+    {
+        Self(
+            crate::proxy::MotorDrivePositionTraitObject::from_value(
+                inner,
+                abi_stable::erased_types::TD_Opaque,
+            ),
+        )
+    }
+}
+impl arci::MotorDrivePosition for MotorDrivePositionProxy {
+    fn set_motor_position(&self, position: f64) -> Result<(), Error> {
+        Ok(self.0.set_motor_position(position.into()).into_result()?.into())
+    }
+    fn get_motor_position(&self) -> Result<f64, Error> {
+        Ok(self.0.get_motor_position().into_result()?.into())
+    }
+}
+impl std::fmt::Debug for MotorDrivePositionProxy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MotorDrivePositionProxy").finish()
+    }
+}
+/// FFI-safe equivalent of [`Box<dyn arci::MotorDriveVelocity>`](arci::MotorDriveVelocity).
+#[derive(StableAbi)]
+#[repr(C)]
+pub struct MotorDriveVelocityProxy(
+    pub(crate) crate::proxy::MotorDriveVelocityTraitObject,
+);
+impl MotorDriveVelocityProxy {
+    /// Creates a new `MotorDriveVelocityProxy`.
+    pub fn new<T>(inner: T) -> Self
+    where
+        T: arci::MotorDriveVelocity + 'static,
+    {
+        Self(
+            crate::proxy::MotorDriveVelocityTraitObject::from_value(
+                inner,
+                abi_stable::erased_types::TD_Opaque,
+            ),
+        )
+    }
+}
+impl arci::MotorDriveVelocity for MotorDriveVelocityProxy {
+    fn set_motor_velocity(&self, velocity: f64) -> Result<(), Error> {
+        Ok(self.0.set_motor_velocity(velocity.into()).into_result()?.into())
+    }
+    fn get_motor_velocity(&self) -> Result<f64, Error> {
+        Ok(self.0.get_motor_velocity().into_result()?.into())
+    }
+}
+impl std::fmt::Debug for MotorDriveVelocityProxy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MotorDriveVelocityProxy").finish()
+    }
+}
+/// FFI-safe equivalent of [`Box<dyn arci::MotorDriveEffort>`](arci::MotorDriveEffort).
+#[derive(StableAbi)]
+#[repr(C)]
+pub struct MotorDriveEffortProxy(pub(crate) crate::proxy::MotorDriveEffortTraitObject);
+impl MotorDriveEffortProxy {
+    /// Creates a new `MotorDriveEffortProxy`.
+    pub fn new<T>(inner: T) -> Self
+    where
+        T: arci::MotorDriveEffort + 'static,
+    {
+        Self(
+            crate::proxy::MotorDriveEffortTraitObject::from_value(
+                inner,
+                abi_stable::erased_types::TD_Opaque,
+            ),
+        )
+    }
+}
+impl arci::MotorDriveEffort for MotorDriveEffortProxy {
+    fn set_motor_effort(&self, effort: f64) -> Result<(), Error> {
+        Ok(self.0.set_motor_effort(effort.into()).into_result()?.into())
+    }
+    fn get_motor_effort(&self) -> Result<f64, Error> {
+        Ok(self.0.get_motor_effort().into_result()?.into())
+    }
+}
+impl std::fmt::Debug for MotorDriveEffortProxy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MotorDriveEffortProxy").finish()
     }
 }
 /// FFI-safe equivalent of [`Box<dyn arci::MoveBase>`](arci::MoveBase).

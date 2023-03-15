@@ -21,6 +21,18 @@ pub(crate) trait RPluginTrait: Send + Sync + 'static {
         &self,
         args: RString,
     ) -> RResult<ROption<crate::LocalizationProxy>, RError>;
+    fn new_motor_drive_position(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::MotorDrivePositionProxy>, RError>;
+    fn new_motor_drive_velocity(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::MotorDriveVelocityProxy>, RError>;
+    fn new_motor_drive_effort(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::MotorDriveEffortProxy>, RError>;
     fn new_move_base(
         &self,
         args: RString,
@@ -69,6 +81,36 @@ where
         ROk(
             rtry!(crate ::Plugin::new_localization(self, args.into()))
                 .map(crate::LocalizationProxy::new)
+                .into(),
+        )
+    }
+    fn new_motor_drive_position(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::MotorDrivePositionProxy>, RError> {
+        ROk(
+            rtry!(crate ::Plugin::new_motor_drive_position(self, args.into()))
+                .map(crate::MotorDrivePositionProxy::new)
+                .into(),
+        )
+    }
+    fn new_motor_drive_velocity(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::MotorDriveVelocityProxy>, RError> {
+        ROk(
+            rtry!(crate ::Plugin::new_motor_drive_velocity(self, args.into()))
+                .map(crate::MotorDriveVelocityProxy::new)
+                .into(),
+        )
+    }
+    fn new_motor_drive_effort(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::MotorDriveEffortProxy>, RError> {
+        ROk(
+            rtry!(crate ::Plugin::new_motor_drive_effort(self, args.into()))
+                .map(crate::MotorDriveEffortProxy::new)
                 .into(),
         )
     }
@@ -124,6 +166,63 @@ where
 {
     fn current_pose(&self, frame_id: RStr<'_>) -> RResult<RIsometry2F64, RError> {
         ROk(rtry!(arci::Localization::current_pose(self, frame_id.into())).into())
+    }
+}
+pub(crate) type MotorDrivePositionTraitObject = RMotorDrivePositionTrait_TO<RBox<()>>;
+#[abi_stable::sabi_trait]
+pub(crate) trait RMotorDrivePositionTrait: Send + Sync + 'static {
+    fn set_motor_position(&self, position: Rf64) -> RResult<(), RError>;
+    fn get_motor_position(&self) -> RResult<Rf64, RError>;
+}
+impl<T> RMotorDrivePositionTrait for T
+where
+    T: arci::MotorDrivePosition + 'static,
+{
+    fn set_motor_position(&self, position: Rf64) -> RResult<(), RError> {
+        ROk(
+            rtry!(arci::MotorDrivePosition::set_motor_position(self, position.into()))
+                .into(),
+        )
+    }
+    fn get_motor_position(&self) -> RResult<Rf64, RError> {
+        ROk(rtry!(arci::MotorDrivePosition::get_motor_position(self)).into())
+    }
+}
+pub(crate) type MotorDriveVelocityTraitObject = RMotorDriveVelocityTrait_TO<RBox<()>>;
+#[abi_stable::sabi_trait]
+pub(crate) trait RMotorDriveVelocityTrait: Send + Sync + 'static {
+    fn set_motor_velocity(&self, velocity: Rf64) -> RResult<(), RError>;
+    fn get_motor_velocity(&self) -> RResult<Rf64, RError>;
+}
+impl<T> RMotorDriveVelocityTrait for T
+where
+    T: arci::MotorDriveVelocity + 'static,
+{
+    fn set_motor_velocity(&self, velocity: Rf64) -> RResult<(), RError> {
+        ROk(
+            rtry!(arci::MotorDriveVelocity::set_motor_velocity(self, velocity.into()))
+                .into(),
+        )
+    }
+    fn get_motor_velocity(&self) -> RResult<Rf64, RError> {
+        ROk(rtry!(arci::MotorDriveVelocity::get_motor_velocity(self)).into())
+    }
+}
+pub(crate) type MotorDriveEffortTraitObject = RMotorDriveEffortTrait_TO<RBox<()>>;
+#[abi_stable::sabi_trait]
+pub(crate) trait RMotorDriveEffortTrait: Send + Sync + 'static {
+    fn set_motor_effort(&self, effort: Rf64) -> RResult<(), RError>;
+    fn get_motor_effort(&self) -> RResult<Rf64, RError>;
+}
+impl<T> RMotorDriveEffortTrait for T
+where
+    T: arci::MotorDriveEffort + 'static,
+{
+    fn set_motor_effort(&self, effort: Rf64) -> RResult<(), RError> {
+        ROk(rtry!(arci::MotorDriveEffort::set_motor_effort(self, effort.into())).into())
+    }
+    fn get_motor_effort(&self) -> RResult<Rf64, RError> {
+        ROk(rtry!(arci::MotorDriveEffort::get_motor_effort(self)).into())
     }
 }
 pub(crate) type MoveBaseTraitObject = RMoveBaseTrait_TO<RBox<()>>;
