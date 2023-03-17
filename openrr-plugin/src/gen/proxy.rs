@@ -17,6 +17,10 @@ pub(crate) trait RPluginTrait: Send + Sync + 'static {
         &self,
         args: RString,
     ) -> RResult<ROption<crate::JointTrajectoryClientProxy>, RError>;
+    fn new_laser_scan2_d(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::LaserScan2DProxy>, RError>;
     fn new_localization(
         &self,
         args: RString,
@@ -71,6 +75,16 @@ where
         ROk(
             rtry!(crate ::Plugin::new_joint_trajectory_client(self, args.into()))
                 .map(crate::JointTrajectoryClientProxy::new)
+                .into(),
+        )
+    }
+    fn new_laser_scan2_d(
+        &self,
+        args: RString,
+    ) -> RResult<ROption<crate::LaserScan2DProxy>, RError> {
+        ROk(
+            rtry!(crate ::Plugin::new_laser_scan2_d(self, args.into()))
+                .map(crate::LaserScan2DProxy::new)
                 .into(),
         )
     }
@@ -153,6 +167,19 @@ where
                 .map(crate::TransformResolverProxy::new)
                 .into(),
         )
+    }
+}
+pub(crate) type LaserScan2DTraitObject = RLaserScan2DTrait_TO<RBox<()>>;
+#[abi_stable::sabi_trait]
+pub(crate) trait RLaserScan2DTrait: Send + Sync + 'static {
+    fn current_scan(&self) -> RResult<RScan2D, RError>;
+}
+impl<T> RLaserScan2DTrait for T
+where
+    T: arci::LaserScan2D + 'static,
+{
+    fn current_scan(&self) -> RResult<RScan2D, RError> {
+        ROk(rtry!(arci::LaserScan2D::current_scan(self)).into())
     }
 }
 pub(crate) type LocalizationTraitObject = RLocalizationTrait_TO<RBox<()>>;

@@ -4,7 +4,7 @@
 #![allow(unused_variables)]
 #![allow(clippy::useless_conversion, clippy::unit_arg)]
 
-use arci::{BaseVelocity, Error, Isometry2, Isometry3, WaitFuture};
+use arci::{BaseVelocity, Error, Isometry2, Isometry3, Scan2D, WaitFuture};
 use abi_stable::StableAbi;
 use super::*;
 /// The plugin trait.
@@ -22,6 +22,14 @@ pub trait Plugin: Send + Sync + 'static {
         &self,
         args: String,
     ) -> Result<Option<Box<dyn arci::JointTrajectoryClient>>, arci::Error> {
+        let _ = args;
+        Ok(None)
+    }
+    /// Creates a new instance of [`arci::LaserScan2D`] with the specified arguments.
+    fn new_laser_scan2_d(
+        &self,
+        args: String,
+    ) -> Result<Option<Box<dyn arci::LaserScan2D>>, arci::Error> {
         let _ = args;
         Ok(None)
     }
@@ -123,6 +131,13 @@ impl PluginProxy {
     ) -> Result<Option<JointTrajectoryClientProxy>, arci::Error> {
         Ok(self.0.new_joint_trajectory_client(args.into()).into_result()?.into_option())
     }
+    /// Creates a new instance of [`arci::LaserScan2D`] with the specified arguments.
+    pub fn new_laser_scan2_d(
+        &self,
+        args: String,
+    ) -> Result<Option<LaserScan2DProxy>, arci::Error> {
+        Ok(self.0.new_laser_scan2_d(args.into()).into_result()?.into_option())
+    }
     /// Creates a new instance of [`arci::Localization`] with the specified arguments.
     pub fn new_localization(
         &self,
@@ -178,6 +193,34 @@ impl PluginProxy {
         args: String,
     ) -> Result<Option<TransformResolverProxy>, arci::Error> {
         Ok(self.0.new_transform_resolver(args.into()).into_result()?.into_option())
+    }
+}
+/// FFI-safe equivalent of [`Box<dyn arci::LaserScan2D>`](arci::LaserScan2D).
+#[derive(StableAbi)]
+#[repr(C)]
+pub struct LaserScan2DProxy(pub(crate) crate::proxy::LaserScan2DTraitObject);
+impl LaserScan2DProxy {
+    /// Creates a new `LaserScan2DProxy`.
+    pub fn new<T>(inner: T) -> Self
+    where
+        T: arci::LaserScan2D + 'static,
+    {
+        Self(
+            crate::proxy::LaserScan2DTraitObject::from_value(
+                inner,
+                abi_stable::erased_types::TD_Opaque,
+            ),
+        )
+    }
+}
+impl arci::LaserScan2D for LaserScan2DProxy {
+    fn current_scan(&self) -> Result<Scan2D, Error> {
+        Ok(self.0.current_scan().into_result()?.into())
+    }
+}
+impl std::fmt::Debug for LaserScan2DProxy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("LaserScan2DProxy").finish()
     }
 }
 /// FFI-safe equivalent of [`Box<dyn arci::Localization>`](arci::Localization).
