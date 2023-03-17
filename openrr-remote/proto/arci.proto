@@ -59,6 +59,10 @@ service MotorDriveVelocity {
   rpc GetMotorVelocity(google.protobuf.Empty) returns (google.protobuf.DoubleValue);
 }
 
+service LaserScan2D {
+  rpc CurrentScan(google.protobuf.Empty) returns (Scan2D);
+}
+
 message JointNamesResponse {
   repeated string names = 1;
 }
@@ -142,6 +146,18 @@ message GamepadEvent {
     google.protobuf.Empty connected = 5;
     google.protobuf.Empty disconnected = 6;
   }
+}
+
+message Scan2D {
+  double angle_min = 1;
+  double angle_max = 2;
+  double angle_increment = 3;
+  double time_increment = 4;
+  double scan_time = 5;
+  double range_min = 6;
+  double range_max = 7;
+  repeated double ranges = 8;
+  repeated double intensities = 9;
 }
 
 enum Button {
