@@ -442,3 +442,35 @@ impl From<pb::Axis> for arci::gamepad::Axis {
         }
     }
 }
+
+impl From<arci::Scan2D> for pb::Scan2D {
+    fn from(val: arci::Scan2D) -> Self {
+        Self {
+            angle_min: val.angle_min,
+            angle_max: val.angle_max,
+            angle_increment: val.angle_increment,
+            time_increment: val.time_increment,
+            scan_time: val.scan_time,
+            range_min: val.range_min,
+            range_max: val.range_max,
+            ranges: val.ranges,
+            intensities: val.intensities,
+        }
+    }
+}
+
+impl From<pb::Scan2D> for arci::Scan2D {
+    fn from(val: pb::Scan2D) -> Self {
+        Self {
+            angle_min: val.angle_min,
+            angle_max: val.angle_max,
+            angle_increment: val.angle_increment,
+            time_increment: val.time_increment,
+            scan_time: val.scan_time,
+            range_min: val.range_min,
+            range_max: val.range_max,
+            ranges: val.ranges,
+            intensities: val.intensities,
+        }
+    }
+}
