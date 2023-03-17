@@ -411,6 +411,56 @@ impl From<RBaseVelocity> for arci::BaseVelocity {
 }
 
 // =============================================================================
+// arci::Scan2D
+
+/// FFI-safe equivalent of [`arci::Scan2D`].
+#[repr(C)]
+#[derive(StableAbi)]
+pub(crate) struct RScan2D {
+    angle_min: f64,
+    angle_max: f64,
+    angle_increment: f64,
+    time_increment: f64,
+    scan_time: f64,
+    range_min: f64,
+    range_max: f64,
+    ranges: RVec<f64>,
+    intensities: RVec<f64>,
+}
+
+impl From<arci::Scan2D> for RScan2D {
+    fn from(s: arci::Scan2D) -> Self {
+        Self {
+            angle_min: s.angle_min,
+            angle_max: s.angle_max,
+            angle_increment: s.angle_increment,
+            time_increment: s.time_increment,
+            scan_time: s.scan_time,
+            range_min: s.range_min,
+            range_max: s.range_max,
+            ranges: s.ranges.into(),
+            intensities: s.intensities.into(),
+        }
+    }
+}
+
+impl From<RScan2D> for arci::Scan2D {
+    fn from(s: RScan2D) -> Self {
+        Self {
+            angle_min: s.angle_min,
+            angle_max: s.angle_max,
+            angle_increment: s.angle_increment,
+            time_increment: s.time_increment,
+            scan_time: s.scan_time,
+            range_min: s.range_min,
+            range_max: s.range_max,
+            ranges: s.ranges.into(),
+            intensities: s.intensities.into(),
+        }
+    }
+}
+
+// =============================================================================
 // arci::gamepad::GamepadEvent
 
 #[repr(C)]
