@@ -4,7 +4,7 @@
 #![allow(unused_variables)]
 #![allow(clippy::useless_conversion, clippy::unit_arg)]
 
-use arci::{BaseVelocity, Error, Isometry2, Isometry3, WaitFuture};
+use arci::{BaseVelocity, Error, Isometry2, Isometry3, Scan2D, WaitFuture};
 use super::*;
 #[derive(Debug, Clone)]
 pub struct RemoteGamepadSender {
@@ -116,6 +116,88 @@ where
                 message: e.to_string(),
             })?;
         Ok(())
+    }
+}
+#[derive(Debug, Clone)]
+pub struct RemoteLaserScan2DSender {
+    pub(crate) client: pb::laser_scan2_d_client::LaserScan2DClient<
+        tonic::transport::Channel,
+    >,
+}
+impl RemoteLaserScan2DSender {
+    /// Attempt to create a new sender by connecting to a given endpoint.
+    pub async fn connect<D>(dst: D) -> Result<Self, arci::Error>
+    where
+        D: TryInto<tonic::transport::Endpoint>,
+        D::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    {
+        let client = pb::laser_scan2_d_client::LaserScan2DClient::connect(dst)
+            .await
+            .map_err(|e| arci::Error::Connection {
+                message: e.to_string(),
+            })?;
+        Ok(Self { client })
+    }
+    /// Create a new sender.
+    pub fn new(channel: tonic::transport::Channel) -> Self {
+        Self {
+            client: pb::laser_scan2_d_client::LaserScan2DClient::new(channel),
+        }
+    }
+}
+#[derive(Debug)]
+pub struct RemoteLaserScan2DReceiver<T> {
+    pub(crate) inner: T,
+}
+impl<T> RemoteLaserScan2DReceiver<T>
+where
+    T: arci::LaserScan2D + 'static,
+{
+    /// Create a new receiver.
+    pub fn new(inner: T) -> Self {
+        Self { inner }
+    }
+    /// Convert this receiver into a tower service.
+    pub fn into_service(self) -> pb::laser_scan2_d_server::LaserScan2DServer<Self> {
+        pb::laser_scan2_d_server::LaserScan2DServer::new(self)
+    }
+    pub async fn serve(self, addr: SocketAddr) -> Result<(), arci::Error> {
+        tonic::transport::Server::builder()
+            .add_service(self.into_service())
+            .serve(addr)
+            .await
+            .map_err(|e| arci::Error::Connection {
+                message: e.to_string(),
+            })?;
+        Ok(())
+    }
+}
+impl arci::LaserScan2D for RemoteLaserScan2DSender {
+    fn current_scan(&self) -> Result<Scan2D, Error> {
+        let mut client = self.client.clone();
+        let args = tonic::Request::new(());
+        Ok(
+            block_in_place(client.current_scan(args))
+                .map_err(|e| arci::Error::Other(e.into()))?
+                .into_inner()
+                .into(),
+        )
+    }
+}
+#[tonic::async_trait]
+impl<T> pb::laser_scan2_d_server::LaserScan2D for RemoteLaserScan2DReceiver<T>
+where
+    T: arci::LaserScan2D + 'static,
+{
+    async fn current_scan(
+        &self,
+        request: tonic::Request<()>,
+    ) -> std::result::Result<tonic::Response<pb::Scan2D>, tonic::Status> {
+        let request = request.into_inner();
+        let res = arci::LaserScan2D::current_scan(&self.inner)
+            .map_err(|e| tonic::Status::unknown(e.to_string()))?
+            .into();
+        Ok(tonic::Response::new(res))
     }
 }
 #[derive(Debug, Clone)]

@@ -175,6 +175,7 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
             Error,
             Isometry2,
             Isometry3,
+            Scan2D,
             WaitFuture,
         };
         use abi_stable::StableAbi;
