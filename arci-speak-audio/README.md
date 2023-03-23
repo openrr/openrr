@@ -1,6 +1,6 @@
 # arci-speak-audio
 
-[![crates.io](https://img.shields.io/crates/v/arci-speak-audio.svg)](https://crates.io/crates/arci-speak-audio) [![docs](https://docs.rs/arci-speak-audio/badge.svg)](https://docs.rs/arci-speak-audio) [![docs](https://img.shields.io/badge/docs-main-blue)](https://openrr.github.io/openrr/arci_speak_audio)
+[![crates.io](https://img.shields.io/crates/v/arci-speak-audio.svg?logo=rust)](https://crates.io/crates/arci-speak-audio) [![docs](https://docs.rs/arci-speak-audio/badge.svg)](https://docs.rs/arci-speak-audio) [![docs](https://img.shields.io/badge/docs-main-blue)](https://openrr.github.io/openrr/arci_speak_audio)
 
 [`arci::Speaker`](https://docs.rs/arci/*/arci/trait.Speaker.html) implementation for playing audio files.
 
