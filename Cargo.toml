@@ -79,7 +79,7 @@ openrr-teleop = { version = "0.0.7", default-features = false }
 parking_lot = "0.12"
 paste = "1"
 portpicker = "0.1"
-prettyplease = "=0.1.25"
+prettyplease = "=0.2.0"
 proc-macro2 = "1"
 prost = "0.11"
 prost-types = "0.11"
