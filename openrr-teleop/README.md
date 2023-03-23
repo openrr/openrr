@@ -1,6 +1,6 @@
 # openrr-teleop
 
-[![crates.io](https://img.shields.io/crates/v/openrr-teleop.svg)](https://crates.io/crates/openrr-teleop) [![docs](https://docs.rs/openrr-teleop/badge.svg)](https://docs.rs/openrr-teleop) [![docs](https://img.shields.io/badge/docs-main-blue)](https://openrr.github.io/openrr/openrr_teleop)
+[![crates.io](https://img.shields.io/crates/v/openrr-teleop.svg?logo=rust)](https://crates.io/crates/openrr-teleop) [![docs](https://docs.rs/openrr-teleop/badge.svg)](https://docs.rs/openrr-teleop) [![docs](https://img.shields.io/badge/docs-main-blue)](https://openrr.github.io/openrr/openrr_teleop)
 
 ## How to control using Gamepad
 

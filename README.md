@@ -1,6 +1,6 @@
 # openrr: `Open Rust Robotics`
 
-![Build and Test](https://github.com/openrr/openrr/workflows/Build%20and%20Test/badge.svg) [![crates.io](https://img.shields.io/crates/v/openrr.svg)](https://crates.io/crates/openrr) [![codecov](https://codecov.io/gh/openrr/openrr/branch/main/graph/badge.svg?token=28GTOOT4RY)](https://codecov.io/gh/openrr/openrr) [![docs](https://docs.rs/openrr/badge.svg)](https://docs.rs/openrr)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/openrr/openrr/ci.yml?branch=main&logo=github)](https://github.com/openrr/openrr/actions) [![crates.io](https://img.shields.io/crates/v/openrr.svg?logo=rust)](https://crates.io/crates/openrr) [![codecov](https://codecov.io/gh/openrr/openrr/branch/main/graph/badge.svg?token=28GTOOT4RY)](https://codecov.io/gh/openrr/openrr) [![docs](https://docs.rs/openrr/badge.svg)](https://docs.rs/openrr)
 
 **For developers and future users**
 
