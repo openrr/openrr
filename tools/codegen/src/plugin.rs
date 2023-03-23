@@ -40,7 +40,7 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
         let proxy_name_lit = proxy_name.to_string();
         let trait_object_name = format_ident!("{trait_name}TraitObject");
         let methods = item.items.iter().map(|method| match method {
-            syn::TraitItem::Method(method) => {
+            syn::TraitItem::Fn(method) => {
                 let sig = &method.sig;
                 let name = &sig.ident;
                 let args = sig.inputs.iter().map(|arg| match arg {
@@ -89,7 +89,7 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
         let mut sabi_method_def = vec![];
         let mut sabi_method_impl = vec![];
         for method in &item.items {
-            if let syn::TraitItem::Method(method) = method {
+            if let syn::TraitItem::Fn(method) = method {
                 struct ReplacePath;
                 impl VisitMut for ReplacePath {
                     fn visit_type_mut(&mut self, ty: &mut syn::Type) {
@@ -117,6 +117,13 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
                         path.segments.clear();
                         path.segments.push(last);
                         visit_mut::visit_path_mut(self, path);
+                    }
+
+                    fn visit_fn_arg_mut(&mut self, arg: &mut syn::FnArg) {
+                        match arg {
+                            syn::FnArg::Receiver(_) => {}
+                            syn::FnArg::Typed(arg) => self.visit_pat_type_mut(arg),
+                        }
                     }
                 }
 

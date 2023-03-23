@@ -3,7 +3,7 @@ mod rpc;
 
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use anyhow::{format_err, Result};
 use fs_err as fs;
 use proc_macro2::TokenStream;
 
@@ -97,7 +97,13 @@ fn header() -> String {
 
 fn write(path: &Path, contents: TokenStream) -> Result<()> {
     let mut out = header().into_bytes();
-    out.extend_from_slice(prettyplease::unparse(&syn::parse2(contents).unwrap()).as_bytes());
+    out.extend_from_slice(
+        prettyplease::unparse(
+            &syn::parse2(contents.clone())
+                .map_err(|e| format_err!("{e} in:\n---\n{contents}\n---"))?,
+        )
+        .as_bytes(),
+    );
     if path.is_file() && fs::read(path)? == out {
         return Ok(());
     }
