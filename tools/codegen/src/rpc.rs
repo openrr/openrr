@@ -135,7 +135,7 @@ fn gen_client_impl(trait_name: &Ident, item: &ItemTrait) -> TokenStream {
     let client_name = format_ident!("Remote{trait_name}Sender");
 
     let methods = item.items.iter().map(|method| match method {
-        syn::TraitItem::Method(method) => {
+        syn::TraitItem::Fn(method) => {
             let sig = &method.sig;
             let name = &sig.ident;
             let args: Vec<_> = sig
@@ -206,7 +206,7 @@ fn gen_server_impl(trait_name: &Ident, item: &ItemTrait, pb_traits: &[ItemTrait]
     let pb_trait = pb_traits.iter().find(|t| t.ident == *trait_name).unwrap();
 
     let methods = item.items.iter().map(|method| match method {
-        syn::TraitItem::Method(method) => {
+        syn::TraitItem::Fn(method) => {
             struct ReplacePath;
             impl VisitMut for ReplacePath {
                 fn visit_path_mut(&mut self, path: &mut syn::Path) {
@@ -263,7 +263,7 @@ fn gen_server_impl(trait_name: &Ident, item: &ItemTrait, pb_traits: &[ItemTrait]
                 .items
                 .iter()
                 .find_map(|m| {
-                    if let syn::TraitItem::Method(m) = m {
+                    if let syn::TraitItem::Fn(m) = m {
                         if m.sig.ident == *name {
                             return Some(m.clone());
                         }
