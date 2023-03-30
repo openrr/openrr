@@ -7,6 +7,7 @@ const DEFAULT_ACTIVE_VELOCITY_VALUE: f64 = 0.25;
 
 /// Launches GUI that send base velocity from GUI to the given `move_base`.
 #[cfg(not(target_family = "wasm"))]
+#[no_coverage]
 pub fn velocity_sender<M>(move_base: M) -> Result<(), crate::Error>
 where
     M: MoveBase + 'static,
@@ -80,6 +81,7 @@ impl<M> eframe::App for VelocitySender<M>
 where
     M: MoveBase + 'static,
 {
+    #[no_coverage]
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::warn_if_debug_build(ui);

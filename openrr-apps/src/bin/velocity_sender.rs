@@ -1,3 +1,5 @@
+#![feature(no_coverage)]
+
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -19,6 +21,7 @@ struct Opt {
     config: Option<String>,
 }
 
+#[no_coverage]
 fn main() -> Result<()> {
     init_tracing();
     let opt = Opt::parse();

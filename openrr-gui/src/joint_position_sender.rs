@@ -11,6 +11,7 @@ use crate::Error;
 
 /// Launches GUI that send joint positions from GUI to the given `robot_client`.
 #[cfg(not(target_family = "wasm"))]
+#[no_coverage]
 pub fn joint_position_sender<L, M, N>(
     robot_client: RobotClient<L, M, N>,
     robot: urdf_rs::Robot,
@@ -130,6 +131,7 @@ where
     M: MoveBase + 'static,
     N: Navigation + 'static,
 {
+    #[no_coverage]
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::warn_if_debug_build(ui);
