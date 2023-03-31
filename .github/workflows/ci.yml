@@ -348,6 +348,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Switch toolchain to nightly
+        run: rustup override set nightly
       - name: Generate code coverage
         run: |
           # for test of arci-ros (roscore, rostopic)
