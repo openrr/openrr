@@ -27,6 +27,7 @@ members = [
 ]
 
 [workspace.package]
+# NOTE: when updating this, reminder to update arci-speak-cmd's Cargo.toml.
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
