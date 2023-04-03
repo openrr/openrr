@@ -192,7 +192,7 @@ where
     async fn current_pose(
         &self,
         request: tonic::Request<::prost::alloc::string::String>,
-    ) -> Result<tonic::Response<pb::Isometry2>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<pb::Isometry2>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::Localization::current_pose(&self.inner, &request)
             .map_err(|e| tonic::Status::unknown(e.to_string()))?
@@ -291,7 +291,7 @@ where
     async fn set_motor_position(
         &self,
         request: tonic::Request<f64>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::MotorDrivePosition::set_motor_position(
                 &self.inner,
@@ -304,7 +304,7 @@ where
     async fn get_motor_position(
         &self,
         request: tonic::Request<()>,
-    ) -> Result<tonic::Response<f64>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<f64>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::MotorDrivePosition::get_motor_position(&self.inner)
             .map_err(|e| tonic::Status::unknown(e.to_string()))?
@@ -403,7 +403,7 @@ where
     async fn set_motor_velocity(
         &self,
         request: tonic::Request<f64>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::MotorDriveVelocity::set_motor_velocity(
                 &self.inner,
@@ -416,7 +416,7 @@ where
     async fn get_motor_velocity(
         &self,
         request: tonic::Request<()>,
-    ) -> Result<tonic::Response<f64>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<f64>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::MotorDriveVelocity::get_motor_velocity(&self.inner)
             .map_err(|e| tonic::Status::unknown(e.to_string()))?
@@ -511,7 +511,7 @@ where
     async fn set_motor_effort(
         &self,
         request: tonic::Request<f64>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::MotorDriveEffort::set_motor_effort(&self.inner, request.into())
             .map_err(|e| tonic::Status::unknown(e.to_string()))?
@@ -521,7 +521,7 @@ where
     async fn get_motor_effort(
         &self,
         request: tonic::Request<()>,
-    ) -> Result<tonic::Response<f64>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<f64>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::MotorDriveEffort::get_motor_effort(&self.inner)
             .map_err(|e| tonic::Status::unknown(e.to_string()))?
@@ -611,7 +611,7 @@ where
     async fn send_velocity(
         &self,
         request: tonic::Request<pb::BaseVelocity>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::MoveBase::send_velocity(&self.inner, &request.into())
             .map_err(|e| tonic::Status::unknown(e.to_string()))?
@@ -621,7 +621,7 @@ where
     async fn current_velocity(
         &self,
         request: tonic::Request<()>,
-    ) -> Result<tonic::Response<pb::BaseVelocity>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<pb::BaseVelocity>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::MoveBase::current_velocity(&self.inner)
             .map_err(|e| tonic::Status::unknown(e.to_string()))?
@@ -717,7 +717,7 @@ where
     async fn send_goal_pose(
         &self,
         request: tonic::Request<pb::GoalPoseRequest>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::Navigation::send_goal_pose(
                 &self.inner,
@@ -734,7 +734,7 @@ where
     async fn cancel(
         &self,
         request: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::Navigation::cancel(&self.inner)
             .map_err(|e| tonic::Status::unknown(e.to_string()))?
@@ -809,7 +809,7 @@ where
     async fn speak(
         &self,
         request: tonic::Request<::prost::alloc::string::String>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::Speaker::speak(&self.inner, &request)
             .map_err(|e| tonic::Status::unknown(e.to_string()))?
@@ -901,7 +901,7 @@ where
     async fn resolve_transformation(
         &self,
         request: tonic::Request<pb::ResolveTransformationRequest>,
-    ) -> Result<tonic::Response<pb::Isometry3>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<pb::Isometry3>, tonic::Status> {
         let request = request.into_inner();
         let res = arci::TransformResolver::resolve_transformation(
                 &self.inner,
