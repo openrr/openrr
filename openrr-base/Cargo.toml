@@ -1,0 +1,15 @@
+[package]
+name = "openrr-base"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+arci.workspace = true
+parking_lot.workspace = true
+
+[dev-dependencies]
+assert_approx_eq.workspace = true
