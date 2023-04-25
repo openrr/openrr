@@ -113,7 +113,7 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["ansi", "env-filter"] }
 trajectory = "0.1"
-urdf-rs = "0.6"
+urdf-rs = "0.7"
 urdf-viz = "0.41"
 ureq = { version = "2", features = ["json"] }
 url = "2"
