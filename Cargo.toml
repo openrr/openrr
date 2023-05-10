@@ -11,6 +11,7 @@ members = [
     "arci-urdf-viz",
     "openrr",
     "openrr-apps",
+    "openrr-base",
     "openrr-client",
     "openrr-command",
     "openrr-config",
@@ -70,6 +71,7 @@ nix = "0.26"
 num-traits = "0.2"
 once_cell = "1"
 openrr-apps = { version = "0.1.0", default-features = false }
+openrr-base = { version = "0.1.0", default-features = false }
 openrr-client = { version = "0.1.0", default-features = false }
 openrr-command = { version = "0.1.0", default-features = false }
 openrr-config = { version = "0.1.0", default-features = false }
@@ -129,6 +131,7 @@ arci-speak-cmd = { path = "arci-speak-cmd" }
 arci-urdf-viz = { path = "arci-urdf-viz" }
 openrr = { path = "openrr" }
 openrr-apps = { path = "openrr-apps" }
+openrr-base = { path = "openrr-base" }
 openrr-client = { path = "openrr-client" }
 openrr-command = { path = "openrr-command" }
 openrr-config = { path = "openrr-config" }

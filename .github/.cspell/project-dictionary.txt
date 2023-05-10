@@ -41,6 +41,7 @@ nanos
 nanosec
 nomotion
 nsec
+odometry
 oneof
 oneshot
 pathplanning
