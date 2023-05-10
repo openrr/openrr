@@ -68,8 +68,8 @@ impl RobotVelocityStatus {
     }
 
     pub fn set_feedback_velocity(&self, velocity: BaseVelocity) {
-        let mut fdb = self.feedback_velocity.lock();
-        *fdb = velocity;
+        let mut feedback_velocity = self.feedback_velocity.lock();
+        *feedback_velocity = velocity;
     }
 
     pub fn get_limited_velocity(&self, velocity: &BaseVelocity) -> BaseVelocity {

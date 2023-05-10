@@ -86,7 +86,7 @@ where
         ];
         let feedback_vel = self.transform_velocity_wheel_to_base(&wheels_feedback);
 
-        match self.odometry.translate(&feedback_vel) {
+        match self.odometry.update_by_velocity(&feedback_vel) {
             Ok(_) => {}
             Err(e) => println!("{e}"),
         }
