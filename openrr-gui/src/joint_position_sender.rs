@@ -441,8 +441,8 @@ mod test {
                     name: String::from("dummy_joint1"),
                     joint_type: JointType::Continuous,
                     origin: Pose {
-                        xyz: [0., 1., 2.],
-                        rpy: [3., 4., 5.],
+                        xyz: urdf_rs::Vec3([0., 1., 2.]),
+                        rpy: urdf_rs::Vec3([3., 4., 5.]),
                     },
                     parent: LinkName {
                         link: String::from("dummy_parent1"),
@@ -450,7 +450,9 @@ mod test {
                     child: LinkName {
                         link: String::from("dummy_child1"),
                     },
-                    axis: Axis { xyz: [6., 7., 8.] },
+                    axis: Axis {
+                        xyz: urdf_rs::Vec3([6., 7., 8.]),
+                    },
                     limit: JointLimit {
                         lower: 0.1,
                         upper: 2.7,
@@ -465,8 +467,8 @@ mod test {
                     name: String::from("dummy_joint2"),
                     joint_type: JointType::Revolute,
                     origin: Pose {
-                        xyz: [1., 1., 2.],
-                        rpy: [3., 4., 5.],
+                        xyz: urdf_rs::Vec3([1., 1., 2.]),
+                        rpy: urdf_rs::Vec3([3., 4., 5.]),
                     },
                     parent: LinkName {
                         link: String::from("dummy_parent2"),
@@ -474,7 +476,9 @@ mod test {
                     child: LinkName {
                         link: String::from("dummy_child2"),
                     },
-                    axis: Axis { xyz: [6., 7., 8.] },
+                    axis: Axis {
+                        xyz: urdf_rs::Vec3([6., 7., 8.]),
+                    },
                     limit: JointLimit {
                         lower: 0.1,
                         upper: 2.7,

@@ -63,7 +63,7 @@ where
         } => {
             let scale = scale.unwrap_or(DEFAULT_MESH_SCALE);
             let replaced_filename = urdf_rs::utils::expand_package_path(filename, base_dir);
-            let path = Path::new(&replaced_filename);
+            let path = Path::new(&*replaced_filename);
             if !path.exists() {
                 error!("{replaced_filename} not found");
                 return None;
@@ -91,11 +91,11 @@ where
             width,
             height,
         } => urdf_rs::Geometry::Box {
-            size: [
+            size: urdf_rs::Vec3([
                 na::convert(*depth),
                 na::convert(*width),
                 na::convert(*height),
-            ],
+            ]),
         },
         k::link::Geometry::Cylinder { radius, length } => urdf_rs::Geometry::Cylinder {
             radius: na::convert(*radius),
@@ -109,15 +109,15 @@ where
         },
         k::link::Geometry::Mesh { filename, scale } => urdf_rs::Geometry::Mesh {
             filename: filename.to_string(),
-            scale: Some([
+            scale: Some(urdf_rs::Vec3([
                 na::convert(scale[0]),
                 na::convert(scale[1]),
                 na::convert(scale[2]),
-            ]),
+            ])),
         },
     };
     urdf_geometry_to_shape_handle(&converted_geometry, None)
 }
 
 // https://github.com/openrr/urdf-rs/pull/3/files#diff-0fb2eeea3273a4c9b3de69ee949567f546dc8c06b1e190336870d00b54ea0979L36-L38
-const DEFAULT_MESH_SCALE: [f64; 3] = [1.0f64; 3];
+const DEFAULT_MESH_SCALE: urdf_rs::Vec3 = urdf_rs::Vec3([1.0f64; 3]);
