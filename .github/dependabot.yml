@@ -8,6 +8,7 @@ updates:
       prefix: ''
     ignore:
       # These dependencies need to be updated at the same time with urdf-viz.
+      - dependency-name: urdf-rs
       - dependency-name: k
       - dependency-name: nalgebra
       - dependency-name: ncollide3d
