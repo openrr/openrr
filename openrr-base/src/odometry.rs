@@ -26,7 +26,7 @@ impl Odometry {
     pub fn update_by_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error> {
         let mut position = self.position.lock();
         let mut locked_update_time = self.last_update_timestamp.lock();
-        let timeout_millis = self.timeout_millis.lock().clone();
+        let timeout_millis = *self.timeout_millis.lock();
 
         let last_update_time = match *locked_update_time {
             Some(t) => t,

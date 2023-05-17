@@ -103,7 +103,7 @@ where
         let feedback_vel =
             self.transform_velocity_wheel_to_base(&[left_wheel_rotation, right_wheel_rotation]);
 
-        self.robot_velocity.set_feedback_velocity(feedback_vel);
+        self.robot_velocity.set_velocity_state(feedback_vel);
 
         Ok(feedback_vel)
     }

@@ -6,7 +6,7 @@ use crate::*;
 #[derive(Debug, Default)]
 pub struct RobotVelocityStatus {
     velocity: Mutex<BaseVelocity>,
-    feedback_velocity: Mutex<BaseVelocity>,
+    velocity_state: Mutex<BaseVelocity>,
     max_velocity: BaseVelocity,
     min_velocity: BaseVelocity,
     max_acceleration: BaseAcceleration,
@@ -32,7 +32,7 @@ impl RobotVelocityStatus {
     ) -> Self {
         Self {
             velocity: Mutex::new(BaseVelocity::default()),
-            feedback_velocity: Mutex::new(BaseVelocity::default()),
+            velocity_state: Mutex::new(BaseVelocity::default()),
             max_velocity,
             min_velocity,
             max_acceleration,
@@ -41,7 +41,7 @@ impl RobotVelocityStatus {
         }
     }
 
-    pub fn get_velocity(&self) -> BaseVelocity {
+    pub fn velocity(&self) -> BaseVelocity {
         self.velocity.lock().to_owned()
     }
 
@@ -67,9 +67,9 @@ impl RobotVelocityStatus {
         }
     }
 
-    pub fn set_feedback_velocity(&self, velocity: BaseVelocity) {
-        let mut feedback_velocity = self.feedback_velocity.lock();
-        *feedback_velocity = velocity;
+    pub fn set_velocity_state(&self, velocity: BaseVelocity) {
+        let mut velocity_state = self.velocity_state.lock();
+        *velocity_state = velocity;
     }
 
     pub fn get_limited_velocity(&self, velocity: &BaseVelocity) -> BaseVelocity {
@@ -117,7 +117,7 @@ mod test {
     const LIMIT_VEL_THETA: f64 = 10.0;
     const LIMIT_ACC_X: f64 = 1000.0;
     const LIMIT_ACC_THETA: f64 = 1000.0;
-    const DUMMY_FDB_X: f64 = 1.23;
+    const DUMMY_VELOCITY_STATE_X: f64 = 1.23;
 
     #[test]
     fn test_robot_velocity_status() {
@@ -132,7 +132,7 @@ mod test {
             theta: -LIMIT_VEL_THETA,
         });
 
-        let vel = status.get_velocity();
+        let vel = status.velocity();
         assert_approx_eq!(vel.x, LIMIT_VEL_X);
 
         std::thread::sleep(std::time::Duration::from_millis(100));
@@ -146,15 +146,15 @@ mod test {
         assert_approx_eq!(limited.x, -LIMIT_VEL_X);
         assert_approx_eq!(limited.theta, LIMIT_VEL_THETA);
 
-        let fdb = BaseVelocity {
-            x: DUMMY_FDB_X,
+        let velocity_state = BaseVelocity {
+            x: DUMMY_VELOCITY_STATE_X,
             y: 0.,
             theta: 0.,
         };
 
-        status.set_feedback_velocity(fdb);
+        status.set_velocity_state(velocity_state);
 
-        let fdb_x = status.feedback_velocity.lock().x;
-        assert_approx_eq!(fdb_x, DUMMY_FDB_X);
+        let velocity_state_x = status.velocity_state.lock().x;
+        assert_approx_eq!(velocity_state_x, DUMMY_VELOCITY_STATE_X);
     }
 }
