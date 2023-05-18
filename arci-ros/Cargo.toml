@@ -28,9 +28,13 @@ tracing.workspace = true
 urdf-rs.workspace = true
 
 [dev-dependencies]
+arci-gamepad-gilrs.workspace = true
+arci-gamepad-keyboard.workspace = true
 assert_approx_eq.workspace = true
 flaky_test.workspace = true
 k.workspace = true
+openrr-base.workspace = true
+openrr-teleop.workspace = true
 
 [target.'cfg(unix)'.dev-dependencies]
 nix.workspace = true
