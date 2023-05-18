@@ -15,6 +15,7 @@ ros_nalgebra::rosmsg_include!(
     move_base_msgs / MoveBaseActionResult,
     sensor_msgs / JointState,
     sensor_msgs / Joy,
+    std_msgs / Float64,
     std_msgs / Header,
     std_srvs / Empty,
     trajectory_msgs / JointTrajectory,
