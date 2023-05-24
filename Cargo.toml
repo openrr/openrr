@@ -52,7 +52,7 @@ async-trait = "0.1"
 auto_impl = "1"
 clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
-criterion = "0.4"
+criterion = "0.5"
 easy-ext = "1"
 eframe = "0.21"
 egui_extras = "0.21"
