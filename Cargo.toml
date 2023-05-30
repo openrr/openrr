@@ -87,7 +87,7 @@ proc-macro2 = "1"
 prost = "0.11"
 prost-types = "0.11"
 quote = "1"
-r2r = "0.7"
+r2r = "=0.7.0" # 0.7.1 is broken: https://github.com/openrr/openrr/pull/828
 rand = "0.8"
 rayon = "1.5"
 rodio = "0.17"
