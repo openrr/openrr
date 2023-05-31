@@ -5,10 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{msg, rosrust_utils::*};
 
-rosrust::rosmsg_include! {
-    std_srvs / Empty
-}
-
 const AMCL_POSE_TOPIC: &str = "/amcl_pose";
 const NO_MOTION_UPDATE_SERVICE: &str = "request_nomotion_update";
 

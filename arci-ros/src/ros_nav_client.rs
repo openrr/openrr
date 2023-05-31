@@ -8,10 +8,6 @@ use serde::{Deserialize, Serialize};
 use crate::{define_action_client, msg, ActionResultWait};
 define_action_client!(SimpleActionClient, msg::move_base_msgs, MoveBase);
 
-rosrust::rosmsg_include! {
-    std_srvs / Empty
-}
-
 impl From<na::Isometry2<f64>> for msg::geometry_msgs::Pose {
     fn from(goal: na::Isometry2<f64>) -> Self {
         let iso_pose = na::Isometry3::from_parts(
@@ -116,7 +112,7 @@ impl Default for RosNavClientBuilder {
 pub struct RosNavClient {
     pub clear_costmap_before_start: bool,
     action_client: Arc<SimpleActionClient>,
-    nomotion_update_client: Option<rosrust::Client<std_srvs::Empty>>,
+    nomotion_update_client: Option<rosrust::Client<msg::std_srvs::Empty>>,
     nomotion_update_service_name: String,
     clear_costmap_service_name: String,
 }
@@ -136,7 +132,7 @@ impl RosNavClient {
                 Some(std::time::Duration::from_secs(10)),
             )
             .unwrap();
-            Some(rosrust::client::<std_srvs::Empty>(&nomotion_update_service_name).unwrap())
+            Some(rosrust::client::<msg::std_srvs::Empty>(&nomotion_update_service_name).unwrap())
         } else {
             None
         };
@@ -184,7 +180,7 @@ impl RosNavClient {
             Ok(_) => {
                 rosrust::ros_info!("Action succeeds");
                 if let Some(client) = self.nomotion_update_client.as_ref() {
-                    client.req(&std_srvs::EmptyReq {}).unwrap().unwrap();
+                    client.req(&msg::std_srvs::EmptyReq {}).unwrap().unwrap();
                     rosrust::ros_info!("Called {}", self.nomotion_update_service_name);
                 }
                 Ok(())
