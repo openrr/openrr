@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use arci::*;
 use nalgebra as na;
 use schemars::JsonSchema;
@@ -129,7 +127,6 @@ impl RosLocalizationClient {
 
     pub fn request_nomotion_update(&self) {
         self.nomotion_update_client
-            .borrow()
             .as_ref()
             .unwrap()
             .req(&msg::std_srvs::EmptyReq {})
