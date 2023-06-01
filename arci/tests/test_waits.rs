@@ -42,6 +42,7 @@ fn test_total_condition_debug() {
     );
 }
 
+#[allow(clippy::redundant_clone)] // This is intentional.
 #[test]
 fn test_total_condition_clone() {
     let c1 = TotalJointDiffCondition::new(1.0, 0.1);
@@ -130,6 +131,7 @@ fn test_each_condition_debug() {
     );
 }
 
+#[allow(clippy::redundant_clone)] // This is intentional.
 #[test]
 fn test_each_condition_clone() {
     let c1 = EachJointDiffCondition::new(vec![1.0, 0.1], 0.1);
