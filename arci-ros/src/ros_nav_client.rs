@@ -6,7 +6,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{define_action_client, msg, ActionResultWait};
-define_action_client!(SimpleActionClient, msg::move_base_msgs, MoveBase);
+define_action_client!(MoveBaseActionClient, msg::move_base_msgs, MoveBase);
 
 impl From<na::Isometry2<f64>> for msg::geometry_msgs::Pose {
     fn from(goal: na::Isometry2<f64>) -> Self {
@@ -111,7 +111,7 @@ impl Default for RosNavClientBuilder {
 #[derive(Clone)]
 pub struct RosNavClient {
     pub clear_costmap_before_start: bool,
-    action_client: Arc<SimpleActionClient>,
+    action_client: Arc<MoveBaseActionClient>,
     nomotion_update_client: Option<rosrust::Client<msg::std_srvs::Empty>>,
     nomotion_update_service_name: String,
     clear_costmap_service_name: String,
@@ -124,7 +124,7 @@ impl RosNavClient {
         nomotion_update_service_name: String,
         clear_costmap_service_name: String,
     ) -> Self {
-        let action_client = SimpleActionClient::new(&move_base_action_base_name, 1);
+        let action_client = MoveBaseActionClient::new(&move_base_action_base_name, 1);
 
         let nomotion_update_client = if request_final_nomotion_update_hack {
             rosrust::wait_for_service(
