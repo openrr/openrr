@@ -16,7 +16,11 @@ use crate::{
 
 const ACTION_TIMEOUT_DURATION_RATIO: u32 = 10;
 
-define_action_client!(SimpleActionClient, msg::control_msgs, FollowJointTrajectory);
+define_action_client!(
+    ControlActionClient,
+    msg::control_msgs,
+    FollowJointTrajectory
+);
 
 #[derive(Clone)]
 pub struct RosControlActionClient(Arc<RosControlActionClientInner>);
@@ -26,7 +30,7 @@ struct RosControlActionClientInner {
     send_partial_joints_goal: bool,
     joint_state_provider: Arc<LazyJointStateProvider>,
     complete_condition: Mutex<Arc<dyn CompleteCondition>>,
-    action_client: SimpleActionClient,
+    action_client: ControlActionClient,
 }
 
 impl RosControlActionClient {
@@ -46,7 +50,7 @@ impl RosControlActionClient {
         }
 
         let action_client =
-            SimpleActionClient::new(&format!("{controller_name}/follow_joint_trajectory"), 1);
+            ControlActionClient::new(&format!("{controller_name}/follow_joint_trajectory"), 1);
 
         Self(Arc::new(RosControlActionClientInner {
             joint_names,
