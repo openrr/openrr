@@ -80,7 +80,7 @@ impl arci::JointTrajectoryClient for MyJointTrajectoryClient {
     ) -> Result<WaitFuture, Error> {
         println!("positions = {positions:?}, duration = {duration:?}");
         *self.joint_positions.lock() = positions;
-        Ok(WaitFuture::new(async move { async { Ok(()) }.await }))
+        Ok(WaitFuture::new(async { Ok(()) }))
     }
 
     fn send_joint_trajectory(
