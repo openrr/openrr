@@ -99,6 +99,7 @@ mod tests {
         );
     }
 
+    #[allow(clippy::redundant_clone)] // This is intentional.
     #[test]
     fn test_trajectory_point_clone() {
         let tp1 = TrajectoryPoint::new(vec![1.0, -1.0], std::time::Duration::from_secs(1));
