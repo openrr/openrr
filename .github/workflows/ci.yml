@@ -27,217 +27,217 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  windows:
-    name: Build on Windows
-    runs-on: windows-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@protoc
-      - run: cargo build
+  # windows:
+  #   name: Build on Windows
+  #   runs-on: windows-latest
+  #   timeout-minutes: 60
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #     - uses: taiki-e/install-action@protoc
+  #     - run: cargo build
 
-  macos:
-    name: Build on MacOS
-    runs-on: macos-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@protoc
-      - run: cargo build
+  # macos:
+  #   name: Build on MacOS
+  #   runs-on: macos-latest
+  #   timeout-minutes: 60
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #     - uses: taiki-e/install-action@protoc
+  #     - run: cargo build
 
-  build:
-    name: Build on Linux
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@protoc
-      - run: ci/ubuntu-setup-lld.sh
-      - run: ci/ubuntu-install-dependencies.sh
-      - run: cargo build
-
-  test:
-    name: Test Suite
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@protoc
-      - run: ci/ubuntu-setup-lld.sh
-      - run: ci/ubuntu-install-dependencies.sh
-      # testing arci-ros/arci-ros2 is done in ros1.yaml, ros2.yaml
-      - run: cargo test --workspace --exclude arci-ros --exclude arci-ros2 --exclude openrr-apps
-      - name: cargo test (openrr-apps without ros)
-        working-directory: openrr-apps
-        run: cargo test --no-default-features --features gui,assimp
-
-  ros1_arci_ros:
-    strategy:
-      fail-fast: false
-      matrix:
-        distro:
-          - noetic
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    container:
-      image: docker://ros:${{ matrix.distro }}-ros-base
-    env:
-      HOME: /root
-    steps:
-      - uses: actions/checkout@v3
-      - run: |
-          apt-get update
-          apt-get -y install curl libudev-dev
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-        with:
-          # rust-cache does not recognize the matrix.
-          key: ros1_arci_ros-${{ matrix.distro }}
-      - run: ci/ubuntu-setup-lld.sh
-      - name: cargo everything
-        shell: bash -ieo pipefail {0}
-        working-directory: arci-ros
-        run: |
-          source /opt/ros/${{ matrix.distro }}/setup.bash
-          rosdep install -y -i --from-paths .
-          cargo test
-
-  ros1_openrr_apps:
-    strategy:
-      fail-fast: false
-      matrix:
-        distro:
-          - noetic
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    container:
-      image: docker://ros:${{ matrix.distro }}-ros-base
-    env:
-      HOME: /root
-    steps:
-      - uses: actions/checkout@v3
-      - run: |
-          apt-get update
-          apt-get -y install curl ros-${{ matrix.distro }}-pr2-description
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-        with:
-          # rust-cache does not recognize the matrix.
-          key: ros1_openrr_apps-${{ matrix.distro }}
-      - run: ci/ubuntu-setup-lld.sh
-      - run: ci/ubuntu-install-dependencies.sh
-      - name: cargo test
-        shell: bash -ieo pipefail {0}
-        working-directory: openrr-apps
-        run: |
-          source /opt/ros/${{ matrix.distro }}/setup.bash
-          rosdep install -y -i --from-paths .
-          cargo test --no-default-features --features ros,assimp
-
-  ros2_arci_ros2:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # TODO: r2r 0.6.5 doesn't support foxy
-          # - distro: foxy
-          #   os: ubuntu-20.04
-          - distro: humble
-            os: ubuntu-22.04
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
-    container:
-      image: docker://ros:${{ matrix.distro }}
-    env:
-      HOME: /root
-      RUST_TEST_THREADS: 1
-    steps:
-      - uses: actions/checkout@v3
-      - run: |
-          apt-get update
-          apt-get -y install curl libclang-dev
-          apt-get -y install ros-${{ matrix.distro }}-geometry-msgs ros-${{ matrix.distro }}-nav2-msgs ros-${{ matrix.distro }}-ros2-control ros-${{ matrix.distro }}-ros2-controllers
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-        with:
-          # rust-cache does not recognize the matrix.
-          key: ros2_arci_ros2-${{ matrix.distro }}
-      - run: ci/ubuntu-setup-lld.sh
-      - name: cargo build
-        shell: bash -ieo pipefail {0}
-        working-directory: arci-ros2
-        run: |
-          source /opt/ros/${{ matrix.distro }}/setup.bash
-          cargo build --features ros2 --examples
-      - name: cargo test
-        shell: bash -ieo pipefail {0}
-        working-directory: arci-ros2
-        run: |
-          source /opt/ros/${{ matrix.distro }}/setup.bash
-          cargo test --features ros2
-
-  # TODO(taiki-e): Some configs use HashMap and the order of the default values
-  #                will change every time because HashMap order is not stable.
-  #                So we cannot enable this check until the uses of HashMap in
-  #                configs are removed.
-  # # When this job failed, run tools/update-schema.sh and commit result changes.
-  # schema:
+  # build:
+  #   name: Build on Linux
   #   runs-on: ubuntu-latest
   #   timeout-minutes: 60
   #   steps:
   #     - uses: actions/checkout@v3
-  #     - run: tools/update-schema.sh
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #     - uses: taiki-e/install-action@protoc
+  #     - run: ci/ubuntu-setup-lld.sh
+  #     - run: ci/ubuntu-install-dependencies.sh
+  #     - run: cargo build
+
+  # test:
+  #   name: Test Suite
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #     - uses: taiki-e/install-action@protoc
+  #     - run: ci/ubuntu-setup-lld.sh
+  #     - run: ci/ubuntu-install-dependencies.sh
+  #     # testing arci-ros/arci-ros2 is done in ros1.yaml, ros2.yaml
+  #     - run: cargo test --workspace --exclude arci-ros --exclude arci-ros2 --exclude openrr-apps
+  #     - name: cargo test (openrr-apps without ros)
+  #       working-directory: openrr-apps
+  #       run: cargo test --no-default-features --features gui,assimp
+
+  # ros1_arci_ros:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       distro:
+  #         - noetic
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
+  #   container:
+  #     image: docker://ros:${{ matrix.distro }}-ros-base
+  #   env:
+  #     HOME: /root
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: |
+  #         apt-get update
+  #         apt-get -y install curl libudev-dev
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #       with:
+  #         # rust-cache does not recognize the matrix.
+  #         key: ros1_arci_ros-${{ matrix.distro }}
+  #     - run: ci/ubuntu-setup-lld.sh
+  #     - name: cargo everything
+  #       shell: bash -ieo pipefail {0}
+  #       working-directory: arci-ros
+  #       run: |
+  #         source /opt/ros/${{ matrix.distro }}/setup.bash
+  #         rosdep install -y -i --from-paths .
+  #         cargo test
+
+  # ros1_openrr_apps:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       distro:
+  #         - noetic
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
+  #   container:
+  #     image: docker://ros:${{ matrix.distro }}-ros-base
+  #   env:
+  #     HOME: /root
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: |
+  #         apt-get update
+  #         apt-get -y install curl ros-${{ matrix.distro }}-pr2-description
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #       with:
+  #         # rust-cache does not recognize the matrix.
+  #         key: ros1_openrr_apps-${{ matrix.distro }}
+  #     - run: ci/ubuntu-setup-lld.sh
+  #     - run: ci/ubuntu-install-dependencies.sh
+  #     - name: cargo test
+  #       shell: bash -ieo pipefail {0}
+  #       working-directory: openrr-apps
+  #       run: |
+  #         source /opt/ros/${{ matrix.distro }}/setup.bash
+  #         rosdep install -y -i --from-paths .
+  #         cargo test --no-default-features --features ros,assimp
+
+  # ros2_arci_ros2:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         # TODO: r2r 0.6.5 doesn't support foxy
+  #         # - distro: foxy
+  #         #   os: ubuntu-20.04
+  #         - distro: humble
+  #           os: ubuntu-22.04
+  #   runs-on: ${{ matrix.os }}
+  #   timeout-minutes: 60
+  #   container:
+  #     image: docker://ros:${{ matrix.distro }}
+  #   env:
+  #     HOME: /root
+  #     RUST_TEST_THREADS: 1
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: |
+  #         apt-get update
+  #         apt-get -y install curl libclang-dev
+  #         apt-get -y install ros-${{ matrix.distro }}-geometry-msgs ros-${{ matrix.distro }}-nav2-msgs ros-${{ matrix.distro }}-ros2-control ros-${{ matrix.distro }}-ros2-controllers
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #       with:
+  #         # rust-cache does not recognize the matrix.
+  #         key: ros2_arci_ros2-${{ matrix.distro }}
+  #     - run: ci/ubuntu-setup-lld.sh
+  #     - name: cargo build
+  #       shell: bash -ieo pipefail {0}
+  #       working-directory: arci-ros2
+  #       run: |
+  #         source /opt/ros/${{ matrix.distro }}/setup.bash
+  #         cargo build --features ros2 --examples
+  #     - name: cargo test
+  #       shell: bash -ieo pipefail {0}
+  #       working-directory: arci-ros2
+  #       run: |
+  #         source /opt/ros/${{ matrix.distro }}/setup.bash
+  #         cargo test --features ros2
+
+  # # TODO(taiki-e): Some configs use HashMap and the order of the default values
+  # #                will change every time because HashMap order is not stable.
+  # #                So we cannot enable this check until the uses of HashMap in
+  # #                configs are removed.
+  # # # When this job failed, run tools/update-schema.sh and commit result changes.
+  # # schema:
+  # #   runs-on: ubuntu-latest
+  # #   timeout-minutes: 60
+  # #   steps:
+  # #     - uses: actions/checkout@v3
+  # #     - run: tools/update-schema.sh
+  # #     - run: git diff --exit-code
+
+  # # When this job failed, run tools/gen-code.sh and commit result changes.
+  # codegen:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #     - uses: taiki-e/install-action@protoc
+  #     - run: tools/gen-code.sh
   #     - run: git diff --exit-code
 
-  # When this job failed, run tools/gen-code.sh and commit result changes.
-  codegen:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@protoc
-      - run: tools/gen-code.sh
-      - run: git diff --exit-code
+  # # Check all feature combinations work properly.
+  # features:
+  #   name: Check features
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #     - run: ci/ubuntu-install-dependencies.sh
+  #     - name: Install cargo-hack
+  #       uses: taiki-e/install-action@cargo-hack
+  #     - uses: taiki-e/install-action@protoc
+  #     - run: cargo hack check --all --feature-powerset --optional-deps --exclude arci-ros2
 
-  # Check all feature combinations work properly.
-  features:
-    name: Check features
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-      - run: ci/ubuntu-install-dependencies.sh
-      - name: Install cargo-hack
-        uses: taiki-e/install-action@cargo-hack
-      - uses: taiki-e/install-action@protoc
-      - run: cargo hack check --all --feature-powerset --optional-deps --exclude arci-ros2
-
-  fmt:
-    name: Format
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          toolchain: ${{ env.nightly }}
-          components: rustfmt
-      - run: cargo fmt --all --check
-      - name: Format YAML
-        run: npx prettier -c $(git ls-files '*.yml') || (echo "::warning::Please run \`prettier -l -w \$(git ls-files '*.yml')\` to fix format" && exit 1)
-        if: always()
+  # fmt:
+  #   name: Format
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@nightly
+  #       with:
+  #         toolchain: ${{ env.nightly }}
+  #         components: rustfmt
+  #     - run: cargo fmt --all --check
+  #     - name: Format YAML
+  #       run: npx prettier -c $(git ls-files '*.yml') || (echo "::warning::Please run \`prettier -l -w \$(git ls-files '*.yml')\` to fix format" && exit 1)
+  #       if: always()
 
   clippy:
     name: Clippy
@@ -266,96 +266,96 @@ jobs:
           source /opt/ros/$ROS2_DISTRO/setup.bash
           cargo clippy --all-features --all-targets
 
-  docs:
-    name: Docs
-    runs-on: ubuntu-22.04
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@protoc
-      - run: ci/ubuntu-install-dependencies.sh
-      - run: echo "ROS2_DISTRO=humble" >>"${GITHUB_ENV}"
-      - name: Install ROS2
-        run: |
-          # for arci-ros2
-          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install -y \
-            ros-$ROS2_DISTRO-ros-core ros-$ROS2_DISTRO-geometry-msgs ros-$ROS2_DISTRO-nav2-msgs ros-$ROS2_DISTRO-ros2-control ros-$ROS2_DISTRO-ros2-controllers
-      - run: |
-          # for arci-ros2
-          source /opt/ros/$ROS2_DISTRO/setup.bash
-          cargo doc --workspace --all-features
-      - name: Publish documentation
-        run: |
-          cd target/doc
-          git init
-          git add .
-          git -c user.name='ci' -c user.email='ci' commit -m 'Deploy OpenRR API documentation'
-          git push -f -q https://git:${{ secrets.github_token }}@github.com/${{ github.repository }} HEAD:gh-pages
-        if: github.event_name == 'push' && github.event.ref == 'refs/heads/main' && github.repository_owner == 'openrr'
+  # docs:
+  #   name: Docs
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 60
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #     - uses: taiki-e/install-action@protoc
+  #     - run: ci/ubuntu-install-dependencies.sh
+  #     - run: echo "ROS2_DISTRO=humble" >>"${GITHUB_ENV}"
+  #     - name: Install ROS2
+  #       run: |
+  #         # for arci-ros2
+  #         sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
+  #         echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+  #         sudo apt-get update
+  #         sudo apt-get install -y \
+  #           ros-$ROS2_DISTRO-ros-core ros-$ROS2_DISTRO-geometry-msgs ros-$ROS2_DISTRO-nav2-msgs ros-$ROS2_DISTRO-ros2-control ros-$ROS2_DISTRO-ros2-controllers
+  #     - run: |
+  #         # for arci-ros2
+  #         source /opt/ros/$ROS2_DISTRO/setup.bash
+  #         cargo doc --workspace --all-features
+  #     - name: Publish documentation
+  #       run: |
+  #         cd target/doc
+  #         git init
+  #         git add .
+  #         git -c user.name='ci' -c user.email='ci' commit -m 'Deploy OpenRR API documentation'
+  #         git push -f -q https://git:${{ secrets.github_token }}@github.com/${{ github.repository }} HEAD:gh-pages
+  #       if: github.event_name == 'push' && github.event.ref == 'refs/heads/main' && github.repository_owner == 'openrr'
 
-  deny:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: taiki-e/install-action@cargo-deny
-      # Workaround for https://github.com/EmbarkStudios/cargo-deny/issues/413
-      - uses: taiki-e/install-action@cargo-no-dev-deps
-      - run: cargo no-dev-deps deny --workspace --all-features check
+  # deny:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: taiki-e/install-action@cargo-deny
+  #     # Workaround for https://github.com/EmbarkStudios/cargo-deny/issues/413
+  #     - uses: taiki-e/install-action@cargo-no-dev-deps
+  #     - run: cargo no-dev-deps deny --workspace --all-features check
 
-  shellcheck:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install latest shellcheck
-        uses: taiki-e/install-action@shellcheck
-      - run: shellcheck $(git ls-files '*.sh')
+  # shellcheck:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Install latest shellcheck
+  #       uses: taiki-e/install-action@shellcheck
+  #     - run: shellcheck $(git ls-files '*.sh')
 
-  spell-check:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - run: tools/spell-check.sh
+  # spell-check:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: tools/spell-check.sh
 
-  coverage:
-    runs-on: ubuntu-20.04
-    timeout-minutes: 120
-    steps:
-      - uses: actions/checkout@v3
-      - uses: taiki-e/install-action@protoc
-      - run: ci/ubuntu-install-dependencies.sh
-      - run: ci/ubuntu-setup-lld.sh
-      - name: Install ROS1
-        run: |
-          # ros1
-          sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-          sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+  # coverage:
+  #   runs-on: ubuntu-20.04
+  #   timeout-minutes: 120
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: taiki-e/install-action@protoc
+  #     - run: ci/ubuntu-install-dependencies.sh
+  #     - run: ci/ubuntu-setup-lld.sh
+  #     - name: Install ROS1
+  #       run: |
+  #         # ros1
+  #         sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+  #         sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 
-          sudo apt-get update
-          sudo apt-get install -y \
-            ros-noetic-ros-base ros-noetic-joy ros-noetic-pr2-description
-      - uses: dtolnay/rust-toolchain@beta
-      - uses: Swatinem/rust-cache@v2
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Generate code coverage
-        run: |
-          # for test of arci-ros (roscore, rostopic)
-          source /opt/ros/noetic/setup.bash
-          # TODO: r2r 0.6.5 doesn't support foxy
-          # --no-cfg-coverage due to https://github.com/Smithay/calloop/issues/118
-          cargo llvm-cov --verbose --all-features --workspace --exclude openrr-internal-codegen --exclude arci-ros2 --no-cfg-coverage --codecov --output-path codecov.json
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: codecov.json
-          fail_ci_if_error: true
+  #         sudo apt-get update
+  #         sudo apt-get install -y \
+  #           ros-noetic-ros-base ros-noetic-joy ros-noetic-pr2-description
+  #     - uses: dtolnay/rust-toolchain@beta
+  #     - uses: Swatinem/rust-cache@v2
+  #     - name: Install cargo-llvm-cov
+  #       uses: taiki-e/install-action@cargo-llvm-cov
+  #     - name: Generate code coverage
+  #       run: |
+  #         # for test of arci-ros (roscore, rostopic)
+  #         source /opt/ros/noetic/setup.bash
+  #         # TODO: r2r 0.6.5 doesn't support foxy
+  #         # --no-cfg-coverage due to https://github.com/Smithay/calloop/issues/118
+  #         cargo llvm-cov --verbose --all-features --workspace --exclude openrr-internal-codegen --exclude arci-ros2 --no-cfg-coverage --codecov --output-path codecov.json
+  #     - name: Upload to codecov.io
+  #       uses: codecov/codecov-action@v1
+  #       with:
+  #         token: ${{ secrets.CODECOV_TOKEN }}
+  #         files: codecov.json
+  #         fail_ci_if_error: true
