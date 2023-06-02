@@ -251,7 +251,7 @@ serde_json = "1"
 arci = {{ path = "{0}/arci" }}
 openrr-plugin = {{ path = "{0}/openrr-plugin" }}
     "#,
-        root_dir.display()
+        root_dir.display().to_string().replace('\\', "/")
     );
     let lib_rs = r#"
 use arci::DummyJointTrajectoryClient;
