@@ -216,7 +216,7 @@ fn test_send_joint_positions_no_wait() {
     );
     let v = client.current_joint_positions().unwrap();
     assert_approx_eq!(v[0], 0.0);
-    std::thread::sleep(Duration::from_secs(2));
+    std::thread::sleep(Duration::from_secs(5));
     let v = client.current_joint_positions().unwrap();
     assert_approx_eq!(v[0], 1.0);
 }

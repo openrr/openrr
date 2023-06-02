@@ -227,7 +227,7 @@ impl GilGamepad {
             let mut gil = gilrs::Gilrs::new().unwrap();
             #[cfg_attr(target_os = "macos", allow(unused_mut))]
             let mut selected_gamepad_id = None;
-            // TODO: On MacOS `gamepads()` does not works.
+            // TODO: On macOS `gamepads()` does not works.
             #[cfg(not(target_os = "macos"))]
             {
                 let mut is_found = false;

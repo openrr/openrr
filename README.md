@@ -15,10 +15,10 @@ OpenRR (pronounced like "opener") is Open Rust Robotics platform.
 |OS|Core|GUI|ROS|ROS2|
 |--|----|---|---|---|
 |Linux (Ubuntu)|✔|✔|✔|✔|
-|MacOS         |✔|✔|✔|  |
+|macOS         |✔|✔|✔|  |
 |Windows       |✔|✔|  |  |
 
-* You can use ROS *without ROS installation* on Linux/MacOS.
+* You can use ROS *without ROS installation* on Linux/macOS.
 * ROS2 Support is experimental. See [arci-ros2](https://github.com/openrr/openrr/tree/main/arci-ros2) for details.
 
 ## Dependencies
