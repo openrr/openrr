@@ -132,7 +132,7 @@ pose_name = "zero"
 client_name = "arm"
 positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 "#,
-        root_dir.display()
+        root_dir.display().to_string().replace('\\', "/")
     ))
     .unwrap();
     config
@@ -196,7 +196,7 @@ pose_name = "zero"
 client_name = "arm"
 positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 "#,
-        root_dir.display()
+        root_dir.display().to_string().replace('\\', "/")
     ))
     .unwrap();
     config

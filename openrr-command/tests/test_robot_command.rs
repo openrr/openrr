@@ -32,7 +32,7 @@ fn new_joint_client(
     client_name = "arm"
     positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     "#,
-        root_dir.display()
+        root_dir.display().to_string().replace('\\', "/")
     ))
     .unwrap();
     config
