@@ -26,7 +26,7 @@ impl MoveBase for RosCmdVelMoveBase {
     }
 
     fn current_velocity(&self) -> Result<BaseVelocity, Error> {
-        panic!("not implemented yet");
+        Err(Error::Other(anyhow::Error::msg("not implemented yet")))
     }
 }
 
