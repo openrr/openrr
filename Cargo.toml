@@ -94,7 +94,7 @@ rodio = "0.17"
 ros-nalgebra = "0.1"
 rosrust = "0.9"
 rrt = "0.7"
-rustyline = "11"
+rustyline = "12"
 schemars = "0.8"
 scoped-sleep = "0.1"
 serde = { version = "1", features = ["derive"] }
