@@ -115,14 +115,14 @@ where
                             self.clockwise_button.texture_id(ctx),
                             self.clockwise_button.size_vec2(),
                         )
-                        .selected(self.velocity.theta > 0.0),
+                        .selected(self.velocity.theta < 0.0),
                     )
                     .clicked()
                 {
-                    if self.velocity.theta > 0.0 {
+                    if self.velocity.theta < 0.0 {
                         self.velocity.theta = 0.0;
                     } else {
-                        self.velocity.theta = DEFAULT_ACTIVE_VELOCITY_VALUE;
+                        self.velocity.theta = -DEFAULT_ACTIVE_VELOCITY_VALUE;
                     }
                 }
                 if ui
@@ -168,14 +168,14 @@ where
                             self.counterclockwise_button.texture_id(ctx),
                             self.counterclockwise_button.size_vec2(),
                         )
-                        .selected(self.velocity.theta < 0.0),
+                        .selected(self.velocity.theta > 0.0),
                     )
                     .clicked()
                 {
-                    if self.velocity.theta < 0.0 {
+                    if self.velocity.theta > 0.0 {
                         self.velocity.theta = 0.0;
                     } else {
-                        self.velocity.theta = -DEFAULT_ACTIVE_VELOCITY_VALUE;
+                        self.velocity.theta = DEFAULT_ACTIVE_VELOCITY_VALUE;
                     }
                 }
             });
