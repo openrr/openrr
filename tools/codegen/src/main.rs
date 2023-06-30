@@ -14,7 +14,13 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn arci_traits(workspace_root: &Path) -> Result<Vec<syn::ItemTrait>> {
+fn arci_types(
+    workspace_root: &Path,
+) -> Result<(
+    Vec<syn::ItemTrait>,
+    Vec<syn::ItemStruct>,
+    Vec<syn::ItemEnum>,
+)> {
     let path = &workspace_root.join("arci/src/traits");
     let mut files: Vec<_> = fs::read_dir(path)?
         .filter_map(Result::ok)
@@ -29,6 +35,8 @@ fn arci_traits(workspace_root: &Path) -> Result<Vec<syn::ItemTrait>> {
         .collect();
     files.sort_unstable();
     let mut traits = vec![];
+    let mut structs = vec![];
+    let mut enums = vec![];
     for path in &files {
         let s = &fs::read_to_string(path)?;
         let file: syn::File = syn::parse_str(s)?;
@@ -37,11 +45,17 @@ fn arci_traits(workspace_root: &Path) -> Result<Vec<syn::ItemTrait>> {
                 syn::Item::Trait(item) if matches!(item.vis, syn::Visibility::Public(_)) => {
                     traits.push(item);
                 }
+                syn::Item::Struct(item) if matches!(item.vis, syn::Visibility::Public(_)) => {
+                    structs.push(item);
+                }
+                syn::Item::Enum(item) if matches!(item.vis, syn::Visibility::Public(_)) => {
+                    enums.push(item);
+                }
                 _ => {}
             }
         }
     }
-    Ok(traits)
+    Ok((traits, structs, enums))
 }
 
 fn is_str(ty: &syn::Type) -> bool {
@@ -62,6 +76,18 @@ fn get_ty_path(ty: &syn::Type) -> Option<&syn::Path> {
     None
 }
 
+fn is_option(ty: &syn::Type) -> Option<&syn::Type> {
+    let path = get_ty_path(ty)?;
+    if path.segments.len() == 1 && path.segments[0].ident == "Option" {
+        if let syn::PathArguments::AngleBracketed(args) = &path.segments.last().unwrap().arguments {
+            if let syn::GenericArgument::Type(ty) = &args.args[0] {
+                return Some(ty);
+            }
+        }
+    }
+    None
+}
+
 fn is_result(ty: &syn::Type) -> Option<&syn::Type> {
     let path = get_ty_path(ty)?;
     if path.segments.len() == 1 && path.segments[0].ident == "Result" {
@@ -72,6 +98,44 @@ fn is_result(ty: &syn::Type) -> Option<&syn::Type> {
         }
     }
     None
+}
+
+fn is_vec(ty: &syn::Type) -> Option<&syn::Type> {
+    let path = get_ty_path(ty)?;
+    if path.segments.len() == 1 && path.segments[0].ident == "Vec" {
+        if let syn::PathArguments::AngleBracketed(args) = &path.segments.last().unwrap().arguments {
+            if let syn::GenericArgument::Type(ty) = &args.args[0] {
+                return Some(ty);
+            }
+        }
+    }
+    None
+}
+
+pub(crate) fn is_primitive(ty: &syn::Type) -> bool {
+    if let Some(path) = get_ty_path(ty) {
+        if let Some(ident) = path.get_ident() {
+            return matches!(
+                ident.to_string().as_str(),
+                "isize"
+                    | "i8"
+                    | "i16"
+                    | "i32"
+                    | "i64"
+                    | "i128"
+                    | "usize"
+                    | "u8"
+                    | "u16"
+                    | "u32"
+                    | "u64"
+                    | "u128"
+                    | "f32"
+                    | "f64"
+                    | "bool"
+            );
+        }
+    }
+    false
 }
 
 fn workspace_root() -> PathBuf {

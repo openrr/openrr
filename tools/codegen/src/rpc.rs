@@ -27,7 +27,8 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
     let pb_file = fs::read_to_string(workspace_root.join("openrr-remote/src/generated/arci.rs"))?;
     CollectTrait(&mut pb_traits).visit_file_mut(&mut syn::parse_file(&pb_file)?);
 
-    for item in arci_traits(workspace_root)? {
+    let (arci_traits, _arci_structs, _arci_enums) = arci_types(workspace_root)?;
+    for item in arci_traits {
         let name = &&*item.ident.to_string();
         if FULLY_IGNORE.contains(name) {
             continue;

@@ -24,13 +24,14 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
     fs::create_dir_all(out_dir)?;
     let mut api_items = TokenStream::new();
     let mut proxy_impls = TokenStream::new();
-    let mut traits = vec![];
-    for item in arci_traits(workspace_root)? {
+    let mut trait_names = vec![];
+    let (arci_traits, arci_structs, arci_enums) = arci_types(workspace_root)?;
+    for item in arci_traits {
         let name = &&*item.ident.to_string();
         if FULLY_IGNORE.contains(name) {
             continue;
         }
-        traits.push(item.ident.clone());
+        trait_names.push(item.ident.clone());
         if IGNORE.contains(name) {
             continue;
         }
@@ -90,43 +91,6 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
         let mut sabi_method_impl = vec![];
         for method in &item.items {
             if let syn::TraitItem::Fn(method) = method {
-                struct ReplacePath;
-                impl VisitMut for ReplacePath {
-                    fn visit_type_mut(&mut self, ty: &mut syn::Type) {
-                        if is_str(ty) {
-                            *ty = parse_quote!(RStr<'_>);
-                            return;
-                        }
-                        if let syn::Type::Reference(t) = ty {
-                            *ty =
-                                mem::replace(&mut *t.elem, syn::Type::Verbatim(TokenStream::new()));
-                        }
-
-                        visit_mut::visit_type_mut(self, ty);
-                    }
-
-                    fn visit_path_mut(&mut self, path: &mut syn::Path) {
-                        let mut last = path.segments.pop().unwrap().into_value();
-                        if last.ident.to_string().starts_with("Isometry") {
-                            last.arguments = syn::PathArguments::None;
-                            last.ident = format_ident!("{}F64", last.ident);
-                        } else if last.ident == "WaitFuture" {
-                            last.ident = format_ident!("BlockingWait");
-                        }
-                        last.ident = format_ident!("R{}", last.ident);
-                        path.segments.clear();
-                        path.segments.push(last);
-                        visit_mut::visit_path_mut(self, path);
-                    }
-
-                    fn visit_fn_arg_mut(&mut self, arg: &mut syn::FnArg) {
-                        match arg {
-                            syn::FnArg::Receiver(_) => {}
-                            syn::FnArg::Typed(arg) => self.visit_pat_type_mut(arg),
-                        }
-                    }
-                }
-
                 let method_name = &method.sig.ident;
                 let args = method.sig.inputs.iter().map(|arg| match arg {
                     syn::FnArg::Receiver(_) => quote! { self },
@@ -174,9 +138,196 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
             }
         });
     }
+    fn map_field(
+        pats: &mut Vec<TokenStream>,
+        from_arci: &mut Vec<TokenStream>,
+        to_arci: &mut Vec<TokenStream>,
+        syn::Field { ident, ty, .. }: &syn::Field,
+        index: usize,
+    ) {
+        let index_or_ident = ident
+            .clone()
+            .unwrap_or_else(|| format_ident!("field{}", index));
+        let pat = quote! { #index_or_ident, };
+        pats.push(pat.clone());
+        if is_primitive(ty) {
+            from_arci.push(pat.clone());
+            to_arci.push(pat);
+            return;
+        }
+        if let Some(ty) = is_option(ty) {
+            if let Some(ty) = is_vec(ty) {
+                let t = if is_primitive(ty) {
+                    quote! { map(|v| v.into_iter().collect()) }
+                } else {
+                    quote! { map(|v| v.into_iter().map(Into::into).collect()) }
+                };
+                let mut to = quote! { #index_or_ident.into_option().#t, };
+                let mut from = quote! { #index_or_ident.#t.into(), };
+                if ident.is_some() {
+                    from = quote! { #ident: #from };
+                    to = quote! { #ident: #to };
+                }
+                from_arci.push(from);
+                to_arci.push(to);
+                return;
+            }
+        }
+        if let Some(ty) = is_vec(ty) {
+            let mut t = if is_primitive(ty) {
+                quote! { #index_or_ident.into_iter().collect(), }
+            } else {
+                quote! { #index_or_ident.into_iter().map(Into::into).collect(), }
+            };
+            if ident.is_some() {
+                t = quote! { #ident: #t };
+            }
+            from_arci.push(t.clone());
+            to_arci.push(t);
+            return;
+        }
+        let mut t = quote! { #index_or_ident.into(), };
+        if ident.is_some() {
+            t = quote! { #ident: #t };
+        }
+        from_arci.push(t.clone());
+        to_arci.push(t);
+    }
+    // Generate R* structs.
+    for item in arci_structs {
+        let arci_name = &item.ident;
+        let arci_path = quote! { arci::#arci_name };
+        let r_name = format_ident!("R{}", item.ident);
+        let struct_doc = format!(" FFI-safe equivalent of [`arci::{arci_name}`].");
+        let fields = item
+            .fields
+            .iter()
+            .cloned()
+            .map(|syn::Field { ident, mut ty, .. }| {
+                ReplacePath.visit_type_mut(&mut ty);
+                quote! { #ident: #ty, }
+            });
+        let mut pats = vec![];
+        let mut from_arci = vec![];
+        let mut to_arci = vec![];
+        for (i, field) in item.fields.iter().enumerate() {
+            map_field(&mut pats, &mut from_arci, &mut to_arci, field, i);
+        }
+        proxy_impls.extend(quote! {
+            #[doc = #struct_doc]
+            #[derive(StableAbi)]
+            #[repr(C)]
+            pub(crate) struct #r_name {
+                #(#fields)*
+            }
+            impl From<#arci_path> for #r_name {
+                fn from(v: #arci_path) -> Self {
+                    let #arci_path { #(#pats)* } = v;
+                    Self { #(#from_arci)* }
+                }
+            }
+            impl From<#r_name> for #arci_path {
+                fn from(v: #r_name) -> Self {
+                    let #r_name { #(#pats)* } = v;
+                    Self { #(#to_arci)* }
+                }
+            }
+        });
+    }
+    // Generate R* enums.
+    for item in arci_enums {
+        let arci_name = &item.ident;
+        let arci_path = match arci_name.to_string().as_str() {
+            // TODO: auto-determine current module
+            "Button" | "Axis" | "GamepadEvent" => quote! { arci::gamepad::#arci_name },
+            _ => quote! { arci::#arci_name },
+        };
+        let r_name = format_ident!("R{}", item.ident);
+        let enum_doc = format!(" FFI-safe equivalent of [`arci::{arci_name}`].");
+        let mut variants = vec![];
+        let mut from_arci = vec![];
+        let mut to_arci = vec![];
+        for v in &item.variants {
+            let mut pats_fields = vec![];
+            let mut from_arci_fields = vec![];
+            let mut to_arci_fields = vec![];
+            for (i, field) in v.fields.iter().enumerate() {
+                map_field(
+                    &mut pats_fields,
+                    &mut from_arci_fields,
+                    &mut to_arci_fields,
+                    field,
+                    i,
+                );
+            }
+            match &v.fields {
+                syn::Fields::Named(..) => {
+                    let fields =
+                        v.fields
+                            .iter()
+                            .cloned()
+                            .map(|syn::Field { ident, mut ty, .. }| {
+                                ReplacePath.visit_type_mut(&mut ty);
+                                quote! { #ident: #ty, }
+                            });
+                    let ident = &v.ident;
+                    variants.extend(quote! { #ident { #(#fields)* }, });
+                    from_arci.extend(
+                        quote! { #arci_path::#ident { #(#pats_fields)* } => Self::#ident { #(#from_arci_fields)* }, },
+                    );
+                    to_arci.extend(
+                        quote! { #r_name::#ident { #(#pats_fields)* } => Self::#ident { #(#to_arci_fields)* }, },
+                    );
+                }
+                syn::Fields::Unnamed(..) => {
+                    let fields = v.fields.iter().cloned().map(|syn::Field { mut ty, .. }| {
+                        ReplacePath.visit_type_mut(&mut ty);
+                        quote! { #ty, }
+                    });
+                    let ident = &v.ident;
+                    variants.extend(quote! { #ident(#(#fields)*), });
+                    from_arci.extend(
+                        quote! { #arci_path::#ident( #(#pats_fields)* ) => Self::#ident( #(#from_arci_fields)* ), },
+                    );
+                    to_arci.extend(
+                        quote! { #r_name::#ident( #(#pats_fields)* ) => Self::#ident( #(#to_arci_fields)* ), },
+                    );
+                }
+                syn::Fields::Unit => {
+                    let ident = &v.ident;
+                    variants.extend(quote! { #ident, });
+                    from_arci.extend(quote! { #arci_path::#ident => Self::#ident, });
+                    to_arci.extend(quote! { #r_name::#ident => Self::#ident, });
+                }
+            }
+        }
+        proxy_impls.extend(quote! {
+            #[doc = #enum_doc]
+            #[derive(StableAbi)]
+            #[repr(C)]
+            pub(crate) enum #r_name {
+                #(#variants)*
+            }
+            impl From<#arci_path> for #r_name {
+                fn from(v: #arci_path) -> Self {
+                    match v {
+                        #(#from_arci)*
+                    }
+                }
+            }
+            impl From<#r_name> for #arci_path {
+                fn from(v: #r_name) -> Self {
+                    match v {
+                        #(#to_arci)*
+                    }
+                }
+            }
+        });
+    }
 
-    let (plugin_trait_api, plugin_trait_proxy) = gen_plugin_trait(&traits);
+    let (plugin_trait_api, plugin_trait_proxy) = gen_plugin_trait(&trait_names);
     let api = quote! {
+        // TODO: remove the need for `arci::` imports.
         use arci::{
             BaseVelocity,
             Error,
@@ -203,6 +354,45 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
     write(&out_dir.join("api.rs"), api)?;
     write(&out_dir.join("proxy.rs"), proxy)?;
     Ok(())
+}
+
+struct ReplacePath;
+impl VisitMut for ReplacePath {
+    fn visit_type_mut(&mut self, ty: &mut syn::Type) {
+        if is_primitive(ty) {
+            return;
+        }
+        if is_str(ty) {
+            *ty = parse_quote!(RStr<'_>);
+            return;
+        }
+        if let syn::Type::Reference(t) = ty {
+            *ty = mem::replace(&mut *t.elem, syn::Type::Verbatim(TokenStream::new()));
+        }
+
+        visit_mut::visit_type_mut(self, ty);
+    }
+
+    fn visit_path_mut(&mut self, path: &mut syn::Path) {
+        let mut last = path.segments.pop().unwrap().into_value();
+        if last.ident.to_string().starts_with("Isometry") {
+            last.arguments = syn::PathArguments::None;
+            last.ident = format_ident!("{}F64", last.ident);
+        } else if last.ident == "WaitFuture" {
+            last.ident = format_ident!("BlockingWait");
+        }
+        last.ident = format_ident!("R{}", last.ident);
+        path.segments.clear();
+        path.segments.push(last);
+        visit_mut::visit_path_mut(self, path);
+    }
+
+    fn visit_fn_arg_mut(&mut self, arg: &mut syn::FnArg) {
+        match arg {
+            syn::FnArg::Receiver(_) => {}
+            syn::FnArg::Typed(arg) => self.visit_pat_type_mut(arg),
+        }
+    }
 }
 
 fn gen_plugin_trait(traits: &[Ident]) -> (TokenStream, TokenStream) {
@@ -282,6 +472,7 @@ fn gen_plugin_trait(traits: &[Ident]) -> (TokenStream, TokenStream) {
     (api, proxy)
 }
 
+// Generate *Proxy type.
 fn gen_proxy_type(trait_name: &Ident, prefix_path: TokenStream) -> TokenStream {
     let proxy_name = format_ident!("{trait_name}Proxy");
     let trait_object_name = format_ident!("{trait_name}TraitObject");

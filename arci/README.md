@@ -8,12 +8,9 @@ Abstract Robot Control Interface.
 
 1. Add module and trait to `arci/traits`.
 2. Add service and message to proto file on `openrr-remote`.
-3. Add the new or newly used structure to `openrr-plugin/src/proxy.rs`.
-   - If new used structure is `Foo`, you should add `RFoo` structure. 
-4. Impl `From<T>` for above struct.
-5. Add `From<T>` for `pb::Foo` and `Foo` to `openrr-remote/src/lib.rs`
-6. (If need) Add a new structure declaration to the corresponding parts of the two quote! macros in `tools/codegen/src`.
-7. Run `./tools/gen-code.sh`
+3. Add `From<T>` for `pb::Foo` and `Foo` to `openrr-remote/src/lib.rs`
+4. (If need) Add a new structure declaration to the corresponding parts of the two quote! macros in `tools/codegen/src`.
+5. Run `./tools/gen-code.sh`
 
 **Codegen will be added.**
 
