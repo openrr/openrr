@@ -198,57 +198,57 @@ where
 pub(crate) type MotorDrivePositionTraitObject = RMotorDrivePositionTrait_TO<RBox<()>>;
 #[abi_stable::sabi_trait]
 pub(crate) trait RMotorDrivePositionTrait: Send + Sync + 'static {
-    fn set_motor_position(&self, position: Rf64) -> RResult<(), RError>;
-    fn get_motor_position(&self) -> RResult<Rf64, RError>;
+    fn set_motor_position(&self, position: f64) -> RResult<(), RError>;
+    fn get_motor_position(&self) -> RResult<f64, RError>;
 }
 impl<T> RMotorDrivePositionTrait for T
 where
     T: arci::MotorDrivePosition + 'static,
 {
-    fn set_motor_position(&self, position: Rf64) -> RResult<(), RError> {
+    fn set_motor_position(&self, position: f64) -> RResult<(), RError> {
         ROk(
             rtry!(arci::MotorDrivePosition::set_motor_position(self, position.into()))
                 .into(),
         )
     }
-    fn get_motor_position(&self) -> RResult<Rf64, RError> {
+    fn get_motor_position(&self) -> RResult<f64, RError> {
         ROk(rtry!(arci::MotorDrivePosition::get_motor_position(self)).into())
     }
 }
 pub(crate) type MotorDriveVelocityTraitObject = RMotorDriveVelocityTrait_TO<RBox<()>>;
 #[abi_stable::sabi_trait]
 pub(crate) trait RMotorDriveVelocityTrait: Send + Sync + 'static {
-    fn set_motor_velocity(&self, velocity: Rf64) -> RResult<(), RError>;
-    fn get_motor_velocity(&self) -> RResult<Rf64, RError>;
+    fn set_motor_velocity(&self, velocity: f64) -> RResult<(), RError>;
+    fn get_motor_velocity(&self) -> RResult<f64, RError>;
 }
 impl<T> RMotorDriveVelocityTrait for T
 where
     T: arci::MotorDriveVelocity + 'static,
 {
-    fn set_motor_velocity(&self, velocity: Rf64) -> RResult<(), RError> {
+    fn set_motor_velocity(&self, velocity: f64) -> RResult<(), RError> {
         ROk(
             rtry!(arci::MotorDriveVelocity::set_motor_velocity(self, velocity.into()))
                 .into(),
         )
     }
-    fn get_motor_velocity(&self) -> RResult<Rf64, RError> {
+    fn get_motor_velocity(&self) -> RResult<f64, RError> {
         ROk(rtry!(arci::MotorDriveVelocity::get_motor_velocity(self)).into())
     }
 }
 pub(crate) type MotorDriveEffortTraitObject = RMotorDriveEffortTrait_TO<RBox<()>>;
 #[abi_stable::sabi_trait]
 pub(crate) trait RMotorDriveEffortTrait: Send + Sync + 'static {
-    fn set_motor_effort(&self, effort: Rf64) -> RResult<(), RError>;
-    fn get_motor_effort(&self) -> RResult<Rf64, RError>;
+    fn set_motor_effort(&self, effort: f64) -> RResult<(), RError>;
+    fn get_motor_effort(&self) -> RResult<f64, RError>;
 }
 impl<T> RMotorDriveEffortTrait for T
 where
     T: arci::MotorDriveEffort + 'static,
 {
-    fn set_motor_effort(&self, effort: Rf64) -> RResult<(), RError> {
+    fn set_motor_effort(&self, effort: f64) -> RResult<(), RError> {
         ROk(rtry!(arci::MotorDriveEffort::set_motor_effort(self, effort.into())).into())
     }
-    fn get_motor_effort(&self) -> RResult<Rf64, RError> {
+    fn get_motor_effort(&self) -> RResult<f64, RError> {
         ROk(rtry!(arci::MotorDriveEffort::get_motor_effort(self)).into())
     }
 }
@@ -342,5 +342,277 @@ where
             )
                 .into(),
         )
+    }
+}
+/// FFI-safe equivalent of [`arci::TrajectoryPoint`].
+#[derive(StableAbi)]
+#[repr(C)]
+pub(crate) struct RTrajectoryPoint {
+    positions: RVec<f64>,
+    velocities: ROption<RVec<f64>>,
+    time_from_start: RDuration,
+}
+impl From<arci::TrajectoryPoint> for RTrajectoryPoint {
+    fn from(v: arci::TrajectoryPoint) -> Self {
+        let arci::TrajectoryPoint { positions, velocities, time_from_start } = v;
+        Self {
+            positions: positions.into_iter().collect(),
+            velocities: velocities.map(|v| v.into_iter().collect()).into(),
+            time_from_start: time_from_start.into(),
+        }
+    }
+}
+impl From<RTrajectoryPoint> for arci::TrajectoryPoint {
+    fn from(v: RTrajectoryPoint) -> Self {
+        let RTrajectoryPoint { positions, velocities, time_from_start } = v;
+        Self {
+            positions: positions.into_iter().collect(),
+            velocities: velocities.into_option().map(|v| v.into_iter().collect()),
+            time_from_start: time_from_start.into(),
+        }
+    }
+}
+/// FFI-safe equivalent of [`arci::Scan2D`].
+#[derive(StableAbi)]
+#[repr(C)]
+pub(crate) struct RScan2D {
+    angle_min: f64,
+    angle_max: f64,
+    angle_increment: f64,
+    time_increment: f64,
+    scan_time: f64,
+    range_min: f64,
+    range_max: f64,
+    ranges: RVec<f64>,
+    intensities: RVec<f64>,
+}
+impl From<arci::Scan2D> for RScan2D {
+    fn from(v: arci::Scan2D) -> Self {
+        let arci::Scan2D {
+            angle_min,
+            angle_max,
+            angle_increment,
+            time_increment,
+            scan_time,
+            range_min,
+            range_max,
+            ranges,
+            intensities,
+        } = v;
+        Self {
+            angle_min,
+            angle_max,
+            angle_increment,
+            time_increment,
+            scan_time,
+            range_min,
+            range_max,
+            ranges: ranges.into_iter().collect(),
+            intensities: intensities.into_iter().collect(),
+        }
+    }
+}
+impl From<RScan2D> for arci::Scan2D {
+    fn from(v: RScan2D) -> Self {
+        let RScan2D {
+            angle_min,
+            angle_max,
+            angle_increment,
+            time_increment,
+            scan_time,
+            range_min,
+            range_max,
+            ranges,
+            intensities,
+        } = v;
+        Self {
+            angle_min,
+            angle_max,
+            angle_increment,
+            time_increment,
+            scan_time,
+            range_min,
+            range_max,
+            ranges: ranges.into_iter().collect(),
+            intensities: intensities.into_iter().collect(),
+        }
+    }
+}
+/// FFI-safe equivalent of [`arci::BaseVelocity`].
+#[derive(StableAbi)]
+#[repr(C)]
+pub(crate) struct RBaseVelocity {
+    x: f64,
+    y: f64,
+    theta: f64,
+}
+impl From<arci::BaseVelocity> for RBaseVelocity {
+    fn from(v: arci::BaseVelocity) -> Self {
+        let arci::BaseVelocity { x, y, theta } = v;
+        Self { x, y, theta }
+    }
+}
+impl From<RBaseVelocity> for arci::BaseVelocity {
+    fn from(v: RBaseVelocity) -> Self {
+        let RBaseVelocity { x, y, theta } = v;
+        Self { x, y, theta }
+    }
+}
+/// FFI-safe equivalent of [`arci::Button`].
+#[derive(StableAbi)]
+#[repr(C)]
+pub(crate) enum RButton {
+    South,
+    East,
+    North,
+    West,
+    LeftTrigger,
+    LeftTrigger2,
+    RightTrigger,
+    RightTrigger2,
+    Select,
+    Start,
+    Mode,
+    LeftThumb,
+    RightThumb,
+    DPadUp,
+    DPadDown,
+    DPadLeft,
+    DPadRight,
+    Unknown,
+}
+impl From<arci::gamepad::Button> for RButton {
+    fn from(v: arci::gamepad::Button) -> Self {
+        match v {
+            arci::gamepad::Button::South => Self::South,
+            arci::gamepad::Button::East => Self::East,
+            arci::gamepad::Button::North => Self::North,
+            arci::gamepad::Button::West => Self::West,
+            arci::gamepad::Button::LeftTrigger => Self::LeftTrigger,
+            arci::gamepad::Button::LeftTrigger2 => Self::LeftTrigger2,
+            arci::gamepad::Button::RightTrigger => Self::RightTrigger,
+            arci::gamepad::Button::RightTrigger2 => Self::RightTrigger2,
+            arci::gamepad::Button::Select => Self::Select,
+            arci::gamepad::Button::Start => Self::Start,
+            arci::gamepad::Button::Mode => Self::Mode,
+            arci::gamepad::Button::LeftThumb => Self::LeftThumb,
+            arci::gamepad::Button::RightThumb => Self::RightThumb,
+            arci::gamepad::Button::DPadUp => Self::DPadUp,
+            arci::gamepad::Button::DPadDown => Self::DPadDown,
+            arci::gamepad::Button::DPadLeft => Self::DPadLeft,
+            arci::gamepad::Button::DPadRight => Self::DPadRight,
+            arci::gamepad::Button::Unknown => Self::Unknown,
+        }
+    }
+}
+impl From<RButton> for arci::gamepad::Button {
+    fn from(v: RButton) -> Self {
+        match v {
+            RButton::South => Self::South,
+            RButton::East => Self::East,
+            RButton::North => Self::North,
+            RButton::West => Self::West,
+            RButton::LeftTrigger => Self::LeftTrigger,
+            RButton::LeftTrigger2 => Self::LeftTrigger2,
+            RButton::RightTrigger => Self::RightTrigger,
+            RButton::RightTrigger2 => Self::RightTrigger2,
+            RButton::Select => Self::Select,
+            RButton::Start => Self::Start,
+            RButton::Mode => Self::Mode,
+            RButton::LeftThumb => Self::LeftThumb,
+            RButton::RightThumb => Self::RightThumb,
+            RButton::DPadUp => Self::DPadUp,
+            RButton::DPadDown => Self::DPadDown,
+            RButton::DPadLeft => Self::DPadLeft,
+            RButton::DPadRight => Self::DPadRight,
+            RButton::Unknown => Self::Unknown,
+        }
+    }
+}
+/// FFI-safe equivalent of [`arci::Axis`].
+#[derive(StableAbi)]
+#[repr(C)]
+pub(crate) enum RAxis {
+    LeftStickX,
+    LeftStickY,
+    LeftTrigger,
+    RightStickX,
+    RightStickY,
+    RightTrigger,
+    DPadX,
+    DPadY,
+    Unknown,
+}
+impl From<arci::gamepad::Axis> for RAxis {
+    fn from(v: arci::gamepad::Axis) -> Self {
+        match v {
+            arci::gamepad::Axis::LeftStickX => Self::LeftStickX,
+            arci::gamepad::Axis::LeftStickY => Self::LeftStickY,
+            arci::gamepad::Axis::LeftTrigger => Self::LeftTrigger,
+            arci::gamepad::Axis::RightStickX => Self::RightStickX,
+            arci::gamepad::Axis::RightStickY => Self::RightStickY,
+            arci::gamepad::Axis::RightTrigger => Self::RightTrigger,
+            arci::gamepad::Axis::DPadX => Self::DPadX,
+            arci::gamepad::Axis::DPadY => Self::DPadY,
+            arci::gamepad::Axis::Unknown => Self::Unknown,
+        }
+    }
+}
+impl From<RAxis> for arci::gamepad::Axis {
+    fn from(v: RAxis) -> Self {
+        match v {
+            RAxis::LeftStickX => Self::LeftStickX,
+            RAxis::LeftStickY => Self::LeftStickY,
+            RAxis::LeftTrigger => Self::LeftTrigger,
+            RAxis::RightStickX => Self::RightStickX,
+            RAxis::RightStickY => Self::RightStickY,
+            RAxis::RightTrigger => Self::RightTrigger,
+            RAxis::DPadX => Self::DPadX,
+            RAxis::DPadY => Self::DPadY,
+            RAxis::Unknown => Self::Unknown,
+        }
+    }
+}
+/// FFI-safe equivalent of [`arci::GamepadEvent`].
+#[derive(StableAbi)]
+#[repr(C)]
+pub(crate) enum RGamepadEvent {
+    ButtonPressed(RButton),
+    ButtonReleased(RButton),
+    AxisChanged(RAxis, f64),
+    Connected,
+    Disconnected,
+    Unknown,
+}
+impl From<arci::gamepad::GamepadEvent> for RGamepadEvent {
+    fn from(v: arci::gamepad::GamepadEvent) -> Self {
+        match v {
+            arci::gamepad::GamepadEvent::ButtonPressed(field0) => {
+                Self::ButtonPressed(field0.into())
+            }
+            arci::gamepad::GamepadEvent::ButtonReleased(field0) => {
+                Self::ButtonReleased(field0.into())
+            }
+            arci::gamepad::GamepadEvent::AxisChanged(field0, field1) => {
+                Self::AxisChanged(field0.into(), field1)
+            }
+            arci::gamepad::GamepadEvent::Connected => Self::Connected,
+            arci::gamepad::GamepadEvent::Disconnected => Self::Disconnected,
+            arci::gamepad::GamepadEvent::Unknown => Self::Unknown,
+        }
+    }
+}
+impl From<RGamepadEvent> for arci::gamepad::GamepadEvent {
+    fn from(v: RGamepadEvent) -> Self {
+        match v {
+            RGamepadEvent::ButtonPressed(field0) => Self::ButtonPressed(field0.into()),
+            RGamepadEvent::ButtonReleased(field0) => Self::ButtonReleased(field0.into()),
+            RGamepadEvent::AxisChanged(field0, field1) => {
+                Self::AxisChanged(field0.into(), field1)
+            }
+            RGamepadEvent::Connected => Self::Connected,
+            RGamepadEvent::Disconnected => Self::Disconnected,
+            RGamepadEvent::Unknown => Self::Unknown,
+        }
     }
 }
