@@ -4,6 +4,7 @@
 appender
 arci
 assimp
+chrono
 eframe
 egui
 gamepad

@@ -202,10 +202,24 @@ pub fn init_with_anonymize(name: &str, config: &RobotConfig) {
 }
 
 pub fn init_tracing() {
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
-        .with_writer(io::stderr)
-        .init();
+    // TODO: allow enabling both logging
+    // TODO: allow specifying from config
+    if let Some(log_dir) = std::env::var_os("OPENRR_TRACING_DIR") {
+        let file = tracing_appender::rolling::daily(log_dir, "trace");
+        tracing_subscriber::fmt()
+            .json()
+            .with_writer(file)
+            .with_ansi(false)
+            // TODO: only set for openrr-tracing, like openrr_tracing=trace
+            .with_max_level(tracing::Level::TRACE)
+            .with_current_span(false)
+            .init();
+    } else {
+        tracing_subscriber::fmt()
+            .with_env_filter(EnvFilter::from_default_env())
+            .with_writer(io::stderr)
+            .init();
+    }
 }
 
 #[derive(Clone)]

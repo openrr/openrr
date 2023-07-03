@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     env, fmt, fs,
+    ops::Not,
     path::{Path, PathBuf},
     sync::Arc,
 };
@@ -18,6 +19,7 @@ use arci_speak_cmd::LocalCommand;
 use arci_urdf_viz::{UrdfVizWebClient, UrdfVizWebClientConfig};
 use openrr_client::{OpenrrClientsConfig, PrintSpeaker, RobotClient};
 use openrr_plugin::PluginProxy;
+use openrr_tracing::Tracing;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error, info};
@@ -416,7 +418,27 @@ pub struct RobotConfig {
     pub openrr_clients_config: OpenrrClientsConfig,
 
     #[serde(default)]
+    pub openrr_tracing_config: OpenrrTracingConfig,
+
+    #[serde(default)]
     pub plugins: HashMap<String, PluginConfig>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct OpenrrTracingConfig {
+    /// Enable openrr-tracing for Localization. `true or `false` (default to `false`).
+    #[serde(skip_serializing_if = "Not::not")]
+    #[serde(default)]
+    pub localization: bool,
+    /// Enable openrr-tracing for MoveBase. `true or `false` (default to `false`).
+    #[serde(skip_serializing_if = "Not::not")]
+    #[serde(default)]
+    pub move_base: bool,
+    /// Enable openrr-tracing for Navigation. `true or `false` (default to `false`).
+    #[serde(skip_serializing_if = "Not::not")]
+    #[serde(default)]
+    pub navigation: bool,
 }
 
 // Creates dummy schema for dummy fields.
@@ -484,19 +506,29 @@ impl RobotConfig {
     }
 
     fn create_localization_urdf_viz(&self) -> Box<dyn Localization> {
-        Box::new(arci::Lazy::new(move || {
+        let loc = arci::Lazy::new(move || {
             debug!("create_localization_urdf_viz: creating UrdfVizWebClient");
             Ok(UrdfVizWebClient::default())
-        }))
+        });
+        if self.openrr_tracing_config.localization {
+            Box::new(Tracing::new(loc))
+        } else {
+            Box::new(loc)
+        }
     }
 
     #[cfg(feature = "ros")]
     fn create_localization_ros(&self) -> Option<Box<dyn Localization>> {
         let config = self.ros_localization_client_config.clone()?;
-        Some(Box::new(arci::Lazy::new(move || {
+        let loc = arci::Lazy::new(move || {
             debug!("create_localization_ros: creating RosLocalizationClient");
             Ok(RosLocalizationClient::new_from_config(config))
-        })))
+        });
+        if self.openrr_tracing_config.localization {
+            Some(Box::new(Tracing::new(loc)))
+        } else {
+            Some(Box::new(loc))
+        }
     }
 
     #[cfg(not(feature = "ros"))]
@@ -553,19 +585,29 @@ impl RobotConfig {
     }
 
     fn create_navigation_urdf_viz(&self) -> Box<dyn Navigation> {
-        Box::new(arci::Lazy::new(move || {
+        let nav = arci::Lazy::new(move || {
             debug!("create_navigation_urdf_viz: creating UrdfVizWebClient");
             Ok(UrdfVizWebClient::default())
-        }))
+        });
+        if self.openrr_tracing_config.navigation {
+            Box::new(Tracing::new(nav))
+        } else {
+            Box::new(nav)
+        }
     }
 
     #[cfg(feature = "ros")]
     fn create_navigation_ros(&self) -> Option<Box<dyn Navigation>> {
         let config = self.ros_navigation_client_config.clone()?;
-        Some(Box::new(arci::Lazy::new(move || {
+        let nav = arci::Lazy::new(move || {
             debug!("create_navigation_ros: creating RosNavClient");
             Ok(RosNavClient::new_from_config(config))
-        })))
+        });
+        if self.openrr_tracing_config.navigation {
+            Some(Box::new(Tracing::new(nav)))
+        } else {
+            Some(Box::new(nav))
+        }
     }
 
     #[cfg(not(feature = "ros"))]
@@ -622,12 +664,17 @@ impl RobotConfig {
     }
 
     fn create_move_base_urdf_viz(&self) -> Box<dyn MoveBase> {
-        Box::new(arci::Lazy::new(move || {
+        let base = arci::Lazy::new(move || {
             debug!("create_move_base_urdf_viz: creating UrdfVizWebClient");
             let urdf_viz_client = UrdfVizWebClient::default();
             urdf_viz_client.run_send_velocity_thread();
             Ok(urdf_viz_client)
-        }))
+        });
+        if self.openrr_tracing_config.move_base {
+            Box::new(Tracing::new(base))
+        } else {
+            Box::new(base)
+        }
     }
 
     #[cfg(feature = "ros")]
@@ -637,10 +684,15 @@ impl RobotConfig {
             .as_ref()?
             .topic
             .to_string();
-        Some(Box::new(arci::Lazy::new(move || {
+        let base = arci::Lazy::new(move || {
             debug!("create_move_base_ros: creating RosCmdVelMoveBase");
             Ok(RosCmdVelMoveBase::new(&topic))
-        })))
+        });
+        if self.openrr_tracing_config.move_base {
+            Some(Box::new(Tracing::new(base)))
+        } else {
+            Some(Box::new(base))
+        }
     }
 
     #[cfg(not(feature = "ros"))]
