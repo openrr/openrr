@@ -6,7 +6,7 @@ license.workspace = true
 repository.workspace = true
 description = "Utilities for modifying configuration files"
 keywords = ["robotics", "robot"]
-categories = ["science::robotics", "gui"]
+categories = ["science::robotics"]
 
 [dependencies]
 anyhow.workspace = true

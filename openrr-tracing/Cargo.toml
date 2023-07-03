@@ -1,0 +1,28 @@
+[package]
+name = "openrr-tracing"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = ""
+keywords = ["robotics", "robot"]
+categories = ["science::robotics"]
+
+[dependencies]
+arci.workspace = true
+chrono = { workspace = true, features = ["serde"] }
+serde.workspace = true
+tracing.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+anyhow.workspace = true
+clap.workspace = true
+fs-err.workspace = true
+influxdb.workspace = true
+serde.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tracing-appender.workspace = true
+tracing-subscriber = { workspace = true, features = ["json"] }
+openrr-apps.workspace = true
+openrr-client.workspace = true

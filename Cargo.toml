@@ -20,6 +20,7 @@ members = [
     "openrr-plugin",
     "openrr-remote",
     "openrr-teleop",
+    "openrr-tracing",
 
     # internal
     "arci-ros/tests/hygiene",
@@ -36,8 +37,6 @@ repository = "https://github.com/openrr/openrr"
 homepage = "https://openrr.github.io"
 
 [workspace.dependencies]
-abi_stable = "0.11"
-anyhow = "1"
 arci = "0.1.0"
 arci-gamepad-gilrs = "0.1.0"
 arci-gamepad-keyboard = "0.1.0"
@@ -45,11 +44,25 @@ arci-ros = "0.1.0"
 arci-speak-audio = "0.1.0"
 arci-speak-cmd = "0.1.0"
 arci-urdf-viz = "0.1.0"
+openrr-apps = { version = "0.1.0", default-features = false }
+openrr-base = { version = "0.1.0", default-features = false }
+openrr-client = { version = "0.1.0", default-features = false }
+openrr-command = { version = "0.1.0", default-features = false }
+openrr-config = { version = "0.1.0", default-features = false }
+openrr-gui = { version = "0.1.0", default-features = false }
+openrr-planner = { version = "0.1.0", default-features = false }
+openrr-plugin = { version = "0.1.0", default-features = false }
+openrr-teleop = { version = "0.1.0", default-features = false }
+openrr-tracing = { version = "0.1.0", default-features = false }
+
+abi_stable = "0.11"
+anyhow = "1"
 assert_approx_eq = "1.1"
 assimp = "0.3"
 async-recursion = "1"
 async-trait = "0.1"
 auto_impl = "1"
+chrono = "0.4.24"
 clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
 criterion = "0.5"
@@ -63,6 +76,7 @@ futures = "0.3"
 gilrs = { version = "0.10", features = ["serde-serialize"] }
 heck = "0.4"
 image = { version = "0.24", default-features = false }
+influxdb = "0.6"
 k = "0.30"
 mesh-loader = "0.0.2"
 nalgebra = "0.30"
@@ -70,15 +84,6 @@ ncollide3d = "0.33"
 nix = "0.26"
 num-traits = "0.2"
 once_cell = "1"
-openrr-apps = { version = "0.1.0", default-features = false }
-openrr-base = { version = "0.1.0", default-features = false }
-openrr-client = { version = "0.1.0", default-features = false }
-openrr-command = { version = "0.1.0", default-features = false }
-openrr-config = { version = "0.1.0", default-features = false }
-openrr-gui = { version = "0.1.0", default-features = false }
-openrr-planner = { version = "0.1.0", default-features = false }
-openrr-plugin = { version = "0.1.0", default-features = false }
-openrr-teleop = { version = "0.1.0", default-features = false }
 parking_lot = "0.12"
 paste = "1"
 portpicker = "0.1"
@@ -140,6 +145,7 @@ openrr-planner = { path = "openrr-planner" }
 openrr-plugin = { path = "openrr-plugin" }
 openrr-remote = { path = "openrr-remote" }
 openrr-teleop = { path = "openrr-teleop" }
+openrr-tracing = { path = "openrr-tracing" }
 
 [profile.release]
 lto = true
