@@ -71,7 +71,6 @@ rustup
 rviz
 sabi
 shellcheck
-SIGINT
 slerp
 smilerobotics
 srvs
