@@ -76,7 +76,7 @@ futures = "0.3"
 gilrs = { version = "0.10", features = ["serde-serialize"] }
 heck = "0.4"
 image = { version = "0.24", default-features = false }
-influxdb = "0.6"
+influxdb = "0.7"
 k = "0.30"
 mesh-loader = "0.0.2"
 nalgebra = "0.30"
