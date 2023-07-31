@@ -24,7 +24,7 @@ where
     validate_joints(&joints, &robot_client)?;
 
     let native_options = eframe::NativeOptions {
-        max_window_size: Some(egui::vec2(400.0, 400.0)),
+        initial_window_size: Some(egui::vec2(400.0, 400.0)),
         icon_data: Some(
             IconData::try_from_png_bytes(include_bytes!("../assets/icon/openrr.png")).unwrap(),
         ),
