@@ -66,7 +66,7 @@ fn new_joint_client(
 
 #[tokio::test]
 async fn test_joint_positions() {
-    let joint_names: Vec<String> = vec![
+    let joint_names: Vec<String> = [
         "l_shoulder_yaw",
         "l_shoulder_pitch",
         "l_shoulder_roll",
