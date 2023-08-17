@@ -327,7 +327,7 @@ mod tests {
             String::from("part3"),
             String::from("part2"),
         ];
-        let correct = vec![4.8_f64, 6.5, 1.0, 2.1];
+        let correct = [4.8_f64, 6.5, 1.0, 2.1];
         let result = copy_joint_positions(
             &from_joint_names,
             &from_positions,
@@ -356,7 +356,7 @@ mod tests {
         let from_positions = vec![2.1_f64, 4.8];
         let mut to_positions = vec![3.3_f64, 8.1, 5.2, 0.8];
         let from_joint_names = vec![String::from("part4"), String::from("part1")];
-        let correct = vec![4.8_f64, 8.1, 5.2, 2.1];
+        let correct = [4.8_f64, 8.1, 5.2, 2.1];
         let result = copy_joint_positions(
             &from_joint_names,
             &from_positions,
@@ -410,7 +410,7 @@ mod tests {
             String::from("part3"),
             String::from("part2"),
         ];
-        let correct = vec![6.5_f64, 2.1, 1.0, 4.8];
+        let correct = [6.5_f64, 2.1, 1.0, 4.8];
         copy_joint_positions(
             &from_joint_names,
             &from_positions,
@@ -427,7 +427,7 @@ mod tests {
         // few joint pattern
         let mut to_positions = vec![3.3_f64, 8.1];
         let to_joint_names = vec![String::from("part4"), String::from("part1")];
-        let correct = vec![6.5_f64, 2.1];
+        let correct = [6.5_f64, 2.1];
         copy_joint_positions(
             &from_joint_names,
             &from_positions,
@@ -480,7 +480,7 @@ mod tests {
             String::from("high"),
             String::from("part2"),
         ];
-        let correct = vec![1.0_f64, 3.0, 2.4];
+        let correct = [1.0_f64, 3.0, 2.4];
 
         let partial = PartialJointTrajectoryClient::new(joint_names, client.clone()).unwrap();
         let current_pos = partial.current_joint_positions();
@@ -494,7 +494,7 @@ mod tests {
 
         // partial < full
         let joint_names = vec![String::from("part1"), String::from("part2")];
-        let correct = vec![1.0_f64, 2.4];
+        let correct = [1.0_f64, 2.4];
 
         let partial = PartialJointTrajectoryClient::new(joint_names, client).unwrap();
         let current_pos = partial.current_joint_positions();
@@ -590,7 +590,7 @@ mod tests {
                 std::time::Duration::from_secs(2),
             ),
         ];
-        let correct = vec![3.4_f64, 5.8_f64, 0.1_f64, 2.5_f64];
+        let correct = [3.4_f64, 5.8_f64, 0.1_f64, 2.5_f64];
 
         let partial =
             PartialJointTrajectoryClient::new(joint_names.clone(), client.clone()).unwrap();
@@ -621,7 +621,7 @@ mod tests {
                 std::time::Duration::from_secs(1),
             ),
         ];
-        let correct = vec![1.0_f64, 3.0_f64, 2.2_f64];
+        let correct = [1.0_f64, 3.0_f64, 2.2_f64];
 
         let partial =
             PartialJointTrajectoryClient::new(joint_names.clone(), client.clone()).unwrap();

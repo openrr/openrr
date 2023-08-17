@@ -230,7 +230,7 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 #[tokio::test]
 async fn test_joint_positions() {
-    let joint_names: Vec<String> = vec![
+    let joint_names: Vec<String> = [
         "l_shoulder_yaw",
         "l_shoulder_pitch",
         "l_shoulder_roll",
@@ -305,7 +305,7 @@ async fn test_joint_positions() {
 
 #[test]
 fn test_manipulation_accessors() {
-    let joint_names: Vec<String> = vec![
+    let joint_names: Vec<String> = [
         "l_shoulder_yaw",
         "l_shoulder_pitch",
         "l_shoulder_roll",
@@ -352,7 +352,7 @@ fn test_manipulation_accessors() {
 
 #[tokio::test]
 async fn test_navigation_accessors() {
-    let joint_names: Vec<String> = vec![
+    let joint_names: Vec<String> = [
         "l_shoulder_yaw",
         "l_shoulder_pitch",
         "l_shoulder_roll",
@@ -385,7 +385,7 @@ async fn test_navigation_accessors() {
 
 #[tokio::test]
 async fn test_move_ik() {
-    let joint_names: Vec<String> = vec![
+    let joint_names: Vec<String> = [
         "l_shoulder_yaw",
         "l_shoulder_pitch",
         "l_shoulder_roll",
