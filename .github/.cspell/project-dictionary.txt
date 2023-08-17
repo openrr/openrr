@@ -21,6 +21,8 @@ epaint
 espeak
 funcs
 gamepads
+ghcup
+hostedtoolcache
 ICANON
 impls
 irobot
