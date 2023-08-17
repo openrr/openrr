@@ -285,7 +285,7 @@ mod tests {
 
     #[test]
     fn from_urdf() {
-        let s = r##"
+        let s = r#"
             <robot name="robot">
                 <joint name="a" type="revolute">
                     <origin xyz="0.0 0.0 0.0" />
@@ -295,7 +295,7 @@ mod tests {
                     <limit lower="-2" upper="1.0" effort="0" velocity="1.0"/>
                 </joint>
             </robot>
-        "##;
+        "#;
         let urdf_robot = urdf_rs::read_from_string(s).unwrap();
         let client = DummyJointTrajectoryClient::new(vec!["a".to_owned()]);
         let limiter = JointVelocityLimiter::from_urdf(client, &urdf_robot.joints).unwrap();
