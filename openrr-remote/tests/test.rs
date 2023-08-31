@@ -10,17 +10,17 @@ use std::{
 use anyhow::Result;
 use arci::{
     gamepad::GamepadEvent, BaseVelocity, DummyGamepad, DummyJointTrajectoryClient,
-    DummyLocalization, DummyMoveBase, DummyNavigation, DummySpeaker, DummyTransformResolver,
-    Gamepad, Isometry2, JointTrajectoryClient, Localization, MoveBase, Navigation, Speaker,
-    TrajectoryPoint, TransformResolver, Vector2,
+    DummyLaserScan2D, DummyLocalization, DummyMoveBase, DummyNavigation, DummySpeaker,
+    DummyTransformResolver, Gamepad, Isometry2, JointTrajectoryClient, LaserScan2D, Localization,
+    MoveBase, Navigation, Scan2D, Speaker, TrajectoryPoint, TransformResolver, Vector2,
 };
 use assert_approx_eq::assert_approx_eq;
 use openrr_remote::{
     RemoteGamepadReceiver, RemoteGamepadSender, RemoteJointTrajectoryClientReceiver,
-    RemoteJointTrajectoryClientSender, RemoteLocalizationReceiver, RemoteLocalizationSender,
-    RemoteMoveBaseReceiver, RemoteMoveBaseSender, RemoteNavigationReceiver, RemoteNavigationSender,
-    RemoteSpeakerReceiver, RemoteSpeakerSender, RemoteTransformResolverReceiver,
-    RemoteTransformResolverSender,
+    RemoteJointTrajectoryClientSender, RemoteLaserScan2DReceiver, RemoteLaserScan2DSender,
+    RemoteLocalizationReceiver, RemoteLocalizationSender, RemoteMoveBaseReceiver,
+    RemoteMoveBaseSender, RemoteNavigationReceiver, RemoteNavigationSender, RemoteSpeakerReceiver,
+    RemoteSpeakerSender, RemoteTransformResolverReceiver, RemoteTransformResolverSender,
 };
 
 fn endpoint() -> (SocketAddr, String) {
@@ -177,6 +177,24 @@ async fn localization() -> Result<()> {
 }
 
 #[tokio::test(flavor = "multi_thread")]
+async fn laser_scan() -> Result<()> {
+    let (addr, endpoint) = endpoint();
+
+    // Launch server
+    {
+        let laser_scan = RemoteLaserScan2DReceiver::new(DummyLaserScan2D::new());
+        tokio::spawn(laser_scan.serve(addr));
+        tokio::time::sleep(Duration::from_secs(1)).await;
+    }
+
+    let laser_scan = RemoteLaserScan2DSender::connect(endpoint).await?;
+    let scan = laser_scan.current_scan()?;
+    assert_eq!(scan, Scan2D::default());
+
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread")]
 async fn transform_resolver() -> Result<()> {
     let (addr, endpoint) = endpoint();
 
@@ -243,6 +261,7 @@ async fn multiple() -> Result<()> {
     let recv_nav = Arc::new(DummyNavigation::new());
     let recv_resolver = Arc::new(DummyTransformResolver::default());
     let recv_gamepad = Arc::new(DummyGamepad::with_all_events());
+    let recv_laser_scan = Arc::new(DummyLaserScan2D::new());
     // Launch server
     {
         let client =
@@ -255,6 +274,7 @@ async fn multiple() -> Result<()> {
         let loc = RemoteLocalizationReceiver::new(DummyLocalization::new());
         let resolver = RemoteTransformResolverReceiver::new(recv_resolver.clone());
         let gamepad = RemoteGamepadReceiver::new(recv_gamepad.clone());
+        let laser_scan = RemoteLaserScan2DReceiver::new(recv_laser_scan.clone());
         tokio::spawn(
             tonic::transport::Server::builder()
                 .add_service(client.into_service())
@@ -264,6 +284,7 @@ async fn multiple() -> Result<()> {
                 .add_service(loc.into_service())
                 .add_service(resolver.into_service())
                 .add_service(gamepad.into_service())
+                .add_service(laser_scan.into_service())
                 .serve(addr),
         );
         tokio::time::sleep(Duration::from_secs(1)).await;
@@ -275,7 +296,8 @@ async fn multiple() -> Result<()> {
     let nav = RemoteNavigationSender::connect(endpoint.clone()).await?;
     let loc = RemoteLocalizationSender::connect(endpoint.clone()).await?;
     let resolver = RemoteTransformResolverSender::connect(endpoint.clone()).await?;
-    let gamepad = RemoteGamepadSender::connect(endpoint).await?;
+    let gamepad = RemoteGamepadSender::connect(endpoint.clone()).await?;
+    let laser_scan = RemoteLaserScan2DSender::connect(endpoint).await?;
 
     assert_eq!(client.joint_names(), vec!["a".to_owned()]);
     assert_approx_eq!(client.current_joint_positions()?[0], 0.0);
@@ -350,6 +372,9 @@ async fn multiple() -> Result<()> {
     }
     gamepad.stop();
     assert!(recv_gamepad.is_stopped());
+
+    let scan = laser_scan.current_scan()?;
+    assert_eq!(scan, Scan2D::default());
 
     Ok(())
 }
