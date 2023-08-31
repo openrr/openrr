@@ -2,7 +2,7 @@ use auto_impl::auto_impl;
 
 use crate::error::Error;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Scan2D {
     /// The angle (in radians) where the scan starts, typically 0 for positive X-axis.
     pub angle_min: f64,
