@@ -1,4 +1,5 @@
 mod dummy_gamepad;
+mod dummy_laser_scan;
 mod dummy_localization;
 mod dummy_motor_drive;
 mod dummy_move_base;
@@ -14,6 +15,7 @@ mod lazy;
 mod partial_joint_trajectory_client;
 
 pub use dummy_gamepad::*;
+pub use dummy_laser_scan::*;
 pub use dummy_localization::*;
 pub use dummy_motor_drive::*;
 pub use dummy_move_base::*;
