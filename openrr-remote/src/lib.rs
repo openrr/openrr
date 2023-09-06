@@ -387,13 +387,13 @@ impl From<pb::GamepadEvent> for arci::gamepad::GamepadEvent {
         let val = val.event.unwrap();
         match val {
             pb::gamepad_event::Event::ButtonPressed(b) => {
-                Self::ButtonPressed(pb::Button::from_i32(b).unwrap().into())
+                Self::ButtonPressed(pb::Button::try_from(b).unwrap().into())
             }
             pb::gamepad_event::Event::ButtonReleased(b) => {
-                Self::ButtonReleased(pb::Button::from_i32(b).unwrap().into())
+                Self::ButtonReleased(pb::Button::try_from(b).unwrap().into())
             }
             pb::gamepad_event::Event::AxisChanged(a) => {
-                Self::AxisChanged(pb::Axis::from_i32(a.axis).unwrap().into(), a.value)
+                Self::AxisChanged(pb::Axis::try_from(a.axis).unwrap().into(), a.value)
             }
             pb::gamepad_event::Event::Connected(()) => Self::Connected,
             pb::gamepad_event::Event::Disconnected(()) => Self::Disconnected,
