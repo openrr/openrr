@@ -375,6 +375,19 @@ async fn multiple() -> Result<()> {
 
     let scan = laser_scan.current_scan()?;
     assert_eq!(scan, Scan2D::default());
+    recv_laser_scan.set_scan(Scan2D {
+        angle_min: 1.0,
+        angle_max: 2.0,
+        ..Default::default()
+    });
+    assert_eq!(
+        laser_scan.current_scan()?,
+        Scan2D {
+            angle_min: 1.0,
+            angle_max: 2.0,
+            ..Default::default()
+        }
+    );
 
     Ok(())
 }
