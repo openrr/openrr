@@ -1,6 +1,6 @@
 use crate::{
     Ros2CmdVelMoveBase, Ros2CmdVelMoveBaseConfig, Ros2ControlClient, Ros2ControlConfig,
-    Ros2Navigation, Ros2NavigationConfig,
+    Ros2LaserScan2D, Ros2LaserScan2DConfig, Ros2Navigation, Ros2NavigationConfig,
 };
 
 openrr_plugin::export_plugin!(Ros2Plugin {});
@@ -42,5 +42,14 @@ impl openrr_plugin::Plugin for Ros2Plugin {
             ctx,
             &config.action_name,
         ))))
+    }
+
+    fn new_laser_scan2_d(
+        &self,
+        args: String,
+    ) -> Result<Option<Box<dyn arci::LaserScan2D>>, arci::Error> {
+        let config: Ros2LaserScan2DConfig = toml::from_str(&args).map_err(anyhow::Error::from)?;
+        let ctx = r2r::Context::create().unwrap();
+        Ok(Some(Box::new(Ros2LaserScan2D::new(ctx, &config.topic))))
     }
 }
