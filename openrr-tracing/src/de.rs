@@ -16,7 +16,9 @@ pub fn from_str(lines: &str) -> Result<Vec<TracingLog>, arci::Error> {
         if !matches!(value.get("target"), Some(target) if target == "openrr_tracing") {
             continue;
         }
-        let Some(fields)= value.get("fields") else { continue; };
+        let Some(fields) = value.get("fields") else {
+            continue;
+        };
         match fields.get("method") {
             Some(v) if v == "arci::Localization::current_pose" => {
                 let log: CurrentPoseLog =
