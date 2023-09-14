@@ -18,6 +18,7 @@ ros2 = ["r2r"]
 abi_stable.workspace = true
 anyhow.workspace = true
 arci.workspace = true
+flume.workspace = true
 futures.workspace = true
 once_cell.workspace = true
 openrr-plugin.workspace = true

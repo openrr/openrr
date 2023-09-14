@@ -12,6 +12,7 @@
 #![allow(clippy::derive_partial_eq_without_eq)]
 
 mod cmd_vel_move_base;
+mod joy_gamepad;
 mod navigation;
 mod plugin;
 mod ros2_control;
@@ -19,6 +20,7 @@ mod ros2_laser_scan;
 mod utils;
 
 pub use cmd_vel_move_base::*;
+pub use joy_gamepad::*;
 pub use navigation::*;
 // re-export
 pub use r2r;
