@@ -6,14 +6,14 @@ ROS2 implementation for arci.
 
 ## Dependencies
 
-* ROS2 [Foxy](https://docs.ros.org/en/foxy/Installation.html) or [Galactic](https://docs.ros.org/en/galactic/Installation.html)
+* ROS2 [Humble](https://docs.ros.org/en/humble/Installation.html)
 * [r2r](https://github.com/sequenceplanner/r2r)
 
 ## Install
 
 ```bash
-sudo apt install ros-foxy-nav2-msgs ros-foxy-geometry-msgs # for navigation
-sudo apt install ros-foxy-ros2-control ros-foxy-ros2-controllers # for ros2_control
+sudo apt install ros-humble-nav2-msgs ros-humble-geometry-msgs # for navigation
+sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers # for ros2_control
 sudo apt install libclang-dev # for r2r
 ```
 
@@ -22,7 +22,7 @@ sudo apt install libclang-dev # for r2r
 Build `openrr` with the feature `ros2`
 
 ```bash
-source /opt/ros/foxy/setup.bash
+source /opt/ros/humble/setup.bash
 cargo build --features ros2
 ```
 
@@ -58,10 +58,9 @@ Don't forget to set the initial pose of the robot before sending the goal pose u
 
 ### Install ros2_control_demos
 
-Clone and build [ros2_control_demos](https://github.com/ros-controls/ros2_control_demos)
-
-* if `ROS2_DISTRO` is foxy: checkout foxy branch, install it, and source `install/setup.bash`.
-* if `ROS2_DISTRO` is galactic: replace all "foxy" in the repository with "galactic", install it, and source `install/setup.bash`.
+* Clone [ros2_control_demos](https://github.com/ros-controls/ros2_control_demos)
+* Checkout [the corresponding branch](https://github.com/ros-controls/ros2_control_demos/blob/HEAD/README.md#build-status) and install it
+* Source `install/setup.bash`.
 
 ### Launch rrbot example and controllers
 

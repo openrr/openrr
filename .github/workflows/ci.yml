@@ -137,11 +137,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # TODO: r2r 0.6.5 doesn't support foxy
-          # - distro: foxy
-          #   os: ubuntu-20.04
+          # https://docs.ros.org/en/rolling/Releases.html#list-of-distributions
           - distro: humble
             os: ubuntu-22.04
+          # TODO: r2r 0.7.5 doesn't support iron
+          # - distro: iron
+          #   os: ubuntu-22.04
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     container:
@@ -341,7 +342,7 @@ jobs:
         run: |
           # for test of arci-ros (roscore, rostopic)
           source /opt/ros/noetic/setup.bash
-          # TODO: r2r 0.6.5 doesn't support foxy
+          # --exclude arci-ros2 due to foxy was EoL on 2023-06-20
           # --no-cfg-coverage due to https://github.com/Smithay/calloop/issues/118
           cargo llvm-cov --verbose --all-features --workspace --exclude openrr-internal-codegen --exclude arci-ros2 --no-cfg-coverage --codecov --output-path codecov.json
       - name: Upload to codecov.io
