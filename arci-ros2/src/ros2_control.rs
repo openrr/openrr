@@ -66,21 +66,15 @@ fn get_joint_state(
         .lock()
         .subscribe::<JointTrajectoryControllerState>(state_topic, r2r::QosProfile::default())
         .unwrap();
-    let is_done = Arc::new(AtomicBool::new(false));
-    let is_done_clone = is_done.clone();
     utils::spawn_blocking(async move {
+        let is_done = Arc::new(AtomicBool::new(false));
+        let is_done_clone = is_done.clone();
         let handle = tokio::spawn(async move {
             let next = state_subscriber.next().await;
-            is_done_clone.store(true, Ordering::SeqCst);
+            is_done.store(true, Ordering::Relaxed);
             next
         });
-        loop {
-            if is_done.load(Ordering::SeqCst) {
-                break;
-            }
-            node.lock().spin_once(Duration::from_millis(100));
-            tokio::task::yield_now().await;
-        }
+        utils::spin(is_done_clone, node).await;
         handle.await.unwrap()
     })
     .join()
@@ -121,13 +115,13 @@ impl JointTrajectoryClient for Ros2ControlClient {
         trajectory: Vec<TrajectoryPoint>,
     ) -> Result<WaitFuture, arci::Error> {
         let node = self.node.clone();
-        let is_done = Arc::new(AtomicBool::new(false));
-        let is_done_clone = is_done.clone();
         let action_client = self.action_client.clone();
         let is_available = node.lock().is_available(&self.action_client).unwrap();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let joint_names = self.joint_names.clone();
         utils::spawn_blocking(async move {
+            let is_done = Arc::new(AtomicBool::new(false));
+            let is_done_clone = is_done.clone();
             tokio::spawn(async move {
                 let mut clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
                 let now = clock.get_now().unwrap();
@@ -169,13 +163,7 @@ impl JointTrajectoryClient for Ros2ControlClient {
                 result.await.unwrap(); // TODO: handle goal state
                 is_done.store(true, Ordering::Relaxed);
             });
-            loop {
-                if is_done_clone.load(Ordering::Relaxed) {
-                    break;
-                }
-                node.lock().spin_once(Duration::from_millis(100));
-                tokio::task::yield_now().await;
-            }
+            utils::spin(is_done_clone, node).await;
             // TODO: "canceled" should be an error?
             let _ = sender.send(());
         });

@@ -74,14 +74,14 @@ impl Navigation for Ros2Navigation {
         timeout: Duration,
     ) -> Result<WaitFuture, Error> {
         let node = self.node.clone();
-        let is_done = Arc::new(AtomicBool::new(false));
-        let is_done_clone = is_done.clone();
         let current_goal = self.current_goal.clone();
         let action_client = self.action_client.clone();
         let is_available = node.lock().is_available(&self.action_client).unwrap();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let frame_id = frame_id.to_owned();
         utils::spawn_blocking(async move {
+            let is_done = Arc::new(AtomicBool::new(false));
+            let is_done_clone = is_done.clone();
             let current_goal_clone = current_goal.clone();
             tokio::spawn(async move {
                 let mut clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
@@ -89,7 +89,7 @@ impl Navigation for Ros2Navigation {
                 let goal = NavigateToPose::Goal {
                     pose: msg::PoseStamped {
                         header: Header {
-                            frame_id: frame_id.to_string(),
+                            frame_id,
                             stamp: Time {
                                 sec: now.as_secs() as i32,
                                 nanosec: now.subsec_nanos(),
@@ -108,13 +108,7 @@ impl Navigation for Ros2Navigation {
                 result.await.unwrap(); // TODO: handle goal state
                 is_done.store(true, Ordering::Relaxed);
             });
-            loop {
-                node.lock().spin_once(std::time::Duration::from_millis(100));
-                tokio::task::yield_now().await;
-                if is_done_clone.load(Ordering::Relaxed) {
-                    break;
-                }
-            }
+            utils::spin(is_done_clone, node).await;
             *current_goal.lock() = None;
             // TODO: "canceled" should be an error?
             let _ = sender.send(());
