@@ -1,9 +1,6 @@
-use std::{
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    time::Duration,
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
 };
 
 use arci::*;
@@ -41,22 +38,15 @@ impl LaserScan2D for Ros2LaserScan2D {
             .subscribe::<LaserScan>(&self.laser_scan_topic_name, QosProfile::default())
             .unwrap();
 
-        let is_done = Arc::new(AtomicBool::new(false));
-        let is_done_clone = is_done.clone();
-
         let subscribed_scan = utils::spawn_blocking(async move {
+            let is_done = Arc::new(AtomicBool::new(false));
+            let is_done_clone = is_done.clone();
             let handle = tokio::spawn(async move {
                 let next = scan_subscriber.next().await;
-                is_done_clone.store(true, Ordering::SeqCst);
+                is_done.store(true, Ordering::Relaxed);
                 next
             });
-            loop {
-                if is_done.load(Ordering::SeqCst) {
-                    break;
-                }
-                node_clone.lock().spin_once(Duration::from_millis(100));
-                tokio::task::yield_now().await;
-            }
+            utils::spin(is_done_clone, node_clone).await;
             handle.await.unwrap()
         })
         .join()
