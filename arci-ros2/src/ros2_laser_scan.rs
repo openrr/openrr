@@ -1,10 +1,6 @@
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
-};
+use std::sync::Arc;
 
 use arci::*;
-use futures::StreamExt;
 use parking_lot::Mutex;
 use r2r::{sensor_msgs::msg::LaserScan, QosProfile};
 use serde::{Deserialize, Serialize};
@@ -33,21 +29,15 @@ impl LaserScan2D for Ros2LaserScan2D {
     fn current_scan(&self) -> Result<arci::Scan2D, arci::Error> {
         let node_clone = self.node.clone();
 
-        let mut scan_subscriber = node_clone
+        let scan_subscriber = node_clone
             .lock()
             .subscribe::<LaserScan>(&self.laser_scan_topic_name, QosProfile::default())
             .unwrap();
 
         let subscribed_scan = utils::spawn_blocking(async move {
-            let is_done = Arc::new(AtomicBool::new(false));
-            let is_done_clone = is_done.clone();
-            let handle = tokio::spawn(async move {
-                let next = scan_subscriber.next().await;
-                is_done.store(true, Ordering::Relaxed);
-                next
-            });
-            utils::spin(is_done_clone, node_clone).await;
-            handle.await.unwrap()
+            utils::subscribe_one(scan_subscriber, node_clone)
+                .await
+                .unwrap()
         })
         .join()
         .unwrap();
