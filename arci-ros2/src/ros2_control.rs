@@ -62,21 +62,13 @@ fn get_joint_state(
     node: Arc<Mutex<r2r::Node>>,
     state_topic: &str,
 ) -> JointTrajectoryControllerState {
-    let mut state_subscriber = node
+    let state_subscriber = node
         .lock()
         .subscribe::<JointTrajectoryControllerState>(state_topic, r2r::QosProfile::default())
         .unwrap();
-    utils::spawn_blocking(async move {
-        let is_done = Arc::new(AtomicBool::new(false));
-        let is_done_clone = is_done.clone();
-        let handle = tokio::spawn(async move {
-            let next = state_subscriber.next().await;
-            is_done.store(true, Ordering::Relaxed);
-            next
-        });
-        utils::spin(is_done_clone, node).await;
-        handle.await.unwrap()
-    })
+    utils::spawn_blocking(
+        async move { utils::subscribe_one(state_subscriber, node).await.unwrap() },
+    )
     .join()
     .unwrap()
     .unwrap()
