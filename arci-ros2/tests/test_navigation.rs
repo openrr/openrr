@@ -31,7 +31,7 @@ fn node_and_action_name() -> (String, String) {
 fn test_nav() {
     test_nav_inner();
 }
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn test_nav_inner() {
     let (node_name, action_name) = &node_and_action_name();
     let ctx = r2r::Context::create().unwrap();
@@ -62,7 +62,7 @@ async fn test_nav_inner() {
     .unwrap();
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_nav_timeout() {
     let (node_name, action_name) = &node_and_action_name();
     let ctx = r2r::Context::create().unwrap();
@@ -100,7 +100,7 @@ async fn test_nav_timeout() {
 fn test_nav_cancel() {
     test_nav_cancel_inner();
 }
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn test_nav_cancel_inner() {
     let (node_name, action_name) = &node_and_action_name();
     let ctx = r2r::Context::create().unwrap();
