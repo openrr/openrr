@@ -11,6 +11,7 @@ use futures::StreamExt;
 use parking_lot::Mutex;
 use r2r::{geometry_msgs::msg::PoseWithCovarianceStamped, QosProfile};
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 use crate::utils;
 
@@ -29,9 +30,23 @@ impl Ros2LocalizationClient {
         nomotion_update_service_name: &str,
         amcl_pose_topic_name: &str,
     ) -> Self {
-        let mut node =
-            r2r::Node::create(ctx, "openrr_ros2_localization_node", "arci_ros2").unwrap();
+        let node = r2r::Node::create(ctx, "openrr_ros2_localization_node", "arci_ros2").unwrap();
 
+        Self::from_node(
+            node,
+            request_final_nomotion_update_hack,
+            nomotion_update_service_name,
+            amcl_pose_topic_name,
+        )
+    }
+
+    /// Creates a new `Ros2LocalizationClient` from ROS2 node.
+    pub fn from_node(
+        mut node: r2r::Node,
+        request_final_nomotion_update_hack: bool,
+        nomotion_update_service_name: &str,
+        amcl_pose_topic_name: &str,
+    ) -> Self {
         let nomotion_update_client = if request_final_nomotion_update_hack {
             Some(node.create_client(&nomotion_update_service_name).unwrap())
         } else {
@@ -46,15 +61,29 @@ impl Ros2LocalizationClient {
     }
 
     /// Request final nomotion update hack
-    pub async fn requst_nomotion_update(&self) {
-        let req_msg = r2r::std_srvs::srv::Empty::Request {};
-        self.nomotion_update_client
-            .as_ref()
-            .unwrap()
-            .request(&req_msg)
-            .unwrap()
-            .await
-            .unwrap();
+    pub async fn request_nomotion_update(&self) {
+        match self.nomotion_update_client.as_ref() {
+            Some(client) => {
+                self.node
+                    .lock()
+                    .is_available(client)
+                    .unwrap()
+                    .await
+                    .unwrap();
+
+                client
+                    .request(&r2r::std_srvs::srv::Empty::Request {})
+                    .unwrap()
+                    .await
+                    .unwrap();
+            }
+            None => info!("Final nomotion update is not requested!"),
+        }
+    }
+
+    /// TODO:
+    pub fn spin_node_once(&self, timeout: std::time::Duration) {
+        self.node.lock().spin_once(timeout);
     }
 }
 

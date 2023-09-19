@@ -61,22 +61,32 @@ async fn test_localization_client() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_localization_client_nomotion_update() {
     let ctx = r2r::Context::create().unwrap();
-    let mut node = r2r::Node::create(ctx.clone(), "test_localization_node", "arci_ros2").unwrap();
+    let mut test_node =
+        r2r::Node::create(ctx.clone(), "test_localization_node", "arci_ros2").unwrap();
 
-    let service_server = node
+    let mut service_server = test_node
         .create_service::<r2r::std_srvs::srv::Empty::Service>(NO_MOTION_UPDATE_SERVICE)
         .unwrap();
 
-    let client = Ros2LocalizationClient::new(ctx, true, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC);
+    let client_node = r2r::Node::create(ctx, "openrr_ros2_localization_node", "arci_ros2").unwrap();
+    let client = Ros2LocalizationClient::from_node(
+        client_node,
+        true,
+        NO_MOTION_UPDATE_SERVICE,
+        AMCL_POSE_TOPIC,
+    );
 
     tokio::spawn(async move {
-        loop {
-            match service_server.next().await {
-                Some(req) => todo!(),
-                None => todo!(),
+        match service_server.next().await {
+            Some(req) => {
+                req.respond(r2r::std_srvs::srv::Empty::Response {}).unwrap();
+                println!("Running...");
+            }
+            None => {
+                println!("Breaked...!");
             }
         }
     });
 
-    client.requst_nomotion_update().await;
+    client.request_nomotion_update().await;
 }
