@@ -1,5 +1,7 @@
 #![cfg(feature = "ros2")]
 
+mod shared;
+
 use std::{
     sync::{
         atomic::{AtomicUsize, Ordering},
@@ -9,7 +11,7 @@ use std::{
 };
 
 use arci::*;
-use arci_ros2::{r2r, Ros2ControlClient};
+use arci_ros2::{r2r, Node, Ros2ControlClient};
 use futures::{
     future::{self, Either},
     stream::{Stream, StreamExt},
@@ -19,32 +21,26 @@ use r2r::{
     control_msgs::{action::FollowJointTrajectory, msg::JointTrajectoryControllerState},
     trajectory_msgs::msg as trajectory_msg,
 };
+use shared::*;
 
-// (node_name, action_name)
-fn node_and_action_name() -> (String, String) {
+fn action_name() -> String {
     static COUNT: AtomicUsize = AtomicUsize::new(0);
-    let n = COUNT.fetch_add(1, Ordering::SeqCst);
-    let node_name = format!("test_ros2_control_node_{n}");
-    let action_name = format!("/test_ros2_control_{n}");
-    (node_name, action_name)
+    let n = COUNT.fetch_add(1, Ordering::Relaxed);
+    format!("/test_nav2_{n}")
 }
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_control() {
-    let (node_name, action_name) = &node_and_action_name();
-    let ctx = r2r::Context::create().unwrap();
-
-    let node = Arc::new(Mutex::new(
-        r2r::Node::create(ctx.clone(), node_name, "arci_ros2").unwrap(),
-    ));
+    let action_name = &action_name();
+    let node = test_node();
     let server_requests = node
-        .lock()
+        .r2r()
         .create_action_server::<FollowJointTrajectory::Action>(&format!(
             "{action_name}/follow_joint_trajectory"
         ))
         .unwrap();
     let publisher = node
-        .lock()
+        .r2r()
         .create_publisher::<JointTrajectoryControllerState>(
             &format!("{action_name}/state"),
             r2r::QosProfile::default(),
@@ -58,19 +54,20 @@ async fn test_control() {
         },
         ..Default::default()
     }));
-    let node_cb = node.clone();
-    tokio::spawn(test_control_server(node_cb, server_requests, state.clone()));
+    tokio::spawn(test_control_server(
+        node.clone(),
+        server_requests,
+        state.clone(),
+    ));
     tokio::spawn(async move {
         loop {
             publisher.publish(&state.lock()).unwrap();
             tokio::time::sleep(Duration::from_millis(100)).await;
         }
     });
-    std::thread::spawn(move || loop {
-        node.lock().spin_once(Duration::from_millis(100));
-    });
+    node.run_spin_thread(Duration::from_millis(100));
+    let client = Ros2ControlClient::new(node, action_name);
 
-    let client = Ros2ControlClient::new(ctx, action_name);
     assert_eq!(client.joint_names(), vec!["j1".to_owned(), "j2".to_owned()]);
     assert_eq!(client.current_joint_positions().unwrap(), vec![0.0, 0.0]);
     client
@@ -82,12 +79,12 @@ async fn test_control() {
 }
 
 async fn run_goal(
-    node: Arc<Mutex<r2r::Node>>,
+    node: Node,
     goal: r2r::ActionServerGoal<FollowJointTrajectory::Action>,
     state: Arc<Mutex<JointTrajectoryControllerState>>,
 ) -> FollowJointTrajectory::Result {
     let mut timer = node // local timer, will be dropped after this request is processed.
-        .lock()
+        .r2r()
         .create_wall_timer(Duration::from_millis(800))
         .expect("could not create timer");
 
@@ -106,7 +103,7 @@ async fn run_goal(
 }
 
 async fn test_control_server(
-    node: Arc<Mutex<r2r::Node>>,
+    node: Node,
     mut requests: impl Stream<Item = r2r::ActionServerGoalRequest<FollowJointTrajectory::Action>>
         + Unpin,
     state: Arc<Mutex<JointTrajectoryControllerState>>,

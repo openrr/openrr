@@ -4,10 +4,11 @@ async fn main() -> anyhow::Result<()> {
     use std::time::Duration;
 
     use arci::*;
-    use arci_ros2::{r2r, Ros2Navigation};
+    use arci_ros2::{Node, Ros2Navigation};
 
-    let ctx = r2r::Context::create().unwrap();
-    let nav = Ros2Navigation::new(ctx, "/navigate_to_pose");
+    let node = Node::new("nav2_node", "arci_ros2").unwrap();
+    node.run_spin_thread(Duration::from_millis(100));
+    let nav = Ros2Navigation::new(node, "/navigate_to_pose");
     nav.send_goal_pose(
         Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
         "map",

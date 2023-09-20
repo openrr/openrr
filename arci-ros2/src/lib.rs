@@ -13,6 +13,7 @@
 
 mod cmd_vel_move_base;
 mod navigation;
+mod node;
 mod plugin;
 mod ros2_control;
 mod ros2_laser_scan;
@@ -20,6 +21,7 @@ mod utils;
 
 pub use cmd_vel_move_base::*;
 pub use navigation::*;
+pub use node::*;
 // re-export
 pub use r2r;
 pub use ros2_control::*;
