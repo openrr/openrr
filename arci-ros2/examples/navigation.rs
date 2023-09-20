@@ -5,12 +5,22 @@ async fn main() -> anyhow::Result<()> {
 
     use arci::*;
     use arci_ros2::{Node, Ros2Navigation};
+    use clap::Parser;
 
+    #[derive(Parser, Debug)]
+    #[clap(name = env!("CARGO_BIN_NAME"))]
+    struct Args {
+        x: f64,
+        y: f64,
+        yaw: f64,
+    }
+
+    let args = Args::parse();
     let node = Node::new("nav2_node", "arci_ros2").unwrap();
     node.run_spin_thread(Duration::from_millis(100));
-    let nav = Ros2Navigation::new(node, "/navigate_to_pose");
+    let nav = Ros2Navigation::new(node.clone(), "/goal_pose", "/amcl_pose");
     nav.send_goal_pose(
-        Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
+        Isometry2::new(Vector2::new(args.x, args.y), args.yaw),
         "map",
         Duration::from_secs_f64(10.0),
     )?
