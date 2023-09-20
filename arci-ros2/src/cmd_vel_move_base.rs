@@ -3,31 +3,26 @@ use parking_lot::Mutex;
 use r2r::geometry_msgs::msg::Twist;
 use serde::{Deserialize, Serialize};
 
-/// Implement arci::MoveBase for ROS2
+use crate::Node;
+
+/// `arci::MoveBase` implementation for ROS2.
 pub struct Ros2CmdVelMoveBase {
     vel_publisher: Mutex<r2r::Publisher<Twist>>,
     // keep not to be dropped
-    _node: Mutex<r2r::Node>,
+    _node: Node,
 }
 
 impl Ros2CmdVelMoveBase {
-    /// Creates a new `Ros2CmdVelMoveBase` from ROS2 context and Twist topic name.
+    /// Creates a new `Ros2CmdVelMoveBase` from geometry_msgs/Twist topic name.
     #[track_caller]
-    pub fn new(ctx: r2r::Context, cmd_topic_name: &str) -> Self {
-        // TODO: Consider using unique name
-        let node = r2r::Node::create(ctx, "cmd_vel_node", "arci_ros2").unwrap();
-        Self::from_node(node, cmd_topic_name)
-    }
-
-    /// Creates a new `Ros2CmdVelMoveBase` from ROS2 node and Twist topic name.
-    #[track_caller]
-    pub fn from_node(mut node: r2r::Node, cmd_topic_name: &str) -> Self {
+    pub fn new(node: Node, cmd_topic_name: &str) -> Self {
+        let vel_publisher = node
+            .r2r()
+            .create_publisher(cmd_topic_name, r2r::QosProfile::default())
+            .unwrap();
         Self {
-            vel_publisher: Mutex::new(
-                node.create_publisher(cmd_topic_name, r2r::QosProfile::default())
-                    .unwrap(),
-            ),
-            _node: Mutex::new(node),
+            vel_publisher: Mutex::new(vel_publisher),
+            _node: node,
         }
     }
 }
@@ -51,10 +46,10 @@ impl MoveBase for Ros2CmdVelMoveBase {
     }
 }
 
+/// Configuration for `Ros2CmdVelMoveBase`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-/// Config for Ros2CmdVelMoveBaseConfig
 pub struct Ros2CmdVelMoveBaseConfig {
-    /// topic name for Twist
+    /// Topic name for geometry_msgs/Twist.
     pub topic: String,
 }

@@ -1,5 +1,7 @@
 #![cfg(feature = "ros2")]
 
+mod shared;
+
 use std::{
     sync::{
         atomic::{AtomicBool, AtomicUsize, Ordering},
@@ -9,22 +11,19 @@ use std::{
 };
 
 use arci::*;
-use arci_ros2::{r2r, Ros2Navigation};
+use arci_ros2::{r2r, Node, Ros2Navigation};
 use assert_approx_eq::assert_approx_eq;
 use futures::{
     future::{self, Either},
     stream::{Stream, StreamExt},
 };
-use parking_lot::Mutex;
 use r2r::nav2_msgs::action::NavigateToPose;
+use shared::*;
 
-// (node_name, action_name)
-fn node_and_action_name() -> (String, String) {
+fn action_name() -> String {
     static COUNT: AtomicUsize = AtomicUsize::new(0);
-    let n = COUNT.fetch_add(1, Ordering::SeqCst);
-    let node_name = format!("test_nav2_node_{n}");
-    let action_name = format!("/test_nav2_{n}");
-    (node_name, action_name)
+    let n = COUNT.fetch_add(1, Ordering::Relaxed);
+    format!("/test_nav2_{n}")
 }
 
 #[flaky_test::flaky_test]
@@ -33,24 +32,18 @@ fn test_nav() {
 }
 #[tokio::main]
 async fn test_nav_inner() {
-    let (node_name, action_name) = &node_and_action_name();
-    let ctx = r2r::Context::create().unwrap();
-    let nav = Ros2Navigation::new(ctx.clone(), action_name);
-    let node = Arc::new(Mutex::new(
-        r2r::Node::create(ctx, node_name, "arci_ros2").unwrap(),
-    ));
+    let action_name = &action_name();
+    let node = test_node();
+    let nav = Ros2Navigation::new(node.clone(), action_name);
 
     let server_requests = node
-        .lock()
+        .r2r()
         .create_action_server::<NavigateToPose::Action>(action_name)
         .unwrap();
 
-    let node_cb = node.clone();
-    tokio::spawn(test_nav_server(node_cb, server_requests));
+    tokio::spawn(test_nav_server(node.clone(), server_requests));
 
-    std::thread::spawn(move || loop {
-        node.lock().spin_once(Duration::from_millis(100));
-    });
+    node.run_spin_thread(Duration::from_millis(100));
 
     nav.send_goal_pose(
         Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
@@ -64,24 +57,19 @@ async fn test_nav_inner() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_nav_timeout() {
-    let (node_name, action_name) = &node_and_action_name();
-    let ctx = r2r::Context::create().unwrap();
-    let nav = Ros2Navigation::new(ctx.clone(), action_name);
-    let node = Arc::new(Mutex::new(
-        r2r::Node::create(ctx, node_name, "arci_ros2").unwrap(),
-    ));
+    let action_name = &action_name();
+    let node = test_node();
+    let nav = Ros2Navigation::new(node.clone(), action_name);
 
     let server_requests = node
-        .lock()
+        .r2r()
         .create_action_server::<NavigateToPose::Action>(action_name)
         .unwrap();
 
     let node_cb = node.clone();
     tokio::spawn(test_nav_server(node_cb, server_requests));
 
-    std::thread::spawn(move || loop {
-        node.lock().spin_once(Duration::from_millis(100));
-    });
+    node.run_spin_thread(Duration::from_millis(100));
 
     assert!(nav
         .send_goal_pose(
@@ -102,24 +90,18 @@ fn test_nav_cancel() {
 }
 #[tokio::main]
 async fn test_nav_cancel_inner() {
-    let (node_name, action_name) = &node_and_action_name();
-    let ctx = r2r::Context::create().unwrap();
-    let nav = Ros2Navigation::new(ctx.clone(), action_name);
-    let node = Arc::new(Mutex::new(
-        r2r::Node::create(ctx, node_name, "arci_ros2").unwrap(),
-    ));
+    let action_name = &action_name();
+    let node = test_node();
+    let nav = Ros2Navigation::new(node.clone(), action_name);
 
     let server_requests = node
-        .lock()
+        .r2r()
         .create_action_server::<NavigateToPose::Action>(action_name)
         .unwrap();
 
-    let node_cb = node.clone();
-    tokio::spawn(test_nav_server(node_cb, server_requests));
+    tokio::spawn(test_nav_server(node.clone(), server_requests));
 
-    std::thread::spawn(move || loop {
-        node.lock().spin_once(Duration::from_millis(100));
-    });
+    node.run_spin_thread(Duration::from_millis(100));
 
     let wait = nav
         .send_goal_pose(
@@ -136,12 +118,12 @@ async fn test_nav_cancel_inner() {
 }
 
 async fn run_goal(
-    node: Arc<Mutex<r2r::Node>>,
+    node: Node,
     g: r2r::ActionServerGoal<NavigateToPose::Action>,
     canceled: Arc<AtomicBool>,
 ) -> NavigateToPose::Result {
     let mut timer = node // local timer, will be dropped after this request is processed.
-        .lock()
+        .r2r()
         .create_wall_timer(Duration::from_millis(800))
         .expect("could not create timer");
 
@@ -191,7 +173,7 @@ async fn run_goal(
 }
 
 async fn test_nav_server(
-    node: Arc<Mutex<r2r::Node>>,
+    node: Node,
     mut requests: impl Stream<Item = r2r::ActionServerGoalRequest<NavigateToPose::Action>> + Unpin,
 ) {
     while let Some(req) = requests.next().await {

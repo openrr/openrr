@@ -16,34 +16,27 @@ use r2r::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::utils;
+use crate::{utils, Node};
 
-/// Implement arci::Navigation for ROS2
+/// `arci::Navigation` implementation for ROS2.
 pub struct Ros2Navigation {
     action_client: r2r::ActionClient<NavigateToPose::Action>,
     /// r2r::Node to handle the action
-    node: Arc<Mutex<r2r::Node>>,
+    node: Node,
     current_goal: Arc<Mutex<Option<r2r::ActionClientGoal<NavigateToPose::Action>>>>,
 }
 
 impl Ros2Navigation {
-    /// Creates a new `Ros2Navigation` from ROS2 context and name of action.
+    /// Creates a new `Ros2Navigation` from nav2_msgs/NavigateToPose action name.
     #[track_caller]
-    pub fn new(ctx: r2r::Context, action_name: &str) -> Self {
-        // TODO: Consider using unique name
-        let node = r2r::Node::create(ctx, "nav2_node", "arci_ros2").unwrap();
-        Self::from_node(node, action_name)
-    }
-
-    /// Creates a new `Ros2Navigation` from ROS2 node and name of action.
-    #[track_caller]
-    pub fn from_node(mut node: r2r::Node, action_name: &str) -> Self {
+    pub fn new(node: Node, action_name: &str) -> Self {
         let action_client = node
+            .r2r()
             .create_action_client::<NavigateToPose::Action>(action_name)
             .unwrap();
         Self {
             action_client,
-            node: Arc::new(Mutex::new(node)),
+            node,
             current_goal: Arc::new(Mutex::new(None)),
         }
     }
@@ -76,7 +69,7 @@ impl Navigation for Ros2Navigation {
         let node = self.node.clone();
         let current_goal = self.current_goal.clone();
         let action_client = self.action_client.clone();
-        let is_available = node.lock().is_available(&self.action_client).unwrap();
+        let is_available = node.r2r().is_available(&self.action_client).unwrap();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let frame_id = frame_id.to_owned();
         utils::spawn_blocking(async move {
@@ -108,7 +101,7 @@ impl Navigation for Ros2Navigation {
                 result.await.unwrap(); // TODO: handle goal state
                 is_done.store(true, Ordering::Relaxed);
             });
-            utils::spin(is_done_clone, node).await;
+            utils::wait(is_done_clone).await;
             *current_goal.lock() = None;
             // TODO: "canceled" should be an error?
             let _ = sender.send(());
@@ -137,10 +130,10 @@ impl Navigation for Ros2Navigation {
     }
 }
 
+/// Configuration for `Ros2Navigation`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-/// Configuration for Ros2NavigationConfig
 pub struct Ros2NavigationConfig {
-    /// Name of action nav2_msgs/NavigateToPose
+    /// Action name for nav2_msgs/NavigateToPose.
     pub action_name: String,
 }

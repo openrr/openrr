@@ -1,25 +1,20 @@
-use std::sync::Arc;
-
 use arci::*;
-use parking_lot::Mutex;
 use r2r::{sensor_msgs::msg::LaserScan, QosProfile};
 use serde::{Deserialize, Serialize};
 
-use crate::utils;
+use crate::{utils, Node};
 
-/// Implement arci::LaserScan2D for ROS2
+/// `arci::LaserScan2D` implementation for ROS2.
 pub struct Ros2LaserScan2D {
-    node: Arc<Mutex<r2r::Node>>,
+    node: Node,
     laser_scan_topic_name: String,
 }
 
 impl Ros2LaserScan2D {
-    /// Creates a new `Ros2LaserScan2D`.
-    pub fn new(ctx: r2r::Context, laser_scan_topic_name: &str) -> Self {
-        let node = r2r::Node::create(ctx, "openrr_ros2_laser_scan_node", "arci_ros2").unwrap();
-
+    /// Creates a new `Ros2LaserScan2D` from sensor_msgs/LaserScan topic name.
+    pub fn new(node: Node, laser_scan_topic_name: &str) -> Self {
         Self {
-            node: Arc::new(Mutex::new(node)),
+            node,
             laser_scan_topic_name: laser_scan_topic_name.to_owned(),
         }
     }
@@ -27,20 +22,18 @@ impl Ros2LaserScan2D {
 
 impl LaserScan2D for Ros2LaserScan2D {
     fn current_scan(&self) -> Result<arci::Scan2D, arci::Error> {
-        let node_clone = self.node.clone();
-
-        let scan_subscriber = node_clone
-            .lock()
+        let scan_subscriber = self
+            .node
+            .r2r()
             .subscribe::<LaserScan>(&self.laser_scan_topic_name, QosProfile::default())
             .unwrap();
 
-        let subscribed_scan = utils::spawn_blocking(async move {
-            utils::subscribe_one(scan_subscriber, node_clone)
-                .await
-                .unwrap()
-        })
-        .join()
-        .unwrap();
+        let subscribed_scan =
+            utils::spawn_blocking(
+                async move { utils::subscribe_one(scan_subscriber).await.unwrap() },
+            )
+            .join()
+            .unwrap();
 
         let current_scan = match subscribed_scan {
             Some(msg) => Scan2D {
@@ -69,10 +62,10 @@ impl LaserScan2D for Ros2LaserScan2D {
     }
 }
 
+/// Configuration for `Ros2LaserScan2D`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-/// Config for Ros2LaserScanConfig
 pub struct Ros2LaserScan2DConfig {
-    /// topic name for LaserScan
+    /// Topic name for sensor_msgs/LaserScan.
     pub topic: String,
 }
