@@ -11,6 +11,7 @@ MEMBERS=(
   "openrr-config"
 
   # depend on arci
+  "openrr-base"
   "openrr-plugin"
   "openrr-remote"
   "openrr-tracing"
