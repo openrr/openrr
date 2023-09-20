@@ -41,7 +41,8 @@ impl openrr_plugin::Plugin for Ros2Plugin {
         let node = Node::new("plugin_nav2_node", "arci_ros2").unwrap();
         Ok(Some(Box::new(Ros2Navigation::new(
             node,
-            &config.action_name,
+            &config.goal_pose_topic,
+            &config.amcl_pose_topic,
         ))))
     }
 

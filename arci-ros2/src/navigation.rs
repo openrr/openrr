@@ -10,32 +10,33 @@ use anyhow::format_err;
 use arci::*;
 use futures::stream::StreamExt;
 use parking_lot::Mutex;
-use r2r::{
-    builtin_interfaces::msg::Time, geometry_msgs::msg, nav2_msgs::action::NavigateToPose,
-    std_msgs::msg::Header,
-};
+use r2r::{builtin_interfaces::msg::Time, geometry_msgs::msg, std_msgs::msg::Header, QosProfile};
 use serde::{Deserialize, Serialize};
+use tokio::sync::oneshot;
 
 use crate::{utils, Node};
 
 /// `arci::Navigation` implementation for ROS2.
 pub struct Ros2Navigation {
-    action_client: r2r::ActionClient<NavigateToPose::Action>,
-    /// r2r::Node to handle the action
+    goal_pose_publisher: Arc<Mutex<r2r::Publisher<msg::PoseStamped>>>,
+    amcl_pose_topic_name: String,
+    // keep not to be dropped
     node: Node,
-    current_goal: Arc<Mutex<Option<r2r::ActionClientGoal<NavigateToPose::Action>>>>,
+    current_goal: Arc<Mutex<Option<oneshot::Sender<()>>>>,
 }
 
 impl Ros2Navigation {
-    /// Creates a new `Ros2Navigation` from nav2_msgs/NavigateToPose action name.
+    /// Creates a new `Ros2Navigation` from geometry_msgs/PoseStamped and geometry_msgs/PoseWithCovarianceStamped topic names.
     #[track_caller]
-    pub fn new(node: Node, action_name: &str) -> Self {
-        let action_client = node
-            .r2r()
-            .create_action_client::<NavigateToPose::Action>(action_name)
-            .unwrap();
+    pub fn new(node: Node, goal_pose_topic_name: &str, amcl_pose_topic_name: &str) -> Self {
+        let goal_pose_publisher = Arc::new(Mutex::new(
+            node.r2r()
+                .create_publisher(goal_pose_topic_name, r2r::QosProfile::default())
+                .unwrap(),
+        ));
         Self {
-            action_client,
+            goal_pose_publisher,
+            amcl_pose_topic_name: amcl_pose_topic_name.to_owned(),
             node,
             current_goal: Arc::new(Mutex::new(None)),
         }
@@ -66,66 +67,78 @@ impl Navigation for Ros2Navigation {
         frame_id: &str,
         timeout: Duration,
     ) -> Result<WaitFuture, Error> {
-        let node = self.node.clone();
-        let current_goal = self.current_goal.clone();
-        let action_client = self.action_client.clone();
-        let is_available = node.r2r().is_available(&self.action_client).unwrap();
-        let (sender, receiver) = tokio::sync::oneshot::channel();
-        let frame_id = frame_id.to_owned();
+        let mut clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
+        let mut goal_pose = msg::PoseStamped {
+            header: Header {
+                frame_id: frame_id.to_owned(),
+                stamp: Time { sec: 0, nanosec: 0 },
+            },
+            pose: to_pose_msg(&goal),
+        };
+
+        let (res_sender, res_receiver) = oneshot::channel();
+        let (cancel, mut canceled) = oneshot::channel();
+        *self.current_goal.lock() = Some(cancel);
+        let goal_pose_publisher = self.goal_pose_publisher.clone();
+        let mut amcl_pose_subscriber = self
+            .node
+            .r2r()
+            .subscribe::<msg::PoseWithCovarianceStamped>(
+                &self.amcl_pose_topic_name,
+                QosProfile::default(),
+            )
+            .unwrap();
         utils::spawn_blocking(async move {
-            let is_done = Arc::new(AtomicBool::new(false));
-            let is_done_clone = is_done.clone();
-            let current_goal_clone = current_goal.clone();
+            let mut changed = false;
+            let finished = Arc::new(AtomicBool::new(false));
+            let finished_clone = finished.clone();
             tokio::spawn(async move {
-                let mut clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
-                let now = clock.get_now().unwrap();
-                let goal = NavigateToPose::Goal {
-                    pose: msg::PoseStamped {
-                        header: Header {
-                            frame_id,
-                            stamp: Time {
-                                sec: now.as_secs() as i32,
-                                nanosec: now.subsec_nanos(),
-                            },
-                        },
-                        pose: to_pose_msg(&goal),
-                    },
-                    ..Default::default()
-                };
-
-                is_available.await.unwrap();
-                let send_goal_request = action_client.send_goal_request(goal).unwrap();
-                let (goal, result, feedback) = send_goal_request.await.unwrap();
-                *current_goal_clone.lock() = Some(goal.clone());
-                tokio::spawn(async move { feedback.for_each(|_| std::future::ready(())).await });
-                result.await.unwrap(); // TODO: handle goal state
-                is_done.store(true, Ordering::Relaxed);
+                while !finished_clone.load(Ordering::Relaxed) {
+                    let now = clock.get_now().unwrap();
+                    goal_pose.header.stamp = Time {
+                        sec: now.as_secs() as i32,
+                        nanosec: now.subsec_nanos(),
+                    };
+                    if let Err(e) = goal_pose_publisher.lock().publish(&goal_pose) {
+                        tracing::error!("r2r publish error: {e:?}");
+                        break;
+                    }
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                }
             });
-            utils::wait(is_done_clone).await;
-            *current_goal.lock() = None;
-            // TODO: "canceled" should be an error?
-            let _ = sender.send(());
-        });
-        let timeout_fut = tokio::time::sleep(timeout);
-        let wait = WaitFuture::new(async move {
-            tokio::select! {
-                _ = receiver => Ok(()),
-                _ = timeout_fut => Err(arci::Error::Other(format_err!("timeout {timeout:?}"))),
+            while canceled
+                .try_recv()
+                .map_or_else(|e| e == oneshot::error::TryRecvError::Empty, |()| false)
+            {
+                let sleep = tokio::time::sleep(timeout);
+                tokio::pin!(sleep);
+                tokio::select! { biased;
+                    Some(_) = amcl_pose_subscriber.next() => {
+                        changed = true;
+                    },
+                    _ = &mut sleep => {
+                        // TODO: we have no way to this is time out or finished
+                        if changed {
+                            let _ = res_sender.send(Ok(()));
+                        } else {
+                            let _ = res_sender.send(Err(format_err!("timeout {timeout:?}").into()));
+                        }
+                        finished.store(true, Ordering::Relaxed);
+                        return;
+                    },
+                }
             }
+            finished.store(true, Ordering::Relaxed);
+            let _ = res_sender.send(Err(arci::Error::Canceled {
+                message: String::new(),
+            }));
         });
 
-        Ok(wait)
+        Ok(WaitFuture::new(async move { res_receiver.await.unwrap() }))
     }
 
     fn cancel(&self) -> Result<(), Error> {
-        // TODO: current_goal is None until send_goal_request.await is complete.
-        //       Therefore, if cancel is called during that period, it will not work correctly.
-        if let Some(current_goal) = self.current_goal.lock().take() {
-            let fut = current_goal.cancel().map_err(|e| Error::Other(e.into()))?;
-            utils::spawn_blocking(async move {
-                let _ = fut.await;
-            });
-        }
+        *self.current_goal.lock() = None;
         Ok(())
     }
 }
@@ -134,6 +147,8 @@ impl Navigation for Ros2Navigation {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Ros2NavigationConfig {
-    /// Action name for nav2_msgs/NavigateToPose.
-    pub action_name: String,
+    /// Topic name for geometry_msgs/PoseStamped.
+    pub goal_pose_topic: String,
+    /// Topic name for geometry_msgs/PoseWithCovarianceStamped.
+    pub amcl_pose_topic: String,
 }
