@@ -54,7 +54,7 @@ async fn main() -> Result<()> {
         use influxdb::InfluxDbWriteable;
         let d = log[1].timestamp.signed_duration_since(log[0].timestamp);
         v.push(
-            influxdb::Timestamp::Nanoseconds(log[0].timestamp.timestamp_nanos() as _)
+            influxdb::Timestamp::Nanoseconds(log[0].timestamp.timestamp_nanos_opt().unwrap() as _)
                 .into_query("send_velocity")
                 .add_field("duration", d.num_nanoseconds().unwrap())
                 .add_field("velocity_x", log[0].velocity.x)
