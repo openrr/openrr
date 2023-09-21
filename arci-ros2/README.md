@@ -40,6 +40,12 @@ ros2 launch nav2_bringup tb3_simulation_launch.py
 
 ### Run command line tools
 
+#### Run navigation example of arci-ros2
+
+```sh
+cargo run --package arci-ros2 --features ros2 --example navigation -- -- 0.6 0.2 1.0
+```
+
 #### Send navigation goal via command line
 
 Don't forget to set the initial pose of the robot before sending the goal pose using the `2D Pose Estimate` button of `rviz`.
@@ -93,7 +99,7 @@ TODO: add usage of openrr-apps + ros2_control
 #### Run ros2_control example of arci-ros2
 
 ```sh
-cargo run --package arci-ros2 --example ros2_control --features ros2
+cargo run --package arci-ros2 --features ros2 --example ros2_control
 ```
 
 ## License

@@ -31,4 +31,5 @@ tracing.workspace = true
 
 [dev-dependencies]
 assert_approx_eq.workspace = true
+clap.workspace = true
 flaky_test.workspace = true
