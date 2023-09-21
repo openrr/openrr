@@ -23,16 +23,12 @@
         "map": {
           "axis_map": [
             [
-              "LeftStickY",
-              "LeftStickY"
-            ],
-            [
               "LeftStickX",
               "LeftStickX"
             ],
             [
-              "DPadY",
-              "DPadY"
+              "LeftStickY",
+              "LeftStickY"
             ],
             [
               "RightStickX",
@@ -45,62 +41,26 @@
             [
               "DPadX",
               "DPadX"
+            ],
+            [
+              "DPadY",
+              "DPadY"
             ]
           ],
           "axis_value_map": [
             [
-              "LeftStickX",
+              "RightStickX",
               -1.0
             ],
             [
-              "RightStickX",
+              "LeftStickX",
               -1.0
             ]
           ],
           "button_map": [
             [
-              "LeftTrigger",
-              "LeftTrigger"
-            ],
-            [
-              "RightTrigger2",
-              "RightTrigger2"
-            ],
-            [
-              "RightThumb",
-              "RightThumb"
-            ],
-            [
-              "DPadDown",
-              "DPadDown"
-            ],
-            [
-              "RightTrigger",
-              "RightTrigger"
-            ],
-            [
-              "DPadRight",
-              "DPadRight"
-            ],
-            [
-              "DPadLeft",
-              "DPadLeft"
-            ],
-            [
-              "DPadUp",
-              "DPadUp"
-            ],
-            [
               "South",
               "South"
-            ],
-            [
-              "West",
-              "West"
-            ],
-            [
-              "LeftTrigger2",
-              "LeftTrigger2"
             ],
             [
               "East",
@@ -109,6 +69,26 @@
             [
               "North",
               "North"
+            ],
+            [
+              "West",
+              "West"
+            ],
+            [
+              "LeftTrigger",
+              "LeftTrigger"
+            ],
+            [
+              "LeftTrigger2",
+              "LeftTrigger2"
+            ],
+            [
+              "RightTrigger",
+              "RightTrigger"
+            ],
+            [
+              "RightTrigger2",
+              "RightTrigger2"
             ],
             [
               "Select",
@@ -125,6 +105,26 @@
             [
               "LeftThumb",
               "LeftThumb"
+            ],
+            [
+              "RightThumb",
+              "RightThumb"
+            ],
+            [
+              "DPadUp",
+              "DPadUp"
+            ],
+            [
+              "DPadDown",
+              "DPadDown"
+            ],
+            [
+              "DPadLeft",
+              "DPadLeft"
+            ],
+            [
+              "DPadRight",
+              "DPadRight"
             ]
           ]
         }
@@ -157,6 +157,34 @@
         "string",
         "null"
       ]
+    },
+    "ros_joy_gamepad_config": {
+      "default": {
+        "axis_map": {
+          "0": "LeftStickX",
+          "1": "LeftStickY",
+          "2": "LeftTrigger",
+          "3": "RightStickX",
+          "4": "RightStickY",
+          "5": "RightTrigger",
+          "6": "DPadX",
+          "7": "DPadY"
+        },
+        "button_map": {
+          "0": "South",
+          "1": "East",
+          "2": "West",
+          "3": "North",
+          "4": "LeftTrigger2",
+          "5": "RightTrigger2"
+        },
+        "topic_name": "joy"
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/RosJoyGamepadConfig"
+        }
+      ]
     }
   },
   "additionalProperties": false,
@@ -179,7 +207,8 @@
       "type": "string",
       "enum": [
         "gilrs",
-        "keyboard"
+        "keyboard",
+        "ros-joy-gamepad"
       ]
     },
     "Button": {
@@ -268,84 +297,80 @@
           "default": {
             "axis_map": [
               [
-                "DPadY",
-                "DPadY"
-              ],
-              [
-                "RightStickX",
-                "RightStickX"
-              ],
-              [
                 "LeftStickX",
                 "LeftStickX"
-              ],
-              [
-                "RightStickY",
-                "RightStickY"
               ],
               [
                 "LeftStickY",
                 "LeftStickY"
               ],
               [
+                "RightStickX",
+                "RightStickX"
+              ],
+              [
+                "RightStickY",
+                "RightStickY"
+              ],
+              [
                 "DPadX",
                 "DPadX"
+              ],
+              [
+                "DPadY",
+                "DPadY"
               ]
             ],
             "axis_value_map": [
               [
-                "LeftStickX",
+                "RightStickX",
                 -1.0
               ],
               [
-                "RightStickX",
+                "LeftStickX",
                 -1.0
               ]
             ],
             "button_map": [
               [
-                "RightThumb",
-                "RightThumb"
-              ],
-              [
                 "South",
                 "South"
-              ],
-              [
-                "DPadDown",
-                "DPadDown"
-              ],
-              [
-                "DPadRight",
-                "DPadRight"
-              ],
-              [
-                "LeftTrigger",
-                "LeftTrigger"
               ],
               [
                 "East",
                 "East"
               ],
               [
+                "North",
+                "North"
+              ],
+              [
                 "West",
                 "West"
               ],
               [
-                "DPadUp",
-                "DPadUp"
-              ],
-              [
-                "Select",
-                "Select"
+                "LeftTrigger",
+                "LeftTrigger"
               ],
               [
                 "LeftTrigger2",
                 "LeftTrigger2"
               ],
               [
+                "RightTrigger",
+                "RightTrigger"
+              ],
+              [
                 "RightTrigger2",
                 "RightTrigger2"
+              ],
+              [
+                "Select",
+                "Select"
+              ],
+              [
+                "Start",
+                "Start"
               ],
               [
                 "Mode",
@@ -356,20 +381,24 @@
                 "LeftThumb"
               ],
               [
-                "RightTrigger",
-                "RightTrigger"
+                "RightThumb",
+                "RightThumb"
               ],
               [
-                "Start",
-                "Start"
+                "DPadUp",
+                "DPadUp"
               ],
               [
-                "North",
-                "North"
+                "DPadDown",
+                "DPadDown"
               ],
               [
                 "DPadLeft",
                 "DPadLeft"
+              ],
+              [
+                "DPadRight",
+                "DPadRight"
               ]
             ]
           },
@@ -609,6 +638,32 @@
           "type": "string"
         },
         "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RosJoyGamepadConfig": {
+      "type": "object",
+      "required": [
+        "axis_map",
+        "button_map",
+        "topic_name"
+      ],
+      "properties": {
+        "axis_map": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Axis"
+          }
+        },
+        "button_map": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Button"
+          }
+        },
+        "topic_name": {
           "type": "string"
         }
       },

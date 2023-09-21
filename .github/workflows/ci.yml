@@ -175,18 +175,17 @@ jobs:
           source /opt/ros/${{ matrix.distro }}/setup.bash
           cargo test --features ros2
 
-  # TODO(taiki-e): Some configs use HashMap and the order of the default values
-  #                will change every time because HashMap order is not stable.
-  #                So we cannot enable this check until the uses of HashMap in
-  #                configs are removed.
-  # # When this job failed, run tools/update-schema.sh and commit result changes.
-  # schema:
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 60
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - run: tools/update-schema.sh
-  #     - run: git diff --exit-code
+  # When this job failed, run tools/update-schema.sh and commit result changes.
+  schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: ci/ubuntu-install-dependencies.sh
+      - run: tools/update-schema.sh
+      - run: git add -N . && git diff --exit-code
 
   # When this job failed, run tools/gen-code.sh and commit result changes.
   codegen:
@@ -198,7 +197,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@protoc
       - run: tools/gen-code.sh
-      - run: git diff --exit-code
+      - run: git add -N . && git diff --exit-code
 
   # Check all feature combinations work properly.
   features:

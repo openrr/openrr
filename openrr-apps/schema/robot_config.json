@@ -15,7 +15,6 @@
     },
     "localization": {
       "description": "Localization to be used. `\"ros\"`, `\"urdf-viz\"`, `false`, or plugin instance name.",
-      "default": true,
       "allOf": [
         {
           "$ref": "#/definitions/ClientKind"
@@ -24,7 +23,6 @@
     },
     "move_base": {
       "description": "MoveBase to be used. `\"ros\"`, `\"urdf-viz\"`, `false`, or plugin instance name.",
-      "default": true,
       "allOf": [
         {
           "$ref": "#/definitions/ClientKind"
@@ -33,7 +31,6 @@
     },
     "navigation": {
       "description": "Navigation to be used. `\"ros\"`, `\"urdf-viz\"`, `false`, or plugin instance name.",
-      "default": true,
       "allOf": [
         {
           "$ref": "#/definitions/ClientKind"
@@ -50,6 +47,14 @@
       "allOf": [
         {
           "$ref": "#/definitions/OpenrrClientsConfig"
+        }
+      ]
+    },
+    "openrr_tracing_config": {
+      "default": {},
+      "allOf": [
+        {
+          "$ref": "#/definitions/OpenrrTracingConfig"
         }
       ]
     },
@@ -129,10 +134,21 @@
   "additionalProperties": false,
   "definitions": {
     "BuiltinClient": {
-      "type": "string",
-      "enum": [
-        "ros",
-        "urdf-viz"
+      "oneOf": [
+        {
+          "description": "[ROS1](https://ros.org)",
+          "type": "string",
+          "enum": [
+            "ros"
+          ]
+        },
+        {
+          "description": "[urdf-viz](https://github.com/openrr/urdf-viz)",
+          "type": "string",
+          "enum": [
+            "urdf-viz"
+          ]
+        }
       ]
     },
     "ClientKind": {
@@ -147,6 +163,35 @@
           "type": "boolean"
         }
       ]
+    },
+    "CollisionAvoidanceClientConfig": {
+      "type": "object",
+      "required": [
+        "client_name",
+        "name"
+      ],
+      "properties": {
+        "client_name": {
+          "type": "string"
+        },
+        "joint_path_planner_config": {
+          "default": {
+            "margin": 0.001,
+            "max_try": 5000,
+            "num_smoothing": 100,
+            "step_length": 0.1
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/JointPathPlannerConfig"
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     },
     "CollisionCheckClientConfig": {
       "type": "object",
@@ -278,6 +323,34 @@
       },
       "additionalProperties": false
     },
+    "JointPathPlannerConfig": {
+      "type": "object",
+      "properties": {
+        "margin": {
+          "default": 0.001,
+          "type": "number",
+          "format": "double"
+        },
+        "max_try": {
+          "default": 5000,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "num_smoothing": {
+          "default": 100,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "step_length": {
+          "default": 0.1,
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "additionalProperties": false
+    },
     "JointPositionLimit": {
       "type": "object",
       "properties": {
@@ -298,11 +371,28 @@
       }
     },
     "JointPositionLimiterStrategy": {
-      "type": "string",
-      "enum": [
-        "Clamp",
-        "ClampWithWarn",
-        "Error"
+      "oneOf": [
+        {
+          "description": "If the position is out of the limit, handle it as the same value as the limit.",
+          "type": "string",
+          "enum": [
+            "Clamp"
+          ]
+        },
+        {
+          "description": "If the position is out of the limit, handle it as the same value as the limit with warning.",
+          "type": "string",
+          "enum": [
+            "ClampWithWarn"
+          ]
+        },
+        {
+          "description": "If the position is out of the limit, return an error.",
+          "type": "string",
+          "enum": [
+            "Error"
+          ]
+        }
       ]
     },
     "JointTrajectoryClientsContainerConfig": {
@@ -351,6 +441,12 @@
     "OpenrrClientsConfig": {
       "type": "object",
       "properties": {
+        "collision_avoidance_clients_configs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CollisionAvoidanceClientConfig"
+          }
+        },
         "collision_check_clients_configs": {
           "type": "array",
           "items": {
@@ -400,6 +496,24 @@
             "string",
             "null"
           ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "OpenrrTracingConfig": {
+      "type": "object",
+      "properties": {
+        "localization": {
+          "description": "Enable openrr-tracing for Localization. `true or `false` (default to `false`).",
+          "type": "boolean"
+        },
+        "move_base": {
+          "description": "Enable openrr-tracing for MoveBase. `true or `false` (default to `false`).",
+          "type": "boolean"
+        },
+        "navigation": {
+          "description": "Enable openrr-tracing for Navigation. `true or `false` (default to `false`).",
+          "type": "boolean"
         }
       },
       "additionalProperties": false
