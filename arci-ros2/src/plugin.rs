@@ -51,9 +51,9 @@ impl openrr_plugin::Plugin for Ros2Plugin {
     ) -> Result<Option<Box<dyn arci::Localization>>, arci::Error> {
         let config: Ros2LocalizationClientConfig =
             toml::from_str(&args).map_err(anyhow::Error::from)?;
-        let ctx = r2r::Context::create().unwrap();
+        let node = Node::new("plugin_ros2_localization_node", "arci_ros2").unwrap();
         Ok(Some(Box::new(Ros2LocalizationClient::new(
-            ctx,
+            node,
             config.request_final_nomotion_update_hack,
             &config.nomotion_update_service_name,
             &config.amcl_pose_topic_name,

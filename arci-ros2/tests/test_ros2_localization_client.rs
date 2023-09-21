@@ -1,5 +1,9 @@
 #![cfg(feature = "ros2")]
 
+mod shared;
+
+use std::time::Duration;
+
 use arci::Localization;
 use arci_ros2::{r2r, Ros2LocalizationClient};
 use assert_approx_eq::assert_approx_eq;
@@ -9,16 +13,17 @@ use r2r::{
     std_msgs::msg::Header,
     QosProfile,
 };
+use shared::*;
 
 const AMCL_POSE_TOPIC: &str = "/amcl_pose";
 const NO_MOTION_UPDATE_SERVICE: &str = "request_nomotion_update";
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_localization_client() {
-    let ctx = r2r::Context::create().unwrap();
-    let mut node = r2r::Node::create(ctx.clone(), "test_localization_node", "arci_ros2").unwrap();
+    let node = test_node();
 
     let pose_publisher = node
+        .r2r()
         .create_publisher::<PoseWithCovarianceStamped>(AMCL_POSE_TOPIC, QosProfile::default())
         .unwrap();
 
@@ -49,7 +54,9 @@ async fn test_localization_client() {
         }
     });
 
-    let client = Ros2LocalizationClient::new(ctx, false, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC);
+    node.run_spin_thread(Duration::from_millis(100));
+    let client =
+        Ros2LocalizationClient::new(node, false, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC);
 
     let current_pose = client.current_pose("").unwrap();
 
@@ -60,32 +67,19 @@ async fn test_localization_client() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_localization_client_nomotion_update() {
-    let ctx = r2r::Context::create().unwrap();
-    let mut test_node =
-        r2r::Node::create(ctx.clone(), "test_localization_node", "arci_ros2").unwrap();
+    let node = test_node();
 
-    let mut service_server = test_node
+    let mut service_server = node
+        .r2r()
         .create_service::<r2r::std_srvs::srv::Empty::Service>(NO_MOTION_UPDATE_SERVICE)
         .unwrap();
 
-    let client_node = r2r::Node::create(ctx, "openrr_ros2_localization_node", "arci_ros2").unwrap();
-    let client = Ros2LocalizationClient::from_node(
-        client_node,
-        true,
-        NO_MOTION_UPDATE_SERVICE,
-        AMCL_POSE_TOPIC,
-    );
+    node.run_spin_thread(Duration::from_millis(100));
+    let client = Ros2LocalizationClient::new(node, true, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC);
 
     tokio::spawn(async move {
-        match service_server.next().await {
-            Some(req) => {
-                req.respond(r2r::std_srvs::srv::Empty::Response {}).unwrap();
-                println!("Running...");
-            }
-            None => {
-                println!("Breaked...!");
-            }
-        }
+        let req = service_server.next().await.unwrap();
+        req.respond(r2r::std_srvs::srv::Empty::Response {}).unwrap();
     });
 
     client.request_nomotion_update().await;
