@@ -17,6 +17,7 @@ mod node;
 mod plugin;
 mod ros2_control;
 mod ros2_laser_scan;
+mod ros2_localization_client;
 mod utils;
 
 pub use cmd_vel_move_base::*;
@@ -26,3 +27,4 @@ pub use node::*;
 pub use r2r;
 pub use ros2_control::*;
 pub use ros2_laser_scan::*;
+pub use ros2_localization_client::*;
