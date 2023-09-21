@@ -9,6 +9,7 @@ eframe
 egui
 gamepad
 gilrs
+indexmap
 nalgebra
 ncollide
 openrr

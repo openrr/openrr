@@ -12,8 +12,9 @@ categories = ["science::robotics"]
 arci.workspace = true
 flume.workspace = true
 gilrs.workspace = true
+indexmap = { workspace = true, features = ["serde"] }
 schemars.workspace = true
-serde_with.workspace = true
+serde_with = { workspace = true, features = ["indexmap_2"] }
 serde.workspace = true
 tracing.workspace = true
 

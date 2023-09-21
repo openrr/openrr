@@ -4,7 +4,6 @@
 #![allow(clippy::derive_partial_eq_without_eq)]
 
 use std::{
-    collections::HashMap,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -13,6 +12,7 @@ use std::{
 };
 
 use arci::{gamepad::*, *};
+use indexmap::IndexMap;
 use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -24,13 +24,13 @@ use tracing::{debug, error, info};
 pub struct Map {
     #[serde_as(as = "Vec<(_, _)>")]
     #[serde(default = "default_button_map")]
-    button_map: HashMap<gilrs::Button, Button>,
+    button_map: IndexMap<gilrs::Button, Button>,
     #[serde_as(as = "Vec<(_, _)>")]
     #[serde(default = "default_axis_map")]
-    axis_map: HashMap<gilrs::Axis, Axis>,
+    axis_map: IndexMap<gilrs::Axis, Axis>,
     #[serde_as(as = "Vec<(_, _)>")]
     #[serde(default = "default_axis_value_map")]
-    axis_value_map: HashMap<Axis, f64>,
+    axis_value_map: IndexMap<Axis, f64>,
 }
 
 impl Map {
@@ -172,8 +172,8 @@ impl JsonSchema for Map {
     }
 }
 
-fn default_button_map() -> HashMap<gilrs::Button, Button> {
-    let mut button_map = HashMap::new();
+fn default_button_map() -> IndexMap<gilrs::Button, Button> {
+    let mut button_map = IndexMap::new();
     button_map.insert(gilrs::Button::South, Button::South);
     button_map.insert(gilrs::Button::East, Button::East);
     button_map.insert(gilrs::Button::North, Button::North);
@@ -194,8 +194,8 @@ fn default_button_map() -> HashMap<gilrs::Button, Button> {
     button_map
 }
 
-fn default_axis_map() -> HashMap<gilrs::Axis, Axis> {
-    let mut axis_map = HashMap::new();
+fn default_axis_map() -> IndexMap<gilrs::Axis, Axis> {
+    let mut axis_map = IndexMap::new();
     axis_map.insert(gilrs::Axis::LeftStickX, Axis::LeftStickX);
     axis_map.insert(gilrs::Axis::LeftStickY, Axis::LeftStickY);
     axis_map.insert(gilrs::Axis::RightStickX, Axis::RightStickX);
@@ -205,8 +205,8 @@ fn default_axis_map() -> HashMap<gilrs::Axis, Axis> {
     axis_map
 }
 
-fn default_axis_value_map() -> HashMap<Axis, f64> {
-    let mut axis_value_map = HashMap::new();
+fn default_axis_value_map() -> IndexMap<Axis, f64> {
+    let mut axis_value_map = IndexMap::new();
     axis_value_map.insert(Axis::RightStickX, -1.0);
     axis_value_map.insert(Axis::LeftStickX, -1.0);
     axis_value_map
@@ -317,8 +317,6 @@ impl Drop for GilGamepad {
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
-
     use assert_approx_eq::assert_approx_eq;
 
     use super::*;
@@ -361,9 +359,9 @@ mod test {
     #[test]
     fn test_make_map() {
         let m = Map {
-            button_map: HashMap::new(),
-            axis_map: HashMap::new(),
-            axis_value_map: HashMap::new(),
+            button_map: IndexMap::new(),
+            axis_map: IndexMap::new(),
+            axis_value_map: IndexMap::new(),
         };
         assert_eq!(
             m.convert_button(gilrs::Button::North),
