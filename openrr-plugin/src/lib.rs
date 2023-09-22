@@ -11,16 +11,15 @@ mod proxy;
 #[path = "gen/api.rs"]
 mod api;
 
-use std::{fmt, path::Path, sync::Arc, time::Duration};
+use std::{fmt, path::Path, sync::Arc};
 
-use abi_stable::{erased_types::TD_Opaque, library::lib_header_from_path, StableAbi};
-use arci::{async_trait, WaitFuture};
+use abi_stable::library::lib_header_from_path;
+use once_cell::sync::Lazy;
 
 pub use crate::api::*;
 // This is not a public API. Use export_plugin! macro for plugin exporting.
 #[doc(hidden)]
 pub use crate::proxy::PluginMod_Ref;
-use crate::proxy::{GamepadTraitObject, JointTrajectoryClientTraitObject};
 
 /// Exports the plugin that will instantiated with the specified expression.
 ///
@@ -79,112 +78,6 @@ impl fmt::Debug for PluginProxy {
         f.debug_struct("PluginProxy").finish()
     }
 }
-
-// =============================================================================
-// JointTrajectoryClient
-
-/// FFI-safe equivalent of [`Box<dyn arci::JointTrajectoryClient>`](arci::JointTrajectoryClient).
-#[repr(C)]
-#[derive(StableAbi)]
-pub struct JointTrajectoryClientProxy(JointTrajectoryClientTraitObject);
-
-impl JointTrajectoryClientProxy {
-    /// Creates a new `JointTrajectoryClientProxy`.
-    pub fn new<T>(client: T) -> Self
-    where
-        T: arci::JointTrajectoryClient + 'static,
-    {
-        Self(JointTrajectoryClientTraitObject::from_value(
-            client, TD_Opaque,
-        ))
-    }
-}
-
-impl arci::JointTrajectoryClient for JointTrajectoryClientProxy {
-    fn joint_names(&self) -> Vec<String> {
-        self.0.joint_names().into_iter().map(|s| s.into()).collect()
-    }
-
-    fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        Ok(self
-            .0
-            .current_joint_positions()
-            .into_result()?
-            .into_iter()
-            .map(f64::from)
-            .collect())
-    }
-
-    fn send_joint_positions(
-        &self,
-        positions: Vec<f64>,
-        duration: Duration,
-    ) -> Result<WaitFuture, arci::Error> {
-        Ok(self
-            .0
-            .send_joint_positions(
-                positions.into_iter().map(Into::into).collect(),
-                duration.into(),
-            )
-            .into_result()?
-            .into())
-    }
-
-    fn send_joint_trajectory(
-        &self,
-        trajectory: Vec<arci::TrajectoryPoint>,
-    ) -> Result<WaitFuture, arci::Error> {
-        Ok(self
-            .0
-            .send_joint_trajectory(trajectory.into_iter().map(Into::into).collect())
-            .into_result()?
-            .into())
-    }
-}
-
-impl fmt::Debug for JointTrajectoryClientProxy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("JointTrajectoryClientProxy").finish()
-    }
-}
-
-// =============================================================================
-// arci::Gamepad
-
-/// FFI-safe equivalent of [`Box<dyn arci::Gamepad>`](arci::Gamepad).
-// Don't implement Clone -- use of Arc is implementation detail.
-#[repr(C)]
-#[derive(StableAbi)]
-pub struct GamepadProxy(GamepadTraitObject);
-
-impl GamepadProxy {
-    /// Creates a new `GamepadProxy`.
-    pub fn new<T>(gamepad: T) -> Self
-    where
-        T: arci::Gamepad + 'static,
-    {
-        Self(GamepadTraitObject::from_value(Arc::new(gamepad), TD_Opaque))
-    }
-}
-
-#[async_trait]
-impl arci::Gamepad for GamepadProxy {
-    async fn next_event(&self) -> arci::gamepad::GamepadEvent {
-        self.0.next_event().await.into()
-    }
-
-    fn stop(&self) {
-        self.0.stop();
-    }
-}
-
-impl fmt::Debug for GamepadProxy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("GamepadProxy").finish()
-    }
-}
-
-use once_cell::sync::Lazy;
 
 // Inspired by async-compat.
 static TOKIO: Lazy<tokio::runtime::Runtime> = Lazy::new(|| {

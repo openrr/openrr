@@ -169,6 +169,86 @@ where
         )
     }
 }
+pub(crate) type GamepadTraitObject = RGamepadTrait_TO<RBox<()>>;
+#[abi_stable::sabi_trait]
+pub(crate) trait RGamepadTrait: Send + Sync + Clone + 'static {
+    fn next_event(&self) -> FfiFuture<RGamepadEvent>;
+    fn stop(&self);
+}
+impl<T> RGamepadTrait for Arc<T>
+where
+    T: ?Sized + arci::Gamepad + 'static,
+{
+    fn next_event(&self) -> FfiFuture<RGamepadEvent> {
+        let _guard = crate::TOKIO.enter();
+        let this = self.clone();
+        async move { arci::Gamepad::next_event(&*this).await.into() }.into_ffi()
+    }
+    fn stop(&self) {
+        let _guard = crate::TOKIO.enter();
+        arci::Gamepad::stop(&**self).into()
+    }
+}
+pub(crate) type JointTrajectoryClientTraitObject = RJointTrajectoryClientTrait_TO<
+    RBox<()>,
+>;
+#[abi_stable::sabi_trait]
+pub(crate) trait RJointTrajectoryClientTrait: Send + Sync + 'static {
+    fn joint_names(&self) -> RVec<RString>;
+    fn current_joint_positions(&self) -> RResult<RVec<f64>, RError>;
+    fn send_joint_positions(
+        &self,
+        positions: RVec<f64>,
+        duration: RDuration,
+    ) -> RResult<RWaitFuture, RError>;
+    fn send_joint_trajectory(
+        &self,
+        trajectory: RVec<RTrajectoryPoint>,
+    ) -> RResult<RWaitFuture, RError>;
+}
+impl<T> RJointTrajectoryClientTrait for T
+where
+    T: arci::JointTrajectoryClient + 'static,
+{
+    fn joint_names(&self) -> RVec<RString> {
+        let _guard = crate::TOKIO.enter();
+        arci::JointTrajectoryClient::joint_names(self)
+            .into_iter()
+            .map(Into::into)
+            .collect()
+    }
+    fn current_joint_positions(&self) -> RResult<RVec<f64>, RError> {
+        let _guard = crate::TOKIO.enter();
+        ROk(rtry!(arci::JointTrajectoryClient::current_joint_positions(self)).into())
+    }
+    fn send_joint_positions(
+        &self,
+        positions: RVec<f64>,
+        duration: RDuration,
+    ) -> RResult<RWaitFuture, RError> {
+        let _guard = crate::TOKIO.enter();
+        ROk(
+            rtry!(
+                arci::JointTrajectoryClient::send_joint_positions(self, positions.into(),
+                duration.into())
+            )
+                .into(),
+        )
+    }
+    fn send_joint_trajectory(
+        &self,
+        trajectory: RVec<RTrajectoryPoint>,
+    ) -> RResult<RWaitFuture, RError> {
+        let _guard = crate::TOKIO.enter();
+        ROk(
+            rtry!(
+                arci::JointTrajectoryClient::send_joint_trajectory(self, trajectory
+                .into_iter().map(Into::into).collect())
+            )
+                .into(),
+        )
+    }
+}
 pub(crate) type LaserScan2DTraitObject = RLaserScan2DTrait_TO<RBox<()>>;
 #[abi_stable::sabi_trait]
 pub(crate) trait RLaserScan2DTrait: Send + Sync + 'static {
