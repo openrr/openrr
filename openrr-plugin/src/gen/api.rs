@@ -4,8 +4,11 @@
 #![allow(unused_variables)]
 #![allow(clippy::useless_conversion, clippy::unit_arg)]
 
-use arci::{BaseVelocity, Error, Isometry2, Isometry3, Scan2D, WaitFuture};
 use abi_stable::StableAbi;
+use arci::{
+    gamepad::GamepadEvent, BaseVelocity, Error, Isometry2, Isometry3, Scan2D,
+    TrajectoryPoint, WaitFuture,
+};
 use super::*;
 /// The plugin trait.
 pub trait Plugin: Send + Sync + 'static {
@@ -193,6 +196,96 @@ impl PluginProxy {
         args: String,
     ) -> Result<Option<TransformResolverProxy>, arci::Error> {
         Ok(self.0.new_transform_resolver(args.into()).into_result()?.into_option())
+    }
+}
+/// FFI-safe equivalent of [`Box<dyn arci::Gamepad>`](arci::Gamepad).
+#[derive(StableAbi)]
+#[repr(C)]
+pub struct GamepadProxy(pub(crate) crate::proxy::GamepadTraitObject);
+impl GamepadProxy {
+    /// Creates a new `GamepadProxy`.
+    pub fn new<T>(inner: T) -> Self
+    where
+        T: arci::Gamepad + 'static,
+    {
+        Self(
+            crate::proxy::GamepadTraitObject::from_value(
+                Arc::new(inner),
+                abi_stable::erased_types::TD_Opaque,
+            ),
+        )
+    }
+}
+#[arci::async_trait]
+impl arci::Gamepad for GamepadProxy {
+    async fn next_event(&self) -> GamepadEvent {
+        self.0.next_event().await.into()
+    }
+    fn stop(&self) {
+        self.0.stop().into()
+    }
+}
+impl std::fmt::Debug for GamepadProxy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GamepadProxy").finish()
+    }
+}
+/// FFI-safe equivalent of [`Box<dyn arci::JointTrajectoryClient>`](arci::JointTrajectoryClient).
+#[derive(StableAbi)]
+#[repr(C)]
+pub struct JointTrajectoryClientProxy(
+    pub(crate) crate::proxy::JointTrajectoryClientTraitObject,
+);
+impl JointTrajectoryClientProxy {
+    /// Creates a new `JointTrajectoryClientProxy`.
+    pub fn new<T>(inner: T) -> Self
+    where
+        T: arci::JointTrajectoryClient + 'static,
+    {
+        Self(
+            crate::proxy::JointTrajectoryClientTraitObject::from_value(
+                inner,
+                abi_stable::erased_types::TD_Opaque,
+            ),
+        )
+    }
+}
+impl arci::JointTrajectoryClient for JointTrajectoryClientProxy {
+    fn joint_names(&self) -> Vec<String> {
+        self.0.joint_names().into_iter().map(Into::into).collect()
+    }
+    fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
+        Ok(self.0.current_joint_positions().into_result()?.into())
+    }
+    fn send_joint_positions(
+        &self,
+        positions: Vec<f64>,
+        duration: std::time::Duration,
+    ) -> Result<WaitFuture, Error> {
+        Ok(
+            self
+                .0
+                .send_joint_positions(positions.into(), duration.into())
+                .into_result()?
+                .into(),
+        )
+    }
+    fn send_joint_trajectory(
+        &self,
+        trajectory: Vec<TrajectoryPoint>,
+    ) -> Result<WaitFuture, Error> {
+        Ok(
+            self
+                .0
+                .send_joint_trajectory(trajectory.into_iter().map(Into::into).collect())
+                .into_result()?
+                .into(),
+        )
+    }
+}
+impl std::fmt::Debug for JointTrajectoryClientProxy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("JointTrajectoryClientProxy").finish()
     }
 }
 /// FFI-safe equivalent of [`Box<dyn arci::LaserScan2D>`](arci::LaserScan2D).

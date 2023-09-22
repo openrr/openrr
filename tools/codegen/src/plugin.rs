@@ -17,7 +17,7 @@ use super::*;
 
 pub fn gen(workspace_root: &Path) -> Result<()> {
     const FULLY_IGNORE: &[&str] = &["SetCompleteCondition"];
-    const IGNORE: &[&str] = &["JointTrajectoryClient", "SetCompleteCondition", "Gamepad"];
+    const IGNORE: &[&str] = &["SetCompleteCondition"];
     const USE_TRY_INTO: &[&str] = &["SystemTime"];
 
     let out_dir = &workspace_root.join("openrr-plugin/src/gen");
@@ -37,47 +37,143 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
         }
 
         let trait_name = &item.ident;
-        let proxy_name = format_ident!("{trait_name}Proxy");
-        let proxy_name_lit = proxy_name.to_string();
-        let trait_object_name = format_ident!("{trait_name}TraitObject");
-        let methods = item.items.iter().map(|method| match method {
-            syn::TraitItem::Fn(method) => {
+        let mut is_async_trait = false;
+        let mut arci_method_impl = vec![];
+        let mut sabi_method_def = vec![];
+        let mut sabi_method_impl = vec![];
+        for method in &item.items {
+            if let syn::TraitItem::Fn(method) = method {
                 let sig = &method.sig;
-                let name = &sig.ident;
-                let args = sig.inputs.iter().map(|arg| match arg {
-                    syn::FnArg::Receiver(_) => quote! {},
-                    syn::FnArg::Typed(arg) => {
-                        let pat = &arg.pat;
-                        if let Some(path) = get_ty_path(&arg.ty) {
-                            if USE_TRY_INTO
-                                .contains(&&*path.segments.last().unwrap().ident.to_string())
-                            {
-                                return quote! { #pat.try_into()?, };
+                let method_name = &sig.ident;
+                let is_async_method = sig.asyncness.is_some();
+                if is_async_method {
+                    is_async_trait = true;
+                }
+                let mut has_receiver = false;
+                let mut arci_args = vec![];
+                let mut sabi_args = vec![];
+                for arg in &sig.inputs {
+                    match arg {
+                        syn::FnArg::Receiver(_) => {
+                            has_receiver = true;
+                            sabi_args.push(if is_async_trait {
+                                if is_async_method {
+                                    quote! { &*this }
+                                } else {
+                                    quote! { &**self }
+                                }
+                            } else {
+                                quote! { self }
+                            });
+                        }
+                        syn::FnArg::Typed(arg) => {
+                            let pat = &arg.pat;
+                            if let Some(path) = get_ty_path(&arg.ty) {
+                                if USE_TRY_INTO
+                                    .contains(&&*path.segments.last().unwrap().ident.to_string())
+                                {
+                                    arci_args.push(quote! { #pat.try_into()? });
+                                    sabi_args.push(quote! { rtry!(#pat.try_into()) });
+                                    continue;
+                                }
                             }
+                            if matches!(&*arg.ty, syn::Type::Reference(_)) && !is_str(&arg.ty) {
+                                arci_args.push(quote! { (*#pat).into() });
+                                sabi_args.push(quote! { &#pat.into() });
+                                continue;
+                            }
+                            let t = if is_vec(&arg.ty).map_or(false, |ty| !is_primitive(ty)) {
+                                quote! { #pat.into_iter().map(Into::into).collect() }
+                            } else {
+                                quote! { #pat.into() }
+                            };
+                            arci_args.push(t.clone());
+                            sabi_args.push(t);
                         }
-                        if matches!(&*arg.ty, syn::Type::Reference(_)) && !is_str(&arg.ty) {
-                            return quote! { (*#pat).into(), };
-                        }
-                        // TODO: handle Vec
-                        quote! { #pat.into(), }
-                    }
-                });
-                quote! {
-                    #sig {
-                        Ok(self.0.#name(#(#args)*).into_result()?.into())
                     }
                 }
+                let (return_result, is_vec) = match &method.sig.output {
+                    syn::ReturnType::Type(_, ty) => match is_result(ty) {
+                        Some(ty) => (true, is_vec(ty).map_or(false, |ty| !is_primitive(ty))),
+                        None => (false, is_vec(ty).map_or(false, |ty| !is_primitive(ty))),
+                    },
+                    syn::ReturnType::Default => (false, false),
+                };
+                let into = if is_vec {
+                    quote! { .into_iter().map(Into::into).collect() }
+                } else {
+                    quote! { .into() }
+                };
+                {
+                    // impl arci::<trait_name> for <trait_name>Proxy
+                    let mut call = quote! { self.0.#method_name(#(#arci_args),*) };
+                    if is_async_method {
+                        call = quote! { #call.await };
+                    }
+                    call = if return_result {
+                        quote! { Ok(#call.into_result()?#into) }
+                    } else {
+                        quote! { #call #into }
+                    };
+                    arci_method_impl.push(quote! {
+                        #sig { #call }
+                    });
+                }
+                {
+                    // impl R<trait_name>Trait for (impl arci::<trait_name>)
+                    let mut sig = sig.clone();
+                    sig.asyncness = None;
+                    ReplacePath.visit_signature_mut(&mut sig);
+                    if is_async_method {
+                        sig.output = match &sig.output {
+                            syn::ReturnType::Type(_, ty) => parse_quote! { -> FfiFuture<#ty> },
+                            syn::ReturnType::Default => parse_quote! { -> FfiFuture<()> },
+                        };
+                    }
+                    sabi_method_def.push(quote! { #sig; });
+                    let mut call = quote! { arci::#trait_name::#method_name(#(#sabi_args),*) };
+                    if is_async_method {
+                        call = quote! { #call.await };
+                    }
+                    call = if return_result {
+                        quote! { ROk(rtry!(#call)#into) }
+                    } else {
+                        quote! { #call #into }
+                    };
+                    if is_async_method {
+                        call = quote! { async move { #call }.into_ffi() };
+                        if has_receiver {
+                            call = quote! {
+                                let this = self.clone();
+                                #call
+                            };
+                        }
+                    }
+                    sabi_method_impl.push(quote! {
+                        #sig {
+                            let _guard = crate::TOKIO.enter();
+                            #call
+                        }
+                    });
+                }
             }
-            _ => quote! {},
-        });
-        let proxy_type = gen_proxy_type(trait_name, quote! { arci:: });
+        }
+
+        // impl arci::<trait_name> for <trait_name>Proxy
+        let proxy_name = format_ident!("{trait_name}Proxy");
+        let proxy_name_lit = proxy_name.to_string();
+        let proxy_type = gen_proxy_type(trait_name, quote! { arci:: }, is_async_trait);
+        let async_trait = if is_async_trait {
+            quote! { #[arci::async_trait] }
+        } else {
+            quote! {}
+        };
         api_items.extend(quote! {
             #proxy_type
-
+            #async_trait
             impl arci::#trait_name for #proxy_name {
-                #(#methods)*
+                #(#arci_method_impl)*
             }
-
             impl std::fmt::Debug for #proxy_name {
                 fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                     f.debug_struct(#proxy_name_lit).finish()
@@ -85,55 +181,34 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
             }
         });
 
+        // impl R<trait_name>Trait for (impl arci::<trait_name>)
+        let trait_object_name = format_ident!("{trait_name}TraitObject");
         let sabi_trait_name = format_ident!("R{trait_name}Trait");
         let sabi_trait_trait_object_name = format_ident!("{sabi_trait_name}_TO");
-        let mut sabi_method_def = vec![];
-        let mut sabi_method_impl = vec![];
-        for method in &item.items {
-            if let syn::TraitItem::Fn(method) = method {
-                let method_name = &method.sig.ident;
-                let args = method.sig.inputs.iter().map(|arg| match arg {
-                    syn::FnArg::Receiver(_) => quote! { self },
-                    syn::FnArg::Typed(arg) => {
-                        let pat = &arg.pat;
-                        if let Some(path) = get_ty_path(&arg.ty) {
-                            if USE_TRY_INTO
-                                .contains(&&*path.segments.last().unwrap().ident.to_string())
-                            {
-                                return quote! { rtry!(#pat.try_into()) };
-                            }
-                        }
-                        if matches!(&*arg.ty, syn::Type::Reference(_)) && !is_str(&arg.ty) {
-                            return quote! { &#pat.into() };
-                        }
-                        // TODO: handle Vec
-                        quote! { #pat.into() }
-                    }
-                });
-                let mut sig = method.sig.clone();
-                ReplacePath.visit_signature_mut(&mut sig);
-                sabi_method_def.push(quote! {
-                    #sig;
-                });
-                sabi_method_impl.push(quote! {
-                    #sig {
-                        let _guard = crate::TOKIO.enter();
-                        ROk(rtry!(arci::#trait_name::#method_name(#(#args),*)).into())
-                    }
-                })
-            }
-        }
+        let this = if is_async_trait {
+            quote! { Arc<T> }
+        } else {
+            quote! { T }
+        };
+        let clone = if is_async_trait {
+            quote! { Clone + }
+        } else {
+            quote! {}
+        };
+        let sized = if is_async_trait {
+            quote! { ?Sized + }
+        } else {
+            quote! {}
+        };
         proxy_impls.extend(quote! {
             pub(crate) type #trait_object_name = #sabi_trait_trait_object_name<RBox<()>>;
-
             #[abi_stable::sabi_trait]
-            pub(crate) trait #sabi_trait_name: Send + Sync + 'static {
+            pub(crate) trait #sabi_trait_name: Send + Sync + #clone 'static {
                 #(#sabi_method_def)*
             }
-
-            impl<T> #sabi_trait_name for T
+            impl<T> #sabi_trait_name for #this
             where
-                T: arci::#trait_name + 'static
+                T: #sized arci::#trait_name + 'static
             {
                 #(#sabi_method_impl)*
             }
@@ -329,15 +404,17 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
     let (plugin_trait_api, plugin_trait_proxy) = gen_plugin_trait(&trait_names);
     let api = quote! {
         // TODO: remove the need for `arci::` imports.
+        use abi_stable::StableAbi;
         use arci::{
+            gamepad::GamepadEvent,
             BaseVelocity,
             Error,
             Isometry2,
             Isometry3,
             Scan2D,
+            TrajectoryPoint,
             WaitFuture,
         };
-        use abi_stable::StableAbi;
         use super::*;
         #plugin_trait_api
         #api_items
@@ -442,7 +519,7 @@ fn gen_plugin_trait(traits: &[Ident]) -> (TokenStream, TokenStream) {
             }
         });
     }
-    let proxy_type = gen_proxy_type(&format_ident!("Plugin"), quote! {});
+    let proxy_type = gen_proxy_type(&format_ident!("Plugin"), quote! {}, false);
     let api = quote! {
         /// The plugin trait.
         pub trait Plugin: Send + Sync + 'static {
@@ -472,7 +549,11 @@ fn gen_plugin_trait(traits: &[Ident]) -> (TokenStream, TokenStream) {
 }
 
 // Generate *Proxy type.
-fn gen_proxy_type(trait_name: &Ident, prefix_path: TokenStream) -> TokenStream {
+fn gen_proxy_type(
+    trait_name: &Ident,
+    prefix_path: TokenStream,
+    is_async_trait: bool,
+) -> TokenStream {
     let proxy_name = format_ident!("{trait_name}Proxy");
     let trait_object_name = format_ident!("{trait_name}TraitObject");
     let new_doc = format!(" Creates a new `{proxy_name}`.");
@@ -480,6 +561,12 @@ fn gen_proxy_type(trait_name: &Ident, prefix_path: TokenStream) -> TokenStream {
         " FFI-safe equivalent of [`Box<dyn {0}{trait_name}>`]({0}{trait_name}).",
         prefix_path.to_string().replace(' ', ""),
     );
+    // Don't implement Clone even if it is async trait -- use of Arc is implementation detail.
+    let inner = if is_async_trait {
+        quote! { Arc::new(inner) }
+    } else {
+        quote! { inner }
+    };
     quote! {
         #[doc = #struct_doc]
         #[derive(StableAbi)]
@@ -493,7 +580,7 @@ fn gen_proxy_type(trait_name: &Ident, prefix_path: TokenStream) -> TokenStream {
                 T: #prefix_path #trait_name + 'static
             {
                 Self(crate::proxy::#trait_object_name::from_value(
-                    inner,
+                    #inner,
                     abi_stable::erased_types::TD_Opaque,
                 ))
             }
