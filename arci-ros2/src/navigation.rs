@@ -14,7 +14,7 @@ use r2r::{builtin_interfaces::msg::Time, geometry_msgs::msg, std_msgs::msg::Head
 use serde::{Deserialize, Serialize};
 use tokio::sync::oneshot;
 
-use crate::{utils, Node};
+use crate::Node;
 
 /// `arci::Navigation` implementation for ROS2.
 pub struct Ros2Navigation {
