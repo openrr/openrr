@@ -117,6 +117,7 @@ pub fn gen(workspace_root: &Path) -> Result<()> {
                 });
                 sabi_method_impl.push(quote! {
                     #sig {
+                        let _guard = crate::TOKIO.enter();
                         ROk(rtry!(arci::#trait_name::#method_name(#(#args),*)).into())
                     }
                 })
@@ -378,8 +379,6 @@ impl VisitMut for ReplacePath {
         if last.ident.to_string().starts_with("Isometry") {
             last.arguments = syn::PathArguments::None;
             last.ident = format_ident!("{}F64", last.ident);
-        } else if last.ident == "WaitFuture" {
-            last.ident = format_ident!("BlockingWait");
         }
         last.ident = format_ident!("R{}", last.ident);
         path.segments.clear();

@@ -72,7 +72,7 @@ impl Navigation for Ros2Navigation {
         let is_available = node.r2r().is_available(&self.action_client).unwrap();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let frame_id = frame_id.to_owned();
-        utils::spawn_blocking(async move {
+        tokio::spawn(async move {
             let is_done = Arc::new(AtomicBool::new(false));
             let is_done_clone = is_done.clone();
             let current_goal_clone = current_goal.clone();
@@ -122,7 +122,7 @@ impl Navigation for Ros2Navigation {
         //       Therefore, if cancel is called during that period, it will not work correctly.
         if let Some(current_goal) = self.current_goal.lock().take() {
             let fut = current_goal.cancel().map_err(|e| Error::Other(e.into()))?;
-            utils::spawn_blocking(async move {
+            tokio::spawn(async move {
                 let _ = fut.await;
             });
         }

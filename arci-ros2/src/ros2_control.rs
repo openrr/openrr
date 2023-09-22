@@ -97,7 +97,7 @@ impl JointTrajectoryClient for Ros2ControlClient {
         let is_available = node.r2r().is_available(&self.action_client).unwrap();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let joint_names = self.joint_names.clone();
-        utils::spawn_blocking(async move {
+        tokio::spawn(async move {
             let is_done = Arc::new(AtomicBool::new(false));
             let is_done_clone = is_done.clone();
             tokio::spawn(async move {
