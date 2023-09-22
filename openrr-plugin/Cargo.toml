@@ -12,6 +12,8 @@ categories = ["science::robotics"]
 abi_stable.workspace = true
 anyhow.workspace = true
 arci.workspace = true
+async-ffi.workspace = true
+once_cell.workspace = true
 tokio = { workspace = true, features = ["sync", "rt-multi-thread", "parking_lot"] }
 
 [dev-dependencies]

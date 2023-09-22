@@ -9,11 +9,10 @@
 #[path = "gen/proxy.rs"]
 mod impls;
 
-use std::{future::Future, sync::Arc, time::SystemTime};
+use std::{sync::Arc, time::SystemTime};
 
 use abi_stable::{
     declare_root_module_statics,
-    erased_types::TD_Opaque,
     library::RootModule,
     package_version_strings,
     prefix_type::PrefixTypeTrait,
@@ -24,19 +23,12 @@ use abi_stable::{
 };
 use anyhow::format_err;
 use arci::nalgebra;
+use async_ffi::{FfiFuture, FutureExt as _};
 
 pub(crate) use self::impls::*;
 use crate::PluginProxy;
 
 type RResult<T, E = RError> = abi_stable::std_types::RResult<T, E>;
-
-fn block_in_place<T>(f: impl Future<Output = T>) -> T {
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(f)
-}
 
 // =============================================================================
 // std::time::SystemTime
@@ -276,49 +268,17 @@ impl From<RError> for arci::Error {
 #[repr(C)]
 #[derive(StableAbi)]
 #[must_use]
-pub(crate) struct RBlockingWait(RBoxWait);
+pub(crate) struct RWaitFuture(FfiFuture<RResult<()>>);
 
-impl RBlockingWait {
-    fn from_fn(f: impl FnOnce() -> RResult<()> + Send + 'static) -> Self {
-        Self(RBoxWait::from_value(f, TD_Opaque))
-    }
-}
-
-impl From<arci::WaitFuture> for RBlockingWait {
+impl From<arci::WaitFuture> for RWaitFuture {
     fn from(wait: arci::WaitFuture) -> Self {
-        Self::from_fn(move || block_in_place(wait).map_err(RError::from).into())
+        Self(async move { ROk(rtry!(wait.await)) }.into_ffi())
     }
 }
 
-impl From<RBlockingWait> for arci::WaitFuture {
-    fn from(wait: RBlockingWait) -> Self {
-        // Creates a WaitFuture that waits until Wait::wait done only if the future
-        // is polled. This future is a bit tricky, but it's more efficient than
-        // using only `tokio::task::spawn_blocking` because it doesn't spawn a thread
-        // if the WaitFuture is ignored.
-        arci::WaitFuture::new(async move {
-            tokio::task::spawn_blocking(move || wait.0.wait())
-                .await
-                .map_err(|e| arci::Error::Other(e.into()))?
-                .into_result()?;
-            Ok(())
-        })
-    }
-}
-
-type RBoxWait = RWaitTrait_TO<RBox<()>>;
-
-#[sabi_trait]
-trait RWaitTrait: Send + 'static {
-    fn wait(self) -> RResult<()>;
-}
-
-impl<F> RWaitTrait for F
-where
-    F: FnOnce() -> RResult<()> + Send + 'static,
-{
-    fn wait(self) -> RResult<()> {
-        self()
+impl From<RWaitFuture> for arci::WaitFuture {
+    fn from(wait: RWaitFuture) -> Self {
+        arci::WaitFuture::new(async move { Ok(wait.0.await.into_result()?) })
     }
 }
 
@@ -336,8 +296,8 @@ pub(crate) trait RJointTrajectoryClientTrait: Send + Sync + 'static {
         &self,
         positions: RVec<f64>,
         duration: RDuration,
-    ) -> RResult<RBlockingWait>;
-    fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait>;
+    ) -> RResult<RWaitFuture>;
+    fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RWaitFuture>;
 }
 
 impl<T> RJointTrajectoryClientTrait for T
@@ -345,6 +305,7 @@ where
     T: ?Sized + arci::JointTrajectoryClient + 'static,
 {
     fn joint_names(&self) -> RVec<RString> {
+        let _guard = crate::TOKIO.enter();
         arci::JointTrajectoryClient::joint_names(self)
             .into_iter()
             .map(|s| s.into())
@@ -352,6 +313,7 @@ where
     }
 
     fn current_joint_positions(&self) -> RResult<RVec<f64>> {
+        let _guard = crate::TOKIO.enter();
         ROk(
             rtry!(arci::JointTrajectoryClient::current_joint_positions(self))
                 .into_iter()
@@ -363,7 +325,8 @@ where
         &self,
         positions: RVec<f64>,
         duration: RDuration,
-    ) -> RResult<RBlockingWait> {
+    ) -> RResult<RWaitFuture> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::JointTrajectoryClient::send_joint_positions(
             self,
             positions.into_iter().map(f64::from).collect(),
@@ -372,7 +335,8 @@ where
         .into())
     }
 
-    fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RBlockingWait> {
+    fn send_joint_trajectory(&self, trajectory: RVec<RTrajectoryPoint>) -> RResult<RWaitFuture> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::JointTrajectoryClient::send_joint_trajectory(
             self,
             trajectory
@@ -392,7 +356,7 @@ pub(crate) type GamepadTraitObject = RGamepadTrait_TO<RBox<()>>;
 
 #[sabi_trait]
 pub(crate) trait RGamepadTrait: Send + Sync + Clone + 'static {
-    fn next_event(&self) -> RGamepadEvent;
+    fn next_event(&self) -> FfiFuture<RGamepadEvent>;
     fn stop(&self);
 }
 
@@ -400,8 +364,9 @@ impl<T> RGamepadTrait for Arc<T>
 where
     T: ?Sized + arci::Gamepad + 'static,
 {
-    fn next_event(&self) -> RGamepadEvent {
-        block_in_place(arci::Gamepad::next_event(&**self)).into()
+    fn next_event(&self) -> FfiFuture<RGamepadEvent> {
+        let this = self.clone();
+        async move { arci::Gamepad::next_event(&*this).await.into() }.into_ffi()
     }
 
     fn stop(&self) {

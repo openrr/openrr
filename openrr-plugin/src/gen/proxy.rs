@@ -179,6 +179,7 @@ where
     T: arci::LaserScan2D + 'static,
 {
     fn current_scan(&self) -> RResult<RScan2D, RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::LaserScan2D::current_scan(self)).into())
     }
 }
@@ -192,6 +193,7 @@ where
     T: arci::Localization + 'static,
 {
     fn current_pose(&self, frame_id: RStr<'_>) -> RResult<RIsometry2F64, RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::Localization::current_pose(self, frame_id.into())).into())
     }
 }
@@ -206,12 +208,14 @@ where
     T: arci::MotorDrivePosition + 'static,
 {
     fn set_motor_position(&self, position: f64) -> RResult<(), RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(
             rtry!(arci::MotorDrivePosition::set_motor_position(self, position.into()))
                 .into(),
         )
     }
     fn get_motor_position(&self) -> RResult<f64, RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::MotorDrivePosition::get_motor_position(self)).into())
     }
 }
@@ -226,12 +230,14 @@ where
     T: arci::MotorDriveVelocity + 'static,
 {
     fn set_motor_velocity(&self, velocity: f64) -> RResult<(), RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(
             rtry!(arci::MotorDriveVelocity::set_motor_velocity(self, velocity.into()))
                 .into(),
         )
     }
     fn get_motor_velocity(&self) -> RResult<f64, RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::MotorDriveVelocity::get_motor_velocity(self)).into())
     }
 }
@@ -246,9 +252,11 @@ where
     T: arci::MotorDriveEffort + 'static,
 {
     fn set_motor_effort(&self, effort: f64) -> RResult<(), RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::MotorDriveEffort::set_motor_effort(self, effort.into())).into())
     }
     fn get_motor_effort(&self) -> RResult<f64, RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::MotorDriveEffort::get_motor_effort(self)).into())
     }
 }
@@ -263,9 +271,11 @@ where
     T: arci::MoveBase + 'static,
 {
     fn send_velocity(&self, velocity: RBaseVelocity) -> RResult<(), RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::MoveBase::send_velocity(self, & velocity.into())).into())
     }
     fn current_velocity(&self) -> RResult<RBaseVelocity, RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::MoveBase::current_velocity(self)).into())
     }
 }
@@ -277,7 +287,7 @@ pub(crate) trait RNavigationTrait: Send + Sync + 'static {
         goal: RIsometry2F64,
         frame_id: RStr<'_>,
         timeout: RDuration,
-    ) -> RResult<RBlockingWait, RError>;
+    ) -> RResult<RWaitFuture, RError>;
     fn cancel(&self) -> RResult<(), RError>;
 }
 impl<T> RNavigationTrait for T
@@ -289,7 +299,8 @@ where
         goal: RIsometry2F64,
         frame_id: RStr<'_>,
         timeout: RDuration,
-    ) -> RResult<RBlockingWait, RError> {
+    ) -> RResult<RWaitFuture, RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(
             rtry!(
                 arci::Navigation::send_goal_pose(self, goal.into(), frame_id.into(),
@@ -299,19 +310,21 @@ where
         )
     }
     fn cancel(&self) -> RResult<(), RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::Navigation::cancel(self)).into())
     }
 }
 pub(crate) type SpeakerTraitObject = RSpeakerTrait_TO<RBox<()>>;
 #[abi_stable::sabi_trait]
 pub(crate) trait RSpeakerTrait: Send + Sync + 'static {
-    fn speak(&self, message: RStr<'_>) -> RResult<RBlockingWait, RError>;
+    fn speak(&self, message: RStr<'_>) -> RResult<RWaitFuture, RError>;
 }
 impl<T> RSpeakerTrait for T
 where
     T: arci::Speaker + 'static,
 {
-    fn speak(&self, message: RStr<'_>) -> RResult<RBlockingWait, RError> {
+    fn speak(&self, message: RStr<'_>) -> RResult<RWaitFuture, RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(rtry!(arci::Speaker::speak(self, message.into())).into())
     }
 }
@@ -335,6 +348,7 @@ where
         to: RStr<'_>,
         time: RSystemTime,
     ) -> RResult<RIsometry3F64, RError> {
+        let _guard = crate::TOKIO.enter();
         ROk(
             rtry!(
                 arci::TransformResolver::resolve_transformation(self, from.into(), to

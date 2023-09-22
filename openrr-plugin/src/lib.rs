@@ -170,10 +170,7 @@ impl GamepadProxy {
 #[async_trait]
 impl arci::Gamepad for GamepadProxy {
     async fn next_event(&self) -> arci::gamepad::GamepadEvent {
-        let this = Self(self.0.clone());
-        tokio::task::spawn_blocking(move || this.0.next_event().into())
-            .await
-            .unwrap_or(arci::gamepad::GamepadEvent::Unknown)
+        self.0.next_event().await.into()
     }
 
     fn stop(&self) {
@@ -186,3 +183,17 @@ impl fmt::Debug for GamepadProxy {
         f.debug_struct("GamepadProxy").finish()
     }
 }
+
+use once_cell::sync::Lazy;
+
+// Inspired by async-compat.
+static TOKIO: Lazy<tokio::runtime::Runtime> = Lazy::new(|| {
+    std::thread::Builder::new()
+        .name("arci-ros2/tokio".to_owned())
+        .spawn(move || TOKIO.block_on(std::future::pending::<()>()))
+        .unwrap();
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .expect("cannot start tokio runtime")
+});
