@@ -308,6 +308,13 @@ jobs:
         uses: taiki-e/install-action@shellcheck
       - run: shellcheck $(git ls-files '*.sh')
 
+  markdownlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx markdownlint-cli2 $(git ls-files '*.md')
+
   spell-check:
     runs-on: ubuntu-latest
     timeout-minutes: 60

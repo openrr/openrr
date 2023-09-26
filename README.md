@@ -111,5 +111,5 @@ We appreciate for your any contributions!
 
 You can read the tutorial books at the following links.
 
-- [English](https://openrr.github.io/openrr-tutorial/en/html)
-- [Japanese](https://openrr.github.io/openrr-tutorial/ja/html)
+* [English](https://openrr.github.io/openrr-tutorial/en/html)
+* [Japanese](https://openrr.github.io/openrr-tutorial/ja/html)
