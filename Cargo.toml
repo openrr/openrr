@@ -111,6 +111,7 @@ syn = "2"
 tempfile = "3"
 termios = "0.3"
 tf_rosrust = "0.1"
+tf2_r2r = { path = "../tf_rosrust/tf2_r2r" }
 thiserror = "1"
 tokio = "1"
 tokio-test = "0.4"

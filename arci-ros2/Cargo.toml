@@ -25,6 +25,7 @@ parking_lot.workspace = true
 r2r = { workspace = true, optional = true }
 serde.workspace = true
 thiserror.workspace = true
+tf2_r2r.workspace = true
 tokio = { workspace = true, features = ["full"] }
 toml.workspace = true
 tracing.workspace = true
