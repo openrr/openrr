@@ -166,7 +166,7 @@ where
         for joints_pose in &config.joints_poses {
             joints_poses
                 .entry(joints_pose.client_name.clone())
-                .or_insert_with(HashMap::new)
+                .or_default()
                 .insert(
                     joints_pose.pose_name.to_owned(),
                     joints_pose.positions.to_owned(),
