@@ -226,7 +226,7 @@ jobs:
           components: rustfmt
       - run: cargo fmt --all --check
       - name: Format YAML
-        run: npx prettier -c $(git ls-files '*.yml') || (echo "::warning::Please run \`prettier -l -w \$(git ls-files '*.yml')\` to fix format" && exit 1)
+        run: npx -y prettier -c $(git ls-files '*.yml') || (echo "::warning::Please run \`prettier -l -w \$(git ls-files '*.yml')\` to fix format" && exit 1)
         if: always()
 
   clippy:
@@ -313,7 +313,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - run: npx markdownlint-cli2 $(git ls-files '*.md')
+      - run: npx -y markdownlint-cli2 $(git ls-files '*.md')
 
   spell-check:
     runs-on: ubuntu-latest
