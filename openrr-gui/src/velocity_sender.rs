@@ -1,3 +1,5 @@
+#![allow(deprecated)] // TODO: RetainedImage is deprecated in egui 0.23, but there is no good alternative.
+
 use arci::{BaseVelocity, MoveBase};
 use eframe::{egui, IconData};
 use egui_extras::RetainedImage;
@@ -92,10 +94,10 @@ where
                 ui.add_space(180.0);
                 if ui
                     .add(
-                        egui::ImageButton::new(
+                        egui::Button::image((
                             self.up_button.texture_id(ctx),
                             self.up_button.size_vec2(),
-                        )
+                        ))
                         .selected(self.velocity.x > 0.0),
                     )
                     .clicked()
@@ -111,10 +113,10 @@ where
                 ui.add_space(100.0);
                 if ui
                     .add(
-                        egui::ImageButton::new(
+                        egui::Button::image((
                             self.clockwise_button.texture_id(ctx),
                             self.clockwise_button.size_vec2(),
-                        )
+                        ))
                         .selected(self.velocity.theta < 0.0),
                     )
                     .clicked()
@@ -127,10 +129,10 @@ where
                 }
                 if ui
                     .add(
-                        egui::ImageButton::new(
+                        egui::Button::image((
                             self.left_button.texture_id(ctx),
                             self.left_button.size_vec2(),
-                        )
+                        ))
                         .selected(self.velocity.y > 0.0),
                     )
                     .clicked()
@@ -148,10 +150,10 @@ where
                 }
                 if ui
                     .add(
-                        egui::ImageButton::new(
+                        egui::Button::image((
                             self.right_button.texture_id(ctx),
                             self.right_button.size_vec2(),
-                        )
+                        ))
                         .selected(self.velocity.y < 0.0),
                     )
                     .clicked()
@@ -164,10 +166,10 @@ where
                 }
                 if ui
                     .add(
-                        egui::ImageButton::new(
+                        egui::Button::image((
                             self.counterclockwise_button.texture_id(ctx),
                             self.counterclockwise_button.size_vec2(),
-                        )
+                        ))
                         .selected(self.velocity.theta > 0.0),
                     )
                     .clicked()
@@ -183,10 +185,10 @@ where
                 ui.add_space(180.0);
                 if ui
                     .add(
-                        egui::ImageButton::new(
+                        egui::Button::image((
                             self.down_button.texture_id(ctx),
                             self.down_button.size_vec2(),
-                        )
+                        ))
                         .selected(self.velocity.x < 0.0),
                     )
                     .clicked()
