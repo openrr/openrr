@@ -21,6 +21,30 @@ pub struct Ros2TransformResolver {
 impl Ros2TransformResolver {
     /// TODO
     pub fn new(
+        ctx: r2r::Context,
+        cache_duration: Duration,
+        retry_rate: f64,
+        max_retry: usize,
+    ) -> Self {
+        let node = r2r::Node::create(ctx, "test_trasform_resolver", "arci_ros2").unwrap();
+
+        let duration = builtin_msg::Duration {
+            sec: cache_duration.as_secs() as i32,
+            nanosec: cache_duration.subsec_nanos(),
+        };
+
+        Self {
+            retry_rate,
+            max_retry,
+            tf_listener: Arc::new(Mutex::new(TfListener::new_with_buffer(
+                node,
+                TfBuffer::new_with_duration(duration),
+            ))),
+        }
+    }
+
+    /// TODO
+    pub fn new_from_node(
         node: r2r::Node,
         cache_duration: Duration,
         retry_rate: f64,

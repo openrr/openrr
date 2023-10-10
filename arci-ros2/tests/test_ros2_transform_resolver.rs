@@ -40,24 +40,18 @@ const EXPECTED_ROT_Z: f64 = -1.;
 
 #[tokio::test]
 async fn test_transform_resolver() {
+    let ctx = r2r::Context::create().unwrap();
+
     let tf_node = arci_ros2::Node::new("test_tf", "arci_ros2").unwrap();
     let tf_publisher = tf_node
         .r2r()
-        .create_publisher::<arci_ros2::r2r::tf2_msgs::msg::TFMessage>(
-            "/arci_ros2/tf",
-            QosProfile::default(),
-        )
+        .create_publisher::<TFMessage>("/arci_ros2/tf", QosProfile::default())
         .unwrap();
 
-    let resolver_node = r2r::Node::create(
-        r2r::Context::create().unwrap(),
-        "test_transform_resolver",
-        "arci_ros2",
-    )
-    .unwrap();
+    tf_node.run_spin_thread(std::time::Duration::from_millis(100));
 
     let ros2_transform_resolver = arci_ros2::Ros2TransformResolver::new(
-        resolver_node,
+        ctx,
         std::time::Duration::from_millis(100),
         RETRY_RATE,
         MAX_RETRY,
