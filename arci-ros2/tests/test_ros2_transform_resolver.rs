@@ -38,7 +38,7 @@ const EXPECTED_ROT_X: f64 = 0.;
 const EXPECTED_ROT_Y: f64 = 0.;
 const EXPECTED_ROT_Z: f64 = -1.;
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_transform_resolver() {
     let ctx = r2r::Context::create().unwrap();
 
@@ -105,7 +105,9 @@ async fn test_transform_resolver() {
 
     tokio::spawn(async move {
         tf_publisher.publish(&tf_message).unwrap();
-    });
+    })
+    .await
+    .unwrap();
 
     let tf_received = ros2_transform_resolver
         .resolve_transformation(FRAME_ID_3, FRAME_ID_1, dummy_time_middle)

@@ -88,6 +88,7 @@ impl TransformResolver for Ros2TransformResolver {
                 .tf_listener
                 .lock()
                 .lookup_transform(from, to, ros_time.clone());
+            self.tf_listener.lock().show();
             match result {
                 Ok(result) => {
                     let translation = result.transform.translation;
