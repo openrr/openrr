@@ -10,7 +10,6 @@ codecov
 codegen
 collada
 Condvar
-consts
 costmap
 costmaps
 DISTRO
