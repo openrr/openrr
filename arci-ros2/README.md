@@ -67,21 +67,23 @@ Don't forget to set the initial pose of the robot before sending the goal pose u
 Launch rrbot example
 
 ```bash
-ros2 launch ros2_control_demo_bringup rrbot.launch.py
+ros2 launch ros2_control_demo_example_1 rrbot.launch.py
 ```
 
-Stop existing controllers.
+Then, inactive `forward_position_controller` and active `joint_trajectory_position_controller`.
 
 ```bash
-ros2 control set_controller_state joint_state_broadcaster stop
-ros2 control set_controller_state forward_position_controller stop
+ros2 control set_controller_state forward_position_controller inactive
+ros2 control load_controller joint_trajectory_position_controller --set-state active
 ```
 
-Start `position_trajectory_controller` and `joint_state_broadcaster`.
+`joint_state_broadcaster` and `joint_trajectory_position_controller` should now be activated, and `forward_position_controller` should now be inactivated.
 
-```bash
-ros2 control load_controller position_trajectory_controller --set-state start
-ros2 control set_controller_state joint_state_broadcaster start
+```console
+$ ros2 control list_controllers
+joint_state_broadcaster[joint_state_broadcaster/JointStateBroadcaster] active
+forward_position_controller[forward_command_controller/ForwardCommandController] inactive
+joint_trajectory_position_controller[joint_trajectory_controller/JointTrajectoryController] active
 ```
 
 ### Run command line tools
