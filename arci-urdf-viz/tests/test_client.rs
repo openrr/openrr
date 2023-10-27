@@ -1,6 +1,6 @@
 mod util;
 
-use std::time::Duration;
+use std::{env, time::Duration};
 
 use arci::{BaseVelocity, JointTrajectoryClient, MoveBase, TrajectoryPoint};
 use arci_urdf_viz::{UrdfVizWebClient, UrdfVizWebClientConfig};
@@ -176,8 +176,7 @@ fn test_current_joint_positions() {
 #[flaky_test::flaky_test]
 fn test_send_joint_positions() {
     // GitHub Actions' Windows runner is slow.
-    // We cannot use #[ignore] here because flaky_test doesn't support it
-    if cfg!(windows) {
+    if cfg!(windows) && env::var_os("CI").is_some() {
         return;
     }
     test_send_joint_positions_inner();
@@ -204,8 +203,11 @@ async fn test_send_joint_positions_inner() {
 }
 
 #[test]
-#[cfg_attr(windows, ignore)] // GitHub Actions' Windows runner is slow.
 fn test_send_joint_positions_no_wait() {
+    // GitHub Actions' macOS/Windows runner is slow.
+    if (cfg!(windows) || cfg!(target_os = "macos")) && env::var_os("CI").is_some() {
+        return;
+    }
     let (port, url) = port_and_url();
     let web_server = WebServer::new(port, Default::default());
     web_server.set_current_joint_positions(JointNamesAndPositions {
@@ -230,8 +232,7 @@ fn test_send_joint_positions_no_wait() {
 #[flaky_test::flaky_test]
 fn test_send_joint_trajectory() {
     // GitHub Actions' Windows runner is slow.
-    // We cannot use #[ignore] here because flaky_test doesn't support it
-    if cfg!(windows) {
+    if cfg!(windows) && env::var_os("CI").is_some() {
         return;
     }
     test_send_joint_trajectory_inner();
