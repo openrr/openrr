@@ -82,7 +82,7 @@ impl fmt::Debug for PluginProxy {
 // Inspired by async-compat.
 static TOKIO: Lazy<tokio::runtime::Runtime> = Lazy::new(|| {
     std::thread::Builder::new()
-        .name("arci-ros2/tokio".to_owned())
+        .name("openrr-plugin/tokio".to_owned())
         .spawn(move || TOKIO.block_on(std::future::pending::<()>()))
         .unwrap();
     tokio::runtime::Builder::new_multi_thread()
