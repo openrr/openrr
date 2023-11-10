@@ -79,7 +79,7 @@ heck = "0.4"
 image = { version = "0.24", default-features = false }
 indexmap = "2"
 influxdb = "0.7"
-k = "0.30"
+k = "0.31"
 mesh-loader = "0.0.2"
 nalgebra = "0.30"
 ncollide3d = "0.33"
@@ -122,8 +122,8 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["ansi", "env-filter"] }
 trajectory = "0.1"
-urdf-rs = "0.7.2"
-urdf-viz = "0.43"
+urdf-rs = "0.8"
+urdf-viz = "0.44"
 ureq = { version = "2", features = ["json"] }
 url = "2"
 
