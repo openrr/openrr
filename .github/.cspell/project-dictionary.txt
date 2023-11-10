@@ -15,7 +15,6 @@ costmaps
 DISTRO
 dobot
 Dpkg
-drawio
 dylib
 epaint
 espeak
