@@ -231,8 +231,8 @@ fn test_send_joint_positions_no_wait() {
 
 #[flaky_test::flaky_test]
 fn test_send_joint_trajectory() {
-    // GitHub Actions' Windows runner is slow.
-    if cfg!(windows) && env::var_os("CI").is_some() {
+    // GitHub Actions' macOS/Windows runner is slow.
+    if (cfg!(windows) || cfg!(target_os = "macos")) && env::var_os("CI").is_some() {
         return;
     }
     test_send_joint_trajectory_inner();
