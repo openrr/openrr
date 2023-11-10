@@ -15,7 +15,7 @@ assimp = ["openrr-planner/assimp"]
 [dependencies]
 anyhow.workspace = true
 arci.workspace = true
-k = { workspace = true, features = ["serde-serialize"] }
+k = { workspace = true, features = ["serde"] }
 openrr-config.workspace = true
 openrr-planner.workspace = true
 schemars.workspace = true

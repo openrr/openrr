@@ -62,7 +62,13 @@ where
             scale,
         } => {
             let scale = scale.unwrap_or(DEFAULT_MESH_SCALE);
-            let replaced_filename = urdf_rs::utils::expand_package_path(filename, base_dir);
+            let replaced_filename = match urdf_rs::utils::expand_package_path(filename, base_dir) {
+                Ok(replaced_filename) => replaced_filename,
+                Err(e) => {
+                    error!("{e}");
+                    return None;
+                }
+            };
             let path = Path::new(&*replaced_filename);
             if !path.exists() {
                 error!("{replaced_filename} not found");
