@@ -18,7 +18,7 @@ impl Odometry {
         Self {
             position: Mutex::new(Some(position)),
             last_update_timestamp: Mutex::new(None),
-            /// If `0`, timeout is invalid
+            // If `0`, timeout is invalid
             timeout_millis: Mutex::new(DEFAULT_TIMEOUT_MILLIS),
         }
     }
