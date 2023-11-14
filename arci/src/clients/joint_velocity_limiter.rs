@@ -178,7 +178,7 @@ mod tests {
         assert_eq!(joint_positions.len(), 2);
         assert_approx_eq!(joint_positions[0], 1.0);
         assert_approx_eq!(joint_positions[1], 2.0);
-        let trajectory = client.last_trajectory.lock();
+        let trajectory = client.last_trajectory.lock().unwrap();
         assert_eq!(trajectory.len(), 1);
         assert_eq!(trajectory[0].positions.len(), 2);
         assert_approx_eq!(trajectory[0].positions[0], 1.0);
@@ -235,7 +235,7 @@ mod tests {
         assert_approx_eq!(joint_positions[0], 3.0);
         assert_approx_eq!(joint_positions[1], 6.0);
 
-        let trajectory = client.last_trajectory.lock();
+        let trajectory = client.last_trajectory.lock().unwrap();
         assert_eq!(trajectory.len(), 2);
         assert_eq!(trajectory[0].positions.len(), 2);
         assert_approx_eq!(trajectory[0].positions[0], 1.0);

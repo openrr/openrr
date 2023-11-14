@@ -15,7 +15,7 @@ tonic-build.workspace = true
 arci.workspace = true
 prost-types.workspace = true
 prost.workspace = true
-tokio = { workspace = true, features = ["rt-multi-thread", "parking_lot"] }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
 tonic.workspace = true
 tracing.workspace = true
 

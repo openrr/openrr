@@ -1,5 +1,6 @@
+use std::sync::Mutex;
+
 use arci::{BaseVelocity, Isometry2, Vector2};
-use parking_lot::Mutex;
 
 use crate::Error;
 
@@ -24,9 +25,9 @@ impl Odometry {
     }
 
     pub fn update_by_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error> {
-        let mut position = self.position.lock();
-        let mut locked_update_time = self.last_update_timestamp.lock();
-        let timeout_millis = *self.timeout_millis.lock();
+        let mut position = self.position.lock().unwrap();
+        let mut locked_update_time = self.last_update_timestamp.lock().unwrap();
+        let timeout_millis = *self.timeout_millis.lock().unwrap();
 
         let last_update_time = match *locked_update_time {
             Some(t) => t,
@@ -58,20 +59,20 @@ impl Odometry {
 
     /// Recover or update odometry
     pub fn resolve_lost(&self, current_pose: Isometry2<f64>) {
-        let mut pose = self.position.lock();
-        let mut update_time = self.last_update_timestamp.lock();
+        let mut pose = self.position.lock().unwrap();
+        let mut update_time = self.last_update_timestamp.lock().unwrap();
 
         *pose = Some(current_pose);
         *update_time = Some(std::time::Instant::now());
     }
 
     pub fn set_timeout_millis(&self, millis: u128) {
-        let mut timeout_millis = self.timeout_millis.lock();
+        let mut timeout_millis = self.timeout_millis.lock().unwrap();
         *timeout_millis = millis;
     }
 
     pub fn current_pose(&self) -> Result<Isometry2<f64>, Error> {
-        match self.position.lock().to_owned() {
+        match self.position.lock().unwrap().to_owned() {
             Some(pose) => Ok(pose),
             None => Err(Error::CurrentPositionUnknown),
         }

@@ -12,12 +12,11 @@ categories = ["science::robotics"]
 anyhow.workspace = true
 arci.workspace = true
 openrr-planner.workspace = true
-parking_lot.workspace = true
 schemars.workspace = true
 scoped-sleep.workspace = true
 serde_json.workspace = true
 serde.workspace = true
-tokio = { workspace = true, features = ["sync", "parking_lot"] }
+tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 urdf-rs.workspace = true
 ureq.workspace = true

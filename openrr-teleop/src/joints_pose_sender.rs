@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, sync::Mutex, time::Duration};
 
 use arci::{
     gamepad::{Button, GamepadEvent},
@@ -6,7 +6,6 @@ use arci::{
 };
 use async_trait::async_trait;
 use openrr_client::JointsPose;
-use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -128,7 +127,7 @@ where
     J: JointTrajectoryClient,
 {
     fn handle_event(&self, event: arci::gamepad::GamepadEvent) {
-        if let Some(submode) = self.inner.lock().handle_event(event) {
+        if let Some(submode) = self.inner.lock().unwrap().handle_event(event) {
             // do not wait
             drop(
                 self.speaker
@@ -139,7 +138,7 @@ where
     }
 
     async fn proc(&self) {
-        let inner = self.inner.lock();
+        let inner = self.inner.lock().unwrap();
         let (name, target) = inner.get_target_name_positions();
         let client = self.joint_trajectory_clients.get(&name).unwrap();
         drop(
@@ -161,7 +160,7 @@ where
     }
 
     fn submode(&self) -> String {
-        self.inner.lock().submode.to_owned()
+        self.inner.lock().unwrap().submode.to_owned()
     }
 }
 
@@ -277,15 +276,18 @@ mod test {
         );
         assert!(duration.eq(&joints_pose_sender.duration));
         assert_eq!(
-            format!("{:?}", joints_pose_sender.inner.lock().joints_poses),
-            format!("{:?}", inner.lock().joints_poses)
+            format!(
+                "{:?}",
+                joints_pose_sender.inner.lock().unwrap().joints_poses
+            ),
+            format!("{:?}", inner.lock().unwrap().joints_poses)
         );
 
         // Test fot getting mode of joints_pose_sender
         let joints_pose_sender_mode = joints_pose_sender.mode();
         assert_eq!(joints_pose_sender_mode, mode);
         let submode = joints_pose_sender.submode();
-        assert_eq!(joints_pose_sender.inner.lock().submode, submode);
+        assert_eq!(joints_pose_sender.inner.lock().unwrap().submode, submode);
     }
 
     #[tokio::test]
@@ -353,7 +355,7 @@ mod test {
     fn joints_pose_trajectory_client_current_state(
         joints_pose_sender: &JointsPoseSender<PrintSpeaker, DummyJointTrajectoryClient>,
     ) -> Vec<f64> {
-        let inner = joints_pose_sender.inner.lock();
+        let inner = joints_pose_sender.inner.lock().unwrap();
         let (name, target) = inner.get_target_name_positions();
 
         let client = joints_pose_sender

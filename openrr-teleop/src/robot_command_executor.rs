@@ -1,4 +1,7 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 
 use arci::{
     gamepad::{Button, GamepadEvent},
@@ -8,7 +11,6 @@ use async_trait::async_trait;
 use clap::Parser;
 use openrr_client::{resolve_relative_path, ArcRobotClient};
 use openrr_command::{load_command_file_and_filter, RobotCommand};
-use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};
@@ -111,7 +113,7 @@ where
     S: Speaker,
 {
     fn handle_event(&self, event: arci::gamepad::GamepadEvent) {
-        if let Some(submode) = self.inner.lock().handle_event(event) {
+        if let Some(submode) = self.inner.lock().unwrap().handle_event(event) {
             // do not wait
             drop(self.speaker.speak(&format!("{MODE} {submode}")).unwrap());
         }
@@ -119,7 +121,7 @@ where
 
     async fn proc(&self) {
         let command = {
-            let inner = self.inner.lock();
+            let inner = self.inner.lock().unwrap();
             if inner.is_trigger_holding && inner.is_sending {
                 inner.get_command().clone()
             } else {
@@ -133,7 +135,7 @@ where
                     Ok(commands) => {
                         let commands_len = commands.len() as f64;
                         for (i, command) in commands.iter().enumerate() {
-                            if !self.inner.lock().is_trigger_holding {
+                            if !self.inner.lock().unwrap().is_trigger_holding {
                                 warn!("Remaining commands are canceled.");
                                 return;
                             }
@@ -170,7 +172,7 @@ where
     }
 
     fn submode(&self) -> String {
-        self.inner.lock().submode.to_owned()
+        self.inner.lock().unwrap().submode.to_owned()
     }
 }
 
@@ -278,11 +280,11 @@ mod test {
 
         assert_eq!(robot_command_executor.base_path, PathBuf::from("path"));
         assert_eq!(
-            robot_command_executor.inner.lock().commands[0].name,
+            robot_command_executor.inner.lock().unwrap().commands[0].name,
             String::from("name")
         );
         assert_eq!(
-            robot_command_executor.inner.lock().commands[0].file_path,
+            robot_command_executor.inner.lock().unwrap().commands[0].file_path,
             String::from("file_path")
         );
 

@@ -1,7 +1,6 @@
-use std::future;
+use std::{future, sync::Mutex};
 
 use async_trait::async_trait;
-use parking_lot::Mutex;
 
 use crate::gamepad::{Axis, Button, Gamepad, GamepadEvent};
 
@@ -74,16 +73,16 @@ impl DummyGamepad {
     }
 
     pub fn is_stopped(&self) -> bool {
-        *self.stopped.lock()
+        *self.stopped.lock().unwrap()
     }
 }
 
 #[async_trait]
 impl Gamepad for DummyGamepad {
     async fn next_event(&self) -> GamepadEvent {
-        *self.stopped.lock() = false;
+        *self.stopped.lock().unwrap() = false;
         {
-            let mut index = self.index.lock();
+            let mut index = self.index.lock().unwrap();
             if let Some(event) = self.events.get(*index).cloned() {
                 *index += 1;
                 return event;
@@ -94,6 +93,6 @@ impl Gamepad for DummyGamepad {
     }
 
     fn stop(&self) {
-        *self.stopped.lock() = true;
+        *self.stopped.lock().unwrap() = true;
     }
 }

@@ -15,11 +15,10 @@ auto_impl.workspace = true
 futures.workspace = true
 nalgebra.workspace = true
 once_cell.workspace = true
-parking_lot.workspace = true
 schemars.workspace = true
 serde.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["time", "parking_lot"] }
+tokio = { workspace = true, features = ["time"] }
 tracing.workspace = true
 urdf-rs.workspace = true
 

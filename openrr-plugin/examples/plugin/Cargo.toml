@@ -13,6 +13,5 @@ arci-gamepad-keyboard.workspace = true
 arci.workspace = true
 openrr-client.workspace = true
 openrr-plugin.workspace = true
-parking_lot.workspace = true
 serde.workspace = true
 serde_json.workspace = true

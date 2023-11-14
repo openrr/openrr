@@ -1,5 +1,6 @@
+use std::sync::Mutex;
+
 use arci::*;
-use parking_lot::Mutex;
 use r2r::geometry_msgs::msg::Twist;
 use serde::{Deserialize, Serialize};
 
@@ -35,6 +36,7 @@ impl MoveBase for Ros2CmdVelMoveBase {
         twist_msg.angular.z = velocity.theta;
         self.vel_publisher
             .lock()
+            .unwrap()
             .publish(&twist_msg)
             .map_err(|e| arci::Error::Connection {
                 message: format!("r2r publish error: {e:?}"),

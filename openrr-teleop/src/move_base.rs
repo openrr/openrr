@@ -1,9 +1,10 @@
+use std::sync::Mutex;
+
 use arci::{
     gamepad::{Axis, Button, GamepadEvent},
     BaseVelocity, MoveBase,
 };
 use async_trait::async_trait;
-use parking_lot::Mutex;
 
 use super::control_mode::ControlMode;
 
@@ -104,7 +105,7 @@ where
     T: MoveBase,
 {
     fn handle_event(&self, ev: GamepadEvent) {
-        if self.inner.lock().handle_event(ev) {
+        if self.inner.lock().unwrap().handle_event(ev) {
             // stop immediately
             self.move_base
                 .send_velocity(&BaseVelocity::default())
@@ -113,7 +114,7 @@ where
     }
 
     async fn proc(&self) {
-        if let Some(v) = self.inner.lock().get_target_velocity() {
+        if let Some(v) = self.inner.lock().unwrap().get_target_velocity() {
             self.move_base.send_velocity(&v).unwrap();
         }
     }
@@ -147,11 +148,11 @@ mod tests {
         assert_eq!(mode.mode, mode_name);
         assert_eq!(mode.submode, String::from(""));
         assert_eq!(
-            format!("{:?}", mode.inner.lock().vel),
+            format!("{:?}", mode.inner.lock().unwrap().vel),
             format!("{:?}", BaseVelocity::default())
         );
-        assert!(!mode.inner.lock().is_enabled);
-        assert!(!mode.inner.lock().is_turbo);
+        assert!(!mode.inner.lock().unwrap().is_enabled);
+        assert!(!mode.inner.lock().unwrap().is_turbo);
     }
 
     #[test]
@@ -191,7 +192,7 @@ mod tests {
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {current:?}", mode.inner.lock().vel);
+        println!("{:?} {current:?}", mode.inner.lock().unwrap().vel);
 
         let mode = MoveBaseMode {
             move_base: DummyMoveBase::new(),
@@ -212,7 +213,7 @@ mod tests {
         assert_approx_eq!(current.x, 0.0);
         assert_approx_eq!(current.y, 0.0);
         assert_approx_eq!(current.theta, 0.0);
-        println!("{:?} {current:?}", mode.inner.lock().vel);
+        println!("{:?} {current:?}", mode.inner.lock().unwrap().vel);
 
         let mode = MoveBaseMode {
             move_base: DummyMoveBase::new(),
@@ -233,7 +234,7 @@ mod tests {
         assert_approx_eq!(current.x, X);
         assert_approx_eq!(current.y, Y);
         assert_approx_eq!(current.theta, THETA);
-        println!("{:?} {current:?}", mode.inner.lock().vel);
+        println!("{:?} {current:?}", mode.inner.lock().unwrap().vel);
 
         let mode = MoveBaseMode {
             move_base: DummyMoveBase::new(),
@@ -254,6 +255,6 @@ mod tests {
         assert_approx_eq!(current.x, X * 2.0);
         assert_approx_eq!(current.y, Y * 2.0);
         assert_approx_eq!(current.theta, THETA * 2.0);
-        println!("{:?} {current:?}", mode.inner.lock().vel);
+        println!("{:?} {current:?}", mode.inner.lock().unwrap().vel);
     }
 }

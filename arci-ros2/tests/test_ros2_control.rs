@@ -5,7 +5,7 @@ mod shared;
 use std::{
     sync::{
         atomic::{AtomicUsize, Ordering},
-        Arc,
+        Arc, Mutex,
     },
     time::Duration,
 };
@@ -16,7 +16,6 @@ use futures::{
     future::{self, Either},
     stream::{Stream, StreamExt},
 };
-use parking_lot::Mutex;
 use r2r::{
     control_msgs::{action::FollowJointTrajectory, msg::JointTrajectoryControllerState},
     trajectory_msgs::msg as trajectory_msg,
@@ -61,7 +60,7 @@ async fn test_control() {
     ));
     tokio::spawn(async move {
         loop {
-            publisher.publish(&state.lock()).unwrap();
+            publisher.publish(&state.lock().unwrap()).unwrap();
             tokio::time::sleep(Duration::from_millis(100)).await;
         }
     });
@@ -88,7 +87,7 @@ async fn run_goal(
         .create_wall_timer(Duration::from_millis(800))
         .expect("could not create timer");
 
-    state.lock().actual.positions = goal
+    state.lock().unwrap().actual.positions = goal
         .goal
         .trajectory
         .points

@@ -20,10 +20,9 @@ clap.workspace = true
 k.workspace = true
 openrr-client.workspace = true
 openrr-command.workspace = true
-parking_lot.workspace = true
 schemars.workspace = true
 serde.workspace = true
-tokio = { workspace = true, features = ["rt-multi-thread", "sync", "time", "parking_lot"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "sync", "time"] }
 tracing.workspace = true
 
 [dev-dependencies]

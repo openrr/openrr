@@ -1,4 +1,4 @@
-use parking_lot::Mutex;
+use std::sync::Mutex;
 
 use crate::{
     error::Error,
@@ -22,12 +22,12 @@ impl DummyMoveBase {
 
 impl MoveBase for DummyMoveBase {
     fn send_velocity(&self, velocity: &BaseVelocity) -> Result<(), Error> {
-        *self.current_velocity.lock() = *velocity;
+        *self.current_velocity.lock().unwrap() = *velocity;
         Ok(())
     }
 
     fn current_velocity(&self) -> Result<BaseVelocity, Error> {
-        Ok(self.current_velocity.lock().to_owned())
+        Ok(self.current_velocity.lock().unwrap().to_owned())
     }
 }
 

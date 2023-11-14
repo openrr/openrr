@@ -1,11 +1,13 @@
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use arci::{
     CompleteCondition, JointTrajectoryClient, SetCompleteCondition, TotalJointDiffCondition,
     TrajectoryPoint, WaitFuture,
 };
 use once_cell::sync::Lazy;
-use parking_lot::Mutex;
 
 use crate::{
     create_joint_trajectory_message_for_send_joint_positions,
@@ -133,7 +135,7 @@ impl JointTrajectoryClient for RosControlActionClient {
             .await
             .map_err(|e| arci::Error::Other(e.into()))??;
             // Clone to avoid holding the lock for a long time.
-            let complete_condition = this.0.complete_condition.lock().clone();
+            let complete_condition = this.0.complete_condition.lock().unwrap().clone();
             complete_condition
                 .wait(&this, &positions, duration.as_secs_f64())
                 .await
@@ -174,7 +176,7 @@ impl JointTrajectoryClient for RosControlActionClient {
             .await
             .map_err(|e| arci::Error::Other(e.into()))??;
             // Clone to avoid holding the lock for a long time.
-            let complete_condition = this.0.complete_condition.lock().clone();
+            let complete_condition = this.0.complete_condition.lock().unwrap().clone();
             complete_condition
                 .wait(
                     &this,
@@ -188,6 +190,6 @@ impl JointTrajectoryClient for RosControlActionClient {
 
 impl SetCompleteCondition for RosControlActionClient {
     fn set_complete_condition(&mut self, condition: Box<dyn CompleteCondition>) {
-        *self.0.complete_condition.lock() = condition.into();
+        *self.0.complete_condition.lock().unwrap() = condition.into();
     }
 }
