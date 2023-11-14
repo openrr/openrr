@@ -191,10 +191,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::sync::{Arc, Mutex};
 
     use assert_approx_eq::assert_approx_eq;
-    use parking_lot::Mutex;
 
     use super::*;
 
@@ -210,7 +209,7 @@ mod tests {
         }
 
         fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
-            Ok(self.pos.lock().clone())
+            Ok(self.pos.lock().unwrap().clone())
         }
 
         fn send_joint_positions(
@@ -218,7 +217,7 @@ mod tests {
             positions: Vec<f64>,
             _duration: std::time::Duration,
         ) -> Result<WaitFuture, Error> {
-            *self.pos.lock() = positions;
+            *self.pos.lock().unwrap() = positions;
             Ok(WaitFuture::ready())
         }
 
@@ -227,9 +226,9 @@ mod tests {
             full_trajectory: Vec<TrajectoryPoint>,
         ) -> Result<WaitFuture, Error> {
             if let Some(last_point) = full_trajectory.last() {
-                *self.pos.lock() = last_point.positions.to_owned();
+                *self.pos.lock().unwrap() = last_point.positions.to_owned();
             }
-            *self.last_trajectory.lock() = full_trajectory;
+            *self.last_trajectory.lock().unwrap() = full_trajectory;
             Ok(WaitFuture::ready())
         }
     }

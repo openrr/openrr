@@ -1,4 +1,7 @@
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use arci::{
     gamepad::{Axis, Button, GamepadEvent},
@@ -7,7 +10,6 @@ use arci::{
 use async_trait::async_trait;
 use k::{Translation3, Vector3};
 use openrr_client::IkSolverWithChain;
-use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -179,12 +181,12 @@ where
     S: Speaker,
 {
     fn handle_event(&self, event: GamepadEvent) {
-        self.inner.lock().handle_event(event);
+        self.inner.lock().unwrap().handle_event(event);
     }
 
     async fn proc(&self) {
         let (is_sending, angular_velocity, linear_velocity) = {
-            let inner = self.inner.lock();
+            let inner = self.inner.lock().unwrap();
             (
                 inner.is_sending,
                 inner.angular_velocity,

@@ -1,12 +1,10 @@
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
-        Arc,
+        Arc, Mutex, MutexGuard,
     },
     time::Duration,
 };
-
-use parking_lot::{Mutex, MutexGuard};
 
 /// ROS2 node. This is a wrapper around `Arc<Mutex<r2r::Node>>`.
 #[derive(Clone)]
@@ -43,7 +41,7 @@ impl Node {
 
     /// Gets underlying `r2r::Node`.
     pub fn r2r(&self) -> MutexGuard<'_, r2r::Node> {
-        self.inner.node.lock()
+        self.inner.node.lock().unwrap()
     }
 
     /// Creates a thread to spin the ROS2 node.

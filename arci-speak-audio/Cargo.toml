@@ -12,7 +12,7 @@ categories = ["science::robotics"]
 arci.workspace = true
 rodio.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["sync", "parking_lot"] }
+tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 
 [dev-dependencies]

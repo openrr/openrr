@@ -1,5 +1,6 @@
+use std::sync::Mutex;
+
 use arci::BaseVelocity;
-use parking_lot::Mutex;
 
 use crate::*;
 
@@ -42,17 +43,18 @@ impl RobotVelocityStatus {
     }
 
     pub fn velocity(&self) -> BaseVelocity {
-        self.velocity.lock().to_owned()
+        self.velocity.lock().unwrap().to_owned()
     }
 
     pub fn set_velocity(&self, velocity: &BaseVelocity) {
-        let mut vel = self.velocity.lock();
+        let mut vel = self.velocity.lock().unwrap();
         *vel = *velocity;
     }
 
     pub fn time_since_last_sent(&self) -> f64 {
         self.last_sent_log
             .lock()
+            .unwrap()
             .to_owned()
             .timestamp
             .elapsed()
@@ -60,7 +62,7 @@ impl RobotVelocityStatus {
     }
 
     pub fn set_log(&self, velocity_log: &BaseVelocity) {
-        let mut log = self.last_sent_log.lock();
+        let mut log = self.last_sent_log.lock().unwrap();
         *log = BaseVelocityTimestamped {
             base_velocity: *velocity_log,
             timestamp: std::time::Instant::now(),
@@ -68,7 +70,7 @@ impl RobotVelocityStatus {
     }
 
     pub fn set_velocity_state(&self, velocity: BaseVelocity) {
-        let mut velocity_state = self.velocity_state.lock();
+        let mut velocity_state = self.velocity_state.lock().unwrap();
         *velocity_state = velocity;
     }
 
@@ -89,7 +91,7 @@ impl RobotVelocityStatus {
 
     fn limit_acceleration(&self, velocity: &BaseVelocity) -> BaseVelocity {
         let dt = self.time_since_last_sent();
-        let vel = self.velocity.lock().to_owned();
+        let vel = self.velocity.lock().unwrap().to_owned();
         BaseVelocity {
             x: velocity.x.clamp(
                 vel.x + self.min_acceleration.x * dt,
@@ -154,7 +156,7 @@ mod test {
 
         status.set_velocity_state(velocity_state);
 
-        let velocity_state_x = status.velocity_state.lock().x;
+        let velocity_state_x = status.velocity_state.lock().unwrap().x;
         assert_approx_eq!(velocity_state_x, DUMMY_VELOCITY_STATE_X);
     }
 }

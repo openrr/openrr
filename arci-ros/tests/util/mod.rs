@@ -2,13 +2,12 @@ use std::{
     env,
     process::{Command, Output},
     str::from_utf8,
-    sync::{Arc, Once, Weak},
+    sync::{Arc, Once, RwLock, Weak},
     thread::sleep,
     time::Duration,
 };
 
 pub use child_process_terminator::ChildProcessTerminator;
-use parking_lot::RwLock;
 
 mod child_process_terminator;
 
@@ -180,7 +179,7 @@ pub fn run_roscore_and_rosrust_init_once(init_name: &str) -> Arc<ChildProcessTer
     } else {
         // Try upgrade to ``Arc``, it success if roscore is still alive.
         let roscore_lock = ROSCORE_STATIC.get().unwrap().try_read();
-        if let Some(roscore_read) = roscore_lock {
+        if let Ok(roscore_read) = roscore_lock {
             let roscore_live = roscore_read.upgrade();
             if let Some(roscore_arc) = roscore_live {
                 return roscore_arc;
@@ -191,7 +190,7 @@ pub fn run_roscore_and_rosrust_init_once(init_name: &str) -> Arc<ChildProcessTer
     // If roscore have already stopped, try to make roscore up.
     // ``roscore`` runner should be only one so we must execute exclusive control.
     // At here, exclusive control is realized by `RwLock::write` .
-    let mut roscore_write = ROSCORE_STATIC.get().unwrap().write();
+    let mut roscore_write = ROSCORE_STATIC.get().unwrap().write().unwrap();
     let roscore_live = roscore_write.upgrade();
     if let Some(roscore_arc) = roscore_live {
         return roscore_arc;

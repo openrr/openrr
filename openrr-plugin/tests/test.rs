@@ -54,7 +54,7 @@ async fn joint_trajectory_client() {
         .unwrap()
         .await
         .unwrap();
-    assert_eq!(client.last_trajectory.lock().len(), 2);
+    assert_eq!(client.last_trajectory.lock().unwrap().len(), 2);
     let pos = client.current_joint_positions().unwrap();
     assert_eq!(pos.len(), 2);
     assert_approx_eq!(pos[0], 2.0);

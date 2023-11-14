@@ -1,7 +1,9 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use arci::{gamepad::*, *};
-use parking_lot::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -32,7 +34,7 @@ impl RosJoyGamepad {
 
         let last_joy_msg_clone = last_joy_msg.clone();
         let _sub = rosrust::subscribe(topic_name, TOPIC_BUFFER_SIZE, move |joy_msg: Joy| {
-            let mut last_joy = last_joy_msg_clone.lock();
+            let mut last_joy = last_joy_msg_clone.lock().unwrap();
             // initialize last_joy_msg
             if last_joy.buttons.len() < joy_msg.buttons.len() {
                 last_joy.buttons.resize(joy_msg.buttons.len(), 0);

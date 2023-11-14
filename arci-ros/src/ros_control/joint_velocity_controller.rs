@@ -1,8 +1,7 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use arci::MotorDriveVelocity;
 use msg::{sensor_msgs::JointState, std_msgs::Float64};
-use parking_lot::Mutex;
 
 use crate::msg;
 
@@ -28,7 +27,7 @@ impl JointVelocityController {
         let callback_motor_velocity_state = motor_velocity_state.clone();
 
         let _subscriber = rosrust::subscribe(joint_state_topic, 1, move |msg: JointState| {
-            let mut vel = callback_motor_velocity_state.lock();
+            let mut vel = callback_motor_velocity_state.lock().unwrap();
             *vel = msg.velocity[joint_index];
         })
         .unwrap();
@@ -59,7 +58,7 @@ impl MotorDriveVelocity for JointVelocityController {
     }
 
     fn get_motor_velocity(&self) -> Result<f64, arci::Error> {
-        let vel = self.0.motor_velocity_state.lock();
+        let vel = self.0.motor_velocity_state.lock().unwrap();
         Ok(if self.0.is_reverse_direction {
             -(*vel)
         } else {

@@ -1,4 +1,4 @@
-use parking_lot::Mutex;
+use std::sync::Mutex;
 
 use crate::{error::Error, traits::Speaker, WaitFuture};
 
@@ -15,13 +15,13 @@ impl DummySpeaker {
     }
 
     pub fn current_message(&self) -> String {
-        self.message.lock().clone()
+        self.message.lock().unwrap().clone()
     }
 }
 
 impl Speaker for DummySpeaker {
     fn speak(&self, message: &str) -> Result<WaitFuture, Error> {
-        *self.message.lock() = message.to_string();
+        *self.message.lock().unwrap() = message.to_string();
         Ok(WaitFuture::ready())
     }
 }

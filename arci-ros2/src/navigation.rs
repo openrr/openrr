@@ -1,7 +1,7 @@
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
-        Arc,
+        Arc, Mutex,
     },
     time::Duration,
 };
@@ -9,7 +9,6 @@ use std::{
 use anyhow::format_err;
 use arci::*;
 use futures::stream::StreamExt;
-use parking_lot::Mutex;
 use r2r::{
     builtin_interfaces::msg::Time, geometry_msgs::msg, nav2_msgs::action::NavigateToPose,
     std_msgs::msg::Header,
@@ -96,13 +95,13 @@ impl Navigation for Ros2Navigation {
                 is_available.await.unwrap();
                 let send_goal_request = action_client.send_goal_request(goal).unwrap();
                 let (goal, result, feedback) = send_goal_request.await.unwrap();
-                *current_goal_clone.lock() = Some(goal.clone());
+                *current_goal_clone.lock().unwrap() = Some(goal.clone());
                 tokio::spawn(async move { feedback.for_each(|_| std::future::ready(())).await });
                 result.await.unwrap(); // TODO: handle goal state
                 is_done.store(true, Ordering::Relaxed);
             });
             utils::wait(is_done_clone).await;
-            *current_goal.lock() = None;
+            *current_goal.lock().unwrap() = None;
             // TODO: "canceled" should be an error?
             let _ = sender.send(());
         });
@@ -120,7 +119,7 @@ impl Navigation for Ros2Navigation {
     fn cancel(&self) -> Result<(), Error> {
         // TODO: current_goal is None until send_goal_request.await is complete.
         //       Therefore, if cancel is called during that period, it will not work correctly.
-        if let Some(current_goal) = self.current_goal.lock().take() {
+        if let Some(current_goal) = self.current_goal.lock().unwrap().take() {
             let fut = current_goal.cancel().map_err(|e| Error::Other(e.into()))?;
             tokio::spawn(async move {
                 let _ = fut.await;

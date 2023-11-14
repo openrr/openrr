@@ -15,9 +15,10 @@ limitations under the License.
 */
 #![allow(clippy::trivially_copy_pass_by_ref)]
 
+use std::sync::Mutex;
+
 use k::{nalgebra as na, InverseKinematicsSolver, SubsetOf};
 use na::RealField;
-use parking_lot::Mutex;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::funcs::*;
@@ -126,14 +127,14 @@ where
                     .solve_with_constraints(&arm, &target_pose, constraints)
                     .is_ok()
                 {
-                    solved_poses.lock().push(target_pose);
+                    solved_poses.lock().unwrap().push(target_pose);
                 }
                 x += unit_check_length;
             }
             y += unit_check_length;
         }
     });
-    solved_poses.into_inner()
+    solved_poses.into_inner().unwrap()
 }
 
 #[cfg(test)]

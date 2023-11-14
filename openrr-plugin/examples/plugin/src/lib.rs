@@ -1,9 +1,8 @@
-use std::time::Duration;
+use std::{sync::Mutex, time::Duration};
 
 use arci::{DummyLocalization, DummyMoveBase, DummyNavigation, Error, TrajectoryPoint, WaitFuture};
 use openrr_client::PrintSpeaker;
 use openrr_plugin::Plugin;
-use parking_lot::Mutex;
 use serde::Deserialize;
 
 openrr_plugin::export_plugin!(MyPlugin);
@@ -70,7 +69,7 @@ impl arci::JointTrajectoryClient for MyJointTrajectoryClient {
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, Error> {
-        Ok(self.joint_positions.lock().clone())
+        Ok(self.joint_positions.lock().unwrap().clone())
     }
 
     fn send_joint_positions(
@@ -79,7 +78,7 @@ impl arci::JointTrajectoryClient for MyJointTrajectoryClient {
         duration: Duration,
     ) -> Result<WaitFuture, Error> {
         println!("positions = {positions:?}, duration = {duration:?}");
-        *self.joint_positions.lock() = positions;
+        *self.joint_positions.lock().unwrap() = positions;
         Ok(WaitFuture::new(async { Ok(()) }))
     }
 

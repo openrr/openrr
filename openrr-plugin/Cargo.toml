@@ -14,7 +14,7 @@ anyhow.workspace = true
 arci.workspace = true
 async-ffi.workspace = true
 once_cell.workspace = true
-tokio = { workspace = true, features = ["sync", "rt-multi-thread", "parking_lot"] }
+tokio = { workspace = true, features = ["sync", "rt-multi-thread"] }
 
 [dev-dependencies]
 assert_approx_eq.workspace = true

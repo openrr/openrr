@@ -21,7 +21,6 @@ arci.workspace = true
 futures.workspace = true
 once_cell.workspace = true
 openrr-plugin.workspace = true
-parking_lot.workspace = true
 r2r = { workspace = true, optional = true }
 serde.workspace = true
 thiserror.workspace = true

@@ -1,4 +1,4 @@
-use parking_lot::Mutex;
+use std::sync::Mutex;
 
 use crate::{
     error::Error,
@@ -26,12 +26,12 @@ impl Default for DummyMotorDrivePosition {
 
 impl MotorDrivePosition for DummyMotorDrivePosition {
     fn set_motor_position(&self, position: f64) -> Result<(), Error> {
-        *self.current_position.lock() = position;
+        *self.current_position.lock().unwrap() = position;
         Ok(())
     }
 
     fn get_motor_position(&self) -> Result<f64, Error> {
-        Ok(*self.current_position.lock())
+        Ok(*self.current_position.lock().unwrap())
     }
 }
 
@@ -56,12 +56,12 @@ impl Default for DummyMotorDriveVelocity {
 
 impl MotorDriveVelocity for DummyMotorDriveVelocity {
     fn set_motor_velocity(&self, velocity: f64) -> Result<(), Error> {
-        *self.current_velocity.lock() = velocity;
+        *self.current_velocity.lock().unwrap() = velocity;
         Ok(())
     }
 
     fn get_motor_velocity(&self) -> Result<f64, Error> {
-        Ok(*self.current_velocity.lock())
+        Ok(*self.current_velocity.lock().unwrap())
     }
 }
 
@@ -86,11 +86,11 @@ impl Default for DummyMotorDriveEffort {
 
 impl MotorDriveEffort for DummyMotorDriveEffort {
     fn set_motor_effort(&self, effort: f64) -> Result<(), Error> {
-        *self.current_effort.lock() = effort;
+        *self.current_effort.lock().unwrap() = effort;
         Ok(())
     }
 
     fn get_motor_effort(&self) -> Result<f64, Error> {
-        Ok(*self.current_effort.lock())
+        Ok(*self.current_effort.lock().unwrap())
     }
 }

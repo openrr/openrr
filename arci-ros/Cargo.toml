@@ -15,7 +15,6 @@ auto_impl.workspace = true
 flume.workspace = true
 nalgebra.workspace = true
 once_cell.workspace = true
-parking_lot.workspace = true
 paste.workspace = true
 ros-nalgebra.workspace = true
 rosrust.workspace = true

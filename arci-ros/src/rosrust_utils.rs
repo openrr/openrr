@@ -1,15 +1,14 @@
 use std::{
-    sync::Arc,
+    sync::{Arc, Mutex},
     time::{Duration, SystemTime},
 };
 
 use flume::{Receiver, Sender};
-use parking_lot::Mutex;
 use rosrust::Time;
 type MessageBuffer<T> = Arc<Mutex<Option<T>>>;
 
 fn set_message_buffer<T>(buffer: &MessageBuffer<T>, message: T) {
-    buffer.lock().replace(message);
+    buffer.lock().unwrap().replace(message);
 }
 
 fn subscribe_with_message_buffer<T: rosrust::Message>(
@@ -45,11 +44,11 @@ where
     }
 
     pub fn take(&self) -> Result<Option<T>, arci::Error> {
-        Ok(self.buffer.lock().take())
+        Ok(self.buffer.lock().unwrap().take())
     }
 
     pub fn get(&self) -> Result<Option<T>, arci::Error> {
-        Ok(self.buffer.lock().clone())
+        Ok(self.buffer.lock().unwrap().clone())
     }
 
     pub fn wait_message(&self, loop_millis: u64) {
@@ -102,16 +101,20 @@ where
         let _service_name = Arc::new(Mutex::new(service_name.to_string()));
         let service_name_for_callback = _service_name.clone();
 
-        let _server = rosrust::service::<T, _>(&_service_name.lock(), move |req| {
+        let _server = rosrust::service::<T, _>(&_service_name.lock().unwrap(), move |req| {
             let req_time = rosrust::now();
-            request_sender.lock().send((req_time, req)).unwrap();
-            let (res_time, response) = response_receiver.lock().recv().unwrap();
+            request_sender
+                .lock()
+                .unwrap()
+                .send((req_time, req))
+                .unwrap();
+            let (res_time, response) = response_receiver.lock().unwrap().recv().unwrap();
             if res_time == req_time {
                 Ok(response)
             } else {
                 Err(format!(
                     "Mismatch time stamp in ServiceHandler for {}",
-                    service_name_for_callback.lock()
+                    service_name_for_callback.lock().unwrap()
                 ))
             }
         })
@@ -127,12 +130,17 @@ where
     pub fn get_request(&self, timeout_millis: u32) -> Option<(rosrust::Time, T::Request)> {
         self.request_receiver
             .lock()
+            .unwrap()
             .recv_timeout(Duration::from_millis(timeout_millis as u64))
             .ok()
     }
 
     pub fn set_response(&self, time: rosrust::Time, res: T::Response) {
-        self.response_sender.lock().send((time, res)).unwrap();
+        self.response_sender
+            .lock()
+            .unwrap()
+            .send((time, res))
+            .unwrap();
     }
 }
 
@@ -171,13 +179,12 @@ macro_rules! define_action_client {
                 goal_publisher: $crate::rosrust::Publisher<$namespace::[<$action_base ActionGoal>]>,
                 _result_subscriber: $crate::rosrust::Subscriber,
                 cancel_publisher: $crate::rosrust::Publisher<msg::actionlib_msgs::GoalID>,
-                goal_id_to_sender: std::sync::Arc<$crate::parking_lot::Mutex<std::collections::HashMap<String, $crate::flume::Sender<std::result::Result<(), $crate::Error>>>>>
+                goal_id_to_sender: std::sync::Arc<std::sync::Mutex<std::collections::HashMap<String, $crate::flume::Sender<std::result::Result<(), $crate::Error>>>>>
             }
             impl $name {
                 pub fn new(base_topic: &str, queue_size: usize) -> Self {
-                    use std::sync::Arc;
+                    use std::sync::{Arc, Mutex};
                     use std::collections::HashMap;
-                    use $crate::parking_lot::Mutex;
                     use $crate::Error;
                     use $crate::{flume, rosrust};
                     let goal_topic = format!("{}/goal", base_topic);
@@ -188,7 +195,7 @@ macro_rules! define_action_client {
                     let _result_subscriber = rosrust::subscribe(
                         &format!("{}/result", base_topic),
                         queue_size, move |result: $namespace::[<$action_base ActionResult>]| {
-                            if let Some(sender) = goal_id_to_sender_cloned.lock().remove(&result.status.goal_id.id) {
+                            if let Some(sender) = goal_id_to_sender_cloned.lock().unwrap().remove(&result.status.goal_id.id) {
                                 let _ = sender.send(
                                 // TODO more detailed error / status handling
                                 match result.status.status {
@@ -232,16 +239,16 @@ macro_rules! define_action_client {
                     let goal_id = format!("{}-{}", rosrust::name(), rosrust::now().seconds());
                     action_goal.goal_id.id = goal_id.clone();
                     let (sender, receiver) = flume::unbounded();
-                    self.goal_id_to_sender.lock().insert(goal_id.clone(), sender);
+                    self.goal_id_to_sender.lock().unwrap().insert(goal_id.clone(), sender);
                     if self.goal_publisher.send(action_goal).is_err() {
-                        let _ = self.goal_id_to_sender.lock().remove(&goal_id);
+                        let _ = self.goal_id_to_sender.lock().unwrap().remove(&goal_id);
                         return Err($crate::Error::ActionGoalSendingFailure);
                     }
                     Ok($crate::ActionResultWait::new(goal_id, receiver))
                 }
                 #[allow(dead_code)]
                 pub fn cancel_goal(&self, goal_id: &str) -> Result<(), $crate::Error> {
-                    let mut goal_id_to_sender = self.goal_id_to_sender.lock();
+                    let mut goal_id_to_sender = self.goal_id_to_sender.lock().unwrap();
                     if goal_id.is_empty() {
                         goal_id_to_sender.clear();
                     } else {

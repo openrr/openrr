@@ -1,4 +1,4 @@
-use parking_lot::Mutex;
+use std::sync::Mutex;
 
 use crate::{Error, LaserScan2D, Scan2D};
 
@@ -13,13 +13,13 @@ impl DummyLaserScan2D {
     }
 
     pub fn set_scan(&self, scan: Scan2D) {
-        *self.scan.lock() = scan;
+        *self.scan.lock().unwrap() = scan;
     }
 }
 
 impl LaserScan2D for DummyLaserScan2D {
     fn current_scan(&self) -> Result<Scan2D, Error> {
-        Ok(self.scan.lock().clone())
+        Ok(self.scan.lock().unwrap().clone())
     }
 }
 
