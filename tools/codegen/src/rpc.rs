@@ -14,7 +14,7 @@ use syn::{
 
 use super::*;
 
-pub fn gen(workspace_root: &Path) -> Result<()> {
+pub(crate) fn gen(workspace_root: &Path) -> Result<()> {
     const FULLY_IGNORE: &[&str] = &["SetCompleteCondition"];
     const IGNORE: &[&str] = &["JointTrajectoryClient", "SetCompleteCondition", "Gamepad"];
 

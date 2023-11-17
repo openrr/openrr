@@ -7,7 +7,7 @@ use std::{
     time::Duration,
 };
 
-pub use child_process_terminator::ChildProcessTerminator;
+pub(crate) use child_process_terminator::ChildProcessTerminator;
 
 mod child_process_terminator;
 
@@ -26,7 +26,7 @@ fn await_roscore() {
     }
 }
 
-pub fn run_roscore(port: u32) -> ChildProcessTerminator {
+pub(crate) fn run_roscore(port: u32) -> ChildProcessTerminator {
     println!("Running roscore on port: {port}");
     env::set_var("ROS_MASTER_URI", format!("http://localhost:{port}"));
     while !portpicker::is_free(port as u16) {
@@ -40,12 +40,12 @@ pub fn run_roscore(port: u32) -> ChildProcessTerminator {
 }
 
 #[allow(dead_code)]
-pub fn run_roscore_for(language: Language, feature: Feature) -> ChildProcessTerminator {
+pub(crate) fn run_roscore_for(language: Language, feature: Feature) -> ChildProcessTerminator {
     run_roscore(generate_port(language, feature))
 }
 
 #[allow(dead_code)]
-pub enum Language {
+pub(crate) enum Language {
     None,
     Cpp,
     Python,
@@ -69,7 +69,7 @@ impl Language {
 }
 
 #[allow(dead_code)]
-pub enum Feature {
+pub(crate) enum Feature {
     Client,
     Service,
     Publisher,
@@ -99,14 +99,14 @@ fn generate_port(language: Language, feature: Feature) -> u32 {
     11400 + language.get_offset() + feature.get_offset()
 }
 
-pub fn bytes_contain(sequence: &[u8], subsequence: &[u8]) -> bool {
+pub(crate) fn bytes_contain(sequence: &[u8], subsequence: &[u8]) -> bool {
     sequence
         .windows(subsequence.len())
         .any(|window| window == subsequence)
 }
 
 #[allow(dead_code)]
-pub fn assert_success_and_output_containing(output: Output, expected: &str) {
+pub(crate) fn assert_success_and_output_containing(output: Output, expected: &str) {
     assert!(
         output.status.success(),
         "STDERR: {}",
@@ -143,7 +143,7 @@ pub fn assert_success_and_output_containing(output: Output, expected: &str) {
 /* think that ``OnceCell`` 's method get ``panic!`` in rare cases.
  * Therefore using ``unwrap`` for error handling.
  */
-pub fn run_roscore_and_rosrust_init_once(init_name: &str) -> Arc<ChildProcessTerminator> {
+pub(crate) fn run_roscore_and_rosrust_init_once(init_name: &str) -> Arc<ChildProcessTerminator> {
     use once_cell::sync::{Lazy, OnceCell};
 
     static ONCE: Once = Once::new();

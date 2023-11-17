@@ -1,6 +1,8 @@
 #![doc = include_str!("../README.md")]
 
 mod pb {
+    #![allow(unreachable_pub)]
+
     #[cfg(local_out_dir)]
     include!("generated/arci.rs");
     #[cfg(not(local_out_dir))]

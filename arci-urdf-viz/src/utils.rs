@@ -6,14 +6,14 @@ use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct JointState {
-    pub names: Vec<String>,
-    pub positions: Vec<f64>,
+    pub(crate) names: Vec<String>,
+    pub(crate) positions: Vec<f64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct BasePose {
-    pub position: [f64; 3],
-    pub quaternion: [f64; 4],
+    pub(crate) position: [f64; 3],
+    pub(crate) quaternion: [f64; 4],
 }
 
 impl From<na::Isometry2<f64>> for BasePose {
@@ -31,8 +31,8 @@ impl From<na::Isometry2<f64>> for BasePose {
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct RpcResult {
-    pub is_ok: bool,
-    pub reason: String,
+    pub(crate) is_ok: bool,
+    pub(crate) reason: String,
 }
 
 fn map_connection_error<E: fmt::Display>(url: &Url) -> impl FnOnce(E) -> arci::Error + '_ {
