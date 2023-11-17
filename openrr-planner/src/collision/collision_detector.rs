@@ -67,7 +67,7 @@ where
     }
 }
 
-impl<'a, 'b, T> Iterator for EnvCollisionNames<'a, 'b, T>
+impl<T> Iterator for EnvCollisionNames<'_, '_, T>
 where
     T: RealField + Copy + k::SubsetOf<f64>,
 {
@@ -163,7 +163,7 @@ where
     }
 }
 
-impl<'a, T> Iterator for SelfCollisionPairs<'a, T>
+impl<T> Iterator for SelfCollisionPairs<'_, T>
 where
     T: RealField + Copy + k::SubsetOf<f64>,
 {

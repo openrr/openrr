@@ -1,11 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![cfg(feature = "ros2")]
-#![warn(
-    future_incompatible,
-    missing_docs,
-    single_use_lifetimes,
-    unreachable_pub
-)]
+#![warn(future_incompatible, missing_docs, unreachable_pub)]
 
 mod cmd_vel_move_base;
 mod navigation;
