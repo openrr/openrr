@@ -3,14 +3,14 @@ use std::time::Duration;
 use urdf_viz::{JointNamesAndPositions, WebServer};
 use url::Url;
 
-pub fn port_and_url() -> (u16, Url) {
+pub(crate) fn port_and_url() -> (u16, Url) {
     let port = portpicker::pick_unused_port().expect("No ports free");
     let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
     (port, url)
 }
 
 #[easy_ext::ext]
-pub impl WebServer {
+pub(crate) impl WebServer {
     fn start_background(self) {
         let handle = self.handle();
         std::thread::spawn(move || {

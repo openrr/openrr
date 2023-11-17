@@ -11,7 +11,7 @@ struct TestJointTrajectoryClient {
 }
 
 impl TestJointTrajectoryClient {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             joint_names: vec![String::from("j0"), String::from("j1")],
         }

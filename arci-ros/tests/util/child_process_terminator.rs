@@ -7,11 +7,11 @@ use nix::{
 
 #[must_use]
 #[derive(Debug)]
-pub struct ChildProcessTerminator(pub Child);
+pub(crate) struct ChildProcessTerminator(pub(crate) Child);
 
 impl ChildProcessTerminator {
     #[track_caller]
-    pub fn spawn(command: &mut Command) -> ChildProcessTerminator {
+    pub(crate) fn spawn(command: &mut Command) -> ChildProcessTerminator {
         command
             .stdin(Stdio::null())
             .stdout(Stdio::null())
@@ -20,7 +20,7 @@ impl ChildProcessTerminator {
     }
 
     #[allow(dead_code)]
-    pub fn spawn_example(command: &mut Command) -> ChildProcessTerminator {
+    pub(crate) fn spawn_example(command: &mut Command) -> ChildProcessTerminator {
         assert!(Command::new("cargo")
             .arg("build")
             .arg("--all-targets")
@@ -33,7 +33,7 @@ impl ChildProcessTerminator {
     }
 
     #[allow(dead_code)]
-    pub fn spawn_example_bench(command: &mut Command) -> ChildProcessTerminator {
+    pub(crate) fn spawn_example_bench(command: &mut Command) -> ChildProcessTerminator {
         assert!(Command::new("cargo")
             .arg("build")
             .arg("--all-targets")

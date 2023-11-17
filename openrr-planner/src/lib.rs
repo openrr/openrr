@@ -32,7 +32,7 @@ pub use k::{InverseKinematicsSolver, JacobianIkSolver};
 
 pub use crate::{
     collision::{CollisionDetector, FromUrdf, SelfCollisionChecker, SelfCollisionCheckerConfig},
-    errors::Error,
+    errors::{Error, Result},
     funcs::*,
     ik::*,
     planner::*,
