@@ -128,6 +128,7 @@ url = "2"
 
 [workspace.lints.rust]
 rust_2018_idioms = "warn"
+single_use_lifetimes = "warn"
 [workspace.lints.clippy]
 # buggy: https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+derive_partial_eq_without_eq
 derive_partial_eq_without_eq = { level = "allow", priority = 1 }
