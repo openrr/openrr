@@ -199,6 +199,7 @@ fn button_map() -> HashMap<char, Button> {
 }
 
 /// [`arci::Gamepad`] implementation for keyboard.
+#[derive(Debug)]
 pub struct KeyboardGamepad {
     receiver: flume::Receiver<GamepadEvent>,
     is_running: Arc<AtomicBool>,

@@ -10,6 +10,7 @@ const ZERO_VELOCITY_THRESHOLD: f64 = 1.0e-6;
 /// In send_joint_trajectory, if no velocities is specified or zero velocities is specified at the
 ///  last point, trajectory points are interpolated, otherwise simply input trajectory is forwarded to client.
 
+#[derive(Debug)]
 pub struct JointPositionDifferenceLimiter<C>
 where
     C: JointTrajectoryClient,

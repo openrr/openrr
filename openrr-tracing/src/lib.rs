@@ -6,6 +6,7 @@ use std::time::{Duration, SystemTime};
 
 use tracing::trace;
 
+#[derive(Debug)]
 pub struct Tracing<T>(T);
 
 impl<T> Tracing<T> {

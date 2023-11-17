@@ -7,6 +7,7 @@ use serde::Deserialize;
 
 openrr_plugin::export_plugin!(MyPlugin);
 
+#[derive(Debug)]
 pub struct MyPlugin;
 
 impl Plugin for MyPlugin {

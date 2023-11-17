@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![allow(missing_debug_implementations)] // TODO: Most rosrust types don't implement Debug
 
 mod cmd_vel_move_base;
 mod error;

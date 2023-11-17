@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 #![doc = include_str!("../README.md")]
+#![allow(missing_debug_implementations)] // TODO: Some ncollide3d types don't implement Debug
 
 mod errors;
 

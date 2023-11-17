@@ -1,5 +1,6 @@
 use arci::{Speaker, WaitFuture};
 
+#[derive(Debug)]
 pub struct PrintSpeaker {}
 
 impl PrintSpeaker {

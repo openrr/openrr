@@ -27,6 +27,7 @@ pub enum Error {
     HashNotFound(String),
 }
 
+#[derive(Debug)]
 pub struct AudioSpeaker {
     message_to_file_path: HashMap<String, PathBuf>,
 }

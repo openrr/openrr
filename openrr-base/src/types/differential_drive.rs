@@ -2,16 +2,19 @@ use arci::{BaseVelocity, Localization, MotorDriveVelocity, MoveBase};
 
 use crate::*;
 
+#[derive(Debug)]
 pub struct DifferentialDriveHardwareParameters {
     pub wheel_radius: f64,
     pub tread_width: f64,
 }
 
+#[derive(Debug)]
 pub struct DifferentialDriveMotorController<MV: MotorDriveVelocity> {
     pub left: MV,
     pub right: MV,
 }
 
+#[derive(Debug)]
 pub struct DifferentialDrive<MV>
 where
     MV: MotorDriveVelocity,

@@ -6,6 +6,7 @@ use crate::{
     waits::WaitFuture,
 };
 
+#[derive(Debug)]
 pub struct JointTrajectoryClientsContainer<T: JointTrajectoryClient> {
     joint_names: Vec<String>,
     clients: Vec<T>,
