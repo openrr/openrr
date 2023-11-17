@@ -77,3 +77,6 @@ required-features = ["gui"]
 [[bin]]
 name = "openrr_apps_config"
 path = "src/bin/config.rs"
+
+[lints]
+workspace = true

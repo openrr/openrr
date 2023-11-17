@@ -18,3 +18,6 @@ tokio = { workspace = true, features = ["sync"] }
 clap.workspace = true
 tokio = { workspace = true, features = ["full"] }
 tracing-subscriber.workspace = true
+
+[lints]
+workspace = true

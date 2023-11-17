@@ -1,9 +1,5 @@
 #![doc = include_str!("../README.md")]
-#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
-// buggy: https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+derive_partial_eq_without_eq
-#![allow(clippy::derive_partial_eq_without_eq)]
-// https://github.com/rodrimati1992/abi_stable_crates/issues/94
-#![allow(repr_transparent_external_private_fields)]
+#![warn(missing_debug_implementations, missing_docs)]
 
 mod proxy;
 

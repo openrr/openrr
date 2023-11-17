@@ -40,3 +40,6 @@ urdf-viz.workspace = true
 [[bench]]
 name = "collision_detection"
 harness = false
+
+[lints]
+workspace = true

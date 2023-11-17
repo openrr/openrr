@@ -126,6 +126,12 @@ urdf-viz = "0.44"
 ureq = { version = "2", features = ["json"] }
 url = "2"
 
+[workspace.lints.rust]
+rust_2018_idioms = "warn"
+[workspace.lints.clippy]
+# buggy: https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+derive_partial_eq_without_eq
+derive_partial_eq_without_eq = { level = "allow", priority = 1 }
+
 [patch.crates-io]
 arci = { path = "arci" }
 arci-gamepad-gilrs = { path = "arci-gamepad-gilrs" }

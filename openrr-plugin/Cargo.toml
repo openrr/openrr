@@ -25,3 +25,6 @@ tokio = { workspace = true, features = ["full"] }
 [[bench]]
 name = "proxy"
 harness = false
+
+[lints]
+workspace = true

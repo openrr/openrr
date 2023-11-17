@@ -26,3 +26,6 @@ tracing-appender.workspace = true
 tracing-subscriber = { workspace = true, features = ["json"] }
 openrr-apps.workspace = true
 openrr-client.workspace = true
+
+[lints]
+workspace = true
