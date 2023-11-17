@@ -39,3 +39,6 @@ openrr-teleop.workspace = true
 nix.workspace = true
 once_cell.workspace = true
 portpicker.workspace = true
+
+[lints]
+workspace = true

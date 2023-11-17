@@ -7,3 +7,6 @@ publish = false
 [dependencies]
 arci-ros.workspace = true
 arci.workspace = true
+
+[lints]
+workspace = true

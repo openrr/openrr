@@ -27,3 +27,6 @@ urdf-rs.workspace = true
 anyhow.workspace = true
 assert_approx_eq.workspace = true
 tracing-subscriber.workspace = true
+
+[lints]
+workspace = true

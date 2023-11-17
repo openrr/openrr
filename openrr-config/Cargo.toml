@@ -16,3 +16,6 @@ tracing.workspace = true
 
 [dev-dependencies]
 assert_approx_eq.workspace = true
+
+[lints]
+workspace = true

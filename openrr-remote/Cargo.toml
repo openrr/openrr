@@ -23,3 +23,6 @@ tracing.workspace = true
 anyhow.workspace = true
 assert_approx_eq.workspace = true
 tokio = { workspace = true, features = ["full"] }
+
+[lints]
+workspace = true

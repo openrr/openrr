@@ -27,3 +27,6 @@ assert_approx_eq.workspace = true
 tokio = { workspace = true, features = ["full"] }
 tokio-test.workspace = true
 toml.workspace = true
+
+[lints]
+workspace = true

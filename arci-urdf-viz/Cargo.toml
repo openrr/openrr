@@ -29,3 +29,6 @@ flaky_test.workspace = true
 portpicker.workspace = true
 tokio = { workspace = true, features = ["full"] }
 urdf-viz.workspace = true
+
+[lints]
+workspace = true

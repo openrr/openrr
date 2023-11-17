@@ -28,3 +28,6 @@ openrr-command.workspace = true
 openrr-config.workspace = true
 openrr-planner.workspace = true
 openrr-teleop.workspace = true
+
+[lints]
+workspace = true
