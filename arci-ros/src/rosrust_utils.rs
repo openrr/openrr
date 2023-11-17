@@ -144,6 +144,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct ActionResultWait {
     goal_id: String,
     action_result_receiver: Receiver<Result<(), crate::Error>>,

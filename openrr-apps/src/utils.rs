@@ -222,7 +222,7 @@ pub fn init_tracing() {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct OpenrrFormatter {
     formatter: Format,
     name: String,
@@ -305,7 +305,7 @@ pub enum LogRotation {
     NEVER,
 }
 
-#[derive(Deserialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize, PartialEq, Clone)]
 pub struct LogConfig {
     #[serde(default)]
     pub level: LogLevel,

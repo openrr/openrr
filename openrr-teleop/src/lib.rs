@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![allow(missing_debug_implementations)] // TODO: Some openrr-client types don't implement Debug
 
 mod control_mode;
 mod control_modes_config;

@@ -12,6 +12,7 @@ pub fn isometry(x: f64, y: f64, z: f64, roll: f64, pitch: f64, yaw: f64) -> k::I
     )
 }
 
+#[derive(Debug)]
 pub struct IkSolverParameters {
     pub allowable_position_error: f64, // unit: m
     pub allowable_angle_error: f64,    // unit: rad

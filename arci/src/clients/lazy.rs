@@ -17,6 +17,7 @@ use crate::{
 };
 
 #[allow(clippy::type_complexity)]
+#[derive(Debug)]
 pub struct Lazy<'a, T> {
     inner: once_cell::sync::Lazy<
         Result<T, Arc<Error>>,

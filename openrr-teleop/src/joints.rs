@@ -13,6 +13,7 @@ use super::control_mode::ControlMode;
 const AXIS_GAIN: f64 = 2.0;
 const JOINT_POSITION_TURBO_GAIN: f64 = 2.0;
 
+#[derive(Debug)]
 struct JoyJointTeleopModeInner {
     submode: String,
     velocity: f64,
@@ -92,6 +93,7 @@ impl JoyJointTeleopModeInner {
     }
 }
 
+#[derive(Debug)]
 pub struct JoyJointTeleopMode<J, S>
 where
     J: JointTrajectoryClient,

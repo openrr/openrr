@@ -4,6 +4,7 @@ use crate::{
     waits::WaitFuture,
 };
 
+#[derive(Debug)]
 pub struct PartialJointTrajectoryClient<C>
 where
     C: JointTrajectoryClient,

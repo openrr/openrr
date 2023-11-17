@@ -150,6 +150,7 @@ impl From<ShellType> for Shell {
     }
 }
 
+#[derive(Debug)]
 pub struct RobotCommandExecutor {}
 
 impl RobotCommandExecutor {

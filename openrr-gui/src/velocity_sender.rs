@@ -29,7 +29,7 @@ where
     Ok(())
 }
 
-pub struct VelocitySender<M>
+struct VelocitySender<M>
 where
     M: MoveBase + 'static,
 {

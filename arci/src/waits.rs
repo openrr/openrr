@@ -1,4 +1,5 @@
 use std::{
+    fmt,
     pin::Pin,
     task::{Context, Poll},
     time::Duration,
@@ -67,6 +68,12 @@ impl Future for WaitFuture {
 impl From<BoxFuture<'static, Result<(), Error>>> for WaitFuture {
     fn from(future: BoxFuture<'static, Result<(), Error>>) -> Self {
         Self { future }
+    }
+}
+
+impl fmt::Debug for WaitFuture {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("WaitFuture").finish()
     }
 }
 

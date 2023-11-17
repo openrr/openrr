@@ -28,6 +28,7 @@ impl LocalMoveConfig {
     }
 }
 
+#[derive(Debug)]
 pub struct LocalMove<N, M>
 where
     N: Navigation,

@@ -127,6 +127,7 @@ ureq = { version = "2", features = ["json"] }
 url = "2"
 
 [workspace.lints.rust]
+missing_debug_implementations = "warn"
 rust_2018_idioms = "warn"
 single_use_lifetimes = "warn"
 [workspace.lints.clippy]

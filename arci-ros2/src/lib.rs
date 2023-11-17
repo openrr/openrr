@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![cfg(feature = "ros2")]
 #![warn(future_incompatible, missing_docs, unreachable_pub)]
+#![allow(missing_debug_implementations)] // TODO: Some r2r types don't implement Debug
 
 mod cmd_vel_move_base;
 mod navigation;

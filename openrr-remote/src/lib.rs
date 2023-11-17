@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![warn(missing_debug_implementations)]
 
 mod pb {
     #[cfg(local_out_dir)]

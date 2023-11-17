@@ -18,6 +18,7 @@ use crate::{
 ///  limited_duration_i[j] =
 ///   abs(TrajectoryPoint[i].positions[j]  - TrajectoryPoint[i-1].positions[j]) / velocity_limits[j]
 /// ```
+#[derive(Debug)]
 pub struct JointVelocityLimiter<C>
 where
     C: JointTrajectoryClient,

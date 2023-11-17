@@ -218,9 +218,10 @@ struct ThreadState {
     has_send_velocity_thread: bool,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct UrdfVizWebClient(Arc<UrdfVizWebClientInner>);
 
+#[derive(Debug)]
 struct UrdfVizWebClientInner {
     base_url: Url,
     joint_names: Vec<String>,
