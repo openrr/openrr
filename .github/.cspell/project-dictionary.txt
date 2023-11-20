@@ -6,7 +6,6 @@ amcl
 asyncness
 bringup
 cdylib
-codecov
 codegen
 collada
 costmap
