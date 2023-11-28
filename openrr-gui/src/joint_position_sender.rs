@@ -1,7 +1,7 @@
 use std::{collections::HashMap, f64, sync::Arc, time::Duration};
 
 use arci::{JointTrajectoryClient, Localization, MoveBase, Navigation};
-use eframe::{egui, IconData};
+use eframe::egui;
 use openrr_client::RobotClient;
 use rand::Rng;
 use tracing::{debug, error, warn};
@@ -24,10 +24,12 @@ where
     validate_joints(&joints, &robot_client)?;
 
     let native_options = eframe::NativeOptions {
-        initial_window_size: Some(egui::vec2(400.0, 400.0)),
-        icon_data: Some(
-            IconData::try_from_png_bytes(include_bytes!("../assets/icon/openrr.png")).unwrap(),
-        ),
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([400.0, 400.0])
+            .with_icon(
+                eframe::icon_data::from_png_bytes(include_bytes!("../assets/icon/openrr.png"))
+                    .unwrap(),
+            ),
         ..eframe::NativeOptions::default()
     };
     eframe::run_native(

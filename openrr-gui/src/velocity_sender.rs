@@ -1,7 +1,7 @@
 #![allow(deprecated)] // TODO: RetainedImage is deprecated in egui 0.23, but there is no good alternative.
 
 use arci::{BaseVelocity, MoveBase};
-use eframe::{egui, IconData};
+use eframe::egui;
 use egui_extras::RetainedImage;
 use tracing::{debug, error};
 
@@ -14,10 +14,12 @@ where
     M: MoveBase + 'static,
 {
     let native_options = eframe::NativeOptions {
-        initial_window_size: Some(egui::vec2(400.0, 400.0)),
-        icon_data: Some(
-            IconData::try_from_png_bytes(include_bytes!("../assets/icon/openrr.png")).unwrap(),
-        ),
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([400.0, 400.0])
+            .with_icon(
+                eframe::icon_data::from_png_bytes(include_bytes!("../assets/icon/openrr.png"))
+                    .unwrap(),
+            ),
         ..eframe::NativeOptions::default()
     };
     eframe::run_native(
