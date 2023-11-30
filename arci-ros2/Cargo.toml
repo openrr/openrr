@@ -12,7 +12,7 @@ categories = ["science::robotics"]
 crate-type = ["lib", "staticlib", "cdylib"]
 
 [features]
-ros2 = ["r2r"]
+ros2 = ["r2r", "tf_r2r/ros2"]
 
 [dependencies]
 abi_stable.workspace = true
@@ -24,7 +24,7 @@ openrr-plugin.workspace = true
 r2r = { workspace = true, optional = true }
 serde.workspace = true
 thiserror.workspace = true
-tf2_r2r.workspace = true
+tf_r2r.workspace = true
 tokio = { workspace = true, features = ["full"] }
 toml.workspace = true
 tracing.workspace = true

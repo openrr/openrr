@@ -40,18 +40,16 @@ const EXPECTED_ROT_Z: f64 = -1.;
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_transform_resolver() {
-    let ctx = r2r::Context::create().unwrap();
-
     let tf_node = arci_ros2::Node::new("test_tf", "arci_ros2").unwrap();
     let tf_publisher = tf_node
         .r2r()
-        .create_publisher::<TFMessage>("/arci_ros2/tf", QosProfile::default())
+        .create_publisher::<TFMessage>("/tf", QosProfile::default())
         .unwrap();
 
     tf_node.run_spin_thread(std::time::Duration::from_millis(100));
 
     let ros2_transform_resolver = arci_ros2::Ros2TransformResolver::new(
-        ctx,
+        tf_node.clone(),
         std::time::Duration::from_millis(100),
         RETRY_RATE,
         MAX_RETRY,
@@ -104,10 +102,12 @@ async fn test_transform_resolver() {
     let tf_message = TFMessage { transforms: tf };
 
     tokio::spawn(async move {
-        tf_publisher.publish(&tf_message).unwrap();
-    })
-    .await
-    .unwrap();
+        loop {
+            tf_publisher.publish(&tf_message).unwrap();
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+    });
+    tokio::time::sleep(Duration::from_secs(1)).await;
 
     let tf_received = ros2_transform_resolver
         .resolve_transformation(FRAME_ID_3, FRAME_ID_1, dummy_time_middle)

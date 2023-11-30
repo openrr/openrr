@@ -1,67 +1,39 @@
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use arci::{
     nalgebra::{Quaternion, Translation3},
     Isometry3, TransformResolver, UnitQuaternion,
 };
-use parking_lot::Mutex;
 use r2r::builtin_interfaces::msg as builtin_msg;
-use tf2_r2r::{TfBuffer, TfListener};
+use tf_r2r::{TfBuffer, TfListener};
 use tracing::{debug, warn};
 
-use crate::utils::convert_system_time_to_ros2_time;
+use crate::{utils::convert_system_time_to_ros2_time, Node};
 
-/// TODO
+/// `arci::TransformResolver` implementation for ROS2.
 pub struct Ros2TransformResolver {
     retry_rate: f64,
     max_retry: usize,
-    tf_listener: Arc<Mutex<TfListener>>,
+    tf_listener: TfListener,
+    _node: Node,
 }
 
 impl Ros2TransformResolver {
-    /// TODO
-    pub fn new(
-        ctx: r2r::Context,
-        cache_duration: Duration,
-        retry_rate: f64,
-        max_retry: usize,
-    ) -> Self {
-        let node = r2r::Node::create(ctx, "test_trasform_resolver", "arci_ros2").unwrap();
-
+    /// Creates a new `Ros2TransformResolver`.
+    #[track_caller]
+    pub fn new(node: Node, cache_duration: Duration, retry_rate: f64, max_retry: usize) -> Self {
         let duration = builtin_msg::Duration {
             sec: cache_duration.as_secs() as i32,
             nanosec: cache_duration.subsec_nanos(),
         };
 
+        let tf_listener =
+            TfListener::new_with_buffer(&mut node.r2r(), TfBuffer::new_with_duration(duration));
         Self {
             retry_rate,
             max_retry,
-            tf_listener: Arc::new(Mutex::new(TfListener::new_with_buffer(
-                node,
-                TfBuffer::new_with_duration(duration),
-            ))),
-        }
-    }
-
-    /// TODO
-    pub fn new_from_node(
-        node: r2r::Node,
-        cache_duration: Duration,
-        retry_rate: f64,
-        max_retry: usize,
-    ) -> Self {
-        let duration = builtin_msg::Duration {
-            sec: cache_duration.as_secs() as i32,
-            nanosec: cache_duration.subsec_nanos(),
-        };
-
-        Self {
-            retry_rate,
-            max_retry,
-            tf_listener: Arc::new(Mutex::new(TfListener::new_with_buffer(
-                node,
-                TfBuffer::new_with_duration(duration),
-            ))),
+            tf_listener,
+            _node: node,
         }
     }
 }
@@ -86,9 +58,7 @@ impl TransformResolver for Ros2TransformResolver {
             }
             let result = self
                 .tf_listener
-                .lock()
                 .lookup_transform(from, to, ros_time.clone());
-            self.tf_listener.lock().show();
             match result {
                 Ok(result) => {
                     let translation = result.transform.translation;

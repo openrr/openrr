@@ -14,6 +14,7 @@ ROS2 implementation for arci.
 ```bash
 sudo apt install ros-humble-nav2-msgs ros-humble-geometry-msgs # for navigation
 sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers # for ros2_control
+sudo apt install ros-humble-tf2-msgs # for tf2
 sudo apt install libclang-dev # for r2r
 ```
 
