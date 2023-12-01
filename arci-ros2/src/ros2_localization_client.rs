@@ -14,6 +14,7 @@ pub struct Ros2LocalizationClient {
 
 impl Ros2LocalizationClient {
     /// Creates a new `Ros2LaserScan2D`.
+    #[track_caller]
     pub fn new(
         node: Node,
         request_final_nomotion_update_hack: bool,
