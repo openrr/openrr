@@ -4,6 +4,7 @@
 #![allow(missing_debug_implementations)] // TODO: Some r2r types don't implement Debug
 
 mod cmd_vel_move_base;
+mod motor_drive;
 mod navigation;
 mod node;
 mod plugin;
@@ -15,6 +16,7 @@ mod ros2_transform_resolver;
 pub mod utils;
 
 pub use cmd_vel_move_base::*;
+pub use motor_drive::*;
 pub use navigation::*;
 pub use node::*;
 // re-export
