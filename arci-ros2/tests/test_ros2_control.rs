@@ -65,7 +65,7 @@ async fn test_control() {
         }
     });
     node.run_spin_thread(Duration::from_millis(100));
-    let client = Ros2ControlClient::new(node, action_name);
+    let client = Ros2ControlClient::new(node, action_name).unwrap();
 
     assert_eq!(client.joint_names(), vec!["j1".to_owned(), "j2".to_owned()]);
     assert_eq!(client.current_joint_positions().unwrap(), vec![0.0, 0.0]);

@@ -6,9 +6,9 @@ async fn main() -> anyhow::Result<()> {
     use arci::*;
     use arci_ros2::{Node, Ros2ControlClient};
 
-    let node = Node::new("ros2_control_node", "arci_ros2").unwrap();
+    let node = Node::new("ros2_control_node", "arci_ros2")?;
     node.run_spin_thread(Duration::from_millis(100));
-    let client = Ros2ControlClient::new(node, "/position_trajectory_controller");
+    let client = Ros2ControlClient::new(node, "/position_trajectory_controller")?;
     dbg!(client.joint_names()); // => ["joint1", "joint2"]
     dbg!(client.current_joint_positions()).unwrap();
     client

@@ -50,13 +50,14 @@ async fn test_localization_client() {
                     },
                 })
                 .unwrap();
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            tokio::time::sleep(Duration::from_millis(100)).await;
         }
     });
 
     node.run_spin_thread(Duration::from_millis(100));
     let client =
-        Ros2LocalizationClient::new(node, false, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC);
+        Ros2LocalizationClient::new(node, false, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC)
+            .unwrap();
 
     let current_pose = client.current_pose("").unwrap();
 
@@ -75,7 +76,8 @@ async fn test_localization_client_nomotion_update() {
         .unwrap();
 
     node.run_spin_thread(Duration::from_millis(100));
-    let client = Ros2LocalizationClient::new(node, true, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC);
+    let client =
+        Ros2LocalizationClient::new(node, true, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC).unwrap();
 
     tokio::spawn(async move {
         let req = service_server.next().await.unwrap();

@@ -47,7 +47,7 @@ async fn test_laser_scan() {
     });
 
     node.run_spin_thread(Duration::from_millis(100));
-    let client = Ros2LaserScan2D::new(node, LASER_SCAN_TOPIC);
+    let client = Ros2LaserScan2D::new(node, LASER_SCAN_TOPIC).unwrap();
 
     let current_scan = client.current_scan().unwrap();
 

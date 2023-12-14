@@ -46,11 +46,11 @@ async fn test_transform_resolver() {
         .create_publisher::<TFMessage>("/tf", QosProfile::default())
         .unwrap();
 
-    tf_node.run_spin_thread(std::time::Duration::from_millis(100));
+    tf_node.run_spin_thread(Duration::from_millis(100));
 
     let ros2_transform_resolver = arci_ros2::Ros2TransformResolver::new(
         tf_node.clone(),
-        std::time::Duration::from_millis(100),
+        Duration::from_millis(100),
         RETRY_RATE,
         MAX_RETRY,
     );
@@ -58,9 +58,9 @@ async fn test_transform_resolver() {
     let mut ros2_clock = arci_ros2::r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
 
     let dummy_ros2_time_first = ros2_time_from_duration(ros2_clock.get_now().unwrap());
-    std::thread::sleep(std::time::Duration::from_millis(10));
+    std::thread::sleep(Duration::from_millis(10));
     let dummy_ros2_time_middle = ros2_time_from_duration(ros2_clock.get_now().unwrap());
-    std::thread::sleep(std::time::Duration::from_millis(10));
+    std::thread::sleep(Duration::from_millis(10));
     let dummy_ros2_time_last = ros2_time_from_duration(ros2_clock.get_now().unwrap());
 
     let dummy_time_middle = convert_ros2_time_to_system_time(&dummy_ros2_time_middle);

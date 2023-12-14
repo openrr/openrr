@@ -4,7 +4,7 @@ async fn main() -> Result<(), anyhow::Error> {
     use arci::{BaseVelocity, MoveBase};
     use arci_ros2::{Node, Ros2CmdVelMoveBase};
 
-    let node = Node::new("cmd_vel_node", "arci_ros2").unwrap();
+    let node = Node::new("cmd_vel_node", "arci_ros2")?;
     let c = Ros2CmdVelMoveBase::new(node, "/cmd_vel");
     let mut count = 0;
     let mut vel = BaseVelocity::default();

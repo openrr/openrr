@@ -15,6 +15,7 @@ pub struct Ros2TransformResolver {
     retry_rate: f64,
     max_retry: usize,
     tf_listener: TfListener,
+    // keep not to be dropped
     _node: Node,
 }
 
@@ -76,7 +77,7 @@ impl TransformResolver for Ros2TransformResolver {
                     last_error = Some(e)
                 }
             }
-            std::thread::sleep(std::time::Duration::from_nanos(wait_nanos));
+            std::thread::sleep(Duration::from_nanos(wait_nanos));
         }
         match last_error {
             Some(e) => {

@@ -1,5 +1,13 @@
+use std::{
+    sync::{Arc, RwLock},
+    time::Duration,
+};
+
 use arci::{nalgebra as na, *};
-use r2r::{geometry_msgs::msg::PoseWithCovarianceStamped, QosProfile};
+use r2r::{
+    geometry_msgs::msg::{PoseWithCovariance, PoseWithCovarianceStamped},
+    QosProfile,
+};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
@@ -9,33 +17,43 @@ use crate::{utils, Node};
 pub struct Ros2LocalizationClient {
     node: Node,
     nomotion_update_client: Option<r2r::Client<r2r::std_srvs::srv::Empty::Service>>,
+    pose: Arc<RwLock<Option<PoseWithCovariance>>>,
     amcl_pose_topic_name: String,
 }
 
 impl Ros2LocalizationClient {
     /// Creates a new `Ros2LaserScan2D`.
-    #[track_caller]
     pub fn new(
         node: Node,
         request_final_nomotion_update_hack: bool,
         nomotion_update_service_name: &str,
         amcl_pose_topic_name: &str,
-    ) -> Self {
+    ) -> Result<Self, Error> {
+        let mut pose_subscriber = node
+            .r2r()
+            .subscribe::<PoseWithCovarianceStamped>(amcl_pose_topic_name, QosProfile::default())
+            .map_err(anyhow::Error::from)?;
+        let pose = utils::subscribe_one(&mut pose_subscriber, Duration::from_secs(1))
+            .map(|pose| pose.pose);
+        let pose = Arc::new(RwLock::new(pose));
+        utils::subscribe_thread(pose_subscriber, pose.clone(), |pose| Some(pose.pose));
+
         let nomotion_update_client = if request_final_nomotion_update_hack {
             Some(
                 node.r2r()
                     .create_client(nomotion_update_service_name)
-                    .unwrap(),
+                    .map_err(anyhow::Error::from)?,
             )
         } else {
             None
         };
 
-        Self {
+        Ok(Self {
             node,
             nomotion_update_client,
+            pose,
             amcl_pose_topic_name: amcl_pose_topic_name.to_owned(),
-        }
+        })
     }
 
     /// Request final nomotion update hack
@@ -58,33 +76,18 @@ impl Ros2LocalizationClient {
 
 impl Localization for Ros2LocalizationClient {
     fn current_pose(&self, _frame_id: &str) -> Result<Isometry2<f64>, Error> {
-        let pose_subscriber = self
-            .node
-            .r2r()
-            .subscribe::<PoseWithCovarianceStamped>(
-                &self.amcl_pose_topic_name,
-                QosProfile::default(),
-            )
-            .unwrap();
-
-        let subscribed_pose =
-            utils::spawn_blocking(
-                async move { utils::subscribe_one(pose_subscriber).await.unwrap() },
-            )
-            .join()
-            .unwrap();
-
-        let current_pose = match subscribed_pose {
+        let subscribed_pose = self.pose.read().unwrap();
+        let current_pose = match &*subscribed_pose {
             Some(msg) => {
                 let u_q = na::UnitQuaternion::from_quaternion(na::Quaternion::new(
-                    msg.pose.pose.orientation.w,
-                    msg.pose.pose.orientation.x,
-                    msg.pose.pose.orientation.y,
-                    msg.pose.pose.orientation.z,
+                    msg.pose.orientation.w,
+                    msg.pose.orientation.x,
+                    msg.pose.orientation.y,
+                    msg.pose.orientation.z,
                 ));
 
                 na::Isometry::from_parts(
-                    na::Translation2::new(msg.pose.pose.position.x, msg.pose.pose.position.y),
+                    na::Translation2::new(msg.pose.position.x, msg.pose.position.y),
                     na::UnitComplex::from_angle(u_q.angle()),
                 )
             }
@@ -94,7 +97,6 @@ impl Localization for Ros2LocalizationClient {
                 });
             }
         };
-
         Ok(current_pose)
     }
 }
