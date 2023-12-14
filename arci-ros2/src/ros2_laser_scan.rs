@@ -1,3 +1,8 @@
+use std::{
+    sync::{Arc, RwLock},
+    time::Duration,
+};
+
 use arci::*;
 use r2r::{sensor_msgs::msg::LaserScan, QosProfile};
 use serde::{Deserialize, Serialize};
@@ -6,36 +11,35 @@ use crate::{utils, Node};
 
 /// `arci::LaserScan2D` implementation for ROS2.
 pub struct Ros2LaserScan2D {
-    node: Node,
+    scan: Arc<RwLock<Option<LaserScan>>>,
     laser_scan_topic_name: String,
+    // keep not to be dropped
+    _node: Node,
 }
 
 impl Ros2LaserScan2D {
     /// Creates a new `Ros2LaserScan2D` from sensor_msgs/LaserScan topic name.
-    pub fn new(node: Node, laser_scan_topic_name: &str) -> Self {
-        Self {
-            node,
+    pub fn new(node: Node, laser_scan_topic_name: &str) -> Result<Self, Error> {
+        let mut scan_subscriber = node
+            .r2r()
+            .subscribe::<LaserScan>(laser_scan_topic_name, QosProfile::default())
+            .map_err(anyhow::Error::from)?;
+        let scan = utils::subscribe_one(&mut scan_subscriber, Duration::from_secs(1));
+        let scan = Arc::new(RwLock::new(scan));
+        utils::subscribe_thread(scan_subscriber, scan.clone(), Some);
+
+        Ok(Self {
+            scan,
             laser_scan_topic_name: laser_scan_topic_name.to_owned(),
-        }
+            _node: node,
+        })
     }
 }
 
 impl LaserScan2D for Ros2LaserScan2D {
     fn current_scan(&self) -> Result<arci::Scan2D, arci::Error> {
-        let scan_subscriber = self
-            .node
-            .r2r()
-            .subscribe::<LaserScan>(&self.laser_scan_topic_name, QosProfile::default())
-            .unwrap();
-
-        let subscribed_scan =
-            utils::spawn_blocking(
-                async move { utils::subscribe_one(scan_subscriber).await.unwrap() },
-            )
-            .join()
-            .unwrap();
-
-        let current_scan = match subscribed_scan {
+        let subscribed_scan = self.scan.read().unwrap();
+        let current_scan = match &*subscribed_scan {
             Some(msg) => Scan2D {
                 angle_min: msg.angle_min as f64,
                 angle_max: msg.angle_max as f64,
@@ -57,7 +61,6 @@ impl LaserScan2D for Ros2LaserScan2D {
                 });
             }
         };
-
         Ok(current_scan)
     }
 }

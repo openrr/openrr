@@ -1,7 +1,7 @@
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
-        Arc,
+        Arc, RwLock,
     },
     time::Duration,
 };
@@ -20,44 +20,47 @@ use crate::{utils, Node};
 
 /// `arci::JointTrajectoryClient` implementation for ROS2.
 pub struct Ros2ControlClient {
-    state_topic: String,
     action_client: r2r::ActionClient<FollowJointTrajectory::Action>,
     /// r2r::Node to handle the action
     node: Node,
     joint_names: Vec<String>,
+    joint_state: Arc<RwLock<JointTrajectoryControllerState>>,
 }
 
 impl Ros2ControlClient {
     /// Creates a new `Ros2ControlClient` from control_msgs/FollowJointTrajectory action name.
     #[track_caller]
-    pub fn new(node: Node, action_name: &str) -> Self {
+    pub fn new(node: Node, action_name: &str) -> Result<Self, Error> {
         // http://wiki.ros.org/joint_trajectory_controller
         let action_client = node
             .r2r()
             .create_action_client::<FollowJointTrajectory::Action>(&format!(
                 "{action_name}/follow_joint_trajectory"
             ))
-            .unwrap();
+            .map_err(anyhow::Error::from)?;
+
         let state_topic = format!("{action_name}/state");
-        let joints = get_joint_state(&node, &state_topic);
-        Self {
-            state_topic,
+        let mut state_subscriber = node
+            .r2r()
+            .subscribe::<JointTrajectoryControllerState>(&state_topic, r2r::QosProfile::default())
+            .map_err(anyhow::Error::from)?;
+        let Some(joint_state) = utils::subscribe_one(&mut state_subscriber, Duration::from_secs(1))
+        else {
+            return Err(Error::Connection {
+                message: format!("Failed to get joint_state from {state_topic}"),
+            });
+        };
+        let joint_names = joint_state.joint_names.clone();
+        let joint_state = Arc::new(RwLock::new(joint_state));
+        utils::subscribe_thread(state_subscriber, joint_state.clone(), |state| state);
+
+        Ok(Self {
             action_client,
             node,
-            joint_names: joints.joint_names,
-        }
+            joint_names,
+            joint_state,
+        })
     }
-}
-
-fn get_joint_state(node: &Node, state_topic: &str) -> JointTrajectoryControllerState {
-    let state_subscriber = node
-        .r2r()
-        .subscribe::<JointTrajectoryControllerState>(state_topic, r2r::QosProfile::default())
-        .unwrap();
-    utils::spawn_blocking(async move { utils::subscribe_one(state_subscriber).await.unwrap() })
-        .join()
-        .unwrap()
-        .unwrap()
 }
 
 impl JointTrajectoryClient for Ros2ControlClient {
@@ -66,7 +69,7 @@ impl JointTrajectoryClient for Ros2ControlClient {
     }
 
     fn current_joint_positions(&self) -> Result<Vec<f64>, arci::Error> {
-        let joints = get_joint_state(&self.node, &self.state_topic);
+        let joints = self.joint_state.read().unwrap();
         Ok(self
             .joint_names
             .iter()

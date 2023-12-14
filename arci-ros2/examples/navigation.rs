@@ -6,7 +6,7 @@ async fn main() -> anyhow::Result<()> {
     use arci::*;
     use arci_ros2::{Node, Ros2Navigation};
 
-    let node = Node::new("nav2_node", "arci_ros2").unwrap();
+    let node = Node::new("nav2_node", "arci_ros2")?;
     node.run_spin_thread(Duration::from_millis(100));
     let nav = Ros2Navigation::new(node, "/navigate_to_pose");
     nav.send_goal_pose(

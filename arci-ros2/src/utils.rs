@@ -1,33 +1,20 @@
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
-        Arc,
+        Arc, RwLock,
     },
-    thread,
-    time::{Duration, SystemTime},
+    time::{Duration, Instant, SystemTime},
 };
 
 use futures::{
-    future::Future,
+    future::FutureExt,
     stream::{Stream, StreamExt},
 };
 use r2r::builtin_interfaces::msg::Time;
 
 const BILLION: u128 = 1_000_000_000;
 
-// https://github.com/openrr/openrr/pull/501#discussion_r746183161
-pub(crate) fn spawn_blocking<T: Send + 'static>(
-    future: impl Future<Output = T> + Send + 'static,
-) -> thread::JoinHandle<T> {
-    std::thread::spawn(move || {
-        tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(future)
-    })
-}
-
+// TODO: timeout
 pub(crate) async fn wait(is_done: Arc<AtomicBool>) {
     loop {
         if is_done.load(Ordering::Relaxed) {
@@ -37,18 +24,49 @@ pub(crate) async fn wait(is_done: Arc<AtomicBool>) {
     }
 }
 
-pub(crate) async fn subscribe_one<T: Send + 'static>(
+pub(crate) fn subscribe_thread<T: Send + 'static, U: Send + Sync + 'static>(
     mut subscriber: impl Stream<Item = T> + Send + Unpin + 'static,
-) -> Result<Option<T>, tokio::task::JoinError> {
-    let is_done = Arc::new(AtomicBool::new(false));
-    let is_done_clone = is_done.clone();
-    let handle = tokio::spawn(async move {
-        let next = subscriber.next().await;
-        is_done.store(true, Ordering::Relaxed);
-        next
+    buf: Arc<RwLock<U>>,
+    mut f: impl FnMut(T) -> U + Send + 'static,
+) {
+    tokio::spawn(async move {
+        while Arc::strong_count(&buf) > 1 {
+            if let Some(val) = subscriber.next().await {
+                let res = f(val);
+                *buf.write().unwrap() = res;
+            }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
     });
-    wait(is_done_clone).await;
-    handle.await
+}
+
+pub(crate) fn subscribe_one<T: Send>(
+    mut subscriber: impl Stream<Item = T> + Send + Unpin,
+    timeout: Duration,
+) -> Option<T> {
+    // https://github.com/openrr/openrr/pull/501#discussion_r746183161
+    std::thread::scope(|s| {
+        s.spawn(|| {
+            tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(async move {
+                    let start = Instant::now();
+                    loop {
+                        if let Some(v) = subscriber.next().now_or_never() {
+                            return v;
+                        }
+                        if start.elapsed() > timeout {
+                            return None; // timeout
+                        }
+                        tokio::time::sleep(Duration::from_millis(100)).await;
+                    }
+                })
+        })
+        .join()
+        .unwrap()
+    })
 }
 
 pub fn convert_system_time_to_ros2_time(time: &SystemTime) -> Time {
@@ -77,13 +95,13 @@ pub fn convert_ros2_time_to_system_time(time: &Time) -> SystemTime {
 
     if ros_now_nanos < ros_time_nanos {
         system_now
-            .checked_add(std::time::Duration::from_nanos(
+            .checked_add(Duration::from_nanos(
                 (ros_time_nanos - ros_now_nanos) as u64,
             ))
             .unwrap()
     } else {
         system_now
-            .checked_sub(std::time::Duration::from_nanos(
+            .checked_sub(Duration::from_nanos(
                 (ros_now_nanos - ros_time_nanos) as u64,
             ))
             .unwrap()
