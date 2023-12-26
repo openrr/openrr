@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, taiki-e/ros2-client]
   pull_request:
     branches: [main]
   schedule:

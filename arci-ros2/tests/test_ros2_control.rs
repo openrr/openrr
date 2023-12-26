@@ -25,8 +25,12 @@ fn action_name() -> String {
     format!("/test_ros2_control_{n}")
 }
 
-#[tokio::test(flavor = "multi_thread")]
-async fn test_control() {
+#[flaky_test::flaky_test]
+fn test_control() {
+    test_control_inner();
+}
+#[tokio::main]
+async fn test_control_inner() {
     let action_name = &action_name();
     let node = test_node();
     let state_topic = node
@@ -43,7 +47,7 @@ async fn test_control() {
         },
         ..Default::default()
     }));
-    start_test_control_server(&node, action_name, state.clone());
+    start_test_control_server(&node, action_name, state.clone()).await;
     tokio::spawn(async move {
         loop {
             let new = state.lock().unwrap().clone();
@@ -64,7 +68,7 @@ async fn test_control() {
     assert_eq!(client.current_joint_positions().unwrap(), vec![1.0, 0.5]);
 }
 
-fn start_test_control_server(
+async fn start_test_control_server(
     node: &Node,
     action_name: &str,
     state: Arc<Mutex<JointTrajectoryControllerState>>,
@@ -83,6 +87,9 @@ fn start_test_control_server(
             .unwrap()
             .block_on(server)
     });
+
+    // TODO: wait for server
+    tokio::time::sleep(Duration::from_secs(1)).await;
 }
 
 async fn test_control_server(

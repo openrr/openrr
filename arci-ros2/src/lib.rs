@@ -6,8 +6,6 @@ mod cmd_vel_move_base;
 #[allow(missing_docs)]
 pub mod msg;
 mod navigation;
-// #[allow(missing_docs)]
-// pub mod navigation_pubsub;
 #[allow(missing_docs)]
 mod node;
 mod plugin;

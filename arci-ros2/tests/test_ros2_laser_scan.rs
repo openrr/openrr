@@ -27,7 +27,7 @@ async fn test_laser_scan() {
         .unwrap();
 
     tokio::spawn(async move {
-        for _ in 0..2 {
+        loop {
             scan_publisher
                 .publish(LaserScan {
                     header: Header::default(),

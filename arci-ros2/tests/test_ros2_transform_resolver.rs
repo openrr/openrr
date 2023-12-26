@@ -97,12 +97,12 @@ async fn test_transform_resolver() {
     let tf_message = TFMessage { transforms: tf };
 
     tokio::spawn(async move {
-        for _ in 0..2 {
+        loop {
             tf_publisher.publish(tf_message.clone()).unwrap();
             tokio::time::sleep(Duration::from_secs(1)).await;
         }
     });
-    tokio::time::sleep(Duration::from_secs(5)).await;
+    tokio::time::sleep(Duration::from_secs(1)).await;
 
     let tf_received = ros2_transform_resolver
         .resolve_transformation(FRAME_ID_3, FRAME_ID_1, dummy_time_middle)
