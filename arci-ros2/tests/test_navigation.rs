@@ -27,10 +27,7 @@ async fn test_nav_inner() {
     let node = test_node();
     let nav = Ros2Navigation::new(node.clone(), action_name);
 
-    start_test_nav_server(&node, action_name);
-
-    // TODO: wait for server
-    tokio::time::sleep(Duration::from_secs(1)).await;
+    start_test_nav_server(&node, action_name).await;
 
     nav.send_goal_pose(
         Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
@@ -48,10 +45,7 @@ async fn test_nav_timeout() {
     let node = test_node();
     let nav = Ros2Navigation::new(node.clone(), action_name);
 
-    start_test_nav_server(&node, action_name);
-
-    // TODO: wait for server
-    tokio::time::sleep(Duration::from_secs(1)).await;
+    start_test_nav_server(&node, action_name).await;
 
     assert!(nav
         .send_goal_pose(
@@ -76,27 +70,27 @@ async fn test_nav_cancel_inner() {
     let node = test_node();
     let nav = Ros2Navigation::new(node.clone(), action_name);
 
-    start_test_nav_server(&node, action_name);
+    start_test_nav_server(&node, action_name).await;
 
-    // TODO: wait for server
-    tokio::time::sleep(Duration::from_secs(1)).await;
-
-    let wait = nav
-        .send_goal_pose(
-            Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
-            "map",
-            Duration::from_secs(80),
-        )
-        .unwrap();
-    // TODO: remove needs of this sleep
-    tokio::time::sleep(Duration::from_secs(1)).await;
-    nav.cancel().unwrap();
-    // TODO: "canceled" should be an error?
-    wait.await.unwrap();
-    tokio::time::sleep(Duration::from_secs(10)).await;
+    for cannel_early in [true, false] {
+        let wait = nav
+            .send_goal_pose(
+                Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
+                "map",
+                Duration::from_secs(80),
+            )
+            .unwrap();
+        if !cannel_early {
+            // sleep to trigger cancel after accepted
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+        nav.cancel().unwrap();
+        // TODO: "canceled" should be an error?
+        wait.await.unwrap();
+    }
 }
 
-fn start_test_nav_server(node: &Node, action_name: &str) {
+async fn start_test_nav_server(node: &Node, action_name: &str) {
     let action_server = action::AsyncActionServer::new(
         node.create_action_server::<NavigateToPose::Action>(action_name)
             .unwrap(),
@@ -109,6 +103,9 @@ fn start_test_nav_server(node: &Node, action_name: &str) {
             .unwrap()
             .block_on(server)
     });
+
+    // TODO: wait for server
+    tokio::time::sleep(Duration::from_secs(1)).await;
 }
 
 async fn test_nav_server(mut action_server: action::AsyncActionServer<NavigateToPose::Action>) {

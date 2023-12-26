@@ -28,7 +28,7 @@ async fn test_localization_client() {
         .unwrap();
 
     tokio::spawn(async move {
-        for _ in 0..2 {
+        loop {
             pose_publisher
                 .publish(PoseWithCovarianceStamped {
                     header: Header::default(),
@@ -73,9 +73,6 @@ async fn test_localization_client_nomotion_update() {
         .create_server::<std_srvs::Empty>(NO_MOTION_UPDATE_SERVICE)
         .unwrap();
 
-    let client =
-        Ros2LocalizationClient::new(node, true, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC).unwrap();
-
     tokio::spawn(async move {
         let (id, _req) = service_server.async_receive_request().await.unwrap();
         service_server
@@ -83,6 +80,9 @@ async fn test_localization_client_nomotion_update() {
             .await
             .unwrap();
     });
+
+    let client =
+        Ros2LocalizationClient::new(node, true, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC).unwrap();
 
     client.request_nomotion_update().await;
 }
