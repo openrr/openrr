@@ -11,9 +11,6 @@ categories = ["science::robotics"]
 [lib]
 crate-type = ["lib", "staticlib", "cdylib"]
 
-[features]
-ros2 = ["r2r", "tf_r2r/ros2"]
-
 [dependencies]
 abi_stable.workspace = true
 anyhow.workspace = true
@@ -21,17 +18,21 @@ arci.workspace = true
 futures.workspace = true
 once_cell.workspace = true
 openrr-plugin.workspace = true
-r2r = { workspace = true, optional = true }
+ros2-client.workspace = true
+rustdds.workspace = true
 serde.workspace = true
 thiserror.workspace = true
-tf_r2r.workspace = true
+tf_ros2.workspace = true
 tokio = { workspace = true, features = ["full"] }
 toml.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
 assert_approx_eq.workspace = true
+clap.workspace = true
 flaky_test.workspace = true
+tracing = { workspace = true, features = ["log"] }
+tracing-subscriber.workspace = true
 
 [lints]
 workspace = true

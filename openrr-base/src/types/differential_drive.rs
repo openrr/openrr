@@ -91,6 +91,7 @@ where
 
         match self.odometry.update_by_velocity(&feedback_vel) {
             Ok(_) => {}
+            // TODO: tracing instead of println
             Err(e) => println!("{e}"),
         }
 

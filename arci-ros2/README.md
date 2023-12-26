@@ -7,7 +7,6 @@ ROS2 implementation for arci.
 ## Dependencies
 
 * ROS2 [Humble](https://docs.ros.org/en/humble/Installation.html)
-* [r2r](https://github.com/sequenceplanner/r2r)
 
 ## Install
 
@@ -15,16 +14,15 @@ ROS2 implementation for arci.
 sudo apt install ros-humble-nav2-msgs ros-humble-geometry-msgs # for navigation
 sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers # for ros2_control
 sudo apt install ros-humble-tf2-msgs # for tf2
-sudo apt install libclang-dev # for r2r
 ```
 
 ## Build
 
-Build `openrr` with the feature `ros2`
+Build `openrr`
 
 ```bash
 source /opt/ros/humble/setup.bash
-cargo build --features ros2
+cargo build
 ```
 
 ## How to use (navigation2)
@@ -40,6 +38,12 @@ ros2 launch nav2_bringup tb3_simulation_launch.py
 ```
 
 ### Run command line tools
+
+#### Run navigation example of arci-ros2
+
+```sh
+cargo run --package arci-ros2 --example navigation -- -- 0.6 0.2 1.0
+```
 
 #### Send navigation goal via command line
 
@@ -96,7 +100,7 @@ TODO: add usage of openrr-apps + ros2_control
 #### Run ros2_control example of arci-ros2
 
 ```sh
-cargo run --package arci-ros2 --example ros2_control --features ros2
+cargo run --package arci-ros2 --example ros2_control
 ```
 
 ## License

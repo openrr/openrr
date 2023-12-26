@@ -1,17 +1,18 @@
-#![cfg(feature = "ros2")]
+mod shared;
 
 use std::time::Duration;
 
 use arci::TransformResolver;
 use arci_ros2::{
-    r2r::{
-        builtin_interfaces::msg::Time, geometry_msgs::msg::TransformStamped,
-        tf2_msgs::msg::TFMessage, QosProfile,
+    msg::{
+        geometry_msgs::{Quaternion, TransformStamped, Vector3},
+        tf2_msgs::TFMessage,
     },
     utils::convert_ros2_time_to_system_time,
 };
 use assert_approx_eq::assert_approx_eq;
-use r2r::geometry_msgs::msg::{Quaternion, Vector3};
+use ros2_client::builtin_interfaces::Time;
+use shared::*;
 
 const RETRY_RATE: f64 = 50.0;
 const MAX_RETRY: usize = 100;
@@ -40,28 +41,22 @@ const EXPECTED_ROT_Z: f64 = -1.;
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_transform_resolver() {
-    let tf_node = arci_ros2::Node::new("test_tf", "arci_ros2").unwrap();
-    let tf_publisher = tf_node
-        .r2r()
-        .create_publisher::<TFMessage>("/tf", QosProfile::default())
-        .unwrap();
-
-    tf_node.run_spin_thread(Duration::from_millis(100));
+    let node = test_node();
+    let tf_topic = node.create_topic::<TFMessage>("/tf").unwrap();
+    let tf_publisher = node.create_publisher::<TFMessage>(&tf_topic).unwrap();
 
     let ros2_transform_resolver = arci_ros2::Ros2TransformResolver::new(
-        tf_node.clone(),
+        node.clone(),
         Duration::from_millis(100),
         RETRY_RATE,
         MAX_RETRY,
     );
 
-    let mut ros2_clock = arci_ros2::r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
-
-    let dummy_ros2_time_first = ros2_time_from_duration(ros2_clock.get_now().unwrap());
+    let dummy_ros2_time_first = Time::now();
     std::thread::sleep(Duration::from_millis(10));
-    let dummy_ros2_time_middle = ros2_time_from_duration(ros2_clock.get_now().unwrap());
+    let dummy_ros2_time_middle = Time::now();
     std::thread::sleep(Duration::from_millis(10));
-    let dummy_ros2_time_last = ros2_time_from_duration(ros2_clock.get_now().unwrap());
+    let dummy_ros2_time_last = Time::now();
 
     let dummy_time_middle = convert_ros2_time_to_system_time(&dummy_ros2_time_middle);
 
@@ -88,7 +83,7 @@ async fn test_transform_resolver() {
     tf_base_stamped_first.child_frame_id = FRAME_ID_3.to_string();
 
     let mut tf_odom_stamped_last = tf_odom_stamped_first.clone();
-    tf_odom_stamped_last.header.stamp = dummy_ros2_time_last.clone();
+    tf_odom_stamped_last.header.stamp = dummy_ros2_time_last;
 
     let mut tf_base_stamped_last = tf_base_stamped_first.clone();
     tf_base_stamped_last.header.stamp = dummy_ros2_time_last;
@@ -102,12 +97,12 @@ async fn test_transform_resolver() {
     let tf_message = TFMessage { transforms: tf };
 
     tokio::spawn(async move {
-        loop {
-            tf_publisher.publish(&tf_message).unwrap();
+        for _ in 0..2 {
+            tf_publisher.publish(tf_message.clone()).unwrap();
             tokio::time::sleep(Duration::from_secs(1)).await;
         }
     });
-    tokio::time::sleep(Duration::from_secs(1)).await;
+    tokio::time::sleep(Duration::from_secs(5)).await;
 
     let tf_received = ros2_transform_resolver
         .resolve_transformation(FRAME_ID_3, FRAME_ID_1, dummy_time_middle)
@@ -120,11 +115,4 @@ async fn test_transform_resolver() {
     assert_approx_eq!(tf_received.rotation.i, EXPECTED_ROT_X);
     assert_approx_eq!(tf_received.rotation.j, EXPECTED_ROT_Y);
     assert_approx_eq!(tf_received.rotation.k, EXPECTED_ROT_Z);
-}
-
-fn ros2_time_from_duration(duration: Duration) -> Time {
-    Time {
-        sec: duration.as_secs() as i32,
-        nanosec: duration.subsec_nanos(),
-    }
 }

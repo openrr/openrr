@@ -1,28 +1,36 @@
 use std::{
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc, Mutex,
-    },
+    pin::pin,
+    sync::{Arc, Mutex},
     time::Duration,
 };
 
 use anyhow::format_err;
 use arci::*;
 use futures::stream::StreamExt;
-use r2r::{
-    builtin_interfaces::msg::Time, geometry_msgs::msg, nav2_msgs::action::NavigateToPose,
-    std_msgs::msg::Header,
-};
+use ros2_client::{builtin_interfaces::Time, *};
 use serde::{Deserialize, Serialize};
+use tokio::sync::oneshot;
+use tracing::debug;
 
-use crate::{utils, Node};
+use crate::{
+    msg::{geometry_msgs, nav2_msgs::NavigateToPose, std_msgs},
+    Node,
+};
 
 /// `arci::Navigation` implementation for ROS2.
 pub struct Ros2Navigation {
-    action_client: r2r::ActionClient<NavigateToPose::Action>,
-    /// r2r::Node to handle the action
-    node: Node,
-    current_goal: Arc<Mutex<Option<r2r::ActionClientGoal<NavigateToPose::Action>>>>,
+    send_goal_pose: Arc<Mutex<Option<SendGoalPoseRequest>>>,
+    cancel: Mutex<Option<oneshot::Sender<()>>>,
+    // keep not to be dropped
+    _node: Node,
+}
+
+struct SendGoalPoseRequest {
+    goal: Isometry2<f64>,
+    frame_id: String,
+    timeout: Duration,
+    result_sender: oneshot::Sender<Result<(), Duration>>,
+    cancel_receiver: oneshot::Receiver<()>,
 }
 
 impl Ros2Navigation {
@@ -30,31 +38,108 @@ impl Ros2Navigation {
     #[track_caller]
     pub fn new(node: Node, action_name: &str) -> Self {
         let action_client = node
-            .r2r()
             .create_action_client::<NavigateToPose::Action>(action_name)
             .unwrap();
+        let send_goal_pose: Arc<Mutex<Option<SendGoalPoseRequest>>> = Arc::new(Mutex::new(None));
+        let recv_goal_pose = send_goal_pose.clone();
+        std::thread::spawn(move || {
+            tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(send_goal_pose_thread(action_client, recv_goal_pose));
+        });
         Self {
-            action_client,
-            node,
-            current_goal: Arc::new(Mutex::new(None)),
+            send_goal_pose,
+            cancel: Mutex::new(None),
+            _node: node,
         }
     }
 }
 
-fn to_pose_msg(pose: &Isometry2<f64>) -> msg::Pose {
-    let q = UnitQuaternion::from_axis_angle(&Vector3::z_axis(), pose.rotation.angle());
-    msg::Pose {
-        position: msg::Point {
-            x: pose.translation.x,
-            y: pose.translation.y,
-            z: 0.0,
-        },
-        orientation: msg::Quaternion {
-            x: q.coords.x,
-            y: q.coords.y,
-            z: q.coords.z,
-            w: q.coords.w,
-        },
+async fn send_goal_pose_thread(
+    action_client: action::ActionClient<NavigateToPose::Action>,
+    recv_goal_pose: Arc<Mutex<Option<SendGoalPoseRequest>>>,
+) {
+    'outer: while Arc::strong_count(&recv_goal_pose) > 1 {
+        let req = recv_goal_pose.lock().unwrap().take();
+        let Some(SendGoalPoseRequest {
+            goal,
+            frame_id,
+            timeout,
+            result_sender,
+            mut cancel_receiver,
+        }) = req
+        else {
+            tokio::time::sleep(Duration::from_millis(10)).await;
+            continue;
+        };
+
+        let goal = NavigateToPose::Goal {
+            pose: geometry_msgs::PoseStamped {
+                header: std_msgs::Header {
+                    frame_id,
+                    stamp: Time::now(),
+                },
+                pose: (&goal).into(),
+            },
+            ..Default::default()
+        };
+
+        let send_goal_req = action_client.async_send_goal(goal);
+        let timeout_fut = tokio::time::sleep(timeout);
+        let (goal_id, goal_response) = tokio::select! { biased;
+            _res = &mut cancel_receiver => {
+                // res.is_ok == canceled, res.is_err == new request set
+                let _ = result_sender.send(Ok(())); // TODO: "canceled" should be an error?
+                continue;
+            }
+            res = send_goal_req => res.unwrap(),
+            _ = timeout_fut => {
+                let _ = result_sender.send(Err(timeout));
+                continue;
+            }
+        };
+        if goal_response.accepted {
+            let mut feedback_stream = pin!(action_client.feedback_stream(goal_id));
+            let mut status_stream = pin!(action_client.all_statuses_stream());
+            let mut result_fut = pin!(action_client.async_request_result(goal_id));
+
+            loop {
+                tokio::select! { biased;
+                    // res.is_ok == canceled, res.is_err == new request set
+                    _res = &mut cancel_receiver => {
+                        // TODO: handle result
+                        let _res = action_client.async_cancel_goal(goal_id, Time::now()).await;
+                        let _ = result_sender.send(Ok(())); // TODO: "canceled" should be an error?
+                        continue 'outer;
+                    }
+
+                    action_result = &mut result_fut => {
+                        match action_result {
+                            Ok((goal_status, result)) => {
+                                debug!("<<< Action Result: {result:?} Status: {goal_status:?}");
+                            }
+                            Err(e) => debug!("<<< Action Result error {e:?}"),
+                        }
+                        break;
+                    }
+
+                    Some(feedback) = feedback_stream.next() => debug!("<<< Feedback: {feedback:?}"),
+
+                    Some(status) = status_stream.next() => {
+                        match status {
+                            Ok(status) => match status.status_list.iter().find(|gs| gs.goal_info.goal_id == goal_id) {
+                                Some(action_msgs::GoalStatus{goal_info:_, status}) => debug!("<<< Status: {status:?}"),
+                                None => debug!("<<< Status: Our status is missing: {:?}", status.status_list),
+                            },
+                            Err(e) => debug!("<<< Status: {e:?}"),
+                        }
+                    }
+                }
+            }
+        }
+        let _ = result_sender.send(Ok(()));
     }
 }
 
@@ -65,50 +150,24 @@ impl Navigation for Ros2Navigation {
         frame_id: &str,
         timeout: Duration,
     ) -> Result<WaitFuture, Error> {
-        let node = self.node.clone();
-        let current_goal = self.current_goal.clone();
-        let action_client = self.action_client.clone();
-        let is_available = node.r2r().is_available(&self.action_client).unwrap();
-        let (sender, receiver) = tokio::sync::oneshot::channel();
-        let frame_id = frame_id.to_owned();
-        tokio::spawn(async move {
-            let is_done = Arc::new(AtomicBool::new(false));
-            let is_done_clone = is_done.clone();
-            let current_goal_clone = current_goal.clone();
-            tokio::spawn(async move {
-                let mut clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
-                let now = clock.get_now().unwrap();
-                let goal = NavigateToPose::Goal {
-                    pose: msg::PoseStamped {
-                        header: Header {
-                            frame_id,
-                            stamp: Time {
-                                sec: now.as_secs() as i32,
-                                nanosec: now.subsec_nanos(),
-                            },
-                        },
-                        pose: to_pose_msg(&goal),
-                    },
-                    ..Default::default()
-                };
-
-                is_available.await.unwrap();
-                let send_goal_request = action_client.send_goal_request(goal).unwrap();
-                let (goal, result, feedback) = send_goal_request.await.unwrap();
-                *current_goal_clone.lock().unwrap() = Some(goal.clone());
-                tokio::spawn(async move { feedback.for_each(|_| std::future::ready(())).await });
-                result.await.unwrap(); // TODO: handle goal state
-                is_done.store(true, Ordering::Relaxed);
-            });
-            utils::wait(is_done_clone).await;
-            *current_goal.lock().unwrap() = None;
-            // TODO: "canceled" should be an error?
-            let _ = sender.send(());
+        let (result_sender, result_receiver) = tokio::sync::oneshot::channel();
+        let (cancel_sender, cancel_receiver) = tokio::sync::oneshot::channel();
+        *self.cancel.lock().unwrap() = Some(cancel_sender);
+        *self.send_goal_pose.lock().unwrap() = Some(SendGoalPoseRequest {
+            goal,
+            frame_id: frame_id.to_owned(),
+            timeout,
+            result_sender,
+            cancel_receiver,
         });
         let timeout_fut = tokio::time::sleep(timeout);
         let wait = WaitFuture::new(async move {
             tokio::select! {
-                _ = receiver => Ok(()),
+                res = result_receiver => {
+                    res
+                        .map_err(|e| arci::Error::Other(e.into()))?
+                        .map_err(|timeout| arci::Error::Other(format_err!("timeout {timeout:?}")))
+                }
                 _ = timeout_fut => Err(arci::Error::Other(format_err!("timeout {timeout:?}"))),
             }
         });
@@ -117,13 +176,9 @@ impl Navigation for Ros2Navigation {
     }
 
     fn cancel(&self) -> Result<(), Error> {
-        // TODO: current_goal is None until send_goal_request.await is complete.
-        //       Therefore, if cancel is called during that period, it will not work correctly.
-        if let Some(current_goal) = self.current_goal.lock().unwrap().take() {
-            let fut = current_goal.cancel().map_err(|e| Error::Other(e.into()))?;
-            tokio::spawn(async move {
-                let _ = fut.await;
-            });
+        let cancel_sender = self.cancel.lock().unwrap().take();
+        if let Some(cancel_sender) = cancel_sender {
+            let _ = cancel_sender.send(());
         }
         Ok(())
     }

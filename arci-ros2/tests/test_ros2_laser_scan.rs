@@ -1,12 +1,12 @@
-#![cfg(feature = "ros2")]
-
 mod shared;
 
 use std::time::Duration;
 
 use arci::{LaserScan2D, Scan2D};
-use arci_ros2::{r2r, Ros2LaserScan2D};
-use r2r::{sensor_msgs::msg::LaserScan, std_msgs::msg::Header, QosProfile};
+use arci_ros2::{
+    msg::{sensor_msgs::LaserScan, std_msgs::Header},
+    Ros2LaserScan2D,
+};
 use shared::*;
 
 const LASER_SCAN_TOPIC: &str = "/scan";
@@ -21,15 +21,15 @@ const RANGE_MAX: f32 = 12.0;
 #[tokio::test(flavor = "multi_thread")]
 async fn test_laser_scan() {
     let node = test_node();
+    let laser_scan_topic = node.create_topic::<LaserScan>(LASER_SCAN_TOPIC).unwrap();
     let scan_publisher = node
-        .r2r()
-        .create_publisher::<LaserScan>(LASER_SCAN_TOPIC, QosProfile::default())
+        .create_publisher::<LaserScan>(&laser_scan_topic)
         .unwrap();
 
     tokio::spawn(async move {
-        loop {
+        for _ in 0..2 {
             scan_publisher
-                .publish(&LaserScan {
+                .publish(LaserScan {
                     header: Header::default(),
                     angle_min: 0.,
                     angle_max: ANGLE_MAX,
@@ -46,7 +46,6 @@ async fn test_laser_scan() {
         }
     });
 
-    node.run_spin_thread(Duration::from_millis(100));
     let client = Ros2LaserScan2D::new(node, LASER_SCAN_TOPIC).unwrap();
 
     let current_scan = client.current_scan().unwrap();

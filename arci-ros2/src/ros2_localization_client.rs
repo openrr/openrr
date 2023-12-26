@@ -4,21 +4,24 @@ use std::{
 };
 
 use arci::{nalgebra as na, *};
-use r2r::{
-    geometry_msgs::msg::{PoseWithCovariance, PoseWithCovarianceStamped},
-    QosProfile,
-};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
-use crate::{utils, Node};
+use crate::{
+    msg::{
+        geometry_msgs::{PoseWithCovariance, PoseWithCovarianceStamped},
+        std_msgs, std_srvs,
+    },
+    utils, Node,
+};
 
 /// `arci::Localization` implementation for ROS2.
 pub struct Ros2LocalizationClient {
-    node: Node,
-    nomotion_update_client: Option<r2r::Client<r2r::std_srvs::srv::Empty::Service>>,
+    nomotion_update_client: Option<ros2_client::Client<std_srvs::Empty>>,
     pose: Arc<RwLock<Option<PoseWithCovariance>>>,
-    amcl_pose_topic_name: String,
+    amcl_pose_topic: rustdds::Topic,
+    // keep not to be dropped
+    _node: Node,
 }
 
 impl Ros2LocalizationClient {
@@ -29,30 +32,27 @@ impl Ros2LocalizationClient {
         nomotion_update_service_name: &str,
         amcl_pose_topic_name: &str,
     ) -> Result<Self, Error> {
-        let mut pose_subscriber = node
-            .r2r()
-            .subscribe::<PoseWithCovarianceStamped>(amcl_pose_topic_name, QosProfile::default())
-            .map_err(anyhow::Error::from)?;
+        let amcl_pose_topic = node
+            .create_topic::<PoseWithCovarianceStamped>(amcl_pose_topic_name)
+            .unwrap();
+        let mut pose_subscriber =
+            node.create_subscription::<PoseWithCovarianceStamped>(&amcl_pose_topic)?;
         let pose = utils::subscribe_one(&mut pose_subscriber, Duration::from_secs(1))
             .map(|pose| pose.pose);
         let pose = Arc::new(RwLock::new(pose));
         utils::subscribe_thread(pose_subscriber, pose.clone(), |pose| Some(pose.pose));
 
         let nomotion_update_client = if request_final_nomotion_update_hack {
-            Some(
-                node.r2r()
-                    .create_client(nomotion_update_service_name)
-                    .map_err(anyhow::Error::from)?,
-            )
+            Some(node.create_client(nomotion_update_service_name)?)
         } else {
             None
         };
 
         Ok(Self {
-            node,
             nomotion_update_client,
             pose,
-            amcl_pose_topic_name: amcl_pose_topic_name.to_owned(),
+            amcl_pose_topic,
+            _node: node,
         })
     }
 
@@ -60,14 +60,11 @@ impl Ros2LocalizationClient {
     pub async fn request_nomotion_update(&self) {
         match self.nomotion_update_client.as_ref() {
             Some(client) => {
-                let is_available = self.node.r2r().is_available(client).unwrap();
-                is_available.await.unwrap();
+                // TODO
+                // let is_available = self.node.r2r().is_available(client).unwrap();
+                // is_available.await.unwrap();
 
-                client
-                    .request(&r2r::std_srvs::srv::Empty::Request {})
-                    .unwrap()
-                    .await
-                    .unwrap();
+                client.async_send_request(std_msgs::Empty {}).await.unwrap();
             }
             None => info!("Final nomotion update is not requested!"),
         }
@@ -93,7 +90,10 @@ impl Localization for Ros2LocalizationClient {
             }
             None => {
                 return Err(Error::Connection {
-                    message: format!("Failed to get pose from {}", self.amcl_pose_topic_name),
+                    message: format!(
+                        "Failed to get pose from {}",
+                        rustdds::TopicDescription::name(&self.amcl_pose_topic)
+                    ),
                 });
             }
         };
