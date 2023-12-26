@@ -1,14 +1,13 @@
 use std::sync::Mutex;
 
 use arci::*;
-use r2r::geometry_msgs::msg::Twist;
 use serde::{Deserialize, Serialize};
 
-use crate::Node;
+use crate::{msg::geometry_msgs::Twist, Node};
 
 /// `arci::MoveBase` implementation for ROS2.
 pub struct Ros2CmdVelMoveBase {
-    vel_publisher: Mutex<r2r::Publisher<Twist>>,
+    vel_publisher: Mutex<ros2_client::Publisher<Twist>>,
     // keep not to be dropped
     _node: Node,
 }
@@ -16,11 +15,9 @@ pub struct Ros2CmdVelMoveBase {
 impl Ros2CmdVelMoveBase {
     /// Creates a new `Ros2CmdVelMoveBase` from geometry_msgs/Twist topic name.
     #[track_caller]
-    pub fn new(node: Node, cmd_topic_name: &str) -> Self {
-        let vel_publisher = node
-            .r2r()
-            .create_publisher(cmd_topic_name, r2r::QosProfile::default())
-            .unwrap();
+    pub fn new(node: Node, cmd_vel_topic_name: &str) -> Self {
+        let cmd_vel_topic = node.create_topic::<Twist>(cmd_vel_topic_name).unwrap();
+        let vel_publisher = node.create_publisher(&cmd_vel_topic).unwrap();
         Self {
             vel_publisher: Mutex::new(vel_publisher),
             _node: node,
@@ -37,9 +34,9 @@ impl MoveBase for Ros2CmdVelMoveBase {
         self.vel_publisher
             .lock()
             .unwrap()
-            .publish(&twist_msg)
+            .publish(twist_msg)
             .map_err(|e| arci::Error::Connection {
-                message: format!("r2r publish error: {e:?}"),
+                message: format!("ros2_client publish error: {e:?}"),
             })
     }
 

@@ -1,5 +1,3 @@
-#![cfg(feature = "ros2")]
-
 mod shared;
 
 use std::{
@@ -11,121 +9,157 @@ use std::{
 };
 
 use arci::*;
-use arci_ros2::{r2r, Node, Ros2ControlClient};
-use futures::{
-    future::{self, Either},
-    stream::{Stream, StreamExt},
+use arci_ros2::{
+    msg::{
+        control_msgs::{FollowJointTrajectory, JointTrajectoryControllerState},
+        trajectory_msgs,
+    },
+    Node, Ros2ControlClient,
 };
-use r2r::{
-    control_msgs::{action::FollowJointTrajectory, msg::JointTrajectoryControllerState},
-    trajectory_msgs::msg as trajectory_msg,
-};
+use ros2_client::action;
 use shared::*;
 
 fn action_name() -> String {
     static COUNT: AtomicUsize = AtomicUsize::new(0);
     let n = COUNT.fetch_add(1, Ordering::Relaxed);
-    format!("/test_nav2_{n}")
+    format!("/test_ros2_control_{n}")
 }
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_control() {
     let action_name = &action_name();
     let node = test_node();
-    let server_requests = node
-        .r2r()
-        .create_action_server::<FollowJointTrajectory::Action>(&format!(
-            "{action_name}/follow_joint_trajectory"
-        ))
+    let state_topic = node
+        .create_topic::<JointTrajectoryControllerState>(&format!("{action_name}/state"))
         .unwrap();
     let publisher = node
-        .r2r()
-        .create_publisher::<JointTrajectoryControllerState>(
-            &format!("{action_name}/state"),
-            r2r::QosProfile::default(),
-        )
+        .create_publisher::<JointTrajectoryControllerState>(&state_topic)
         .unwrap();
     let state = Arc::new(Mutex::new(JointTrajectoryControllerState {
         joint_names: vec!["j1".to_owned(), "j2".to_owned()],
-        actual: trajectory_msg::JointTrajectoryPoint {
+        actual: trajectory_msgs::JointTrajectoryPoint {
             positions: vec![0.0; 2],
             ..Default::default()
         },
         ..Default::default()
     }));
-    tokio::spawn(test_control_server(
-        node.clone(),
-        server_requests,
-        state.clone(),
-    ));
+    start_test_control_server(&node, action_name, state.clone());
     tokio::spawn(async move {
         loop {
-            publisher.publish(&state.lock().unwrap()).unwrap();
-            tokio::time::sleep(Duration::from_millis(100)).await;
+            let new = state.lock().unwrap().clone();
+            publisher.publish(new).unwrap();
+            tokio::time::sleep(Duration::from_millis(500)).await;
         }
     });
-    node.run_spin_thread(Duration::from_millis(100));
     let client = Ros2ControlClient::new(node, action_name).unwrap();
 
     assert_eq!(client.joint_names(), vec!["j1".to_owned(), "j2".to_owned()]);
     assert_eq!(client.current_joint_positions().unwrap(), vec![0.0, 0.0]);
     client
-        .send_joint_positions(vec![1.0, 0.5], Duration::from_secs(80))
+        .send_joint_positions(vec![1.0, 0.5], Duration::from_secs(20))
         .unwrap()
         .await
         .unwrap();
+    tokio::time::sleep(Duration::from_secs(1)).await;
     assert_eq!(client.current_joint_positions().unwrap(), vec![1.0, 0.5]);
 }
 
-async fn run_goal(
-    node: Node,
-    goal: r2r::ActionServerGoal<FollowJointTrajectory::Action>,
+fn start_test_control_server(
+    node: &Node,
+    action_name: &str,
     state: Arc<Mutex<JointTrajectoryControllerState>>,
-) -> FollowJointTrajectory::Result {
-    let mut timer = node // local timer, will be dropped after this request is processed.
-        .r2r()
-        .create_wall_timer(Duration::from_millis(800))
-        .expect("could not create timer");
-
-    state.lock().unwrap().actual.positions = goal
-        .goal
-        .trajectory
-        .points
-        .last()
-        .unwrap()
-        .positions
-        .clone();
-
-    timer.tick().await.unwrap();
-
-    FollowJointTrajectory::Result::default()
+) {
+    let action_server = action::AsyncActionServer::new(
+        node.create_action_server::<FollowJointTrajectory::Action>(&format!(
+            "{action_name}/follow_joint_trajectory"
+        ))
+        .unwrap(),
+    );
+    std::thread::spawn(move || {
+        let server = test_control_server(action_server, state);
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(server)
+    });
 }
 
 async fn test_control_server(
-    node: Node,
-    mut requests: impl Stream<Item = r2r::ActionServerGoalRequest<FollowJointTrajectory::Action>>
-        + Unpin,
+    mut action_server: action::AsyncActionServer<FollowJointTrajectory::Action>,
     state: Arc<Mutex<JointTrajectoryControllerState>>,
 ) {
-    while let Some(req) = requests.next().await {
-        println!(
-            "Got goal request with trajectory {:?}, goal id: {}",
-            req.goal.trajectory, req.uuid
-        );
-        let (mut goal, mut cancel) = req.accept().expect("could not accept goal");
+    loop {
+        let new_goal_handle = action_server.receive_new_goal().await.unwrap();
+        let goal = action_server
+            .get_new_goal(new_goal_handle.clone())
+            .unwrap()
+            .clone();
+        println!("Got goal request with trajectory {:?}", goal.trajectory);
+        let accepted_goal = action_server.accept_goal(new_goal_handle).await.unwrap();
+        let executing_goal = action_server
+            .start_executing_goal(accepted_goal)
+            .await
+            .unwrap();
 
-        let goal_fut = tokio::spawn(run_goal(node.clone(), goal.clone(), state.clone()));
+        let mut work_timer = tokio::time::interval(Duration::from_secs(1));
 
-        match future::select(goal_fut, cancel.next()).await {
-            Either::Left((result, _)) => {
-                let result = result.unwrap();
-                goal.succeed(result).expect("could not send result");
-            }
-            Either::Right((request, _)) => {
-                if let Some(request) = request {
-                    panic!("got cancel request: {}", request.uuid);
+        let result_status = loop {
+            tokio::select! {
+                _ = work_timer.tick() => {
+                    // TODO
+                    // println!("Sending feedback: {feedback_msg:?}");
+                    // action_server
+                    //     .publish_feedback(executing_goal.clone(), feedback_msg.clone())
+                    //     .await.unwrap();
+                    // println!("Publish feedback goal_id={:?}", executing_goal.goal_id());
+                    let last = goal
+                        .trajectory
+                        .points
+                        .last()
+                        .unwrap();
+                    state.lock().unwrap().actual.positions = last
+                        .positions
+                        .clone();
+                    tokio::time::sleep(Duration::new(
+                        last.time_from_start.sec as _,
+                        last.time_from_start.nanosec,
+                    )).await;
+                    println!("Reached goal");
+                    break action::GoalEndStatus::Succeeded
+                },
+                cancel_handle = action_server.receive_cancel_request() => {
+                    let cancel_handle = cancel_handle.unwrap();
+                    let my_goal = executing_goal.goal_id();
+                    if cancel_handle.contains_goal(&my_goal) {
+                        println!("Got cancel request!");
+                        action_server
+                            .respond_to_cancel_requests(&cancel_handle, std::iter::once(my_goal))
+                            .await
+                            .unwrap();
+                        break action::GoalEndStatus::Canceled
+                    } else {
+                        println!("Received a cancel request for some other goals.");
+                    }
                 }
             }
+        };
+        // We must return a result in all cases
+        // Also add a timeout in case client does not request a result.
+        let timeout = tokio::time::sleep(Duration::from_secs(10));
+        tokio::select! {
+            res = action_server
+                .send_result_response(
+                    executing_goal,
+                    result_status,
+                    FollowJointTrajectory::Result::default(),
+                ) => {
+                if let Err(e) = res {
+                    println!("Error: Cannot send result response {e:?}");
+                }
+            }
+            _ = timeout => println!("Error: Cannot send result response: timeout"),
         }
+        println!("Goal ended. Reason={result_status:?}");
     }
 }

@@ -4,15 +4,14 @@ use std::{
 };
 
 use arci::*;
-use r2r::{sensor_msgs::msg::LaserScan, QosProfile};
 use serde::{Deserialize, Serialize};
 
-use crate::{utils, Node};
+use crate::{msg::sensor_msgs::LaserScan, utils, Node};
 
 /// `arci::LaserScan2D` implementation for ROS2.
 pub struct Ros2LaserScan2D {
     scan: Arc<RwLock<Option<LaserScan>>>,
-    laser_scan_topic_name: String,
+    laser_scan_topic: rustdds::Topic,
     // keep not to be dropped
     _node: Node,
 }
@@ -20,17 +19,15 @@ pub struct Ros2LaserScan2D {
 impl Ros2LaserScan2D {
     /// Creates a new `Ros2LaserScan2D` from sensor_msgs/LaserScan topic name.
     pub fn new(node: Node, laser_scan_topic_name: &str) -> Result<Self, Error> {
-        let mut scan_subscriber = node
-            .r2r()
-            .subscribe::<LaserScan>(laser_scan_topic_name, QosProfile::default())
-            .map_err(anyhow::Error::from)?;
+        let laser_scan_topic = node.create_topic::<LaserScan>(laser_scan_topic_name)?;
+        let mut scan_subscriber = node.create_subscription::<LaserScan>(&laser_scan_topic)?;
         let scan = utils::subscribe_one(&mut scan_subscriber, Duration::from_secs(1));
         let scan = Arc::new(RwLock::new(scan));
         utils::subscribe_thread(scan_subscriber, scan.clone(), Some);
 
         Ok(Self {
             scan,
-            laser_scan_topic_name: laser_scan_topic_name.to_owned(),
+            laser_scan_topic,
             _node: node,
         })
     }
@@ -57,7 +54,10 @@ impl LaserScan2D for Ros2LaserScan2D {
             },
             None => {
                 return Err(Error::Connection {
-                    message: format!("Failed to get scan from {}", self.laser_scan_topic_name),
+                    message: format!(
+                        "Failed to get scan from {}",
+                        rustdds::TopicDescription::name(&self.laser_scan_topic)
+                    ),
                 });
             }
         };

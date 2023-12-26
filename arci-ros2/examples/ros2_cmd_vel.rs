@@ -1,10 +1,13 @@
-#[cfg(feature = "ros2")]
-#[tokio::main]
-async fn main() -> Result<(), anyhow::Error> {
-    use arci::{BaseVelocity, MoveBase};
-    use arci_ros2::{Node, Ros2CmdVelMoveBase};
+use arci::{BaseVelocity, MoveBase};
+use arci_ros2::{Node, NodeOptions, Ros2CmdVelMoveBase};
 
-    let node = Node::new("cmd_vel_node", "arci_ros2")?;
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let node = Node::new(
+        "cmd_vel_node",
+        "/arci_ros2",
+        NodeOptions::new().enable_rosout(true),
+    )?;
     let c = Ros2CmdVelMoveBase::new(node, "/cmd_vel");
     let mut count = 0;
     let mut vel = BaseVelocity::default();
@@ -23,9 +26,4 @@ async fn main() -> Result<(), anyhow::Error> {
         println!("{count}, {vel:?}");
     }
     Ok(())
-}
-
-#[cfg(not(feature = "ros2"))]
-fn main() {
-    println!("This example requires ros2 feature");
 }

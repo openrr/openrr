@@ -164,6 +164,7 @@ impl CompleteCondition for EachJointDiffCondition {
         duration_sec: f64,
     ) -> Result<(), Error> {
         if target_positions.len() != self.allowable_errors.len() {
+            // TODO: tracing instead of eprintln
             eprintln!("wait_until_each_error_condition condition size mismatch");
             return Err(Error::LengthMismatch {
                 model: target_positions.len(),

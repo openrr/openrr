@@ -1,37 +1,23 @@
 use std::{
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc, RwLock,
-    },
+    sync::{Arc, RwLock},
     time::{Duration, Instant, SystemTime},
 };
 
-use futures::{
-    future::FutureExt,
-    stream::{Stream, StreamExt},
-};
-use r2r::builtin_interfaces::msg::Time;
+use futures::future::FutureExt;
+use ros2_client::{action, builtin_interfaces::Time, ros2};
+use serde::de::DeserializeOwned;
 
 const BILLION: u128 = 1_000_000_000;
 
-// TODO: timeout
-pub(crate) async fn wait(is_done: Arc<AtomicBool>) {
-    loop {
-        if is_done.load(Ordering::Relaxed) {
-            break;
-        }
-        tokio::time::sleep(Duration::from_millis(10)).await;
-    }
-}
-
-pub(crate) fn subscribe_thread<T: Send + 'static, U: Send + Sync + 'static>(
-    mut subscriber: impl Stream<Item = T> + Send + Unpin + 'static,
+pub(crate) fn subscribe_thread<M: DeserializeOwned + Send + 'static, U: Send + Sync + 'static>(
+    subscriber: ros2_client::Subscription<M>,
     buf: Arc<RwLock<U>>,
-    mut f: impl FnMut(T) -> U + Send + 'static,
+    mut f: impl FnMut(M) -> U + Send + 'static,
 ) {
     tokio::spawn(async move {
         while Arc::strong_count(&buf) > 1 {
-            if let Some(val) = subscriber.next().await {
+            if let Some((val, _info)) = subscriber.async_take().now_or_never().transpose().unwrap()
+            {
                 let res = f(val);
                 *buf.write().unwrap() = res;
             }
@@ -40,10 +26,10 @@ pub(crate) fn subscribe_thread<T: Send + 'static, U: Send + Sync + 'static>(
     });
 }
 
-pub(crate) fn subscribe_one<T: Send>(
-    mut subscriber: impl Stream<Item = T> + Send + Unpin,
+pub(crate) fn subscribe_one<M: DeserializeOwned + Send + 'static>(
+    subscriber: &mut ros2_client::Subscription<M>,
     timeout: Duration,
-) -> Option<T> {
+) -> Option<M> {
     // https://github.com/openrr/openrr/pull/501#discussion_r746183161
     std::thread::scope(|s| {
         s.spawn(|| {
@@ -53,9 +39,16 @@ pub(crate) fn subscribe_one<T: Send>(
                 .unwrap()
                 .block_on(async move {
                     let start = Instant::now();
+                    let mut prev = None;
                     loop {
-                        if let Some(v) = subscriber.next().now_or_never() {
-                            return v;
+                        if let Some((val, _info)) =
+                            subscriber.async_take().now_or_never().transpose().unwrap()
+                        {
+                            prev = Some(val);
+                            continue;
+                        }
+                        if prev.is_some() {
+                            return prev;
                         }
                         if start.elapsed() > timeout {
                             return None; // timeout
@@ -69,15 +62,65 @@ pub(crate) fn subscribe_one<T: Send>(
     })
 }
 
+pub(crate) fn topic_qos() -> ros2::QosPolicies {
+    ros2::QosPolicyBuilder::new()
+        .durability(ros2::policy::Durability::Volatile)
+        .liveliness(ros2::policy::Liveliness::Automatic {
+            lease_duration: ros2::Duration::INFINITE,
+        })
+        .reliability(ros2::policy::Reliability::Reliable {
+            max_blocking_time: ros2::Duration::from_millis(100),
+        })
+        .history(ros2::policy::History::KeepLast { depth: 1 })
+        .build()
+}
+
+pub(crate) fn service_qos() -> ros2::QosPolicies {
+    ros2::QosPolicyBuilder::new()
+        .reliability(ros2::policy::Reliability::Reliable {
+            max_blocking_time: ros2::Duration::from_millis(100),
+        })
+        .history(ros2::policy::History::KeepLast { depth: 1 })
+        .build()
+}
+
+pub(crate) fn action_client_qos() -> action::ActionClientQosPolicies {
+    let service_qos = service_qos();
+    action::ActionClientQosPolicies {
+        goal_service: service_qos.clone(),
+        result_service: service_qos.clone(),
+        cancel_service: service_qos.clone(),
+        feedback_subscription: service_qos.clone(),
+        status_subscription: service_qos,
+    }
+}
+
+pub(crate) fn action_server_qos() -> action::ActionServerQosPolicies {
+    let service_qos = service_qos();
+    let publisher_qos = ros2::QosPolicyBuilder::new()
+        .reliability(ros2::policy::Reliability::Reliable {
+            max_blocking_time: ros2::Duration::from_millis(100),
+        })
+        .history(ros2::policy::History::KeepLast { depth: 1 })
+        .durability(ros2::policy::Durability::TransientLocal)
+        .build();
+    action::ActionServerQosPolicies {
+        goal_service: service_qos.clone(),
+        result_service: service_qos.clone(),
+        cancel_service: service_qos.clone(),
+        feedback_publisher: publisher_qos.clone(),
+        status_publisher: publisher_qos,
+    }
+}
+
 pub fn convert_system_time_to_ros2_time(time: &SystemTime) -> Time {
-    let mut ros_clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
-    let ros_now = ros_clock.get_now().unwrap();
+    let ros_now = Time::now();
     let system_now = SystemTime::now();
 
     let nano = if system_now < *time {
-        time.duration_since(system_now).unwrap().as_nanos() + ros_now.as_nanos()
+        time.duration_since(system_now).unwrap().as_nanos() + time_as_nanos(ros_now)
     } else {
-        ros_now.as_nanos() - system_now.duration_since(*time).unwrap().as_nanos()
+        time_as_nanos(ros_now) - system_now.duration_since(*time).unwrap().as_nanos()
     };
 
     Time {
@@ -87,11 +130,10 @@ pub fn convert_system_time_to_ros2_time(time: &SystemTime) -> Time {
 }
 
 pub fn convert_ros2_time_to_system_time(time: &Time) -> SystemTime {
-    let mut ros_clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
-    let ros_now = ros_clock.get_now().unwrap();
+    let ros_now = Time::now();
     let system_now = SystemTime::now();
-    let ros_time_nanos = time.sec as u128 * BILLION + time.nanosec as u128;
-    let ros_now_nanos = ros_now.as_nanos();
+    let ros_time_nanos = time_as_nanos(*time);
+    let ros_now_nanos = time_as_nanos(ros_now);
 
     if ros_now_nanos < ros_time_nanos {
         system_now
@@ -106,4 +148,8 @@ pub fn convert_ros2_time_to_system_time(time: &Time) -> SystemTime {
             ))
             .unwrap()
     }
+}
+
+fn time_as_nanos(time: Time) -> u128 {
+    time.sec as u128 * BILLION + time.nanosec as u128
 }

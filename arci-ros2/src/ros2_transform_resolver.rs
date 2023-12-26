@@ -4,11 +4,10 @@ use arci::{
     nalgebra::{Quaternion, Translation3},
     Isometry3, TransformResolver, UnitQuaternion,
 };
-use r2r::builtin_interfaces::msg as builtin_msg;
-use tf_r2r::{TfBuffer, TfListener};
+use tf_ros2::{TfBuffer, TfListener};
 use tracing::{debug, warn};
 
-use crate::{utils::convert_system_time_to_ros2_time, Node};
+use crate::{msg::tf2_msgs::TFMessage, utils::convert_system_time_to_ros2_time, Node};
 
 /// `arci::TransformResolver` implementation for ROS2.
 pub struct Ros2TransformResolver {
@@ -23,13 +22,19 @@ impl Ros2TransformResolver {
     /// Creates a new `Ros2TransformResolver`.
     #[track_caller]
     pub fn new(node: Node, cache_duration: Duration, retry_rate: f64, max_retry: usize) -> Self {
-        let duration = builtin_msg::Duration {
+        let duration = ros2_client::builtin_interfaces::Duration {
             sec: cache_duration.as_secs() as i32,
             nanosec: cache_duration.subsec_nanos(),
         };
 
-        let tf_listener =
-            TfListener::new_with_buffer(&mut node.r2r(), TfBuffer::new_with_duration(duration));
+        let tf_topic = node.create_topic::<TFMessage>("/tf").unwrap();
+        let tf_static_topic = node.create_topic::<TFMessage>("/tf_static").unwrap();
+        let tf_listener = TfListener::new_with_buffer(
+            &mut node.inner.node.lock().unwrap(),
+            &tf_topic,
+            &tf_static_topic,
+            TfBuffer::new_with_duration(duration),
+        );
         Self {
             retry_rate,
             max_retry,
@@ -57,9 +62,7 @@ impl TransformResolver for Ros2TransformResolver {
             if i != 0 {
                 debug!("Retrying {from} -> {to} ({i} / {}) ...", self.max_retry);
             }
-            let result = self
-                .tf_listener
-                .lookup_transform(from, to, ros_time.clone());
+            let result = self.tf_listener.lookup_transform(from, to, ros_time);
             match result {
                 Ok(result) => {
                     let translation = result.transform.translation;

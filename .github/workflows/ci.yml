@@ -140,9 +140,8 @@ jobs:
           # https://docs.ros.org/en/rolling/Releases.html#list-of-distributions
           - distro: humble
             os: ubuntu-22.04
-          # TODO: r2r 0.7.5 doesn't support iron
-          # - distro: iron
-          #   os: ubuntu-22.04
+          - distro: iron
+            os: ubuntu-22.04
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     container:
@@ -155,7 +154,7 @@ jobs:
       - run: echo "ROS2_DISTRO=${{ matrix.distro }}" >>"${GITHUB_ENV}"
       - run: |
           apt-get update
-          apt-get -y install curl libclang-dev
+          apt-get -y install curl
           apt-get -y install ros-$ROS2_DISTRO-geometry-msgs ros-$ROS2_DISTRO-nav2-msgs ros-$ROS2_DISTRO-ros2-control ros-$ROS2_DISTRO-ros2-controllers ros-$ROS2_DISTRO-tf2-msgs
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
@@ -168,13 +167,13 @@ jobs:
         working-directory: arci-ros2
         run: |
           source /opt/ros/$ROS2_DISTRO/setup.bash
-          cargo build --features ros2 --examples
+          cargo build --examples
       - name: cargo test
         shell: bash -ieo pipefail {0}
         working-directory: arci-ros2
         run: |
           source /opt/ros/$ROS2_DISTRO/setup.bash
-          cargo test --features ros2
+          cargo test
 
   # When this job failed, run tools/update-schema.sh and commit result changes.
   schema:
@@ -213,7 +212,7 @@ jobs:
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
       - uses: taiki-e/install-action@protoc
-      - run: cargo hack check --all --feature-powerset --optional-deps --exclude arci-ros2
+      - run: cargo hack check --all --feature-powerset --optional-deps
 
   fmt:
     name: Format
@@ -242,19 +241,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-install-dependencies.sh
-      - run: echo "ROS2_DISTRO=humble" >>"${GITHUB_ENV}"
-      - name: Install ROS2
-        run: |
-          # for arci-ros2
-          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install -y ros-$ROS2_DISTRO-ros-core ros-$ROS2_DISTRO-geometry-msgs ros-$ROS2_DISTRO-nav2-msgs ros-$ROS2_DISTRO-ros2-control ros-$ROS2_DISTRO-ros2-controllers ros-$ROS2_DISTRO-tf2-msgs
       - name: Run clippy
-        run: |
-          # for arci-ros2
-          source /opt/ros/$ROS2_DISTRO/setup.bash
-          cargo clippy --all-features --all-targets
+        run: cargo clippy --all-features --all-targets
 
   docs:
     name: Docs
@@ -266,18 +254,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@protoc
       - run: ci/ubuntu-install-dependencies.sh
-      - run: echo "ROS2_DISTRO=humble" >>"${GITHUB_ENV}"
-      - name: Install ROS2
-        run: |
-          # for arci-ros2
-          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install -y ros-$ROS2_DISTRO-ros-core ros-$ROS2_DISTRO-geometry-msgs ros-$ROS2_DISTRO-nav2-msgs ros-$ROS2_DISTRO-ros2-control ros-$ROS2_DISTRO-ros2-controllers ros-$ROS2_DISTRO-tf2-msgs
-      - run: |
-          # for arci-ros2
-          source /opt/ros/$ROS2_DISTRO/setup.bash
-          cargo doc --workspace --all-features
+      - run: cargo doc --workspace --all-features
       - name: Publish documentation
         run: |
           cd target/doc

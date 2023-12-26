@@ -12,7 +12,6 @@ costmap
 costmaps
 DISTRO
 dobot
-Dpkg
 dylib
 epaint
 espeak
@@ -23,13 +22,11 @@ hostedtoolcache
 ICANON
 impls
 irobot
-keyrings
 keyserver
 lerp
 lflag
 libarci
 libasound
-libclang
 LIBGL
 libglu
 libopenrr
@@ -58,6 +55,7 @@ roscore
 rosdep
 roslaunch
 rosmsg
+rosout
 rospack
 rostopic
 rrbot

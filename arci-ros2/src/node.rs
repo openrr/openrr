@@ -1,68 +1,163 @@
-use std::{
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc, Mutex, MutexGuard,
-    },
-    time::Duration,
-};
+use std::sync::{Arc, Mutex};
 
-/// ROS2 node. This is a wrapper around `Arc<Mutex<r2r::Node>>`.
+use anyhow::format_err;
+pub use ros2_client::NodeOptions;
+use ros2_client::{action, Name, NodeName, ServiceMapping};
+use rustdds::Topic;
+use serde::{de::DeserializeOwned, Serialize};
+
+use crate::{msg::MessageType, utils};
+
+/// ROS2 node. This is a wrapper around `Arc<Mutex<ros2_client::Node>>`.
 #[derive(Clone)]
 pub struct Node {
-    inner: Arc<NodeInner>,
+    pub(crate) inner: Arc<NodeInner>,
 }
 
-struct NodeInner {
-    node: Mutex<r2r::Node>,
-    has_spin_thread: AtomicBool,
+pub(crate) struct NodeInner {
+    pub(crate) node: Mutex<ros2_client::Node>,
 }
 
 impl Node {
     /// Creates a new ROS2 node.
-    pub fn new(name: &str, namespace: &str) -> Result<Self, arci::Error> {
-        let ctx = r2r::Context::create().map_err(anyhow::Error::from)?;
-        Self::with_context(ctx, name, namespace)
+    pub fn new(name: &str, namespace: &str, options: NodeOptions) -> Result<Self, arci::Error> {
+        let context = ros2_client::Context::new().map_err(anyhow::Error::from)?;
+        Self::with_context(&context, name, namespace, options)
     }
 
-    /// Creates a new ROS2 node with `r2r::Context`.
+    /// Creates a new ROS2 node with `ros2_client::Context`.
     pub fn with_context(
-        ctx: r2r::Context,
+        context: &ros2_client::Context,
         name: &str,
         namespace: &str,
+        options: NodeOptions,
     ) -> Result<Self, arci::Error> {
-        let node = r2r::Node::create(ctx, name, namespace).map_err(anyhow::Error::from)?;
+        let name = NodeName::new(namespace, name).map_err(|e| format_err!("{e}"))?;
+        let node = context
+            .new_node(name, options)
+            .map_err(anyhow::Error::from)?;
         Ok(Self {
             inner: Arc::new(NodeInner {
                 node: Mutex::new(node),
-                has_spin_thread: AtomicBool::new(false),
             }),
         })
     }
 
-    /// Gets underlying `r2r::Node`.
-    pub fn r2r(&self) -> MutexGuard<'_, r2r::Node> {
-        self.inner.node.lock().unwrap()
+    pub fn create_topic<M: MessageType>(&self, name: &str) -> Result<Topic, arci::Error> {
+        let name = Name::parse(name).map_err(|e| format_err!("{e}"))?;
+        self.inner
+            .node
+            .lock()
+            .unwrap()
+            .create_topic(&name, M::message_type_name(), &utils::topic_qos())
+            .map_err(|e| arci::Error::Other(e.into()))
     }
 
-    /// Creates a thread to spin the ROS2 node.
-    pub fn run_spin_thread(&self, interval: Duration) {
-        if self.inner.has_spin_thread.swap(true, Ordering::Relaxed) {
-            return;
-        }
-        let node = self.clone();
-        tokio::spawn(async move {
-            while Arc::strong_count(&node.inner) > 1 {
-                node.spin_once(interval).await;
-            }
-        });
+    pub fn create_publisher<M: Serialize>(
+        &self,
+        topic: &Topic,
+    ) -> Result<ros2_client::Publisher<M>, arci::Error> {
+        self.inner
+            .node
+            .lock()
+            .unwrap()
+            .create_publisher(topic, None)
+            .map_err(|e| arci::Error::Other(e.into()))
     }
 
-    /// Spins the ROS2 node.
-    pub async fn spin_once(&self, duration: Duration) {
-        let now = std::time::Instant::now();
-        // Sleep with tokio::time::sleep instead of spin_once, since spin_once
-        // blocks the current thread while still holding the lock.
-        self.r2r().spin_once(Duration::ZERO);
-        tokio::time::sleep(duration.saturating_sub(now.elapsed())).await;
+    pub fn create_subscription<M: DeserializeOwned + 'static>(
+        &self,
+        topic: &Topic,
+    ) -> Result<ros2_client::Subscription<M>, arci::Error> {
+        self.inner
+            .node
+            .lock()
+            .unwrap()
+            .create_subscription(topic, None)
+            .map_err(|e| arci::Error::Other(e.into()))
+    }
+
+    pub fn create_client<S: ros2_client::Service + MessageType + 'static>(
+        &self,
+        name: &str,
+    ) -> Result<ros2_client::Client<S>, arci::Error>
+    where
+        S::Request: Clone,
+    {
+        let name = Name::parse(name).map_err(|e| format_err!("{e}"))?;
+        self.inner
+            .node
+            .lock()
+            .unwrap()
+            .create_client(
+                ServiceMapping::Enhanced,
+                &name,
+                &S::service_type_name(),
+                utils::service_qos(),
+                utils::service_qos(),
+            )
+            .map_err(|e| arci::Error::Other(e.into()))
+    }
+
+    pub fn create_server<S: ros2_client::Service + MessageType + 'static>(
+        &self,
+        name: &str,
+    ) -> Result<ros2_client::Server<S>, arci::Error>
+    where
+        S::Request: Clone,
+    {
+        let name = Name::parse(name).map_err(|e| format_err!("{e}"))?;
+        self.inner
+            .node
+            .lock()
+            .unwrap()
+            .create_server(
+                ServiceMapping::Enhanced,
+                &name,
+                &S::service_type_name(),
+                utils::service_qos(),
+                utils::service_qos(),
+            )
+            .map_err(|e| arci::Error::Other(e.into()))
+    }
+
+    pub fn create_action_client<A: ros2_client::ActionTypes + MessageType + 'static>(
+        &self,
+        action_name: &str,
+    ) -> Result<action::ActionClient<A>, arci::Error> {
+        let action_name = Name::parse(action_name).map_err(|e| format_err!("{e}"))?;
+        self.inner
+            .node
+            .lock()
+            .unwrap()
+            .create_action_client(
+                ServiceMapping::Enhanced,
+                &action_name,
+                &A::action_type_name(),
+                utils::action_client_qos(),
+            )
+            .map_err(|e| arci::Error::Other(e.into()))
+    }
+
+    pub fn create_action_server<A: ros2_client::ActionTypes + MessageType + 'static>(
+        &self,
+        action_name: &str,
+    ) -> Result<action::ActionServer<A>, arci::Error> {
+        let action_name = Name::parse(action_name).map_err(|e| format_err!("{e}"))?;
+        self.inner
+            .node
+            .lock()
+            .unwrap()
+            .create_action_server(
+                ServiceMapping::Enhanced,
+                &action_name,
+                &A::action_type_name(),
+                utils::action_server_qos(),
+            )
+            .map_err(|e| arci::Error::Other(e.into()))
+    }
+
+    pub fn spinner(&self) -> ros2_client::Spinner {
+        self.inner.node.lock().unwrap().spinner()
     }
 }
