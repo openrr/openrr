@@ -33,12 +33,6 @@ fn test_control() {
 async fn test_control_inner() {
     let action_name = &action_name();
     let node = test_node();
-    let state_topic = node
-        .create_topic::<JointTrajectoryControllerState>(&format!("{action_name}/state"))
-        .unwrap();
-    let publisher = node
-        .create_publisher::<JointTrajectoryControllerState>(&state_topic)
-        .unwrap();
     let state = Arc::new(Mutex::new(JointTrajectoryControllerState {
         joint_names: vec!["j1".to_owned(), "j2".to_owned()],
         actual: trajectory_msgs::JointTrajectoryPoint {
@@ -47,14 +41,7 @@ async fn test_control_inner() {
         },
         ..Default::default()
     }));
-    start_test_control_server(&node, action_name, state.clone()).await;
-    tokio::spawn(async move {
-        loop {
-            let new = state.lock().unwrap().clone();
-            publisher.publish(new).unwrap();
-            tokio::time::sleep(Duration::from_millis(500)).await;
-        }
-    });
+    start_test_control_server(&node, action_name, state).await;
     let client = Ros2ControlClient::new(node, action_name).unwrap();
 
     assert_eq!(client.joint_names(), vec!["j1".to_owned(), "j2".to_owned()]);
@@ -79,13 +66,27 @@ async fn start_test_control_server(
         ))
         .unwrap(),
     );
+    let state_topic = node
+        .create_topic::<JointTrajectoryControllerState>(&format!("{action_name}/state"))
+        .unwrap();
+    let publisher = node
+        .create_publisher::<JointTrajectoryControllerState>(&state_topic)
+        .unwrap();
+    let state_clone = state.clone();
     std::thread::spawn(move || {
-        let server = test_control_server(action_server, state);
+        let server = test_control_server(action_server, state_clone);
         tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
             .unwrap()
             .block_on(server)
+    });
+    tokio::spawn(async move {
+        loop {
+            let new = state.lock().unwrap().clone();
+            publisher.publish(new).unwrap();
+            tokio::time::sleep(Duration::from_millis(500)).await;
+        }
     });
 
     // TODO: wait for server

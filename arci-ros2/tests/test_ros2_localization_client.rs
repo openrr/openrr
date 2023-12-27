@@ -81,6 +81,9 @@ async fn test_localization_client_nomotion_update() {
             .unwrap();
     });
 
+    // TODO: wait for server
+    tokio::time::sleep(Duration::from_secs(1)).await;
+
     let client =
         Ros2LocalizationClient::new(node, true, NO_MOTION_UPDATE_SERVICE, AMCL_POSE_TOPIC).unwrap();
 
