@@ -18,7 +18,7 @@ const SCAN_TIME: f32 = 123.4;
 const RANGE_MIN: f32 = 0.1;
 const RANGE_MAX: f32 = 12.0;
 
-#[tokio::test(flavor = "multi_thread")]
+#[tokio::test]
 async fn test_laser_scan() {
     let node = test_node();
     let laser_scan_topic = node.create_topic::<LaserScan>(LASER_SCAN_TOPIC).unwrap();
@@ -26,24 +26,22 @@ async fn test_laser_scan() {
         .create_publisher::<LaserScan>(&laser_scan_topic)
         .unwrap();
 
-    tokio::spawn(async move {
-        loop {
-            scan_publisher
-                .publish(LaserScan {
-                    header: Header::default(),
-                    angle_min: 0.,
-                    angle_max: ANGLE_MAX,
-                    angle_increment: ANGLE_INCREMENT,
-                    time_increment: TIME_INCREMENT,
-                    scan_time: SCAN_TIME,
-                    range_min: RANGE_MIN,
-                    range_max: RANGE_MAX,
-                    ranges: vec![1.; (ANGLE_MAX / ANGLE_INCREMENT) as usize],
-                    intensities: vec![],
-                })
-                .unwrap();
-            tokio::time::sleep(Duration::from_millis(100)).await;
-        }
+    std::thread::spawn(move || loop {
+        scan_publisher
+            .publish(LaserScan {
+                header: Header::default(),
+                angle_min: 0.,
+                angle_max: ANGLE_MAX,
+                angle_increment: ANGLE_INCREMENT,
+                time_increment: TIME_INCREMENT,
+                scan_time: SCAN_TIME,
+                range_min: RANGE_MIN,
+                range_max: RANGE_MAX,
+                ranges: vec![1.; (ANGLE_MAX / ANGLE_INCREMENT) as usize],
+                intensities: vec![],
+            })
+            .unwrap();
+        std::thread::sleep(Duration::from_millis(100));
     });
 
     let client = Ros2LaserScan2D::new(node, LASER_SCAN_TOPIC).unwrap();
@@ -63,5 +61,5 @@ async fn test_laser_scan() {
             ranges: vec![1.; (ANGLE_MAX / ANGLE_INCREMENT) as usize],
             intensities: vec![]
         }
-    )
+    );
 }

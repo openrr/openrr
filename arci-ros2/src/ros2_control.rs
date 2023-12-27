@@ -103,6 +103,7 @@ async fn send_joint_trajectory_thread(
             tokio::time::sleep(Duration::from_millis(10)).await;
             continue;
         };
+        let timeout = trajectory.last().unwrap().time_from_start;
 
         let goal = FollowJointTrajectory::Goal {
             trajectory: trajectory_msgs::JointTrajectory {
@@ -130,7 +131,6 @@ async fn send_joint_trajectory_thread(
         };
 
         let send_goal_req = action_client.async_send_goal(goal);
-        let timeout = Duration::from_secs(10); // TODO
         let timeout_fut = tokio::time::sleep(timeout);
         let (goal_id, goal_response) = tokio::select! {
             res = send_goal_req => res.unwrap(),
@@ -211,59 +211,6 @@ impl JointTrajectoryClient for Ros2ControlClient {
             trajectory,
             result_sender,
         });
-        // let node = self.node.clone();
-        // let action_client = self.action_client.clone();
-        // let is_available = node.r2r().is_available(&self.action_client).unwrap();
-        // let (sender, receiver) = tokio::sync::oneshot::channel();
-        // let joint_names = self.joint_names.clone();
-        // tokio::spawn(async move {
-        //     let is_done = Arc::new(AtomicBool::new(false));
-        //     let is_done_clone = is_done.clone();
-        //     tokio::spawn(async move {
-        //         let mut clock = r2r::Clock::create(r2r::ClockType::RosTime).unwrap();
-        //         let now = clock.get_now().unwrap();
-        //         let goal = FollowJointTrajectory::Goal {
-        //             trajectory: trajectory_msg::JointTrajectory {
-        //                 joint_names,
-        //                 points: trajectory
-        //                     .into_iter()
-        //                     .map(|tp| trajectory_msg::JointTrajectoryPoint {
-        //                         velocities: tp
-        //                             .velocities
-        //                             .unwrap_or_else(|| vec![0.0; tp.positions.len()]),
-        //                         positions: tp.positions,
-        //                         time_from_start: builtin_interfaces::Duration {
-        //                             sec: tp
-        //                                 .time_from_start
-        //                                 .as_secs()
-        //                                 .try_into()
-        //                                 .unwrap_or(i32::MAX),
-        //                             nanosec: tp.time_from_start.subsec_nanos(),
-        //                         },
-        //                         ..Default::default()
-        //                     })
-        //                     .collect(),
-        //                 header: Header {
-        //                     stamp: Time {
-        //                         sec: now.as_secs() as i32,
-        //                         nanosec: now.subsec_nanos(),
-        //                     },
-        //                     ..Default::default()
-        //                 },
-        //             },
-        //             ..Default::default()
-        //         };
-        //         is_available.await.unwrap();
-        //         let send_goal_request = action_client.send_goal_request(goal).unwrap();
-        //         let (_goal, result, feedback) = send_goal_request.await.unwrap();
-        //         tokio::spawn(async move { feedback.for_each(|_| std::future::ready(())).await });
-        //         result.await.unwrap(); // TODO: handle goal state
-        //         is_done.store(true, Ordering::Relaxed);
-        //     });
-        //     utils::wait(is_done_clone).await;
-        //     // TODO: "canceled" should be an error?
-        //     let _ = sender.send(());
-        // });
         let wait = WaitFuture::new(async move {
             result_receiver
                 .await
