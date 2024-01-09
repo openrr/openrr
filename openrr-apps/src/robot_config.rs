@@ -921,21 +921,6 @@ fn instance_create_error<T: fmt::Debug, U>(
     })
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn test_resolve_audio_file_path() {
-        let mut hash = HashMap::new();
-        hash.insert("a".to_owned(), PathBuf::from("dir1/file.mp3"));
-        hash.insert("b".to_owned(), PathBuf::from("../dir2/file.mp3"));
-        resolve_audio_file_path("/config/some_file.toml", &mut hash).unwrap();
-        assert_eq!(hash.len(), 2);
-        assert_eq!(hash["a"], PathBuf::from("/config/dir1/file.mp3"));
-        assert_eq!(hash["b"], PathBuf::from("/config/../dir2/file.mp3"));
-    }
-}
-
 impl RobotConfig {
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         Self::from_str(
@@ -1025,5 +1010,20 @@ impl RobotConfig {
             _ => {}
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_resolve_audio_file_path() {
+        let mut hash = HashMap::new();
+        hash.insert("a".to_owned(), PathBuf::from("dir1/file.mp3"));
+        hash.insert("b".to_owned(), PathBuf::from("../dir2/file.mp3"));
+        resolve_audio_file_path("/config/some_file.toml", &mut hash).unwrap();
+        assert_eq!(hash.len(), 2);
+        assert_eq!(hash["a"], PathBuf::from("/config/dir1/file.mp3"));
+        assert_eq!(hash["b"], PathBuf::from("/config/../dir2/file.mp3"));
     }
 }
