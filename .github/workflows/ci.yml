@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '0 15 * * *'
+    - cron: '0 15 * * 0,4' # Every Monday and Friday at 00:00 JST
 
 env:
   CARGO_INCREMENTAL: 0
