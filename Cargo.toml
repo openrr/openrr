@@ -160,6 +160,9 @@ openrr-remote = { path = "openrr-remote" }
 openrr-teleop = { path = "openrr-teleop" }
 openrr-tracing = { path = "openrr-tracing" }
 
+rustdds = { path = "tmp/RustDDS" }
+ros2-client = { path = "tmp/ros2-client" }
+
 [profile.release]
 lto = true
 codegen-units = 1

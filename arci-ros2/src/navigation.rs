@@ -1,7 +1,7 @@
 use std::{
     pin::pin,
     sync::{Arc, Mutex},
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use anyhow::format_err;
@@ -86,18 +86,24 @@ async fn send_goal_pose_thread(
             ..Default::default()
         };
 
-        let send_goal_req = action_client.async_send_goal(goal);
-        let timeout_fut = tokio::time::sleep(timeout);
-        let (goal_id, goal_response) = tokio::select! { biased;
-            _res = &mut cancel_receiver => {
-                // res.is_ok == canceled, res.is_err == new request set
-                let _ = result_sender.send(Ok(())); // TODO: "canceled" should be an error?
-                continue;
-            }
-            res = send_goal_req => res.unwrap(),
-            _ = timeout_fut => {
-                let _ = result_sender.send(Err(timeout));
-                continue;
+        let (goal_id, goal_response) = {
+            let start = Instant::now();
+            loop {
+                let send_goal_req = pin!(action_client.async_send_goal(goal.clone()));
+                tokio::select! { biased;
+                    _res = &mut cancel_receiver => {
+                        // res.is_ok == canceled, res.is_err == new request set
+                        let _ = result_sender.send(Ok(())); // TODO: "canceled" should be an error?
+                        continue 'outer;
+                    }
+                    res =  send_goal_req => break res.unwrap(),
+                    _ = tokio::time::sleep(Duration::from_secs(1)) => {
+                        if start.elapsed() > timeout {
+                            let _ = result_sender.send(Err(timeout));
+                            continue 'outer;
+                        }
+                    }
+                }
             }
         };
         if goal_response.accepted {
