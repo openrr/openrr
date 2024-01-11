@@ -45,7 +45,7 @@ if [[ -n "$(git ls-files '*Cargo.toml')" ]]; then
     dependencies=$(sed <<<"${dependencies}" 's/[0-9_-]/\n/g' | LC_ALL=C sort -f -u)
 fi
 config_old=$(<.cspell.json)
-config_new=$(grep <<<"${config_old}" -v ' *//' | jq 'del(.dictionaries[])' | jq 'del(.dictionaryDefinitions[])')
+config_new=$(grep <<<"${config_old}" -v '^ *//' | jq 'del(.dictionaries[])' | jq 'del(.dictionaryDefinitions[])')
 trap -- 'echo "${config_old}" >.cspell.json; echo >&2 "$0: trapped SIGINT"; exit 1' SIGINT
 echo "${config_new}" >.cspell.json
 if [[ -n "${has_rust}" ]]; then
