@@ -65,7 +65,6 @@ rtry
 rustc
 rustdocflags
 rustflags
-rustfmt
 RUSTSEC
 rustup
 rviz
