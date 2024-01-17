@@ -173,16 +173,12 @@ fn test_current_joint_positions() {
     assert_approx_eq!(v[1], -1.0);
 }
 
-#[flaky_test::flaky_test]
-fn test_send_joint_positions() {
+#[flaky_test::flaky_test(tokio)]
+async fn test_send_joint_positions() {
     // GitHub Actions' Windows runner is slow.
     if cfg!(windows) && env::var_os("CI").is_some() {
         return;
     }
-    test_send_joint_positions_inner();
-}
-#[tokio::main(flavor = "current_thread")]
-async fn test_send_joint_positions_inner() {
     let (port, url) = port_and_url();
     let web_server = WebServer::new(port, Default::default());
     web_server.set_current_joint_positions(JointNamesAndPositions {
@@ -229,16 +225,12 @@ fn test_send_joint_positions_no_wait() {
     assert_approx_eq!(v[0], 1.0);
 }
 
-#[flaky_test::flaky_test]
-fn test_send_joint_trajectory() {
+#[flaky_test::flaky_test(tokio)]
+async fn test_send_joint_trajectory() {
     // GitHub Actions' macOS/Windows runner is slow.
     if (cfg!(windows) || cfg!(target_os = "macos")) && env::var_os("CI").is_some() {
         return;
     }
-    test_send_joint_trajectory_inner();
-}
-#[tokio::main(flavor = "current_thread")]
-async fn test_send_joint_trajectory_inner() {
     let (port, url) = port_and_url();
     let web_server = WebServer::new(port, Default::default());
     web_server.set_current_joint_positions(JointNamesAndPositions {

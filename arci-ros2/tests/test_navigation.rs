@@ -26,12 +26,8 @@ fn action_name() -> String {
     format!("/test_nav2_{n}")
 }
 
-#[flaky_test::flaky_test]
-fn test_nav() {
-    test_nav_inner();
-}
-#[tokio::main]
-async fn test_nav_inner() {
+#[flaky_test::flaky_test(tokio(flavor = "multi_thread"))]
+async fn test_nav() {
     let action_name = &action_name();
     let node = test_node();
     let nav = Ros2Navigation::new(node.clone(), action_name);
@@ -84,12 +80,8 @@ async fn test_nav_timeout() {
         .contains("timeout"));
 }
 
-#[flaky_test::flaky_test]
-fn test_nav_cancel() {
-    test_nav_cancel_inner();
-}
-#[tokio::main]
-async fn test_nav_cancel_inner() {
+#[flaky_test::flaky_test(tokio(flavor = "multi_thread"))]
+async fn test_nav_cancel() {
     let action_name = &action_name();
     let node = test_node();
     let nav = Ros2Navigation::new(node.clone(), action_name);

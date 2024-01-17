@@ -27,12 +27,8 @@ fn test_set_get_vel() {
     assert_approx_eq!(v.theta, 3.0);
 }
 
-#[flaky_test::flaky_test]
-fn test_set_get_pose() {
-    test_set_get_pose_inner();
-}
-#[tokio::main(flavor = "current_thread")]
-async fn test_set_get_pose_inner() {
+#[flaky_test::flaky_test(tokio)]
+async fn test_set_get_pose() {
     let (port, url) = port_and_url();
     let web_server = WebServer::new(port, Default::default());
     web_server.start_background();
