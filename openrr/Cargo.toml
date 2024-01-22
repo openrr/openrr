@@ -10,7 +10,7 @@ keywords = ["robotics", "robot"]
 categories = ["science::robotics"]
 
 [features]
-default = ["assimp"]
+default = []
 assimp = [
     "openrr-client/assimp",
     "openrr-command/assimp",

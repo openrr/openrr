@@ -9,7 +9,7 @@ keywords = ["pathplanning", "robotics", "robot"]
 categories = ["algorithms", "science::robotics"]
 
 [features]
-default = ["assimp"]
+default = []
 
 [dependencies]
 assimp = { workspace = true, optional = true }
