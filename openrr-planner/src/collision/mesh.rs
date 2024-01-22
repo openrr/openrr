@@ -15,6 +15,7 @@ where
     let mut importer = assimp::Importer::new();
     importer.pre_transform_vertices(|x| x.enable = true);
     importer.collada_ignore_up_direction(true);
+    importer.triangulate(true);
     if let Some(file_string) = filename.to_str() {
         match importer.read_file(file_string) {
             Ok(assimp_scene) => Ok(assimp_scene_to_ncollide_mesh(assimp_scene, scale)),
