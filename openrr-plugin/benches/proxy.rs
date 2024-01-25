@@ -231,9 +231,7 @@ fn test_plugin() -> Result<PathBuf> {
         r#"
 [package]
 name = "test_plugin"
-version = "0.0.0"
 edition = "2021"
-publish = false
 
 [workspace]
 

@@ -1,8 +1,6 @@
 [package]
 name = "openrr-plugin-example"
-version = "0.0.0"
 edition.workspace = true
-publish = false
 
 [lib]
 crate-type = ["cdylib"]
