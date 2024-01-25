@@ -1,8 +1,6 @@
 [package]
 name = "arci-ros-hygiene-test"
-version = "0.0.0"
 edition.workspace = true
-publish = false
 
 [dependencies]
 arci-ros.workspace = true
