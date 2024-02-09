@@ -116,8 +116,8 @@ tokio = "1"
 tokio-test = "0.4"
 toml = "0.5"
 toml-query = "0.10"
-tonic = "0.10"
-tonic-build = "0.10"
+tonic = "0.11"
+tonic-build = "0.11"
 tracing = { version = "0.1", features = ["log"] }
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["ansi", "env-filter"] }
