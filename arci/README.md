@@ -8,9 +8,8 @@ Abstract Robot Control Interface.
 
 1. Add module and trait to `arci/traits`.
 2. Add service and message to proto file on `openrr-remote`.
-3. Add `From<T>` for `pb::Foo` and `Foo` to `openrr-remote/src/lib.rs`
-4. (If need) Add a new structure declaration to the corresponding parts of the two quote! macros in `tools/codegen/src`.
-5. Run `./tools/gen-code.sh`
+3. (If needed) Add a new structure declaration to the corresponding parts of the two quote! macros in `tools/codegen/src`.
+4. Run `./tools/gen-code.sh`
 
 **Codegen will be added.**
 
