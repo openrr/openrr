@@ -123,7 +123,7 @@ tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["ansi", "env-filter"] }
 trajectory = "0.1"
 urdf-rs = "0.8"
-urdf-viz = "0.44"
+urdf-viz = "0.45"
 ureq = { version = "2", features = ["json"] }
 url = "2"
 
