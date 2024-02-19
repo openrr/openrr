@@ -323,7 +323,7 @@ where
         for node in robot.iter() {
             let link = match node.link().clone() {
                 Some(v) => v,
-                None => break,
+                None => continue,
             };
 
             let col_pose_vec = link
