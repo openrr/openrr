@@ -41,8 +41,8 @@ enum ConfigKind {
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum Config {
-    RobotConfig(Box<openrr_apps::RobotConfig>),
-    RobotTeleopConfig(Box<openrr_apps::RobotTeleopConfig>),
+    RobotConfig(#[allow(dead_code)] Box<openrr_apps::RobotConfig>),
+    RobotTeleopConfig(#[allow(dead_code)] Box<openrr_apps::RobotTeleopConfig>),
 }
 
 fn main() -> Result<()> {
