@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Error"],"fn":["center_of_mass","create_reference_positions_nullspace_function","jacobian"],"macro":["connect"],"mod":["iterator","joint","link","node","prelude","urdf"],"struct":["Chain","Constraints","JacobianIkSolver","SerialChain"],"trait":["InverseKinematicsSolver"]};

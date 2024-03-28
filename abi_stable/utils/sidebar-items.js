@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["distance_from","ffi_panic_message","leak_value","manuallydrop_as_raw_mut","manuallydrop_as_rmut","ref_as_nonnull","take_manuallydrop","transmute_mut_reference","transmute_reference"],"struct":["PanicInfo"],"union":["Transmuter"]};

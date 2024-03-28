@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["call","call_value"],"struct":["Client","ContentType"]};

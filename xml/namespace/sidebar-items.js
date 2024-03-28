@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["NS_EMPTY_URI","NS_NO_PREFIX","NS_XMLNS_PREFIX","NS_XMLNS_URI","NS_XML_PREFIX","NS_XML_URI"],"struct":["CheckedTarget","Namespace","NamespaceStack","NamespaceStackMappings"],"type":["NamespaceMappings","UriMapping"]};

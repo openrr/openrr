@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["as_map","camel_to_snake","get_env_hash","get_ros_msgs","get_ros_msgs_files","get_wanted_messages","parse_msgs","print_cargo_link_search","print_cargo_ros_distro","print_cargo_watches","setup_bindgen_builder"],"struct":["RosMsg"]};

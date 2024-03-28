@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["decode_utf16","decode_utf16_lossy","decode_utf32","decode_utf32_lossy","encode_utf16","encode_utf32","encode_utf8"],"macro":["u16cstr","u16str","u32cstr","u32str","utf16str","utf32str","widecstr","widestr","wideutfstr"],"mod":["error","iter","ucstr","ucstring","ustr","ustring","utfstr","utfstring"],"type":["WideChar"]};

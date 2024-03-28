@@ -1,0 +1,9 @@
+(function() {var implementors = {
+"clap":[],
+"clap_builder":[],
+"openrr_apps_config":[["impl <a class=\"trait\" href=\"clap_builder/derive/trait.Args.html\" title=\"trait clap_builder::derive::Args\">Args</a> for <a class=\"struct\" href=\"openrr_apps_config/struct.Args.html\" title=\"struct openrr_apps_config::Args\">Args</a>"]],
+"openrr_apps_joint_position_sender":[["impl <a class=\"trait\" href=\"clap_builder/derive/trait.Args.html\" title=\"trait clap_builder::derive::Args\">Args</a> for <a class=\"struct\" href=\"openrr_apps_joint_position_sender/struct.Opt.html\" title=\"struct openrr_apps_joint_position_sender::Opt\">Opt</a>"]],
+"openrr_apps_robot_command":[["impl <a class=\"trait\" href=\"clap_builder/derive/trait.Args.html\" title=\"trait clap_builder::derive::Args\">Args</a> for <a class=\"struct\" href=\"openrr_apps_robot_command/struct.RobotCommandArgs.html\" title=\"struct openrr_apps_robot_command::RobotCommandArgs\">RobotCommandArgs</a>"]],
+"openrr_apps_robot_teleop":[["impl <a class=\"trait\" href=\"clap_builder/derive/trait.Args.html\" title=\"trait clap_builder::derive::Args\">Args</a> for <a class=\"struct\" href=\"openrr_apps_robot_teleop/struct.RobotTeleopArgs.html\" title=\"struct openrr_apps_robot_teleop::RobotTeleopArgs\">RobotTeleopArgs</a>"]],
+"openrr_apps_velocity_sender":[["impl <a class=\"trait\" href=\"clap_builder/derive/trait.Args.html\" title=\"trait clap_builder::derive::Args\">Args</a> for <a class=\"struct\" href=\"openrr_apps_velocity_sender/struct.Opt.html\" title=\"struct openrr_apps_velocity_sender::Opt\">Opt</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

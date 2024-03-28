@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Error"],"fn":["deserialize","serialize"],"struct":["Deserializer","EventReader","ParserConfig","Serializer"]};

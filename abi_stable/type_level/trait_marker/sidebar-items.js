@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Clone","Debug","Default","Deserialize","Display","DoubleEndedIterator","Eq","Error","FmtWrite","Hash","IoBufRead","IoRead","IoSeek","IoWrite","Iterator","Ord","PartialEq","PartialOrd","Send","Serialize","Sync","Unpin"]};

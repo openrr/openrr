@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Alter events in various ways."><title>gilrs::ev::filter - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gilrs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../gilrs/index.html">gilrs</a><span class="version">0.10.6</span></h2></div><h2 class="location"><a href="#">Module filter</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></section><h2><a href="../index.html">In gilrs::ev</a></h2></div></nav><div class="sidebar-resizer"></div>
+    <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../gilrs/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../../index.html">gilrs</a>::<wbr><a href="../index.html">ev</a>::<wbr><a class="mod" href="#">filter</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../../../src/gilrs/ev/filter.rs.html#8-547">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Alter events in various ways.</p>
+<p>This modules contains “event filters” that can change, drop or create new events. To use them,
+import <code>Filter</code> trait and call <code>filter()</code> function on <code>Option&lt;Event&gt;</code>. Because <code>filter</code> also
+returns <code>Option&lt;Event&gt;</code> you can combine multiple filters by using <code>filter()</code> function on
+returned event.</p>
+<p>Filters in this modules have public fields that can be used to configure their behaviour. You
+can also create them with default values using <code>new()</code> method. If filter is not configurable,
+it is implemented as function (for example <code>deadzone()</code>).</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>gilrs::{GilrsBuilder, Filter};
+<span class="kw">use </span>gilrs::ev::filter::{Jitter, Repeat, deadzone};
+
+<span class="kw">let </span><span class="kw-2">mut </span>gilrs = GilrsBuilder::new().with_default_filters(<span class="bool-val">false</span>).build().unwrap();
+<span class="kw">let </span>jitter = Jitter { threshold: <span class="number">0.02 </span>};
+<span class="kw">let </span>repeat = Repeat::new();
+
+<span class="comment">// Event loop
+</span><span class="kw">loop </span>{
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = gilrs
+        .next_event()
+        .filter_ev(<span class="kw-2">&amp;</span>jitter, <span class="kw-2">&amp;mut </span>gilrs)
+        .filter_ev(<span class="kw-2">&amp;</span>deadzone, <span class="kw-2">&amp;mut </span>gilrs)
+        .filter_ev(<span class="kw-2">&amp;</span>repeat, <span class="kw-2">&amp;mut </span>gilrs)
+    {
+        gilrs.update(<span class="kw-2">&amp;</span>event);
+        <span class="macro">println!</span>(<span class="string">"{:?}"</span>, event);
+    }
+}</code></pre></div>
+<h2 id="implementing-custom-filters"><a class="doc-anchor" href="#implementing-custom-filters">§</a>Implementing custom filters</h2>
+<p>If you want to implement your own filters, you will have to implement <code>FilterFn</code> trait.
+<strong>Do not return <code>None</code> if you got <code>Some(event)</code></strong>. If you want to discard an event, uses
+<code>EventType::Dropped</code>. Returning <code>None</code> means that there are no more events to process and
+will end <code>while let</code> loop.</p>
+<h3 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h3>
+<p>Example implementations of filter that will drop all events with <code>Unknown</code> axis or button.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>gilrs::ev::filter::FilterFn;
+<span class="kw">use </span>gilrs::{Gilrs, Event, EventType, Button, Axis, Filter};
+
+<span class="kw">struct </span>UnknownSlayer;
+
+<span class="kw">impl </span>FilterFn <span class="kw">for </span>UnknownSlayer {
+    <span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, ev: <span class="prelude-ty">Option</span>&lt;Event&gt;, _gilrs: <span class="kw-2">&amp;mut </span>Gilrs) -&gt; <span class="prelude-ty">Option</span>&lt;Event&gt; {
+        <span class="kw">match </span>ev {
+            <span class="prelude-val">Some</span>(Event { event: EventType::ButtonPressed(Button::Unknown, ..), id, .. })
+            | <span class="prelude-val">Some</span>(Event { event: EventType::ButtonReleased(Button::Unknown, ..), id, .. })
+            | <span class="prelude-val">Some</span>(Event { event: EventType::AxisChanged(Axis::Unknown, ..), id, .. })
+            =&gt; <span class="prelude-val">Some</span>(Event::new(id, EventType::Dropped)),
+            <span class="kw">_ </span>=&gt; ev,
+        }
+    }
+}</code></pre></div>
+<p><code>FilterFn</code> is also implemented for all <code>Fn(Option&lt;Event&gt;, &amp;Gilrs) -&gt; Option&lt;Event&gt;</code>, so above
+example could be simplified to passing closure to <code>filter()</code> function.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Jitter.html" title="struct gilrs::ev::filter::Jitter">Jitter</a></div><div class="desc docblock-short">Discard axis events that changed less than <code>threshold</code>.</div></li><li><div class="item-name"><a class="struct" href="struct.Repeat.html" title="struct gilrs::ev::filter::Repeat">Repeat</a></div><div class="desc docblock-short">Repeats pressed keys.</div></li></ul><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.Filter.html" title="trait gilrs::ev::filter::Filter">Filter</a></div><div class="desc docblock-short">Allow filtering events.</div></li><li><div class="item-name"><a class="trait" href="trait.FilterFn.html" title="trait gilrs::ev::filter::FilterFn">FilterFn</a></div><div class="desc docblock-short">Actual filter implementation.</div></li></ul><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.axis_dpad_to_button.html" title="fn gilrs::ev::filter::axis_dpad_to_button">axis_dpad_to_button</a></div><div class="desc docblock-short">Maps axis dpad events to button dpad events.</div></li><li><div class="item-name"><a class="fn" href="fn.deadzone.html" title="fn gilrs::ev::filter::deadzone">deadzone</a></div><div class="desc docblock-short">Drops events in dead zone and remaps value to keep it in standard range.</div></li></ul></section></div></main></body></html>

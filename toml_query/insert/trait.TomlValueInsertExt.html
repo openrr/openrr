@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `TomlValueInsertExt` trait in crate `toml_query`."><title>TomlValueInsertExt in toml_query::insert - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml_query" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../toml_query/index.html">toml_query</a><span class="version">0.10.0</span></h2></div><h2 class="location"><a href="#">TomlValueInsertExt</a></h2><div class="sidebar-elems"><section><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.insert_with_seperator">insert_with_seperator</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.insert">insert</a></li></ul><h3><a href="#foreign-impls">Implementations on Foreign Types</a></h3><ul class="block"><li><a href="#impl-TomlValueInsertExt-for-Value">Value</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><h2><a href="index.html">In toml_query::insert</a></h2></div></nav><div class="sidebar-resizer"></div>
+    <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../toml_query/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Trait <a href="../index.html">toml_query</a>::<wbr><a href="index.html">insert</a>::<wbr><a class="trait" href="#">TomlValueInsertExt</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../../src/toml_query/insert.rs.html#11-100">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub trait TomlValueInsertExt {
+    // Required method
+    fn <a href="#tymethod.insert_with_seperator" class="fn">insert_with_seperator</a>(
+        &amp;mut self,
+        query: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.str.html">str</a>,
+        sep: <a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.char.html">char</a>,
+        value: <a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a>
+    ) -&gt; <a class="type" href="../error/type.Result.html" title="type toml_query::error::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.77.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a>&gt;&gt;;
+
+    // Provided method
+    fn <a href="#method.insert" class="fn">insert</a>(&amp;mut self, query: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.str.html">str</a>, value: <a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a>) -&gt; <a class="type" href="../error/type.Result.html" title="type toml_query::error::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.77.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a>&gt;&gt; { ... }
+}</code></pre><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.insert_with_seperator" class="method"><a class="src rightside" href="../../src/toml_query/insert.rs.html#80-85">source</a><h4 class="code-header">fn <a href="#tymethod.insert_with_seperator" class="fn">insert_with_seperator</a>(
+    &amp;mut self,
+    query: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.str.html">str</a>,
+    sep: <a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.char.html">char</a>,
+    value: <a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a>
+) -&gt; <a class="type" href="../error/type.Result.html" title="type toml_query::error::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.77.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a>&gt;&gt;</h4></section></summary><div class="docblock"><p>Extension function for inserting a value in the current toml::Value document
+using a custom seperator.</p>
+<p>For difference to TomlSetExt::set() and friends, read [#semantics].</p>
+<h5 id="semantics"><a class="doc-anchor" href="#semantics">§</a>Semantics</h5>
+<p>The function automatically creates intermediate data structures based on the query string.
+That means, if the query string is <code>&quot;a.b.c.[0]&quot;</code>, but only a table <code>&quot;a&quot;</code> exists in the
+document, the function automatically creates a table <code>&quot;b&quot;</code> inside <code>&quot;a&quot;</code> and <code>&quot;c&quot;</code> inside
+<code>&quot;b&quot;</code>, and an array in <code>&quot;c&quot;</code>. The array index is ignored if the array is created.</p>
+<p>If an Array exists, but the specified index is larger than the last index, the array will
+be expanded by one element: If the array has a length of 3, but the query string specifies
+that the element should be put at 1000, the function ignores the large index and simply
+appends the value to the index.</p>
+<p>If a Value is inserted into an Array, the array indexes are shifted. Semantically this is
+the same as doing a <code>array.insert(4, _)</code> (see the standard library).</p>
+<h6 id="known-bugs"><a class="doc-anchor" href="#known-bugs">§</a>Known Bugs</h6>
+<p>The current implementation does <em>not</em> create intermediate Arrays as described above.
+This is a known bug. So queries like “foo.bar.[0].baz” (or any query which has an array
+element) will fail with an error rather than work.</p>
+<h5 id="return-value"><a class="doc-anchor" href="#return-value">§</a>Return value</h5>
+<p>If the insert operation worked correctly, <code>Ok(None)</code> is returned.
+If the insert operation replaced an existing value <code>Ok(Some(old_value))</code> is returned
+On failure, <code>Err(e)</code> is returned</p>
+<h5 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h5>
+<p>The following example shows a working <code>insert_with_seperator()</code> call on an empty toml
+document. The Value is inserted as <code>&quot;foo.bar = 1&quot;</code> in the document.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>toml;
+<span class="kw">extern crate </span>toml_query;
+
+<span class="kw">let </span><span class="kw-2">mut </span>toml : toml::Value = toml::from_str(<span class="string">""</span>).unwrap();
+<span class="kw">let </span>query = <span class="string">"foo.bar"</span>;
+<span class="kw">let </span>sep = <span class="string">'.'</span>;
+<span class="kw">let </span>val = toml::Value::Integer(<span class="number">1</span>);
+
+<span class="kw">let </span>res = toml_query::insert::TomlValueInsertExt::insert_with_seperator(<span class="kw-2">&amp;mut </span>toml, query, sep, val);
+<span class="macro">assert!</span>(res.is_ok());
+<span class="kw">let </span>res = res.unwrap();
+<span class="macro">assert!</span>(res.is_none());</code></pre></div>
+<p>The following example shows a failing <code>insert_with_seperator()</code> call on an empty toml
+document. The Query does contain an array token, which does not yet work.</p>
+
+<div class="example-wrap should_panic"><a href="#" class="tooltip" title="This example panics">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>toml;
+<span class="kw">extern crate </span>toml_query;
+
+<span class="kw">let </span><span class="kw-2">mut </span>toml : toml::Value = toml::from_str(<span class="string">""</span>).unwrap();
+<span class="kw">let </span>query = <span class="string">"foo.[0]"</span>;
+<span class="kw">let </span>sep = <span class="string">'.'</span>;
+<span class="kw">let </span>val = toml::Value::Integer(<span class="number">1</span>);
+
+<span class="kw">let </span>res = toml_query::insert::TomlValueInsertExt::insert_with_seperator(<span class="kw-2">&amp;mut </span>toml, query, sep, val);
+<span class="macro">assert!</span>(res.is_ok()); <span class="comment">// panics</span></code></pre></div>
+</div></details></div><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.insert" class="method"><a class="src rightside" href="../../src/toml_query/insert.rs.html#90-92">source</a><h4 class="code-header">fn <a href="#method.insert" class="fn">insert</a>(&amp;mut self, query: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.str.html">str</a>, value: <a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a>) -&gt; <a class="type" href="../error/type.Result.html" title="type toml_query::error::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.77.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a>&gt;&gt;</h4></section></summary><div class="docblock"><p>Extension function for inserting a value from the current toml::Value document</p>
+<p>See documentation of <code>TomlValueInsertExt::insert_with_seperator</code></p>
+</div></details></div><h2 id="foreign-impls" class="section-header">Implementations on Foreign Types<a href="#foreign-impls" class="anchor">§</a></h2><details class="toggle implementors-toggle"><summary><section id="impl-TomlValueInsertExt-for-Value" class="impl"><a class="src rightside" href="../../src/toml_query/insert.rs.html#102-137">source</a><a href="#impl-TomlValueInsertExt-for-Value" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TomlValueInsertExt.html" title="trait toml_query::insert::TomlValueInsertExt">TomlValueInsertExt</a> for <a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a></h3></section></summary><div class="impl-items"><section id="method.insert_with_seperator" class="method trait-impl"><a class="src rightside" href="../../src/toml_query/insert.rs.html#103-136">source</a><a href="#method.insert_with_seperator" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.insert_with_seperator" class="fn">insert_with_seperator</a>(
+    &amp;mut self,
+    query: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.str.html">str</a>,
+    sep: <a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.char.html">char</a>,
+    value: <a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a>
+) -&gt; <a class="type" href="../error/type.Result.html" title="type toml_query::error::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.77.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../../toml/value/enum.Value.html" title="enum toml::value::Value">Value</a>&gt;&gt;</h4></section></div></details><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"></div><script src="../../trait.impl/toml_query/insert/trait.TomlValueInsertExt.js" data-ignore-extern-crates="toml" async></script></section></div></main></body></html>

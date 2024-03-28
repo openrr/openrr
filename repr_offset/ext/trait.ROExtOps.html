@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension trait for (mutable) references to do generic field operations, where the field is determined by a `FieldOffset` parameter."><title>ROExtOps in repr_offset::ext - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../repr_offset/index.html">repr_offset</a><span class="version">0.2.2</span></h2></div><h2 class="location"><a href="#">ROExtOps</a></h2><div class="sidebar-elems"><section><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.f_get_copy">f_get_copy</a></li><li><a href="#tymethod.f_replace">f_replace</a></li><li><a href="#tymethod.f_swap">f_swap</a></li></ul><h3><a href="#object-safety">Object Safety</a></h3><h3><a href="#implementors">Implementors</a></h3></section><h2><a href="index.html">In repr_offset::ext</a></h2></div></nav><div class="sidebar-resizer"></div>
+    <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../repr_offset/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Trait <a href="../index.html">repr_offset</a>::<wbr><a href="index.html">ext</a>::<wbr><a class="trait" href="#">ROExtOps</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../../src/repr_offset/ext.rs.html#304-405">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub unsafe trait ROExtOps&lt;A&gt;: <a class="trait" href="trait.ROExtAcc.html" title="trait repr_offset::ext::ROExtAcc">ROExtAcc</a> {
+    // Required methods
+    fn <a href="#tymethod.f_replace" class="fn">f_replace</a>&lt;F&gt;(&amp;mut self, offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self, F, A&gt;, value: F) -&gt; F;
+<span class="item-spacer"></span>    fn <a href="#tymethod.f_swap" class="fn">f_swap</a>&lt;F&gt;(&amp;mut self, offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self, F, A&gt;, right: <a class="primitive" href="https://doc.rust-lang.org/1.77.0/core/primitive.reference.html">&amp;mut Self</a>);
+<span class="item-spacer"></span>    fn <a href="#tymethod.f_get_copy" class="fn">f_get_copy</a>&lt;F&gt;(&amp;self, offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self, F, A&gt;) -&gt; F
+       <span class="where">where F: <a class="trait" href="https://doc.rust-lang.org/1.77.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a></span>;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension trait for (mutable) references to do generic field operations,
+where the field is determined by a <a href="../struct.FieldOffset.html"><code>FieldOffset</code></a> parameter.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<p>This trait must not to be implemented outside the <code>repr_offset</code> crate.</p>
+<h2 id="alignment"><a class="doc-anchor" href="#alignment">§</a>Alignment</h2>
+<p>The <code>A</code> type parameter is the <a href="../alignment/trait.Alignment.html"><code>Alignment</code></a> of the field,
+used to implement methods differently depending on whether the field is
+<a href="../alignment/struct.Aligned.html"><code>Aligned</code></a> or <a href="../alignment/struct.Unaligned.html"><code>Unaligned</code></a>.</p>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.f_replace" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#335">source</a><h4 class="code-header">fn <a href="#tymethod.f_replace" class="fn">f_replace</a>&lt;F&gt;(&amp;mut self, offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self, F, A&gt;, value: F) -&gt; F</h4></section></summary><div class="docblock"><p>Replaces a field (determined by <code>offset</code>) with <code>value</code>,
+returning the previous value of the field.</p>
+<h5 id="example"><a class="doc-anchor" href="#example">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprPacked,
+    utils::moved,
+    ROExtOps, off,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>value = ReprPacked {
+    a: <span class="number">3u128</span>,
+    b: <span class="prelude-val">Some</span>(<span class="number">5u64</span>),
+    c: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>],
+    d: (),
+};
+
+<span class="macro">assert_eq!</span>(value.f_replace(<span class="macro">off!</span>(a), <span class="number">200</span>), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(moved(value.a), <span class="number">200</span>);
+
+<span class="macro">assert_eq!</span>(value.f_replace(<span class="macro">off!</span>(b), <span class="prelude-val">None</span>), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+<span class="macro">assert_eq!</span>(moved(value.b), <span class="prelude-val">None</span>);
+
+<span class="macro">assert_eq!</span>(value.f_replace(<span class="macro">off!</span>(c), <span class="macro">vec!</span>[<span class="number">2</span>, <span class="number">3</span>]), <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>]);
+<span class="macro">assert_eq!</span>(moved(value.c), <span class="macro">vec!</span>[<span class="number">2</span>, <span class="number">3</span>]);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.f_swap" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#374">source</a><h4 class="code-header">fn <a href="#tymethod.f_swap" class="fn">f_swap</a>&lt;F&gt;(&amp;mut self, offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self, F, A&gt;, right: <a class="primitive" href="https://doc.rust-lang.org/1.77.0/core/primitive.reference.html">&amp;mut Self</a>)</h4></section></summary><div class="docblock"><p>Swaps a field (determined by <code>offset</code>) with the same field in <code>right</code>.</p>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprC,
+    ROExtOps, off,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>left = ReprC {
+    a: <span class="number">3u128</span>,
+    b: <span class="prelude-val">Some</span>(<span class="number">5u64</span>),
+    c: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>],
+    d: (),
+};
+<span class="kw">let </span><span class="kw-2">mut </span>right = ReprC {
+    a: <span class="number">55</span>,
+    b: <span class="prelude-val">None</span>,
+    c: <span class="macro">vec!</span>[<span class="number">89</span>, <span class="number">144</span>],
+    d: (),
+};
+
+left.f_swap(<span class="macro">off!</span>(a), <span class="kw-2">&amp;mut </span>right);
+<span class="macro">assert_eq!</span>(left.a, <span class="number">55</span>);
+<span class="macro">assert_eq!</span>(right.a, <span class="number">3</span>);
+
+left.f_swap(<span class="macro">off!</span>(b), <span class="kw-2">&amp;mut </span>right);
+<span class="macro">assert_eq!</span>(left.b, <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(right.b, <span class="prelude-val">Some</span>(<span class="number">5</span>));
+
+left.f_swap(<span class="macro">off!</span>(c), <span class="kw-2">&amp;mut </span>right);
+<span class="macro">assert_eq!</span>(left.c, <span class="macro">vec!</span>[<span class="number">89</span>, <span class="number">144</span>]);
+<span class="macro">assert_eq!</span>(right.c, <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>]);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.f_get_copy" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#402-404">source</a><h4 class="code-header">fn <a href="#tymethod.f_get_copy" class="fn">f_get_copy</a>&lt;F&gt;(&amp;self, offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self, F, A&gt;) -&gt; F<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.77.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a>,</div></h4></section></summary><div class="docblock"><p>Gets a copy of a field (determined by <code>offset</code>).
+The field is determined by <code>offset</code>.</p>
+<h5 id="example-2"><a class="doc-anchor" href="#example-2">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprPacked,
+    ROExtOps, off,
+};
+
+<span class="kw">let </span>value = ReprPacked {
+    a: <span class="number">3</span>,
+    b: <span class="string">"foo"</span>,
+    c: <span class="string">'g'</span>,
+    d: <span class="bool-val">false</span>,
+};
+
+<span class="macro">assert_eq!</span>(value.f_get_copy(<span class="macro">off!</span>(a)), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(value.f_get_copy(<span class="macro">off!</span>(b)), <span class="string">"foo"</span>);
+<span class="macro">assert_eq!</span>(value.f_get_copy(<span class="macro">off!</span>(c)), <span class="string">'g'</span>);
+<span class="macro">assert_eq!</span>(value.f_get_copy(<span class="macro">off!</span>(d)), <span class="bool-val">false</span>);
+
+</code></pre></div>
+</div></details></div><h2 id="object-safety" class="section-header">Object Safety<a href="#object-safety" class="anchor">§</a></h2><div class="object-safety-info">This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.77.0/reference/items/traits.html#object-safety">object safe</a>.</div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-ROExtOps%3CAligned%3E-for-S" class="impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#56">source</a><a href="#impl-ROExtOps%3CAligned%3E-for-S" class="anchor">§</a><h3 class="code-header">impl&lt;S&gt; <a class="trait" href="trait.ROExtOps.html" title="trait repr_offset::ext::ROExtOps">ROExtOps</a>&lt;<a class="struct" href="../alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt; for S</h3></section><section id="impl-ROExtOps%3CUnaligned%3E-for-S" class="impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#57">source</a><a href="#impl-ROExtOps%3CUnaligned%3E-for-S" class="anchor">§</a><h3 class="code-header">impl&lt;S&gt; <a class="trait" href="trait.ROExtOps.html" title="trait repr_offset::ext::ROExtOps">ROExtOps</a>&lt;<a class="struct" href="../alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt; for S</h3></section></div><script src="../../trait.impl/repr_offset/ext/trait.ROExtOps.js" async></script></section></div></main></body></html>

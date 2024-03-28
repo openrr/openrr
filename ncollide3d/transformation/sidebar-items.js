@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["convex_hull","hacd"],"trait":["ToTriMesh"]};

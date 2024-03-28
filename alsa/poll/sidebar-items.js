@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["poll","poll_all"],"struct":["Flags","pollfd"],"trait":["Descriptors"]};
