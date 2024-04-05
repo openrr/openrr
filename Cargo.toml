@@ -162,4 +162,3 @@ openrr-tracing = { path = "openrr-tracing" }
 [profile.release]
 lto = true
 codegen-units = 1
-strip = "symbols"
