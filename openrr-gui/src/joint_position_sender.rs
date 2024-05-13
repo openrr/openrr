@@ -158,7 +158,7 @@ where
                                     self.joint_states.get_mut(client).unwrap()[index]
                                         .update_position(position);
                                 }
-                                self.current_joint_trajectory_client = client.clone();
+                                self.current_joint_trajectory_client.clone_from(client);
                             }
                             Err(e) => {
                                 let msg = format!(

@@ -44,7 +44,7 @@ impl RobotCommandExecutorInner {
             GamepadEvent::ButtonPressed(Button::East) => {
                 self.command_index = (self.command_index + 1) % self.commands.len();
                 let command = &self.commands[self.command_index];
-                self.submode = command.name.clone();
+                self.submode.clone_from(&command.name);
                 return Some(&self.submode);
             }
             GamepadEvent::ButtonPressed(Button::RightTrigger2) => {

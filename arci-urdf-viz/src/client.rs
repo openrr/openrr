@@ -513,7 +513,7 @@ impl MoveBase for UrdfVizWebClient {
         // main thread when an error has occurred in send_velocity_thread.
         get_robot_origin(&self.0.base_url)?;
 
-        *self.0.velocity.lock().unwrap() = velocity.to_owned();
+        velocity.clone_into(&mut self.0.velocity.lock().unwrap());
         Ok(())
     }
 

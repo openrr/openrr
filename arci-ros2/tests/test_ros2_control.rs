@@ -87,14 +87,12 @@ async fn run_goal(
         .create_wall_timer(Duration::from_millis(800))
         .expect("could not create timer");
 
-    state.lock().unwrap().actual.positions = goal
-        .goal
-        .trajectory
-        .points
-        .last()
+    state
+        .lock()
         .unwrap()
+        .actual
         .positions
-        .clone();
+        .clone_from(&goal.goal.trajectory.points.last().unwrap().positions);
 
     timer.tick().await.unwrap();
 
