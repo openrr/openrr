@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
+#![allow(clippy::empty_docs)] // https://github.com/rust-lang/rust-clippy/issues/12377
 
 mod proxy;
 
