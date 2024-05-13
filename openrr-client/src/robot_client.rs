@@ -446,7 +446,7 @@ where
     }
 
     pub fn speak(&self, name: &str, message: &str) -> Result<WaitFuture, Error> {
-        match self.speakers.get(&name.to_string()) {
+        match self.speakers.get(name) {
             Some(speaker) => Ok(speaker.speak(message)?),
             _ => Err(anyhow::format_err!("Speaker \"{name}\" is not found.").into()),
         }
