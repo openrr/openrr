@@ -227,7 +227,9 @@ mod tests {
             full_trajectory: Vec<TrajectoryPoint>,
         ) -> Result<WaitFuture, Error> {
             if let Some(last_point) = full_trajectory.last() {
-                *self.pos.lock().unwrap() = last_point.positions.to_owned();
+                last_point
+                    .positions
+                    .clone_into(&mut self.pos.lock().unwrap());
             }
             *self.last_trajectory.lock().unwrap() = full_trajectory;
             Ok(WaitFuture::ready())

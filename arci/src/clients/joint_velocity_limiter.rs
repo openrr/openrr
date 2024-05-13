@@ -125,7 +125,7 @@ where
                 velocities: original_trajectory_point.velocities.clone(),
                 time_from_start: limited_duration_from_start,
             });
-            prev_positions = original_trajectory_point.positions.clone();
+            prev_positions.clone_from(&original_trajectory_point.positions);
             debug!(
                 "Sequence{sequence_index} dominant joint_index {dominant_joint_index} duration limited : {limited_duration_from_prev:?}{} original : {original_duration_from_prev:?}{}",
                 if use_limited { "(O)" } else { "" },

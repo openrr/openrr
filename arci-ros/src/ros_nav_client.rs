@@ -213,7 +213,7 @@ impl Navigation for RosNavClient {
             pose: goal.into(),
             ..Default::default()
         };
-        target_pose.header.frame_id = frame_id.to_owned();
+        frame_id.clone_into(&mut target_pose.header.frame_id);
         target_pose.header.stamp = rosrust::now();
         let action_result_wait = self
             .action_client

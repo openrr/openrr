@@ -26,7 +26,7 @@ fn test_urdf_viz_web_client_config_accessor() {
     assert!(config.wrap_with_joint_velocity_limiter);
     assert_approx_eq!(config.joint_velocity_limits.as_ref().unwrap()[0], 1.0);
     assert_approx_eq!(config.joint_velocity_limits.unwrap()[1], 2.0);
-    config.name = "arm".to_owned();
+    "arm".clone_into(&mut config.name);
     config.joint_names = Some(vec![
         "shoulder_pan_joint".to_owned(),
         "elbow_joint".to_owned(),
