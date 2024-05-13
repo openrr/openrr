@@ -36,6 +36,7 @@ pub(crate) impl WebServer {
         std::thread::sleep(Duration::from_secs(1)); // Wait for web server to start.
     }
 
+    #[allow(dead_code)] // only used from test_client.rs
     fn set_current_joint_positions(&self, joint_positions: JointNamesAndPositions) {
         *self.handle().current_joint_positions() = joint_positions;
     }
