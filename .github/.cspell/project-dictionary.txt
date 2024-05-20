@@ -48,10 +48,8 @@ pathplanning
 peekable
 pipefail
 powerset
-proto
 protobuf
 protoc
-readline
 repr
 rgba
 roscore
@@ -81,7 +79,6 @@ taiki
 TCSANOW
 tcsetattr
 teleoperation
-tempdir
 tmpdir
 tmppath
 traitobject
