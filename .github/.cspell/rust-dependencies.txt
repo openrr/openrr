@@ -21,7 +21,6 @@ rosrust
 rustyline
 schemars
 teleop
-tempfile
 termios
 thiserror
 urdf
