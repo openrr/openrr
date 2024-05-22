@@ -15,7 +15,8 @@ use crate::{utils, Node};
 
 /// `arci::Localization` implementation for ROS2.
 pub struct Ros2LocalizationClient {
-    node: Node,
+    // keep not to be dropped
+    _node: Node,
     nomotion_update_client: Option<r2r::Client<r2r::std_srvs::srv::Empty::Service>>,
     pose: Arc<RwLock<Option<PoseWithCovariance>>>,
     amcl_pose_topic_name: String,
@@ -41,7 +42,7 @@ impl Ros2LocalizationClient {
         let nomotion_update_client = if request_final_nomotion_update_hack {
             Some(
                 node.r2r()
-                    .create_client(nomotion_update_service_name)
+                    .create_client(nomotion_update_service_name, QosProfile::default())
                     .map_err(anyhow::Error::from)?,
             )
         } else {
@@ -49,7 +50,7 @@ impl Ros2LocalizationClient {
         };
 
         Ok(Self {
-            node,
+            _node: node,
             nomotion_update_client,
             pose,
             amcl_pose_topic_name: amcl_pose_topic_name.to_owned(),
@@ -60,7 +61,7 @@ impl Ros2LocalizationClient {
     pub async fn request_nomotion_update(&self) {
         match self.nomotion_update_client.as_ref() {
             Some(client) => {
-                let is_available = self.node.r2r().is_available(client).unwrap();
+                let is_available = r2r::Node::is_available(client).unwrap();
                 is_available.await.unwrap();
 
                 client

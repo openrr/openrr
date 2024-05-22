@@ -72,7 +72,10 @@ async fn test_localization_client_nomotion_update() {
 
     let mut service_server = node
         .r2r()
-        .create_service::<r2r::std_srvs::srv::Empty::Service>(NO_MOTION_UPDATE_SERVICE)
+        .create_service::<r2r::std_srvs::srv::Empty::Service>(
+            NO_MOTION_UPDATE_SERVICE,
+            QosProfile::default(),
+        )
         .unwrap();
 
     node.run_spin_thread(Duration::from_millis(100));

@@ -20,8 +20,8 @@ use crate::{utils, Node};
 /// `arci::Navigation` implementation for ROS2.
 pub struct Ros2Navigation {
     action_client: r2r::ActionClient<NavigateToPose::Action>,
-    /// r2r::Node to handle the action
-    node: Node,
+    // keep not to be dropped
+    _node: Node,
     current_goal: Arc<Mutex<Option<r2r::ActionClientGoal<NavigateToPose::Action>>>>,
 }
 
@@ -35,7 +35,7 @@ impl Ros2Navigation {
             .unwrap();
         Self {
             action_client,
-            node,
+            _node: node,
             current_goal: Arc::new(Mutex::new(None)),
         }
     }
@@ -65,10 +65,9 @@ impl Navigation for Ros2Navigation {
         frame_id: &str,
         timeout: Duration,
     ) -> Result<WaitFuture, Error> {
-        let node = self.node.clone();
         let current_goal = self.current_goal.clone();
         let action_client = self.action_client.clone();
-        let is_available = node.r2r().is_available(&self.action_client).unwrap();
+        let is_available = r2r::Node::is_available(&self.action_client).unwrap();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let frame_id = frame_id.to_owned();
         tokio::spawn(async move {

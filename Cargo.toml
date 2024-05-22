@@ -93,7 +93,7 @@ proc-macro2 = "1"
 prost = "0.12"
 prost-types = "0.12"
 quote = "1"
-r2r = "0.8"
+r2r = "0.9"
 rand = "0.8"
 rayon = "1.5"
 rodio = "0.18"
@@ -158,6 +158,8 @@ openrr-plugin = { path = "openrr-plugin" }
 openrr-remote = { path = "openrr-remote" }
 openrr-teleop = { path = "openrr-teleop" }
 openrr-tracing = { path = "openrr-tracing" }
+
+tf_r2r = { git = "https://github.com/smilerobotics/tf_rosrust.git", branch = "main" }
 
 [profile.release]
 lto = true
