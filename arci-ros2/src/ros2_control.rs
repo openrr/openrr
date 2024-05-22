@@ -21,8 +21,8 @@ use crate::{utils, Node};
 /// `arci::JointTrajectoryClient` implementation for ROS2.
 pub struct Ros2ControlClient {
     action_client: r2r::ActionClient<FollowJointTrajectory::Action>,
-    /// r2r::Node to handle the action
-    node: Node,
+    // keep not to be dropped
+    _node: Node,
     joint_names: Vec<String>,
     joint_state: Arc<RwLock<JointTrajectoryControllerState>>,
 }
@@ -56,7 +56,7 @@ impl Ros2ControlClient {
 
         Ok(Self {
             action_client,
-            node,
+            _node: node,
             joint_names,
             joint_state,
         })
@@ -95,9 +95,8 @@ impl JointTrajectoryClient for Ros2ControlClient {
         &self,
         trajectory: Vec<TrajectoryPoint>,
     ) -> Result<WaitFuture, arci::Error> {
-        let node = self.node.clone();
         let action_client = self.action_client.clone();
-        let is_available = node.r2r().is_available(&self.action_client).unwrap();
+        let is_available = r2r::Node::is_available(&self.action_client).unwrap();
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let joint_names = self.joint_names.clone();
         tokio::spawn(async move {
