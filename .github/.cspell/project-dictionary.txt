@@ -12,7 +12,6 @@ costmap
 costmaps
 DISTRO
 dobot
-Dpkg
 dylib
 epaint
 espeak
@@ -23,7 +22,6 @@ hostedtoolcache
 ICANON
 impls
 irobot
-keyrings
 keyserver
 lerp
 lflag
@@ -46,7 +44,6 @@ oneof
 oneshot
 pathplanning
 peekable
-pipefail
 powerset
 protobuf
 protoc
@@ -67,7 +64,6 @@ RUSTSEC
 rustup
 rviz
 sabi
-shellcheck
 slerp
 smilerobotics
 srvs

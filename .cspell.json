@@ -35,7 +35,7 @@
   "languageSettings": [
     {
       "languageId": ["*"],
-      "dictionaries": ["rust"]
+      "dictionaries": ["bash", "rust"]
     }
   ],
   "ignorePaths": [
