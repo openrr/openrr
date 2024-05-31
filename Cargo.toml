@@ -109,7 +109,7 @@ serde_with = "3"
 syn = "2"
 tempfile = "3"
 termios = "0.3"
-tf_r2r = "0.1"
+tf_r2r = "0.2"
 tf_rosrust = "0.1"
 thiserror = "1"
 tokio = "1"
@@ -158,8 +158,6 @@ openrr-plugin = { path = "openrr-plugin" }
 openrr-remote = { path = "openrr-remote" }
 openrr-teleop = { path = "openrr-teleop" }
 openrr-tracing = { path = "openrr-tracing" }
-
-tf_r2r = { git = "https://github.com/smilerobotics/tf_rosrust.git", branch = "main" }
 
 [profile.release]
 lto = true
