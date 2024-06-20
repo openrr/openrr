@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["ClearCostmapAroundRobot","ClearCostmapExceptRegion","ClearEntireCostmap","GetCostmap","IsPathValid","LoadMap","ManageLifecycleNodes","SaveMap","SetInitialPose"]};

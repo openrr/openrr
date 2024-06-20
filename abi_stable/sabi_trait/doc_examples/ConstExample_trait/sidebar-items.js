@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ConstExample_Interface","ConstExample_TO"],"trait":["ConstExample"],"type":["ConstExample_Backend","ConstExample_CTO"]};

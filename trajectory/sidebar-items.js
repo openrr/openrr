@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["CubicSpline","Linear"],"trait":["Trajectory"]};

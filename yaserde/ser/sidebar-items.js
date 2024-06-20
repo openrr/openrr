@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["serialize_with_writer","serialize_with_writer_content","to_string","to_string_content","to_string_with_config"],"struct":["Config","Serializer"]};

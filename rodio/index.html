@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Audio playback library."><title>rodio - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-081576b923113409.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="rodio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.79.0 (129f3b996 2024-06-10)" data-channel="1.79.0" data-search-js="search-bf21c90c8c1d92b1.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-e32f0c247825364d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-09095024cf37855e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../rodio/index.html">rodio</a><span class="version">0.18.1</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#types">Type Aliases</a></li></ul></section></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../rodio/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Type ‘S’ or ‘/’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings">Settings</a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">rodio</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/rodio/lib.rs.html#1-137">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Audio playback library.</p>
+<p>The main concept of this library is the <a href="source/trait.Source.html" title="trait rodio::source::Source"><code>Source</code></a> trait, which
+represents a sound (streaming or not). In order to play a sound, there are three steps:</p>
+<ul>
+<li>Create an object that represents the streaming sound. It can be a sine wave, a buffer, a
+<a href="decoder/index.html" title="mod rodio::decoder"><code>decoder</code></a>, etc. or even your own type that implements the <a href="source/trait.Source.html" title="trait rodio::source::Source"><code>Source</code></a> trait.</li>
+<li>Get an output stream handle to a physical device. For example, get a stream to the system’s
+default sound device with <a href="struct.OutputStream.html#method.try_default" title="associated function rodio::OutputStream::try_default"><code>OutputStream::try_default()</code></a></li>
+<li>Call <a href="struct.OutputStreamHandle.html#method.play_raw" title="method rodio::OutputStreamHandle::play_raw"><code>.play_raw(source)</code></a> on the output stream handle.</li>
+</ul>
+<p>The <a href="struct.OutputStreamHandle.html#method.play_raw" title="method rodio::OutputStreamHandle::play_raw"><code>play_raw</code></a> function expects the source to produce <a href="https://doc.rust-lang.org/1.79.0/std/primitive.f32.html" title="primitive f32"><code>f32</code></a>s,
+which may not be the case. If you get a compilation error, try calling
+<a href="source/trait.Source.html#method.convert_samples" title="method rodio::source::Source::convert_samples"><code>.convert_samples()</code></a> on the source to fix it.</p>
+<p>For example, here is how you would play an audio file:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::fs::File;
+<span class="kw">use </span>std::io::BufReader;
+<span class="kw">use </span>rodio::{Decoder, OutputStream, source::Source};
+
+<span class="comment">// Get an output stream handle to the default physical sound device
+</span><span class="kw">let </span>(_stream, stream_handle) = OutputStream::try_default().unwrap();
+<span class="comment">// Load a sound from a file, using a path relative to Cargo.toml
+</span><span class="kw">let </span>file = BufReader::new(File::open(<span class="string">"examples/music.ogg"</span>).unwrap());
+<span class="comment">// Decode that sound file into a source
+</span><span class="kw">let </span>source = Decoder::new(file).unwrap();
+<span class="comment">// Play the sound directly on the device
+</span>stream_handle.play_raw(source.convert_samples());
+
+<span class="comment">// The sound plays in a separate audio thread,
+// so we need to keep the main thread alive while it's playing.
+</span>std::thread::sleep(std::time::Duration::from_secs(<span class="number">5</span>));</code></pre></div>
+<h3 id="sink"><a class="doc-anchor" href="#sink">§</a>Sink</h3>
+<p>In order to make it easier to control the playback, the rodio library also provides a type
+named <a href="struct.Sink.html" title="struct rodio::Sink"><code>Sink</code></a> which represents an audio track.</p>
+<p>Instead of playing the sound with <a href="struct.OutputStreamHandle.html#method.play_raw" title="method rodio::OutputStreamHandle::play_raw"><code>play_raw</code></a>, you can add it to
+a <a href="struct.Sink.html" title="struct rodio::Sink"><code>Sink</code></a> instead.</p>
+<ul>
+<li>Get a <a href="struct.Sink.html" title="struct rodio::Sink"><code>Sink</code></a> to the output stream, and <a href="struct.Sink.html#method.append" title="method rodio::Sink::append"><code>.append()</code></a> your sound to it.</li>
+</ul>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::fs::File;
+<span class="kw">use </span>std::io::BufReader;
+<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>rodio::{Decoder, OutputStream, Sink};
+<span class="kw">use </span>rodio::source::{SineWave, Source};
+
+<span class="comment">// _stream must live as long as the sink
+</span><span class="kw">let </span>(_stream, stream_handle) = OutputStream::try_default().unwrap();
+<span class="kw">let </span>sink = Sink::try_new(<span class="kw-2">&amp;</span>stream_handle).unwrap();
+
+<span class="comment">// Add a dummy source of the sake of the example.
+</span><span class="kw">let </span>source = SineWave::new(<span class="number">440.0</span>).take_duration(Duration::from_secs_f32(<span class="number">0.25</span>)).amplify(<span class="number">0.20</span>);
+sink.append(source);
+
+<span class="comment">// The sound plays in a separate thread. This call will block the current thread until the sink
+// has finished playing all its queued sounds.
+</span>sink.sleep_until_end();</code></pre></div>
+<p>The <a href="struct.Sink.html#method.append" title="method rodio::Sink::append"><code>append</code></a> method will add the sound at the end of the
+sink. It will be played when all the previous sounds have been played. If you want multiple
+sounds to play simultaneously, you should create multiple <a href="struct.Sink.html" title="struct rodio::Sink"><code>Sink</code></a>s.</p>
+<p>The <a href="struct.Sink.html" title="struct rodio::Sink"><code>Sink</code></a> type also provides utilities such as playing/pausing or controlling the volume.</p>
+<p><strong>Please note that the <a href="struct.Sink.html" title="struct rodio::Sink"><code>Sink</code></a> requires the <a href="struct.OutputStream.html" title="struct rodio::OutputStream"><code>OutputStream</code></a>, make sure that the outputstream is not dropped before the sink.</strong></p>
+<h3 id="filters"><a class="doc-anchor" href="#filters">§</a>Filters</h3>
+<p>The <a href="source/trait.Source.html" title="trait rodio::source::Source"><code>Source</code></a> trait provides various filters, similar to the standard <a href="https://doc.rust-lang.org/1.79.0/core/iter/traits/iterator/trait.Iterator.html" title="trait core::iter::traits::iterator::Iterator"><code>Iterator</code></a> trait.</p>
+<p>Example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>rodio::Source;
+<span class="kw">use </span>std::time::Duration;
+
+<span class="comment">// Repeats the first five seconds of the sound forever.
+</span><span class="kw">let </span>source = source.take_duration(Duration::from_secs(<span class="number">5</span>)).repeat_infinite();</code></pre></div>
+<h3 id="alternative-decoder-backends"><a class="doc-anchor" href="#alternative-decoder-backends">§</a>Alternative Decoder Backends</h3>
+<p><a href="https://github.com/pdeljanov/Symphonia">Symphonia</a> is an alternative decoder library that can be used in place
+of many of the default backends.
+Currently, the main benefit is that Symphonia is the only backend that supports M4A and AAC,
+but it may be used to implement additional optional functionality in the future.</p>
+<p>To use, enable either the <code>symphonia-all</code> feature to enable all Symphonia codecs
+or enable specific codecs using one of the <code>symphonia-{codec name}</code> features.
+If you enable one or more of the Symphonia codecs, you may want to set <code>default-features = false</code> in order
+to avoid adding extra crates to your binary.
+See the <a href="https://docs.rs/crate/rodio/latest/features">available feature flags</a> for all options.</p>
+<h3 id="how-it-works-under-the-hood"><a class="doc-anchor" href="#how-it-works-under-the-hood">§</a>How it works under the hood</h3>
+<p>Rodio spawns a background thread that is dedicated to reading from the sources and sending
+the output to the device. Whenever you give up ownership of a <a href="source/trait.Source.html" title="trait rodio::source::Source"><code>Source</code></a> in order to play it,
+it is sent to this background thread where it will be read by rodio.</p>
+<p>All the sounds are mixed together by rodio before being sent to the operating system or the
+hardware. Therefore there is no restriction on the number of sounds that play simultaneously or
+the number of sinks that can be created (except for the fact that creating too many will slow
+down your program).</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name" id="reexport.Decoder"><code>pub use crate::decoder::<a class="struct" href="decoder/struct.Decoder.html" title="struct rodio::decoder::Decoder">Decoder</a>;</code></div></li><li><div class="item-name" id="reexport.Source"><code>pub use crate::source::<a class="trait" href="source/trait.Source.html" title="trait rodio::source::Source">Source</a>;</code></div></li><li><div class="item-name" id="reexport.cpal"><code>pub use <a class="mod" href="../cpal/index.html" title="mod cpal">cpal</a>;</code></div></li></ul><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="buffer/index.html" title="mod rodio::buffer">buffer</a></div><div class="desc docblock-short">A simple source of samples coming from a buffer.</div></li><li><div class="item-name"><a class="mod" href="decoder/index.html" title="mod rodio::decoder">decoder</a></div><div class="desc docblock-short">Decodes samples from an audio file.</div></li><li><div class="item-name"><a class="mod" href="dynamic_mixer/index.html" title="mod rodio::dynamic_mixer">dynamic_mixer</a></div><div class="desc docblock-short">Mixer that plays multiple sounds at the same time.</div></li><li><div class="item-name"><a class="mod" href="queue/index.html" title="mod rodio::queue">queue</a></div><div class="desc docblock-short">Queue that plays sounds one after the other.</div></li><li><div class="item-name"><a class="mod" href="source/index.html" title="mod rodio::source">source</a></div><div class="desc docblock-short">Sources of sound and various filters.</div></li><li><div class="item-name"><a class="mod" href="static_buffer/index.html" title="mod rodio::static_buffer">static_buffer</a></div><div class="desc docblock-short">A simple source of samples coming from a static buffer.</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Device.html" title="struct rodio::Device">Device</a></div><div class="desc docblock-short">The <code>Device</code> implementation associated with the platform’s dynamically dispatched
+<a href="../cpal/platform/platform_impl/struct.Host.html" title="struct cpal::platform::platform_impl::Host"><code>Host</code></a> type.</div></li><li><div class="item-name"><a class="struct" href="struct.Devices.html" title="struct rodio::Devices">Devices</a></div><div class="desc docblock-short">The <code>Devices</code> iterator associated with the platform’s dynamically dispatched <a href="../cpal/platform/platform_impl/struct.Host.html" title="struct cpal::platform::platform_impl::Host"><code>Host</code></a>
+type.</div></li><li><div class="item-name"><a class="struct" href="struct.OutputStream.html" title="struct rodio::OutputStream">OutputStream</a></div><div class="desc docblock-short"><code>cpal::Stream</code> container. Also see the more useful <code>OutputStreamHandle</code>.</div></li><li><div class="item-name"><a class="struct" href="struct.OutputStreamHandle.html" title="struct rodio::OutputStreamHandle">OutputStreamHandle</a></div><div class="desc docblock-short">More flexible handle to a <code>OutputStream</code> that provides playback.</div></li><li><div class="item-name"><a class="struct" href="struct.Sink.html" title="struct rodio::Sink">Sink</a></div><div class="desc docblock-short">Handle to a device that outputs sounds.</div></li><li><div class="item-name"><a class="struct" href="struct.SpatialSink.html" title="struct rodio::SpatialSink">SpatialSink</a></div></li><li><div class="item-name"><a class="struct" href="struct.SupportedStreamConfig.html" title="struct rodio::SupportedStreamConfig">SupportedStreamConfig</a></div><div class="desc docblock-short">Describes a single supported stream configuration, retrieved via either a
+<a href="../cpal/struct.SupportedStreamConfigRange.html" title="struct cpal::SupportedStreamConfigRange"><code>SupportedStreamConfigRange</code></a> instance or one of the
+<a href="trait.DeviceTrait.html#required-methods" title="trait rodio::DeviceTrait"><code>Device::default_input/output_config</code></a> methods.</div></li></ul><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.DevicesError.html" title="enum rodio::DevicesError">DevicesError</a></div><div class="desc docblock-short">An error that might occur while attempting to enumerate the available devices on a system.</div></li><li><div class="item-name"><a class="enum" href="enum.PlayError.html" title="enum rodio::PlayError">PlayError</a></div><div class="desc docblock-short">An error occurred while attempting to play a sound.</div></li><li><div class="item-name"><a class="enum" href="enum.StreamError.html" title="enum rodio::StreamError">StreamError</a></div></li></ul><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.DeviceTrait.html" title="trait rodio::DeviceTrait">DeviceTrait</a></div><div class="desc docblock-short">A device that is capable of audio input and/or output.</div></li><li><div class="item-name"><a class="trait" href="trait.Sample.html" title="trait rodio::Sample">Sample</a></div><div class="desc docblock-short">Represents a value of a single sample.</div></li></ul><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="type" href="type.InputDevices.html" title="type rodio::InputDevices">InputDevices</a></div><div class="desc docblock-short">A host’s device iterator yielding only <em>input</em> devices.</div></li><li><div class="item-name"><a class="type" href="type.OutputDevices.html" title="type rodio::OutputDevices">OutputDevices</a></div><div class="desc docblock-short">A host’s device iterator yielding only <em>output</em> devices.</div></li></ul></section></div></main></body></html>

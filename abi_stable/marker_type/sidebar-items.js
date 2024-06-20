@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ErasedObject","ErasedPrefix","NonOwningPhantom","NotCopyNotClone","SyncSend","SyncUnsend","UnsafeIgnoredType","UnsyncSend","UnsyncUnsend"]};

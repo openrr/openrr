@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["apply_viewport_builder_to_window","create_window","create_winit_window_builder","pixels_per_point","process_viewport_commands","screen_size_in_pixels","short_generic_event_description","short_window_event_description","update_viewport_info"],"mod":["clipboard"],"struct":["EventResponse","State","WindowSettings"]};

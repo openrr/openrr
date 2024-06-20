@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Adds `Serialize` implementation to structs to be serialized as `a{sv}` type."><title>SerializeDict in zvariant_derive - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-081576b923113409.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="zvariant_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.79.0 (129f3b996 2024-06-10)" data-channel="1.79.0" data-search-js="search-bf21c90c8c1d92b1.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-e32f0c247825364d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-09095024cf37855e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc derive"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button><a class="logo-container" href="../zvariant_derive/index.html"><img src="https://storage.googleapis.com/fdo-gitlab-uploads/project/avatar/3213/zbus-logomark.png" alt=""></a></nav><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../zvariant_derive/index.html"><img src="https://storage.googleapis.com/fdo-gitlab-uploads/project/avatar/3213/zbus-logomark.png" alt="logo"></a><h2><a href="../zvariant_derive/index.html">zvariant_derive</a><span class="version">3.15.2</span></h2></div><div class="sidebar-elems"></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../zvariant_derive/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Type ‘S’ or ‘/’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings">Settings</a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Derive Macro <a href="index.html">zvariant_derive</a>::<wbr><a class="derive" href="#">SerializeDict</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/zvariant_derive/lib.rs.html#248-253">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>#[derive(SerializeDict)]
+{
+    <span class="comment">// Attributes available to this derive:</span>
+    #[zvariant]
+}
+</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Adds <a href="https://docs.serde.rs/serde/trait.Serialize.html"><code>Serialize</code></a> implementation to structs to be serialized as <code>a{sv}</code> type.</p>
+<p>This macro serializes the deriving struct as a D-Bus dictionary type, where keys are strings and
+values are generic values. Such dictionary types are very commonly used with
+<a href="https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-properties">D-Bus</a>
+and GVariant.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p>For structs it works just like serde’s <a href="https://docs.serde.rs/serde/trait.Serialize.html"><code>Serialize</code></a> macros:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>zvariant::{SerializeDict, Type};
+
+<span class="attr">#[derive(SerializeDict, Type)]
+#[zvariant(signature = <span class="string">"a{sv}"</span>)]
+</span><span class="kw">struct </span>Struct {
+    field1: u16,
+    <span class="attr">#[zvariant(rename = <span class="string">"another-name"</span>)]
+    </span>field2: i64,
+    optional_field: <span class="prelude-ty">Option</span>&lt;String&gt;,
+}</code></pre></div>
+<p>The serialized D-Bus version of <code>Struct {42, 77, None}</code>
+will be <code>{&quot;field1&quot;: Value::U16(42), &quot;another-name&quot;: Value::I64(77)}</code>.</p>
+<h2 id="auto-renaming-fields"><a class="doc-anchor" href="#auto-renaming-fields">§</a>Auto renaming fields</h2>
+<p>The macro supports specifying a Serde-like <code>#[zvariant(rename_all = &quot;case&quot;)]</code> attribute on
+structures. The attribute allows to rename all the fields from snake case to another case
+automatically:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>zvariant::{SerializeDict, Type};
+
+<span class="attr">#[derive(SerializeDict, Type)]
+#[zvariant(signature = <span class="string">"a{sv}"</span>, rename_all = <span class="string">"PascalCase"</span>)]
+</span><span class="kw">struct </span>Struct {
+    field1: u16,
+    <span class="attr">#[zvariant(rename = <span class="string">"another-name"</span>)]
+    </span>field2: i64,
+    optional_field: <span class="prelude-ty">Option</span>&lt;String&gt;,
+}</code></pre></div>
+<p>It’s still possible to specify custom names for individual fields using the
+<code>#[zvariant(rename = &quot;another-name&quot;)]</code> attribute even when the <code>rename_all</code> attribute is
+present.</p>
+<p>Currently the macro supports the following values for <code>case</code>:</p>
+<ul>
+<li><code>&quot;lowercase&quot;</code></li>
+<li><code>&quot;UPPERCASE&quot;</code></li>
+<li><code>&quot;PascalCase&quot;</code></li>
+<li><code>&quot;camelCase&quot;</code></li>
+<li><code>&quot;snake_case&quot;</code></li>
+</ul>
+</div></details></section></div></main></body></html>

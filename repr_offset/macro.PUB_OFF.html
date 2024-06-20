@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Gets the `FieldOffset` for the passed in type and (possibly nested) public field."><title>PUB_OFF in repr_offset - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-081576b923113409.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.79.0 (129f3b996 2024-06-10)" data-channel="1.79.0" data-search-js="search-bf21c90c8c1d92b1.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-e32f0c247825364d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-09095024cf37855e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../repr_offset/index.html">repr_offset</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../repr_offset/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Type ‘S’ or ‘/’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings">Settings</a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Macro <a href="index.html">repr_offset</a>::<wbr><a class="macro" href="#">PUB_OFF</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/repr_offset/macros/off_macro.rs.html#342-355">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><span class="macro">macro_rules!</span> PUB_OFF {
+    (
+        $(:: $(@<span class="macro-nonterminal">$leading</span>:tt@)<span class="question-mark">? </span>)<span class="question-mark">? </span><span class="macro-nonterminal">$first</span>:ident $(:: <span class="macro-nonterminal">$trailing</span>:ident)* ;
+        $(<span class="macro-nonterminal">$fields</span>:tt).+
+    ) =&gt; { ... };
+    (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>; $(<span class="macro-nonterminal">$fields</span>:tt).+ ) =&gt; { ... };
+}</pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Gets the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> for the passed in type and (possibly nested) public field.</p>
+<p>This is the same as the <a href="./macro.OFF.html"><code>OFF</code></a> macro,
+except that this can’t access private fields,
+and it allows accessing fields from type parameters in generic functions.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="named-type"><a class="doc-anchor" href="#named-type">§</a>Named Type</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprC,
+    PUB_OFF,
+    FieldOffset, ROExtAcc,
+};
+
+<span class="kw">let </span>this = ReprC {a: <span class="number">3u8</span>, b: <span class="number">5u8</span>, c: <span class="number">8u8</span>, d: <span class="number">13u8</span>};
+
+<span class="comment">// Passing the type as a path
+</span><span class="macro">assert_eq!</span>(<span class="macro">PUB_OFF!</span>(ReprC; a).get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span>this.a);
+
+<span class="comment">// Passing the type as a type
+</span><span class="macro">assert_eq!</span>(<span class="macro">PUB_OFF!</span>(ReprC&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;; b).get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span>this.b);
+
+<span class="comment">// Passing the type as a path
+</span><span class="macro">assert_eq!</span>(this.f_get(<span class="macro">PUB_OFF!</span>(ReprC; c)), <span class="kw-2">&amp;</span>this.c);
+
+<span class="comment">// Passing the type as a type
+</span><span class="macro">assert_eq!</span>(this.f_get(<span class="macro">PUB_OFF!</span>(ReprC&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;; d)), <span class="kw-2">&amp;</span>this.d);</code></pre></div>
+<h4 id="accessing-fields-from-type-parameters"><a class="doc-anchor" href="#accessing-fields-from-type-parameters">§</a>Accessing fields from type parameters</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprC,
+    tstr::TS,
+    PUB_OFF,
+    FieldOffset, GetPubFieldOffset, ROExtOps,
+};
+
+<span class="kw">let </span>this = ReprC {a: <span class="number">3u8</span>, b: <span class="number">5u8</span>, c: <span class="number">8u8</span>, d: <span class="number">13u8</span>};
+
+assertions(this);
+
+<span class="kw">fn </span>assertions&lt;T, A&gt;(this: T)
+<span class="kw">where
+    </span>T: GetPubFieldOffset&lt;<span class="macro">TS!</span>(a), Type = u8, Alignment = A&gt;,
+    T: GetPubFieldOffset&lt;<span class="macro">TS!</span>(b), Type = u8, Alignment = A&gt;,
+    T: GetPubFieldOffset&lt;<span class="macro">TS!</span>(c), Type = u8, Alignment = A&gt;,
+    T: GetPubFieldOffset&lt;<span class="macro">TS!</span>(d), Type = u8, Alignment = A&gt;,
+    T: ROExtOps&lt;A&gt;,
+{
+    <span class="macro">assert_eq!</span>(this.f_get_copy(<span class="macro">PUB_OFF!</span>(T; a)), <span class="number">3</span>);
+    <span class="macro">assert_eq!</span>(this.f_get_copy(<span class="macro">PUB_OFF!</span>(T; b)), <span class="number">5</span>);
+    <span class="macro">assert_eq!</span>(this.f_get_copy(<span class="macro">PUB_OFF!</span>(T; c)), <span class="number">8</span>);
+    <span class="macro">assert_eq!</span>(this.f_get_copy(<span class="macro">PUB_OFF!</span>(T; d)), <span class="number">13</span>);
+}</code></pre></div>
+</div></details></section></div></main></body></html>

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BitOrder"],"struct":["Codebook","CodebookBuilder","Entry16x16","Entry16x32","Entry16x8","Entry32x16","Entry32x32","Entry32x8","Entry8x16","Entry8x32","Entry8x8"],"trait":["CodebookEntry"]};
