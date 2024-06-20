@@ -12,6 +12,7 @@ costmap
 costmaps
 DISTRO
 dobot
+doctest
 dylib
 epaint
 espeak
