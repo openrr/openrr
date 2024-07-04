@@ -68,7 +68,7 @@ clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
 criterion = "0.5"
 easy-ext = "1"
-eframe = "0.27"
+eframe = "0.28"
 egui_extras = "0.27"
 flaky_test = "0.2"
 flume = "0.11"
