@@ -35,7 +35,11 @@ where
     eframe::run_native(
         "Joint Position Sender",
         native_options,
-        Box::new(|_cc| Box::new(JointPositionSender::new(robot_client, joints).unwrap())),
+        Box::new(|_cc| {
+            Ok(Box::new(
+                JointPositionSender::new(robot_client, joints).unwrap(),
+            ))
+        }),
     )
     .map_err(|e| crate::Error::Other(e.to_string()))?; // eframe::Error is not Send
     Ok(())
