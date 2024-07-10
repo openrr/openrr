@@ -25,7 +25,7 @@ where
     eframe::run_native(
         "Velocity Sender",
         native_options,
-        Box::new(|_cc| Box::new(VelocitySender::new(move_base))),
+        Box::new(|_cc| Ok(Box::new(VelocitySender::new(move_base)))),
     )
     .map_err(|e| crate::Error::Other(e.to_string()))?; // eframe::Error is not Send
     Ok(())
