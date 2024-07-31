@@ -219,6 +219,7 @@ impl PluginConfig {
     }
 }
 
+#[allow(clippy::needless_borrows_for_generic_args)] // https://github.com/rust-lang/rust-clippy/issues/13170
 pub(crate) fn resolve_plugin_path(
     plugin_path: &mut PathBuf,
     base_path: impl AsRef<Path>,
@@ -892,6 +893,7 @@ impl RobotConfig {
 }
 
 /// Convert relative path into absolute one
+#[allow(clippy::needless_borrows_for_generic_args)] // https://github.com/rust-lang/rust-clippy/issues/13170
 fn resolve_audio_file_path<P: AsRef<Path>>(
     base_path: P,
     relative_hash_map: &mut HashMap<String, PathBuf>,

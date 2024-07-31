@@ -36,7 +36,7 @@ fn new_joint_client(
     ))
     .unwrap();
     config
-        .resolve_path(&config.urdf_path.as_ref().unwrap().clone())
+        .resolve_path(config.urdf_path.as_ref().unwrap().clone())
         .unwrap();
     RobotClient::new(
         config,
