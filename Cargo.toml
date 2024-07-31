@@ -136,6 +136,7 @@ unreachable_pub = "warn"
 [workspace.lints.clippy]
 # buggy: https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+derive_partial_eq_without_eq
 derive_partial_eq_without_eq = { level = "allow", priority = 1 }
+lint_groups_priority = { level = "allow", priority = 1 } # https://github.com/rust-lang/rust-clippy/issues/12920
 
 [patch.crates-io]
 arci = { path = "arci" }
