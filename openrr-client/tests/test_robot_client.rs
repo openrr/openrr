@@ -136,7 +136,7 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ))
     .unwrap();
     config
-        .resolve_path(&config.urdf_path.as_ref().unwrap().clone())
+        .resolve_path(config.urdf_path.as_ref().unwrap().clone())
         .unwrap();
     let _client = BoxRobotClient::new(
         config,
@@ -200,7 +200,7 @@ positions = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ))
     .unwrap();
     config
-        .resolve_path(&config.urdf_path.as_ref().unwrap().clone())
+        .resolve_path(config.urdf_path.as_ref().unwrap().clone())
         .unwrap();
     RobotClient::new(
         config,
