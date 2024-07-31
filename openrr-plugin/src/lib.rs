@@ -8,10 +8,13 @@ mod proxy;
 #[path = "gen/api.rs"]
 mod api;
 
-use std::{fmt, path::Path, sync::Arc};
+use std::{
+    fmt,
+    path::Path,
+    sync::{Arc, LazyLock},
+};
 
 use abi_stable::library::lib_header_from_path;
-use once_cell::sync::Lazy;
 
 pub use crate::api::*;
 // This is not a public API. Use export_plugin! macro for plugin exporting.
@@ -77,7 +80,7 @@ impl fmt::Debug for PluginProxy {
 }
 
 // Inspired by async-compat.
-static TOKIO: Lazy<tokio::runtime::Runtime> = Lazy::new(|| {
+static TOKIO: LazyLock<tokio::runtime::Runtime> = LazyLock::new(|| {
     std::thread::Builder::new()
         .name("openrr-plugin/tokio".to_owned())
         .spawn(move || TOKIO.block_on(std::future::pending::<()>()))

@@ -1,5 +1,5 @@
 use std::{
-    sync::Arc,
+    sync::{Arc, LazyLock},
     time::{Duration, SystemTime},
 };
 
@@ -19,7 +19,7 @@ use crate::{
 #[allow(clippy::type_complexity)]
 #[derive(Debug)]
 pub struct Lazy<'a, T> {
-    inner: once_cell::sync::Lazy<
+    inner: LazyLock<
         Result<T, Arc<Error>>,
         Box<dyn FnOnce() -> Result<T, Arc<Error>> + Send + Sync + 'a>,
     >,
@@ -30,7 +30,7 @@ impl<'a, T> Lazy<'a, T> {
     /// Creates a new `Lazy` with the given constructor.
     pub fn new(constructor: impl FnOnce() -> Result<T, Error> + Send + Sync + 'a) -> Self {
         Self {
-            inner: once_cell::sync::Lazy::new(Box::new(|| constructor().map_err(Arc::new))),
+            inner: LazyLock::new(Box::new(|| constructor().map_err(Arc::new))),
             joint_names: None,
         }
     }
@@ -44,7 +44,7 @@ impl<'a, T> Lazy<'a, T> {
         joint_names: Vec<String>,
     ) -> Self {
         Self {
-            inner: once_cell::sync::Lazy::new(Box::new(|| constructor().map_err(Arc::new))),
+            inner: LazyLock::new(Box::new(|| constructor().map_err(Arc::new))),
             joint_names: Some(joint_names),
         }
     }

@@ -19,7 +19,6 @@ abi_stable.workspace = true
 anyhow.workspace = true
 arci.workspace = true
 futures.workspace = true
-once_cell.workspace = true
 openrr-plugin.workspace = true
 r2r = { workspace = true, optional = true }
 serde.workspace = true

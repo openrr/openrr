@@ -1,5 +1,5 @@
 use std::{
-    sync::{Arc, Mutex},
+    sync::{Arc, LazyLock, Mutex},
     time::Duration,
 };
 
@@ -8,7 +8,6 @@ use arci::{
     TrajectoryPoint, WaitFuture,
 };
 use msg::trajectory_msgs::JointTrajectory;
-use once_cell::sync::Lazy;
 
 use crate::{
     create_joint_trajectory_message_for_send_joint_positions,
@@ -85,7 +84,7 @@ impl RosControlClient {
         joint_state_topic_name: impl Into<String>,
     ) -> Arc<LazyJointStateProvider> {
         let joint_state_topic_name = joint_state_topic_name.into();
-        Arc::new(Lazy::new(Box::new(move || {
+        Arc::new(LazyLock::new(Box::new(move || {
             Box::new(JointStateProviderFromJointTrajectoryControllerState::new(
                 SubscriberHandler::new(&joint_state_topic_name, 1),
             ))
