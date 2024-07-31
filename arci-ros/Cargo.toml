@@ -14,7 +14,6 @@ arci.workspace = true
 auto_impl.workspace = true
 flume.workspace = true
 nalgebra.workspace = true
-once_cell.workspace = true
 paste.workspace = true
 ros-nalgebra.workspace = true
 rosrust.workspace = true
@@ -37,7 +36,6 @@ openrr-teleop.workspace = true
 
 [target.'cfg(unix)'.dev-dependencies]
 nix.workspace = true
-once_cell.workspace = true
 portpicker.workspace = true
 
 [lints]

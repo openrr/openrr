@@ -1,8 +1,7 @@
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
 use arci::JointTrajectoryClient;
 use auto_impl::auto_impl;
-use once_cell::sync::Lazy;
 
 use crate::JointTrajectoryClientWrapperConfig;
 
@@ -26,7 +25,7 @@ pub trait RosControlClientBuilder {
     fn name(&self) -> &str;
 }
 
-pub(crate) type LazyJointStateProvider = Lazy<
+pub(crate) type LazyJointStateProvider = LazyLock<
     Box<dyn JointStateProvider + Send + Sync>,
     Box<dyn FnOnce() -> Box<dyn JointStateProvider + Send + Sync> + Send + Sync>,
 >;

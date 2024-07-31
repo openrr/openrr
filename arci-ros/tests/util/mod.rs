@@ -2,7 +2,7 @@ use std::{
     env,
     process::{Command, Output},
     str::from_utf8,
-    sync::{Arc, Once, RwLock, Weak},
+    sync::{Arc, LazyLock, Once, OnceLock, RwLock, Weak},
     thread::sleep,
     time::Duration,
 };
@@ -140,14 +140,12 @@ pub(crate) fn assert_success_and_output_containing(output: Output, expected: &st
 ///
 /// ```
 ///
-/* think that ``OnceCell`` 's method get ``panic!`` in rare cases.
+/* think that ``OnceLock`` 's method get ``panic!`` in rare cases.
  * Therefore using ``unwrap`` for error handling.
  */
 pub(crate) fn run_roscore_and_rosrust_init_once(init_name: &str) -> Arc<ChildProcessTerminator> {
-    use once_cell::sync::{Lazy, OnceCell};
-
     static ONCE: Once = Once::new();
-    static PORT: Lazy<u32> = Lazy::new(|| {
+    static PORT: LazyLock<u32> = LazyLock::new(|| {
         portpicker::pick_unused_port()
             .expect("No ports free")
             .into()
@@ -156,7 +154,7 @@ pub(crate) fn run_roscore_and_rosrust_init_once(init_name: &str) -> Arc<ChildPro
     // static memory is not guaranteed to be dropped.
     // if it isn't be dropped, ``roscore`` do not down and is running after test.
     // Therefore, having weak reference(which cannot live without strong reference).
-    static ROSCORE_STATIC: OnceCell<RwLock<Weak<ChildProcessTerminator>>> = OnceCell::new();
+    static ROSCORE_STATIC: OnceLock<RwLock<Weak<ChildProcessTerminator>>> = OnceLock::new();
     // keep strong reference at least one
     let mut roscore_strong: Option<Arc<ChildProcessTerminator>> = None;
 

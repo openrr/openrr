@@ -14,7 +14,6 @@ async-trait.workspace = true
 auto_impl.workspace = true
 futures.workspace = true
 nalgebra.workspace = true
-once_cell.workspace = true
 schemars.workspace = true
 serde.workspace = true
 thiserror.workspace = true
