@@ -1,10 +1,6 @@
 # https://embarkstudios.github.io/cargo-deny/checks/advisories/cfg.html
 [advisories]
-vulnerability = "deny"
-unmaintained = "allow" # TODO
-unsound = "deny"
 yanked = "deny"
-notice = "deny"
 ignore = [
     "RUSTSEC-2020-0027", # traitobject 0.1, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2020-0071", # time 0.1, transitively dep of rosrust (via xml-rpc)
@@ -13,6 +9,14 @@ ignore = [
     "RUSTSEC-2022-0006", # thread_local 0.3, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2022-0013", # regex 0.2, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2022-0022", # hyper 0.10, transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2021-0144", # unmaintained (traitobject), transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2021-0146", # unmaintained (twoway), transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2021-0150", # unmaintained (ncollide3d)
+    "RUSTSEC-2023-0028", # unmaintained (buf_redux), transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2023-0050", # unmaintained (multipart), transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2023-0081", # unmaintained (safemem), transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2024-0014", # unmaintained (generational-arena), dep of abi_stable
+    "RUSTSEC-2024-0320", # unmaintained (yaml-rust), dep of rosrust
 ]
 
 # https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html
@@ -23,9 +27,6 @@ skip = []
 
 # https://embarkstudios.github.io/cargo-deny/checks/licenses/cfg.html
 [licenses]
-default = "deny"
-unlicensed = "deny"
-copyleft = "deny"
 unused-allowed-license = "deny"
 private.ignore = true
 allow = [
@@ -54,4 +55,4 @@ license-files = [
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
-allow-git = ["https://github.com/smilerobotics/tf_rosrust.git"]
+allow-git = []

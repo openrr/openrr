@@ -65,6 +65,7 @@ RUSTSEC
 rustup
 rviz
 sabi
+safemem
 slerp
 smilerobotics
 srvs
@@ -83,6 +84,7 @@ traj
 trajs
 trimesh
 turtlebot
+twoway
 undock
 unistd
 unparse
