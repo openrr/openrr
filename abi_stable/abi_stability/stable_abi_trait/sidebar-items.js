@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["get_prefix_field_type_layout","get_type_layout"],"struct":["AbiConsts","SabiUnsafeOpaqueField","UnsafeOpaqueField"],"trait":["PrefixStableAbi","StableAbi"]};

@@ -1,0 +1,1 @@
+searchState.loadedDescShard("quick_error", 0, "A macro which makes errors easy to write\nGeneric context type\nResult extension trait adding a <code>context</code> method\nThe method is use to add context information to current …\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nMain macro that does all the work")

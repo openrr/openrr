@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ApiPreference"],"fn":["finalize_window"],"struct":["DisplayBuilder"],"trait":["GlWindow"]};

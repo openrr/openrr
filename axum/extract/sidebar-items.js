@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["path","rejection"],"struct":["DefaultBodyLimit","Host","NestedPath","Path","RawForm","RawPathParams","RawQuery","State"],"trait":["FromRef","FromRequest","FromRequestParts"],"type":["Request"]};

@@ -1,0 +1,81 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Determine displayed width of `char` and `str` types according to Unicode Standard Annex #11 and other portions of the Unicode standard. See the Rules for determining width section for the exact rules."><title>unicode_width - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="unicode_width" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.0 (051478957 2024-07-21)" data-channel="1.80.0" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button><a class="logo-container" href="../unicode_width/index.html"><img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt=""></a></nav><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../unicode_width/index.html"><img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></a><h2><a href="../unicode_width/index.html">unicode_width</a><span class="version">0.1.13</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#constants">Constants</a></li><li><a href="#traits">Traits</a></li></ul></section></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">unicode_width</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/unicode_width/lib.rs.html#11-265">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Determine displayed width of <code>char</code> and <code>str</code> types according to
+<a href="http://www.unicode.org/reports/tr11/">Unicode Standard Annex #11</a>
+and other portions of the Unicode standard.
+See the <a href="#rules-for-determining-width">Rules for determining width</a> section
+for the exact rules.</p>
+<p>This crate is <code>#![no_std]</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>unicode_width::UnicodeWidthStr;
+
+<span class="kw">let </span>teststr = <span class="string">"Ｈｅｌｌｏ, ｗｏｒｌｄ!"</span>;
+<span class="kw">let </span>width = UnicodeWidthStr::width(teststr);
+<span class="macro">println!</span>(<span class="string">"{}"</span>, teststr);
+<span class="macro">println!</span>(<span class="string">"The above string is {} columns wide."</span>, width);
+<span class="kw">let </span>width = teststr.width_cjk();
+<span class="macro">println!</span>(<span class="string">"The above string is {} columns wide (CJK)."</span>, width);</code></pre></div>
+<h2 id="rules-for-determining-width"><a class="doc-anchor" href="#rules-for-determining-width">§</a>Rules for determining width</h2>
+<p>This crate currently uses the following rules to determine the width of a
+character or string, in order of decreasing precedence. These may be tweaked in the future.</p>
+<ol>
+<li><a href="https://unicode.org/reports/tr51/#def_emoji_presentation_sequence">Emoji presentation sequences</a> have width 2.</li>
+<li>Outside of an East Asian context, <a href="https://unicode.org/reports/tr51/#def_text_presentation_sequence">text presentation sequences</a> have width 1
+if their base character:
+<ul>
+<li>Has the <a href="https://unicode.org/reports/tr51/#def_emoji_presentation"><code>Emoji_Presentation</code></a> property, and</li>
+<li>Is not in the <a href="https://unicode.org/charts/nameslist/n_1F200.html">Enclosed Ideographic Supplement</a> block.</li>
+</ul>
+</li>
+<li>The sequence <code>&quot;\r\n&quot;</code> has width 1.</li>
+<li><a href="https://www.unicode.org/versions/Unicode15.0.0/ch18.pdf#G42078">Lisu tone letter</a> combinations consisting of a character in the range <code>'\u{A4F8}'..='\u{A4FB}'</code>
+followed by a character in the range <code>'\u{A4FC}'..='\u{A4FD}'</code> have width 1.</li>
+<li>In an East Asian context only, <code>&lt;</code>, <code>=</code>, or <code>&gt;</code> have width 2 when followed by <a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0338"><code>'\u{0338}'</code> COMBINING LONG SOLIDUS OVERLAY</a>.</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=115F"><code>'\u{115F}'</code> HANGUL CHOSEONG FILLER</a> has width 2.</li>
+<li>The following have width 0:
+<ul>
+<li><a href="https://util.unicode.org/UnicodeJsps/list-unicodeset.jsp?a=%5Cp%7BDefault_Ignorable_Code_Point%7D">Characters</a>
+with the <a href="https://www.unicode.org/versions/Unicode15.0.0/ch05.pdf#G40095"><code>Default_Ignorable_Code_Point</code></a> property.</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/list-unicodeset.jsp?a=%5Cp%7BGrapheme_Extend%7D">Characters</a>
+with the <a href="https://www.unicode.org/versions/Unicode15.0.0/ch03.pdf#G52443"><code>Grapheme_Extend</code></a> property.</li>
+<li>The following 8 characters, all of which have NFD decompositions consisting of two <a href="https://www.unicode.org/versions/Unicode15.0.0/ch03.pdf#G52443"><code>Grapheme_Extend</code></a> characters:
+<ul>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0CC0"><code>'\u{0CC0}'</code> KANNADA VOWEL SIGN II</a>,</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0CC7"><code>'\u{0CC7}'</code> KANNADA VOWEL SIGN EE</a>,</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0CC8"><code>'\u{0CC8}'</code> KANNADA VOWEL SIGN AI</a>,</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0CCA"><code>'\u{0CCA}'</code> KANNADA VOWEL SIGN O</a>,</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0CCB"><code>'\u{0CCB}'</code> KANNADA VOWEL SIGN OO</a>,</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=1B3B"><code>'\u{1B3B}'</code> BALINESE VOWEL SIGN RA REPA TEDUNG</a>,</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=1B3D"><code>'\u{1B3D}'</code> BALINESE VOWEL SIGN LA LENGA TEDUNG</a>, and</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=1B43"><code>'\u{1B43}'</code> BALINESE VOWEL SIGN PEPET TEDUNG</a>.</li>
+</ul>
+</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/list-unicodeset.jsp?a=%5Cp%7BHangul_Syllable_Type%3DV%7D%5Cp%7BHangul_Syllable_Type%3DT%7D">Characters</a>
+with a <a href="https://www.unicode.org/versions/Unicode15.0.0/ch03.pdf#G45593"><code>Hangul_Syllable_Type</code></a> of <code>Vowel_Jamo</code> (<code>V</code>) or <code>Trailing_Jamo</code> (<code>T</code>).</li>
+<li>The following <a href="https://www.unicode.org/versions/Unicode15.0.0/ch23.pdf#G37908"><code>Prepended_Concatenation_Mark</code></a>s:
+<ul>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0605"><code>'\u{0605}'</code> NUMBER MARK ABOVE</a>,</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=070F"><code>'\u{070F}'</code> SYRIAC ABBREVIATION MARK</a>,</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0890"><code>'\u{0890}'</code> POUND MARK ABOVE</a>,</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0891"><code>'\u{0891}'</code> PIASTRE MARK ABOVE</a>, and</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=08E2"><code>'\u{08E2}'</code> DISPUTED END OF AYAH</a>.</li>
+</ul>
+</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=A8FA"><code>'\u{A8FA}'</code> DEVANAGARI CARET</a>.</li>
+</ul>
+</li>
+<li><a href="https://util.unicode.org/UnicodeJsps/list-unicodeset.jsp?a=%5Cp%7BEast_Asian_Width%3DF%7D%5Cp%7BEast_Asian_Width%3DW%7D">Characters</a>
+with an <a href="https://www.unicode.org/reports/tr11/#ED1"><code>East_Asian_Width</code></a> of <a href="https://www.unicode.org/reports/tr11/#ED2"><code>Fullwidth</code></a> or <a href="https://www.unicode.org/reports/tr11/#ED4"><code>Wide</code></a> have width 2.</li>
+<li>Characters fulfilling all of the following conditions have width 2 in an East Asian context, and width 1 otherwise:
+<ul>
+<li>Has an <a href="https://www.unicode.org/reports/tr11/#ED1"><code>East_Asian_Width</code></a> of <a href="https://www.unicode.org/reports/tr11/#ED6"><code>Ambiguous</code></a>, or
+has a canonical decomposition to an <a href="https://www.unicode.org/reports/tr11/#ED6"><code>Ambiguous</code></a> character followed by <a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0338"><code>'\u{0338}'</code> COMBINING LONG SOLIDUS OVERLAY</a>, or
+is <a href="https://util.unicode.org/UnicodeJsps/character.jsp?a=0387"><code>'\u{0387}'</code> GREEK ANO TELEIA</a>, and</li>
+<li>Does not have a <a href="https://www.unicode.org/versions/Unicode15.0.0/ch04.pdf#G124142"><code>General_Category</code></a> of <code>Modifier_Symbol</code>, and</li>
+<li>Does not have a <a href="https://www.unicode.org/reports/tr24/#Script"><code>Script</code></a> of <code>Latin</code>, <code>Greek</code>, or <code>Cyrillic</code>, or is a Roman numeral in the range <code>'\u{2160}'..='\u{217F}'</code>.</li>
+</ul>
+</li>
+<li>All other characters have width 1.</li>
+</ol>
+<h3 id="canonical-equivalence"><a class="doc-anchor" href="#canonical-equivalence">§</a>Canonical equivalence</h3>
+<p>Canonically equivalent strings are assigned the same width (CJK and non-CJK).</p>
+</div></details><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="constant" href="constant.UNICODE_VERSION.html" title="constant unicode_width::UNICODE_VERSION">UNICODE_VERSION</a></div><div class="desc docblock-short">The version of <a href="http://www.unicode.org/">Unicode</a>
+that this version of unicode-width is based on.</div></li></ul><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.UnicodeWidthChar.html" title="trait unicode_width::UnicodeWidthChar">UnicodeWidthChar</a></div><div class="desc docblock-short">Methods for determining displayed width of Unicode characters.</div></li><li><div class="item-name"><a class="trait" href="trait.UnicodeWidthStr.html" title="trait unicode_width::UnicodeWidthStr">UnicodeWidthStr</a></div><div class="desc docblock-short">Methods for determining displayed width of Unicode strings.</div></li></ul></section></div></main></body></html>

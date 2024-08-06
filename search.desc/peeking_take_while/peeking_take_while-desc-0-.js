@@ -1,0 +1,1 @@
+searchState.loadedDescShard("peeking_take_while", 0, "<code>peeking_take_while</code>\nThe <code>Iterator</code> extension trait that provides the …\nThe iterator returned by <code>peeking_take_while</code>.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nThe <code>Iterator</code> extension trait that provides the …")

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["BitsEntropy","BrotliPopulationCost","ShannonEntropy"]};

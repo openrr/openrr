@@ -1,0 +1,1 @@
+searchState.loadedDescShard("arci_gamepad_keyboard", 0, "arci-gamepad-keyboard\n<code>arci::Gamepad</code> implementation for keyboard.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCreates a new <code>KeyboardGamepad</code>.")

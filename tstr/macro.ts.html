@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A type-level string `TStr` value."><title>ts in tstr - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="tstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.0 (051478957 2024-07-21)" data-channel="1.80.0" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../tstr/index.html">tstr</a><span class="version">0.2.4</span></h2></div><div class="sidebar-elems"></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Macro <a href="index.html">tstr</a>::<wbr><a class="macro" href="#">ts</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/tstr/macros.rs.html#170-176">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><span class="macro">macro_rules!</span> ts {
+    ($(<span class="macro-nonterminal">$expr</span>:expr),* $(,)* ) =&gt; { ... };
+}</pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A type-level string <a href="./struct.TStr.html"><code>TStr</code></a> value.</p>
+<h2 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h2>
+<p>You can use anything that the <a href="./macro.TS.html#arguments"><code>tstr::TS</code></a> macro accepts</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="indexing"><a class="doc-anchor" href="#indexing">§</a>Indexing</h4>
+<p>This uses types from the <code>for_examples</code> module,
+which can be seen in the docs with the “for_examples” feature.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tstr::ts;
+<span class="kw">use </span>tstr::for_examples::{Foo, Bar};
+
+<span class="kw">let </span>this = Foo::new(<span class="number">3</span>, <span class="number">5</span>, <span class="string">"8"</span>);
+<span class="macro">assert_eq!</span>(this[<span class="macro">ts!</span>(bar)], <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(this[<span class="macro">ts!</span>(baz)], <span class="number">5</span>);
+<span class="macro">assert_eq!</span>(this[<span class="macro">ts!</span>(qux)], <span class="string">"8"</span>);
+
+<span class="kw">let </span>other = Bar::new(<span class="number">13</span>, <span class="bool-val">false</span>, <span class="prelude-val">Some</span>(<span class="string">'C'</span>));
+<span class="macro">assert_eq!</span>(other[<span class="macro">ts!</span>(bar)], <span class="number">13</span>);
+<span class="macro">assert_eq!</span>(other[<span class="macro">ts!</span>(baz)], <span class="bool-val">false</span>);
+<span class="macro">assert_eq!</span>(other[<span class="macro">ts!</span>(boom)], <span class="prelude-val">Some</span>(<span class="string">'C'</span>));
+</code></pre></div>
+<h4 id="equivalences"><a class="doc-anchor" href="#equivalences">§</a>Equivalences</h4>
+<p>This example demonstrates which invocations of <code>ts</code> produce the same values.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tstr::ts;
+
+<span class="kw">let </span>hello1 = <span class="macro">ts!</span>(<span class="string">"hello"</span>);
+<span class="kw">let </span>hello2 = <span class="macro">ts!</span>(hello); <span class="comment">// This is equivalent to `ts!("hello")`
+
+</span><span class="kw">let </span>hundreda = <span class="macro">ts!</span>(<span class="string">"100"</span>);
+<span class="kw">let </span>hundredb = <span class="macro">ts!</span>(<span class="number">100</span>);   <span class="comment">// equivalent to `ts!("100")`
+</span><span class="kw">let </span>hundredc = <span class="macro">ts!</span>(<span class="number">0x64</span>);  <span class="comment">// equivalent to `ts!("100")`
+</span><span class="kw">let </span>hundredd = <span class="macro">ts!</span>(<span class="number">0b1100100</span>);  <span class="comment">// equivalent to `ts!("100")`
+
+</span><span class="kw">let </span>tup = <span class="macro">ts!</span>(foo, <span class="number">1</span>, <span class="string">"bar"</span>); <span class="comment">// equivalent to `(ts!(foo), ts!(1), ts!(bar))`
+
+// Equivalent to ts!("foo4bar200")
+</span><span class="kw">let </span>conc = <span class="macro">ts!</span>(<span class="macro">concat!</span>(foo, <span class="number">0b100</span>, <span class="string">"bar"</span>, <span class="number">200</span>));</code></pre></div>
+</div></details></section></div></main></body></html>
