@@ -26,6 +26,13 @@ error() {
     fi
     should_fail=1
 }
+warn() {
+    if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+        echo "::warning::$*"
+    else
+        echo >&2 "warning: $*"
+    fi
+}
 
 project_dictionary=.github/.cspell/project-dictionary.txt
 has_rust=''
@@ -65,7 +72,11 @@ check_diff .github/.cspell/rust-dependencies.txt
 
 echo "+ npx -y cspell --no-progress --no-summary \$(git ls-files)"
 if ! npx -y cspell --no-progress --no-summary $(git ls-files); then
-    error "spellcheck failed: please fix uses of above words or add to ${project_dictionary} if correct"
+    error "spellcheck failed: please fix uses of below words or add to ${project_dictionary} if correct"
+    echo >&2 "======================================="
+    (npx -y cspell --no-progress --no-summary --words-only $(git ls-files) || true) | LC_ALL=C sort -f -u >&2
+    echo >&2 "======================================="
+    echo >&2
 fi
 
 # Make sure the project-specific dictionary does not contain duplicated words.
@@ -76,24 +87,41 @@ for dictionary in .github/.cspell/*.txt; do
     dup=$(sed '/^$/d' "${project_dictionary}" "${dictionary}" | LC_ALL=C sort -f | uniq -d -i | (grep -v '//.*' || true))
     if [[ -n "${dup}" ]]; then
         error "duplicated words in dictionaries; please remove the following words from ${project_dictionary}"
-        echo "======================================="
-        echo "${dup}"
-        echo "======================================="
+        echo >&2 "======================================="
+        echo >&2 "${dup}"
+        echo >&2 "======================================="
+        echo >&2
     fi
 done
 
 # Make sure the project-specific dictionary does not contain unused words.
-unused=''
-for word in $(grep -v '//.*' "${project_dictionary}" || true); do
-    if ! grep <<<"${all_words}" -Eq -i "^${word}$"; then
-        unused+="${word}"$'\n'
+if [[ -n "${REMOVE_UNUSED_WORDS:-}" ]]; then
+    grep_args=()
+    for word in $(grep -v '//.*' "${project_dictionary}" || true); do
+        if ! grep <<<"${all_words}" -Eq -i "^${word}$"; then
+            # TODO: single pattern with ERE: ^(word1|word2..)$
+            grep_args+=(-e "^${word}$")
+        fi
+    done
+    if [[ ${#grep_args[@]} -gt 0 ]]; then
+        warn "removing unused words from ${project_dictionary}"
+        res=$(grep -v "${grep_args[@]}" "${project_dictionary}")
+        echo "${res}" >"${project_dictionary}"
     fi
-done
-if [[ -n "${unused}" ]]; then
-    error "unused words in dictionaries; please remove the following words from ${project_dictionary}"
-    echo "======================================="
-    echo -n "${unused}"
-    echo "======================================="
+else
+    unused=''
+    for word in $(grep -v '//.*' "${project_dictionary}" || true); do
+        if ! grep <<<"${all_words}" -Eq -i "^${word}$"; then
+            unused+="${word}"$'\n'
+        fi
+    done
+    if [[ -n "${unused}" ]]; then
+        warn "unused words in dictionaries; please remove the following words from ${project_dictionary}"
+        echo >&2 "======================================="
+        echo >&2 -n "${unused}"
+        echo >&2 "======================================="
+        echo >&2
+    fi
 fi
 
 if [[ -n "${should_fail:-}" ]]; then
