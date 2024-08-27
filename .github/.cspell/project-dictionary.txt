@@ -41,12 +41,10 @@ nanosec
 nomotion
 nsec
 odometry
-oneof
 oneshot
 pathplanning
 peekable
 powerset
-protobuf
 protoc
 repr
 rgba
@@ -77,7 +75,6 @@ taiki
 TCSANOW
 tcsetattr
 teleoperation
-tmpdir
 tmppath
 traitobject
 traj
