@@ -19,3 +19,10 @@ updates:
       # These dependencies need to be updated at the same time with eframe.
       - dependency-name: egui_extras
     labels: []
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: ''
+    labels: []
