@@ -12,13 +12,11 @@ updates:
       - dependency-name: k
       - dependency-name: nalgebra
       - dependency-name: ncollide3d
-      # These dependencies need to be updated at the same time with tonic.
-      - dependency-name: prost
-      - dependency-name: prost-types
-      - dependency-name: tonic-build
-      # These dependencies need to be updated at the same time with eframe.
-      - dependency-name: egui_extras
     labels: []
+    groups:
+      cargo:
+        patterns:
+          - '*'
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -26,3 +24,7 @@ updates:
     commit-message:
       prefix: ''
     labels: []
+    groups:
+      github-actions:
+        patterns:
+          - '*'
