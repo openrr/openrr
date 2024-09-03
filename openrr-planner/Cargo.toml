@@ -12,7 +12,6 @@ categories = ["algorithms", "science::robotics"]
 default = []
 
 [dependencies]
-assimp = { workspace = true, optional = true }
 k.workspace = true
 mesh-loader.workspace = true
 ncollide3d.workspace = true

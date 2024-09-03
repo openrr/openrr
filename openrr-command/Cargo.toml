@@ -10,7 +10,6 @@ categories = ["science::robotics"]
 
 [features]
 default = []
-assimp = ["openrr-client/assimp"]
 
 [dependencies]
 arci.workspace = true
