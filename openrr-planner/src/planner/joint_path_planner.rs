@@ -352,14 +352,24 @@ where
         P: AsRef<Path>,
     {
         let urdf_robot = urdf_rs::utils::read_urdf_or_xacro(file.as_ref())?;
-        Ok(JointPathPlannerBuilder::from_urdf_robot(urdf_robot))
+        Ok(JointPathPlannerBuilder::from_urdf_robot_with_base_dir(
+            urdf_robot,
+            file.as_ref().parent(),
+        ))
     }
 
     /// Try to create `JointPathPlannerBuilder` instance from `urdf_rs::Robot` instance
-    pub fn from_urdf_robot(urdf_robot: urdf_rs::Robot) -> JointPathPlannerBuilder<N> {
+    pub fn from_urdf_robot_with_base_dir(
+        urdf_robot: urdf_rs::Robot,
+        base_path: Option<&Path>,
+    ) -> JointPathPlannerBuilder<N> {
         let robot = k::Chain::from(&urdf_robot);
         let default_margin = na::convert(0.0);
-        let collision_detector = CollisionDetector::from_urdf_robot(&urdf_robot, default_margin);
+        let collision_detector = CollisionDetector::from_urdf_robot_with_base_dir(
+            &urdf_robot,
+            base_path,
+            default_margin,
+        );
         let robot_collision_detector =
             RobotCollisionDetector::new(robot, collision_detector, vec![]);
         JointPathPlannerBuilder::new(robot_collision_detector)

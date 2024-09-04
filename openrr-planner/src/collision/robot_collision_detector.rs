@@ -137,9 +137,13 @@ pub fn create_robot_collision_detector<P: AsRef<Path>>(
     config: RobotCollisionDetectorConfig,
     self_collision_pairs: Vec<(String, String)>,
 ) -> RobotCollisionDetector<f64> {
-    let urdf_robot = urdf_rs::read_file(urdf_path).unwrap();
+    let urdf_robot = urdf_rs::read_file(&urdf_path).unwrap();
     let robot = k::Chain::<f64>::from(&urdf_robot);
-    let collision_detector = CollisionDetector::from_urdf_robot(&urdf_robot, config.prediction);
+    let collision_detector = CollisionDetector::from_urdf_robot_with_base_dir(
+        &urdf_robot,
+        urdf_path.as_ref().parent(),
+        config.prediction,
+    );
 
     RobotCollisionDetector::new(robot, collision_detector, self_collision_pairs)
 }
