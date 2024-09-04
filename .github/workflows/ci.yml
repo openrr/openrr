@@ -338,7 +338,7 @@ jobs:
             echo "::set-output name=success::false"
           fi
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository_owner == 'openrr'
-      - uses: peter-evans/create-pull-request@v5
+      - uses: peter-evans/create-pull-request@v7
         with:
           title: Remove unused words from cspell dictionary
           body: |
@@ -379,7 +379,7 @@ jobs:
           # --no-cfg-coverage due to https://github.com/Smithay/calloop/issues/118
           cargo llvm-cov --verbose --all-features --workspace --exclude openrr-internal-codegen --exclude arci-ros2 --no-cfg-coverage --codecov --output-path codecov.json
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: codecov.json
