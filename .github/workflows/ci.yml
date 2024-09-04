@@ -379,7 +379,7 @@ jobs:
           # --no-cfg-coverage due to https://github.com/Smithay/calloop/issues/118
           cargo llvm-cov --verbose --all-features --workspace --exclude openrr-internal-codegen --exclude arci-ros2 --no-cfg-coverage --codecov --output-path codecov.json
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: codecov.json
