@@ -452,13 +452,21 @@ mod tests {
 
 /// Convert urdf object into openrr_planner/ncollide3d object
 pub trait FromUrdf {
-    fn from_urdf_robot(robot: &urdf_rs::Robot) -> Self;
-    fn from_urdf_file<P>(path: P) -> ::std::result::Result<Self, urdf_rs::UrdfError>
+    fn from_urdf_robot_with_base_dir(robot: &urdf_rs::Robot, path: Option<&Path>) -> Self;
+    fn from_urdf_robot(robot: &urdf_rs::Robot) -> Self
+    where
+        Self: std::marker::Sized,
+    {
+        Self::from_urdf_robot_with_base_dir(robot, None::<&Path>)
+    }
+    fn from_urdf_file(path: impl AsRef<Path>) -> ::std::result::Result<Self, urdf_rs::UrdfError>
     where
         Self: ::std::marker::Sized,
-        P: AsRef<Path>,
     {
-        Ok(Self::from_urdf_robot(&urdf_rs::read_file(path)?))
+        Ok(Self::from_urdf_robot_with_base_dir(
+            &urdf_rs::read_file(&path)?,
+            path.as_ref().parent(),
+        ))
     }
 }
 
@@ -510,7 +518,10 @@ mod test {
 /// The `<link>` elements are used as obstacles. set the origin/geometry of
 /// `<visual>` and `<collision>`. You can skip `<inertia>`.
 impl FromUrdf for Compound<f64> {
-    fn from_urdf_robot(urdf_obstacle: &urdf_rs::Robot) -> Self {
+    fn from_urdf_robot_with_base_dir(
+        urdf_obstacle: &urdf_rs::Robot,
+        base_path: Option<&Path>,
+    ) -> Self {
         let compound_data = urdf_obstacle
             .links
             .iter()
@@ -518,7 +529,7 @@ impl FromUrdf for Compound<f64> {
                 l.collision
                     .iter()
                     .map(|collision| {
-                        urdf_geometry_to_shape_handle(&collision.geometry, None)
+                        urdf_geometry_to_shape_handle(&collision.geometry, base_path)
                             .map(|col| (k::urdf::isometry_from(&collision.origin), col))
                     })
                     .collect::<Vec<_>>()
