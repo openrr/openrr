@@ -10,7 +10,6 @@ categories = ["science::robotics"]
 
 [features]
 default = []
-assimp = ["openrr-planner/assimp"]
 
 [dependencies]
 anyhow.workspace = true

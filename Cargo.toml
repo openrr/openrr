@@ -58,7 +58,6 @@ openrr-tracing = { version = "0.1.0", default-features = false }
 abi_stable = "0.11"
 anyhow = "1"
 assert_approx_eq = "1.1"
-assimp = "0.3"
 async-ffi = { version = "0.5", features = ["abi_stable"] }
 async-recursion = "1"
 async-trait = "0.1"
@@ -80,7 +79,7 @@ image = { version = "0.25", default-features = false }
 indexmap = "2"
 influxdb = "0.7"
 k = "0.31"
-mesh-loader = "0.1.4"
+mesh-loader = "0.1.11"
 nalgebra = "0.30"
 ncollide3d = "0.33"
 nix = { version = "0.29", features = ["signal"] }
