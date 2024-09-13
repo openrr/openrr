@@ -471,6 +471,7 @@ mod test {
                     dynamics: None,
                     mimic: None,
                     safety_controller: None,
+                    calibration: None,
                 },
                 Joint {
                     name: String::from("dummy_joint2"),
@@ -497,6 +498,7 @@ mod test {
                     dynamics: None,
                     mimic: None,
                     safety_controller: None,
+                    calibration: None,
                 },
             ],
             materials: vec![],
