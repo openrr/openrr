@@ -74,7 +74,7 @@ flaky_test = "0.2"
 flume = "0.11"
 fs-err = "2"
 futures = "0.3"
-gilrs = { version = "0.10", features = ["serde-serialize"] }
+gilrs = { version = "0.11", features = ["serde-serialize"] }
 heck = "0.5"
 image = { version = "0.25", default-features = false }
 indexmap = "2"
@@ -113,7 +113,7 @@ tf_rosrust = "0.1"
 thiserror = "1"
 tokio = "1"
 tokio-test = "0.4"
-toml = "0.5"
+toml = "0.8"
 toml-query = "0.10"
 tonic = "0.12"
 tonic-build = "0.12"
