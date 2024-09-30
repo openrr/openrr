@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["impossible","transmute_ignore_size","transmute_vec"]};

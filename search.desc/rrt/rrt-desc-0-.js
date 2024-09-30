@@ -1,0 +1,1 @@
+searchState.loadedDescShard("rrt", 0, "rrt\nsearch the path from start to goal which is free, using …\nselect random two points, and try to connect.")

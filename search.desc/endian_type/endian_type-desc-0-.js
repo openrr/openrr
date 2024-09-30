@@ -1,0 +1,1 @@
+searchState.loadedDescShard("endian_type", 0, "Big endian byte order\nType with a specified byte order\nLittle endian byte order\nNetwork byte order as defined by IETF RFC1700 […\nReturns the argument unchanged.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.\nType aliases for primitive types")
