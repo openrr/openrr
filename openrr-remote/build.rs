@@ -10,5 +10,7 @@ fn main() {
         config = config.out_dir("src/generated");
         println!("cargo:rustc-cfg=local_out_dir");
     }
-    config.compile(&["proto/arci.proto"], &["proto"]).unwrap();
+    config
+        .compile_protos(&["proto/arci.proto"], &["proto"])
+        .unwrap();
 }
