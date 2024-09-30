@@ -46,6 +46,7 @@ pathplanning
 peekable
 powerset
 protoc
+protos
 repr
 rgba
 roscore
