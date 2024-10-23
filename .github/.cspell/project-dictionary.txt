@@ -61,7 +61,6 @@ rustc
 rustdocflags
 rustflags
 RUSTSEC
-rustup
 rviz
 sabi
 safemem
