@@ -68,7 +68,9 @@ EOF
 if [[ -n "${dependencies_words:-}" ]]; then
     echo $'\n'"${dependencies_words}" >>.github/.cspell/rust-dependencies.txt
 fi
-check_diff .github/.cspell/rust-dependencies.txt
+if [[ -z "${REMOVE_UNUSED_WORDS:-}" ]]; then
+    check_diff .github/.cspell/rust-dependencies.txt
+fi
 
 echo "+ npx -y cspell --no-progress --no-summary \$(git ls-files)"
 if ! npx -y cspell --no-progress --no-summary $(git ls-files); then

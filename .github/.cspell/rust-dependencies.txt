@@ -7,7 +7,6 @@ assimp
 chrono
 eframe
 egui
-gamepad
 gilrs
 indexmap
 nalgebra
