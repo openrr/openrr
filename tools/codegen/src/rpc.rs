@@ -27,7 +27,7 @@ pub(crate) fn gen(workspace_root: &Path) -> Result<()> {
     let pb_file = fs::read_to_string(workspace_root.join("openrr-remote/src/generated/arci.rs"))?;
     CollectTrait(&mut pb_traits).visit_file_mut(&mut syn::parse_file(&pb_file)?);
 
-    let (arci_traits, _arci_structs, _arci_enums) = arci_types(workspace_root)?;
+    let (arci_traits, arci_structs, arci_enums) = arci_types(workspace_root)?;
     for item in arci_traits {
         let name = &&*item.ident.to_string();
         if FULLY_IGNORE.contains(name) {
@@ -45,8 +45,168 @@ pub(crate) fn gen(workspace_root: &Path) -> Result<()> {
         items.extend(gen_client_impl(trait_name, &item));
         items.extend(gen_server_impl(trait_name, &item, &pb_traits));
     }
+    fn map_field(
+        pats: &mut Vec<TokenStream>,
+        from_arci: &mut Vec<TokenStream>,
+        to_arci: &mut Vec<TokenStream>,
+        syn::Field { ident, ty, .. }: &syn::Field,
+        index: usize,
+    ) {
+        let index_or_ident = ident
+            .clone()
+            .unwrap_or_else(|| format_ident!("field{}", index));
+        let pat = quote! { #index_or_ident, };
+        pats.push(pat.clone());
+        if is_primitive(ty) {
+            from_arci.push(pat.clone());
+            to_arci.push(pat);
+            return;
+        }
+        if let Some(ty) = is_option(ty) {
+            if let Some(ty) = is_vec(ty) {
+                let mut to;
+                let mut from;
+                if is_primitive(ty) {
+                    to = quote! { if #index_or_ident.is_empty() { None } else { Some(#index_or_ident) }, };
+                    from = quote! { #index_or_ident.unwrap_or_default(), };
+                } else {
+                    // TODO:
+                    let t = quote! { map(|v| v.into_iter().map(Into::into).collect()) };
+                    to = quote! { #index_or_ident.into_option().#t, };
+                    from = quote! { #index_or_ident.#t.into(), };
+                }
+
+                if ident.is_some() {
+                    from = quote! { #ident: #from };
+                    to = quote! { #ident: #to };
+                }
+                from_arci.push(from);
+                to_arci.push(to);
+                return;
+            }
+        }
+        if let Some(ty) = is_vec(ty) {
+            if is_primitive(ty) {
+                from_arci.push(pat.clone());
+                to_arci.push(pat);
+                return;
+            }
+
+            let mut t = quote! { #index_or_ident.into_iter().map(Into::into).collect(), };
+            if ident.is_some() {
+                t = quote! { #ident: #t };
+            }
+            from_arci.push(t.clone());
+            to_arci.push(t);
+            return;
+        }
+        let mut to = quote! { #index_or_ident.unwrap().try_into().unwrap(), };
+        let mut from = quote! { Some(#index_or_ident.try_into().unwrap()), };
+        if ident.is_some() {
+            from = quote! { #ident: #from };
+            to = quote! { #ident: #to };
+        }
+        from_arci.push(from);
+        to_arci.push(to);
+    }
+    for item in arci_structs {
+        let name = &item.ident;
+        let arci_path = quote! { arci::#name };
+        let pb_path = quote! { pb::#name };
+        let mut pats = vec![];
+        let mut from_arci = vec![];
+        let mut to_arci = vec![];
+        for (i, field) in item.fields.iter().enumerate() {
+            map_field(&mut pats, &mut from_arci, &mut to_arci, field, i);
+        }
+        items.extend(quote! {
+            impl From<#arci_path> for #pb_path {
+                fn from(v: #arci_path) -> Self {
+                    let #arci_path { #(#pats)* } = v;
+                    Self { #(#from_arci)* }
+                }
+            }
+            impl From<#pb_path> for #arci_path {
+                fn from(v: #pb_path) -> Self {
+                    let #pb_path { #(#pats)* } = v;
+                    Self { #(#to_arci)* }
+                }
+            }
+        });
+    }
+    'outer: for item in arci_enums {
+        let name = &item.ident;
+        let arci_path = match name.to_string().as_str() {
+            // TODO: auto-determine current module
+            "Button" | "Axis" | "GamepadEvent" => quote! { arci::gamepad::#name },
+            _ => quote! { arci::#name },
+        };
+        let pb_path = quote! { pb::#name };
+        let mut from_arci = vec![];
+        let mut to_arci = vec![];
+        for v in &item.variants {
+            let mut pats_fields = vec![];
+            let mut from_arci_fields = vec![];
+            let mut to_arci_fields = vec![];
+            for (i, field) in v.fields.iter().enumerate() {
+                map_field(
+                    &mut pats_fields,
+                    &mut from_arci_fields,
+                    &mut to_arci_fields,
+                    field,
+                    i,
+                );
+            }
+            match &v.fields {
+                syn::Fields::Named(..) => {
+                    continue 'outer;
+                    // TODO
+                    // let ident = &v.ident;
+                    // from_arci.extend(
+                    //     quote! { #arci_path::#ident { #(#pats_fields)* } => Self::#ident { #(#from_arci_fields)* }, },
+                    // );
+                    // to_arci.extend(
+                    //     quote! { #pb_path::#ident { #(#pats_fields)* } => Self::#ident { #(#to_arci_fields)* }, },
+                    // );
+                }
+                syn::Fields::Unnamed(..) => {
+                    continue 'outer;
+                    // TODO
+                    // let ident = &v.ident;
+                    // from_arci.extend(
+                    //     quote! { #arci_path::#ident( #(#pats_fields)* ) => Self::#ident( #(#from_arci_fields)* ), },
+                    // );
+                    // to_arci.extend(
+                    //     quote! { #pb_path::#ident( #(#pats_fields)* ) => Self::#ident( #(#to_arci_fields)* ), },
+                    // );
+                }
+                syn::Fields::Unit => {
+                    let ident = &v.ident;
+                    from_arci.extend(quote! { #arci_path::#ident => Self::#ident, });
+                    to_arci.extend(quote! { #pb_path::#ident => Self::#ident, });
+                }
+            }
+        }
+        items.extend(quote! {
+            impl From<#arci_path> for #pb_path {
+                fn from(v: #arci_path) -> Self {
+                    match v {
+                        #(#from_arci)*
+                    }
+                }
+            }
+            impl From<#pb_path> for #arci_path {
+                fn from(v: #pb_path) -> Self {
+                    match v {
+                        #(#to_arci)*
+                    }
+                }
+            }
+        });
+    }
 
     let items = quote! {
+        // TODO: remove the need for `arci::` imports.
         use arci::{
             BaseVelocity,
             Error,
