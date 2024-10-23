@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["IsPrivate","IsPublic"],"trait":["CombinePrivacy","Privacy"],"type":["CombinePrivacyOut"]};

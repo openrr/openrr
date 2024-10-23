@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ColorBufferType","Config","RawConfig"],"struct":["Api","ConfigSurfaceTypes","ConfigTemplate","ConfigTemplateBuilder"],"trait":["AsRawConfig","GetGlConfig","GlConfig"]};

@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Dispatches between blocks depending on the value of the `Accept` header."><title>accept in rouille - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="rouille" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../rouille/index.html">rouille</a><span class="version">3.6.2</span></h2></div><div class="sidebar-elems"></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Macro <a href="index.html">rouille</a>::<wbr><a class="macro" href="#">accept</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/rouille/input/accept.rs.html#61-91">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><span class="macro">macro_rules!</span> accept {
+    (<span class="macro-nonterminal">$request</span>:expr, $(<span class="macro-nonterminal">$mime</span>:expr =&gt; <span class="macro-nonterminal">$val</span>:expr),+ $(,)<span class="kw-2">*</span>) =&gt; { ... };
+}</pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Dispatches between blocks depending on the value of the <code>Accept</code> header.</p>
+<p>This macro takes as first parameter the request object, and then each additional parameter must
+be of the form <code>mime =&gt; value</code> where <code>mime</code> is a MIME type in quotes and <code>value</code> is an
+expression of any type.</p>
+<p>The macro returns the value corresponding to the MIME type that has the highest priority in
+the request’s <code>Accept</code> header. If multiple MIME types have the same priority, the earliest in
+the list passed to the macro is chosen. If no MIME matches the request, the first in the list
+is chosen. If there is no <code>Accept</code> header in the request, it is as if the header’s value
+was <code>*/*</code>.</p>
+<p>You can also use <code>*</code> in the MIME types you pass to the macro. The MIME <code>*/*</code> can be used as a
+default handler.</p>
+<blockquote>
+<p><strong>Note</strong>: Using <code>|</code> just like in real match expressions is not yet supported because the
+author didn’t find a way to make it work with Rust macros.</p>
+</blockquote>
+<h2 id="basic-example"><a class="doc-anchor" href="#basic-example">§</a>Basic example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>rouille::Request;
+<span class="kw">use </span>rouille::Response;
+
+<span class="kw">fn </span>handle(request: <span class="kw-2">&amp;</span>Request) -&gt; Response {
+    <span class="macro">accept!</span>(request,
+        <span class="string">"text/html" </span>=&gt; Response::html(<span class="string">"&lt;p&gt;Hello world&lt;/p&gt;"</span>),
+        <span class="string">"text/plain" </span>=&gt; Response::text(<span class="string">"Hello world"</span>),
+    )
+}</code></pre></div>
+<h2 id="example-with-a-default-handler"><a class="doc-anchor" href="#example-with-a-default-handler">§</a>Example with a default handler</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>rouille::Request;
+<span class="kw">use </span>rouille::Response;
+
+<span class="kw">fn </span>handle(request: <span class="kw-2">&amp;</span>Request) -&gt; Response {
+    <span class="macro">accept!</span>(request,
+        <span class="string">"text/html" </span>=&gt; Response::html(<span class="string">"&lt;p&gt;Hello world&lt;/p&gt;"</span>),
+        <span class="string">"text/plain" </span>=&gt; Response::text(<span class="string">"Hello world"</span>),
+        <span class="string">"*/*" </span>=&gt; Response::empty_406()
+    )
+}</code></pre></div>
+</div></details></section></div></main></body></html>

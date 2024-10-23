@@ -1,0 +1,1 @@
+searchState.loadedDescShard("epaint_default_fonts", 0, "A library containing built-in fonts for <code>epaint</code>, embedded …\nAn experimental typeface that uses standardized UNICODE …\nA typeface designed for source code.\nA typeface containing emoji characters as designed for the …\nA typeface designed for use by Ubuntu.")

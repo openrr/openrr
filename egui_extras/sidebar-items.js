@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Size"],"fn":["install_image_loaders"],"mod":["syntax_highlighting"],"struct":["Column","Strip","StripBuilder","Table","TableBody","TableBuilder","TableRow"]};

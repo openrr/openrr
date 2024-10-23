@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Calculates the offset of a field in bytes,given the previous field."><title>next_field_offset in repr_offset::offset_calc - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../repr_offset/index.html">repr_<wbr>offset</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><h2><a href="index.html">In repr_<wbr>offset::<wbr>offset_<wbr>calc</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Function <a href="../index.html">repr_offset</a>::<wbr><a href="index.html">offset_calc</a>::<wbr><a class="fn" href="#">next_field_offset</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../../src/repr_offset/offset_calc.rs.html#36-44">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub const fn next_field_offset&lt;Struct, Prev, Next&gt;(
+    previous_offset: <a class="primitive" href="https://doc.rust-lang.org/1.82.0/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.82.0/core/primitive.usize.html">usize</a></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Calculates the offset of a field in bytes,given the previous field.</p>
+<h2 id="parameters"><a class="doc-anchor" href="#parameters">§</a>Parameters</h2>
+<p><code>Struct</code> is the struct that contains the field that this calculates the offset for.</p>
+<p><code>Prev</code> is the type of the previous field.</p>
+<p><code>Next</code> is the type of the field that this calculates the offset for.</p>
+<p><code>previous_offset</code> is the offset in bytes of the previous field,of <code>Prev</code> type.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::offset_calc::next_field_offset;
+
+<span class="attr">#[repr(C, packed)]
+</span><span class="kw">struct </span>Foo(u8, u16, u32, u64);
+
+<span class="macro">assert_eq!</span>( OFFSET_1, <span class="number">1 </span>);
+<span class="macro">assert_eq!</span>( OFFSET_2, <span class="number">3 </span>);
+<span class="macro">assert_eq!</span>( OFFSET_3, <span class="number">7 </span>);
+
+<span class="kw">const </span>OFFSET_0: usize = <span class="number">0</span>;
+<span class="kw">const </span>OFFSET_1: usize = next_field_offset::&lt;Foo, u8, u16&gt;(OFFSET_0);
+<span class="kw">const </span>OFFSET_2: usize = next_field_offset::&lt;Foo, u16, u32&gt;(OFFSET_1);
+<span class="kw">const </span>OFFSET_3: usize = next_field_offset::&lt;Foo, u32, u64&gt;(OFFSET_2);
+</code></pre></div>
+</div></details></section></div></main></body></html>

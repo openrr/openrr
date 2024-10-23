@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["get_unused_args","hostname","mappings","master","name","namespace","params"]};

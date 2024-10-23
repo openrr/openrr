@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["create_all_collision_pairs","create_robot_collision_detector","create_self_collision_checker","parse_colon_separated_pairs"],"struct":["CollisionDetector","EnvCollisionNames","RobotCollisionDetector","RobotCollisionDetectorConfig","SelfCollisionChecker","SelfCollisionCheckerConfig","SelfCollisionPairs"],"trait":["FromUrdf"]};

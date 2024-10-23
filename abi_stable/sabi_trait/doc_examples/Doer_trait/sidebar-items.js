@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Doer_Interface","Doer_TO"],"trait":["Doer"],"type":["Doer_Backend","Doer_CTO"]};
