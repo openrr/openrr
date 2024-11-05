@@ -346,7 +346,7 @@ impl GilGamepad {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct GilGamepadConfig {
     #[serde(default)]
@@ -355,16 +355,6 @@ pub struct GilGamepadConfig {
     map: Map,
     #[serde(default)]
     time_step: f64,
-}
-
-impl Default for GilGamepadConfig {
-    fn default() -> Self {
-        Self {
-            device_id: usize::default(),
-            map: Map::default(),
-            time_step: 0.01,
-        }
-    }
 }
 
 #[async_trait]
