@@ -42,6 +42,7 @@ allow = [
     "MPL-2.0", # webpki-roots
     "OFL-1.1", # epaint
     "LicenseRef-UFL-1.0", # epaint (see https://github.com/emilk/egui/issues/2321)
+    "Unicode-3.0",
 ]
 
 [[licenses.clarify]]
