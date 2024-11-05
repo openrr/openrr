@@ -127,7 +127,8 @@
               "DPadRight"
             ]
           ]
-        }
+        },
+        "time_step": 0.01
       },
       "allOf": [
         {
@@ -407,6 +408,11 @@
               "$ref": "#/definitions/Map"
             }
           ]
+        },
+        "time_step": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
         }
       },
       "additionalProperties": false
