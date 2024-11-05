@@ -280,7 +280,7 @@ impl GilGamepad {
     }
 
     /// This is another implementation for send command all the times
-    pub fn new_to_send_constantly(id: usize, map: Map, time_step: f64, timeout: f64) -> Self {
+    pub fn new_to_send_constantly(id: usize, map: Map, time_step: f64) -> Self {
         let (tx, rx) = flume::unbounded();
         let is_running = Arc::new(AtomicBool::new(true));
         let is_running_cloned = is_running.clone();
@@ -305,7 +305,6 @@ impl GilGamepad {
             }
             let mut is_connected = true;
             tx.send(GamepadEvent::Connected).unwrap();
-            let mut last_updated_time = std::time::Instant::now();
             let mut last_message = GamepadEvent::Disconnected;
             while is_running_cloned.load(Ordering::Relaxed) {
                 if let Some(gamepad_id) = selected_gamepad_id {
@@ -328,22 +327,11 @@ impl GilGamepad {
                         if id == Into::<usize>::into(recv_id) {
                             if let Some(e) = map.convert_event(event) {
                                 tx.send(e.clone()).unwrap();
-                                last_updated_time = std::time::Instant::now();
                                 last_message = e;
                             }
                         }
                     }
-                    None => {
-                        if timeout.is_normal()
-                            && timeout.is_sign_positive()
-                            && last_updated_time.elapsed().as_secs_f64() < timeout
-                        {
-                            tx.send(last_message.clone()).unwrap()
-                        } else {
-                            // Timeout... Pass through...
-                            info!("Command timeout...")
-                        }
-                    }
+                    None => tx.send(last_message.clone()).unwrap(),
                 }
 
                 std::thread::sleep(Duration::from_secs_f64(time_step));
@@ -354,12 +342,7 @@ impl GilGamepad {
     }
 
     pub fn new_from_config_to_send_constantly(config: GilGamepadConfig) -> Self {
-        Self::new_to_send_constantly(
-            config.device_id,
-            config.map,
-            config.time_step,
-            config.timeout,
-        )
+        Self::new_to_send_constantly(config.device_id, config.map, config.time_step)
     }
 }
 
@@ -372,8 +355,6 @@ pub struct GilGamepadConfig {
     map: Map,
     #[serde(default)]
     time_step: f64,
-    #[serde(default)]
-    timeout: f64,
 }
 
 impl Default for GilGamepadConfig {
@@ -382,7 +363,6 @@ impl Default for GilGamepadConfig {
             device_id: usize::default(),
             map: Map::default(),
             time_step: 0.01,
-            timeout: 0.5,
         }
     }
 }
