@@ -352,17 +352,17 @@ pub struct GilGamepadConfig {
     #[serde(default)]
     device_id: usize,
     #[serde(default)]
-    map: Map,
-    #[serde(default)]
     time_step: f64,
+    #[serde(default)]
+    map: Map,
 }
 
 impl Default for GilGamepadConfig {
     fn default() -> Self {
         Self {
             device_id: usize::default(),
-            map: Map::default(),
             time_step: 0.01,
+            map: Map::default(),
         }
     }
 }
