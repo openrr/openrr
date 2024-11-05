@@ -278,15 +278,113 @@ impl GilGamepad {
     pub fn new_from_config(config: GilGamepadConfig) -> Self {
         Self::new(config.device_id, config.map)
     }
+
+    /// This is another implementation for send command all the times
+    pub fn new_to_send_constantly(id: usize, map: Map, time_step: f64, timeout: f64) -> Self {
+        let (tx, rx) = flume::unbounded();
+        let is_running = Arc::new(AtomicBool::new(true));
+        let is_running_cloned = is_running.clone();
+        std::thread::spawn(move || {
+            let mut gil = gilrs::Gilrs::new().unwrap();
+            #[cfg_attr(target_os = "macos", allow(unused_mut))]
+            let mut selected_gamepad_id = None;
+            // TODO: On macOS `gamepads()` does not works.
+            #[cfg(not(target_os = "macos"))]
+            {
+                let mut is_found = false;
+                for (connected_id, gamepad) in gil.gamepads() {
+                    info!("{} is {:?}", gamepad.name(), gamepad.power_info());
+                    if id == Into::<usize>::into(connected_id) {
+                        is_found = true;
+                        selected_gamepad_id = Some(connected_id);
+                    }
+                }
+                if !is_found {
+                    panic!("No Gamepad id={id} is found");
+                }
+            }
+            let mut is_connected = true;
+            tx.send(GamepadEvent::Connected).unwrap();
+            let mut last_updated_time = std::time::Instant::now();
+            let mut last_message = GamepadEvent::Disconnected;
+            while is_running_cloned.load(Ordering::Relaxed) {
+                if let Some(gamepad_id) = selected_gamepad_id {
+                    let gamepad = gil.gamepad(gamepad_id);
+                    if is_connected && !gamepad.is_connected() {
+                        error!("gamepad [{}] is disconnected", gamepad.name());
+                        is_connected = false;
+                        tx.send(GamepadEvent::Disconnected).unwrap();
+                    } else if !is_connected && gamepad.is_connected() {
+                        info!("gamepad [{}] is connected", gamepad.name());
+                        is_connected = true;
+                        tx.send(GamepadEvent::Connected).unwrap();
+                    }
+                }
+
+                match gil.next_event() {
+                    Some(gilrs::Event {
+                        id: recv_id, event, ..
+                    }) => {
+                        if id == Into::<usize>::into(recv_id) {
+                            if let Some(e) = map.convert_event(event) {
+                                tx.send(e.clone()).unwrap();
+                                last_updated_time = std::time::Instant::now();
+                                last_message = e;
+                            }
+                        }
+                    }
+                    None => {
+                        if timeout.is_normal()
+                            && timeout.is_sign_positive()
+                            && last_updated_time.elapsed().as_secs_f64() < timeout
+                        {
+                            tx.send(last_message.clone()).unwrap()
+                        } else {
+                            // Timeout... Pass through...
+                            info!("Command timeout...")
+                        }
+                    }
+                }
+
+                std::thread::sleep(Duration::from_secs_f64(time_step));
+            }
+        });
+
+        Self { rx, is_running }
+    }
+
+    pub fn new_from_config_to_send_constantly(config: GilGamepadConfig) -> Self {
+        Self::new_to_send_constantly(
+            config.device_id,
+            config.map,
+            config.time_step,
+            config.timeout,
+        )
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct GilGamepadConfig {
     #[serde(default)]
     device_id: usize,
     #[serde(default)]
     map: Map,
+    #[serde(default)]
+    time_step: f64,
+    #[serde(default)]
+    timeout: f64,
+}
+
+impl Default for GilGamepadConfig {
+    fn default() -> Self {
+        Self {
+            device_id: usize::default(),
+            map: Map::default(),
+            time_step: 0.01,
+            timeout: 0.5,
+        }
+    }
 }
 
 #[async_trait]
