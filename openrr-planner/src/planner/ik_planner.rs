@@ -130,6 +130,7 @@ where
         tracing::debug!("[PlannerIKSolver] Solve IK for target pose");
         self.ik_solver
             .solve_with_constraints(&arm, target_pose, constraints)?;
+        tracing::debug!("[PlannerIKSolver] Get goal joint positions");
         let goal = arm.joint_positions();
         tracing::debug!("[PlannerIKSolver] Plan");
         self.path_planner
