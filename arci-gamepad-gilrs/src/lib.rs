@@ -209,6 +209,13 @@ fn default_axis_value_map() -> IndexMap<Axis, f64> {
     axis_value_map
 }
 
+#[derive(Debug, Default)]
+pub enum FlagType {
+    #[default]
+    Event,
+    TimeStep(f64),
+}
+
 #[derive(Debug)]
 pub struct GilGamepad {
     rx: flume::Receiver<GamepadEvent>,
@@ -216,7 +223,7 @@ pub struct GilGamepad {
 }
 
 impl GilGamepad {
-    pub fn new(id: usize, map: Map) -> Self {
+    pub fn new(id: usize, map: Map, flag_type: FlagType) -> Self {
         let (tx, rx) = flume::unbounded();
         let is_running = Arc::new(AtomicBool::new(true));
         let is_running_cloned = is_running.clone();
@@ -241,6 +248,7 @@ impl GilGamepad {
             }
             let mut is_connected = true;
             tx.send(GamepadEvent::Connected).unwrap();
+            let mut last_message = GamepadEvent::Connected;
             while is_running_cloned.load(Ordering::Relaxed) {
                 if let Some(gamepad_id) = selected_gamepad_id {
                     let gamepad = gil.gamepad(gamepad_id);
@@ -248,25 +256,25 @@ impl GilGamepad {
                         error!("gamepad [{}] is disconnected", gamepad.name());
                         is_connected = false;
                         tx.send(GamepadEvent::Disconnected).unwrap();
+                        last_message = GamepadEvent::Disconnected;
                     } else if !is_connected && gamepad.is_connected() {
                         info!("gamepad [{}] is connected", gamepad.name());
                         is_connected = true;
                         tx.send(GamepadEvent::Connected).unwrap();
+                        last_message = GamepadEvent::Connected;
                     }
                 }
-                // gil.next_event is no block. We have to polling it.
-                match gil.next_event() {
-                    Some(gilrs::Event {
-                        id: recv_id, event, ..
-                    }) => {
-                        if id == Into::<usize>::into(recv_id) {
-                            if let Some(e) = map.convert_event(event) {
-                                tx.send(e).unwrap();
-                            }
-                        }
-                    }
-                    None => {
-                        std::thread::sleep(Duration::from_secs_f64(0.01));
+                match flag_type {
+                    FlagType::Event => GilGamepad::send_by_event(&mut gil, id, map.clone(), &tx),
+                    FlagType::TimeStep(t) => {
+                        last_message = GilGamepad::send_on_time(
+                            &mut gil,
+                            id,
+                            map.clone(),
+                            &tx,
+                            last_message,
+                            t,
+                        )
                     }
                 }
             }
@@ -276,77 +284,69 @@ impl GilGamepad {
     }
 
     pub fn new_from_config(config: GilGamepadConfig) -> Self {
-        Self::new(config.device_id, config.map)
+        if config.time_step.is_normal() && config.time_step.is_sign_positive() {
+            Self::new(
+                config.device_id,
+                config.map,
+                FlagType::TimeStep(config.time_step),
+            )
+        } else {
+            Self::new(config.device_id, config.map, FlagType::Event)
+        }
     }
 
-    /// This is another implementation for send command all the times
-    pub fn new_to_send_constantly(id: usize, map: Map, time_step: f64) -> Self {
-        let (tx, rx) = flume::unbounded();
-        let is_running = Arc::new(AtomicBool::new(true));
-        let is_running_cloned = is_running.clone();
-        std::thread::spawn(move || {
-            let mut gil = gilrs::Gilrs::new().unwrap();
-            #[cfg_attr(target_os = "macos", allow(unused_mut))]
-            let mut selected_gamepad_id = None;
-            // TODO: On macOS `gamepads()` does not works.
-            #[cfg(not(target_os = "macos"))]
-            {
-                let mut is_found = false;
-                for (connected_id, gamepad) in gil.gamepads() {
-                    info!("{} is {:?}", gamepad.name(), gamepad.power_info());
-                    if id == Into::<usize>::into(connected_id) {
-                        is_found = true;
-                        selected_gamepad_id = Some(connected_id);
+    fn send_by_event(
+        gil: &mut gilrs::Gilrs,
+        id: usize,
+        map: Map,
+        tx: &flume::Sender<GamepadEvent>,
+    ) {
+        // gil.next_event is no block. We have to polling it.
+        match gil.next_event() {
+            Some(gilrs::Event {
+                id: recv_id, event, ..
+            }) => {
+                if id == Into::<usize>::into(recv_id) {
+                    if let Some(e) = map.convert_event(event) {
+                        tx.send(e).unwrap();
                     }
-                }
-                if !is_found {
-                    panic!("No Gamepad id={id} is found");
                 }
             }
-            let mut is_connected = true;
-            tx.send(GamepadEvent::Connected).unwrap();
-            let mut last_message = GamepadEvent::Disconnected;
-            while is_running_cloned.load(Ordering::Relaxed) {
-                if let Some(gamepad_id) = selected_gamepad_id {
-                    let gamepad = gil.gamepad(gamepad_id);
-                    if is_connected && !gamepad.is_connected() {
-                        error!("gamepad [{}] is disconnected", gamepad.name());
-                        is_connected = false;
-                        tx.send(GamepadEvent::Disconnected).unwrap();
-                    } else if !is_connected && gamepad.is_connected() {
-                        info!("gamepad [{}] is connected", gamepad.name());
-                        is_connected = true;
-                        tx.send(GamepadEvent::Connected).unwrap();
-                    }
-                }
-
-                match gil.next_event() {
-                    Some(gilrs::Event {
-                        id: recv_id, event, ..
-                    }) => {
-                        if id == Into::<usize>::into(recv_id) {
-                            if let Some(e) = map.convert_event(event) {
-                                tx.send(e.clone()).unwrap();
-                                last_message = e;
-                            }
-                        }
-                    }
-                    None => tx.send(last_message.clone()).unwrap(),
-                }
-
-                std::thread::sleep(Duration::from_secs_f64(time_step));
+            None => {
+                std::thread::sleep(Duration::from_secs_f64(0.01));
             }
-        });
-
-        Self { rx, is_running }
+        }
     }
 
-    pub fn new_from_config_to_send_constantly(config: GilGamepadConfig) -> Self {
-        Self::new_to_send_constantly(config.device_id, config.map, config.time_step)
+    fn send_on_time(
+        gil: &mut gilrs::Gilrs,
+        id: usize,
+        map: Map,
+        tx: &flume::Sender<GamepadEvent>,
+        last_message: GamepadEvent,
+        time_step: f64,
+    ) -> GamepadEvent {
+        let mut msg = last_message;
+        match gil.next_event() {
+            Some(gilrs::Event {
+                id: recv_id, event, ..
+            }) => {
+                if id == Into::<usize>::into(recv_id) {
+                    if let Some(e) = map.convert_event(event) {
+                        tx.send(e.clone()).unwrap();
+                        msg = e;
+                    }
+                }
+            }
+            None => tx.send(msg.clone()).unwrap(),
+        }
+
+        std::thread::sleep(Duration::from_secs_f64(time_step));
+        msg
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct GilGamepadConfig {
     #[serde(default)]
@@ -355,16 +355,6 @@ pub struct GilGamepadConfig {
     time_step: f64,
     #[serde(default)]
     map: Map,
-}
-
-impl Default for GilGamepadConfig {
-    fn default() -> Self {
-        Self {
-            device_id: usize::default(),
-            time_step: 0.01,
-            map: Map::default(),
-        }
-    }
 }
 
 #[async_trait]

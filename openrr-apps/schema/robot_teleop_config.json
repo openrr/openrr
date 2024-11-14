@@ -128,7 +128,7 @@
             ]
           ]
         },
-        "time_step": 0.01
+        "time_step": 0.0
       },
       "allOf": [
         {
