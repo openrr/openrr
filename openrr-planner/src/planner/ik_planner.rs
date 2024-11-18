@@ -112,8 +112,10 @@ where
         objects: &Compound<T>,
         constraints: &k::Constraints,
     ) -> Result<Vec<Vec<T>>> {
+        tracing::debug!("[PlannerIKSolver] Sync joint positions with reference");
         self.path_planner.sync_joint_positions_with_reference();
 
+        tracing::debug!("[PlannerIKSolver] Check Collisions");
         let end_link = self
             .path_planner
             .collision_check_robot()
@@ -125,9 +127,12 @@ where
             .iter_joints()
             .map(|j| j.name.clone())
             .collect::<Vec<String>>();
+        tracing::debug!("[PlannerIKSolver] Solve IK for target pose");
         self.ik_solver
             .solve_with_constraints(&arm, target_pose, constraints)?;
+        tracing::debug!("[PlannerIKSolver] Get goal joint positions");
         let goal = arm.joint_positions();
+        tracing::debug!("[PlannerIKSolver] Plan");
         self.path_planner
             .plan(using_joint_names.as_slice(), &initial, &goal, objects)
     }
