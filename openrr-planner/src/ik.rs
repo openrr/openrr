@@ -62,6 +62,7 @@ where
         target_pose: &na::Isometry3<T>,
         constraints: &k::Constraints,
     ) -> ::std::result::Result<(), k::Error> {
+        tracing::debug!("[RandomInitializeIkSolver] Target pose: {:?}", target_pose);
         let mut result = Err(k::Error::NotConvergedError {
             num_tried: 0,
             position_diff: na::Vector3::new(0.0, 0.0, 0.0),
