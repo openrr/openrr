@@ -381,6 +381,5 @@ jobs:
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           files: codecov.json
           fail_ci_if_error: true
