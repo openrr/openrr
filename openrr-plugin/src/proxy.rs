@@ -271,6 +271,7 @@ impl From<RError> for arci::Error {
 pub(crate) struct RWaitFuture(FfiFuture<RResult<()>>);
 
 impl From<arci::WaitFuture> for RWaitFuture {
+    #[allow(clippy::unit_arg)] // false positive that triggered for external macro
     fn from(wait: arci::WaitFuture) -> Self {
         Self(async move { ROk(rtry!(wait.await)) }.into_ffi())
     }
