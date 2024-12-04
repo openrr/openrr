@@ -1,0 +1,1 @@
+searchState.loadedDescShard("arci_speak_audio", 0, "arci-speak-audio\nReturns the argument unchanged.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.\nCreates a new <code>AudioSpeaker</code>.")

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["epa3","gjk","special_support_maps"],"struct":["CSOPoint","VoronoiSimplex"]};

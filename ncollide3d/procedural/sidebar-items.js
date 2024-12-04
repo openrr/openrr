@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["IndexBuffer"],"fn":["bezier_curve","bezier_surface","capsule","cone","cuboid","cylinder","quad","quad_with_vertices","sphere","unit_cone","unit_cuboid","unit_cylinder","unit_hemisphere","unit_quad","unit_sphere"],"mod":["path","utils"],"struct":["TriMesh"]};

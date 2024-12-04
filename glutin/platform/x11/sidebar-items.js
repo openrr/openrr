@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["X11VisualInfo"],"trait":["X11GlConfigExt"]};

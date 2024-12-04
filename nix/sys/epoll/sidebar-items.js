@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["EpollOp"],"fn":["epoll_create","epoll_create1","epoll_ctl","epoll_wait"],"struct":["Epoll","EpollCreateFlags","EpollEvent","EpollFlags","EpollTimeout"]};

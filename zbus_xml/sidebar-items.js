@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ArgDirection","Error","PropertyAccess"],"struct":["Annotation","Arg","Interface","Method","Node","Property","Signal"],"type":["Result"]};

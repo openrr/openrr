@@ -1,0 +1,1 @@
+searchState.loadedDescShard("match_cfg", 0, "A convenience macro to ergonomically define an item …\nThe macro provided by this crate, <code>match_cfg</code>, is similar to …")

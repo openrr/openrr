@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ErrorKind","FmtErrorKind"],"struct":["Error","FmtError"],"trait":["ResultExt"],"type":["Result"]};

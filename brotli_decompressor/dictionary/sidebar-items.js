@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["kBrotliDictionaryOffsetsByLength","kBrotliDictionarySizeBitsByLength","kBrotliMaxDictionaryWordLength","kBrotliMinDictionaryWordLength"],"static":["kBrotliDictionary"]};

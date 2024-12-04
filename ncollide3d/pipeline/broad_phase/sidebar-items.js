@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["BroadPhaseProxyHandle","DBVTBroadPhase"],"trait":["BroadPhase","BroadPhaseInterferenceHandler","BroadPhasePairFilter"]};
