@@ -77,7 +77,6 @@ impl RosNavClientBuilder {
     /// // true means enable (default: false)
     /// let builder = arci_ros::RosNavClientBuilder::new().clear_costmap_before_start(true);
     /// ```
-
     pub fn clear_costmap_before_start(mut self, val: bool) -> Self {
         self.clear_costmap_before_start = val;
         self
