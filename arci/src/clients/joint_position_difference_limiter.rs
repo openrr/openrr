@@ -164,12 +164,12 @@ fn should_interpolate_joint_trajectory(trajectory: &[TrajectoryPoint]) -> bool {
             if first_index_of_valid_velocity != last_index {
                 false
             } else {
-                return !trajectory[last_index]
+                !trajectory[last_index]
                     .velocities
                     .as_ref()
                     .unwrap()
                     .iter()
-                    .any(|x| x.abs() > ZERO_VELOCITY_THRESHOLD);
+                    .any(|x| x.abs() > ZERO_VELOCITY_THRESHOLD)
             }
         }
         None => true,
