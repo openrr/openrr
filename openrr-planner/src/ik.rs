@@ -71,11 +71,21 @@ where
         let limits = arm.iter_joints().map(|j| j.limits).collect();
         let initial_angles = arm.joint_positions();
 
-        for _ in 0..self.num_max_try {
+        for try_idx in 0..self.num_max_try {
+            tracing::debug!(
+                "[RandomInitializeIkSolver] Iteration {}/{}: Solving IK from joint state -> {:.4?}",
+                try_idx,
+                self.num_max_try,
+                arm.joint_positions()
+            );
             result = self
                 .solver
                 .solve_with_constraints(arm, target_pose, constraints);
             if result.is_ok() {
+                tracing::debug!(
+                    "[RandomInitializeIkSolver] Solved IK with joint state -> {:.4?}",
+                    arm.joint_positions()
+                );
                 return result;
             }
             let mut new_angles = generate_random_joint_positions_from_limits(&limits);
@@ -83,6 +93,11 @@ where
             arm.set_joint_positions(&new_angles)?;
         }
         // failed
+        tracing::debug!(
+            "[RandomInitializeIkSolver] Failed to solve IK after {} tries. Set initial joint angles {:.4?}",
+            self.num_max_try,
+            initial_angles,
+        );
         arm.set_joint_positions(&initial_angles)?;
         result
     }
