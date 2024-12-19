@@ -35,7 +35,6 @@ libopenrr
 libtest
 libudev
 libxkbcommon
-markdownlint
 nanos
 nanosec
 nomotion
