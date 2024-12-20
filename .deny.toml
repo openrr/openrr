@@ -9,6 +9,7 @@ ignore = [
     "RUSTSEC-2022-0006", # thread_local 0.3, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2022-0013", # regex 0.2, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2022-0022", # hyper 0.10, transitively dep of rosrust (via xml-rpc)
+    "RUSTSEC-2024-0421", # idna <1.0.3, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2021-0144", # unmaintained (traitobject), transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2021-0146", # unmaintained (twoway), transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2021-0150", # unmaintained (ncollide3d)
