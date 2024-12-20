@@ -21,6 +21,7 @@ gamepads
 ghcup
 hostedtoolcache
 ICANON
+idna
 impls
 irobot
 keyserver
