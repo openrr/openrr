@@ -29,6 +29,13 @@ members = [
 ]
 
 [workspace.package]
+# When publishing a new version:
+# - Create "v0.x.y" git tag
+# - Push the above tag (run `git push origin --tags`)
+# Then, CI will publish to crates.io and create a GitHub release.
+# Troubleshooting: If you encounter problems while publishing to crates.io and
+# do not complete publishing all crates, you can temporarily edit and run
+# ci/publish.sh locally to publish the remaining crates.
 # NOTE: when updating this, reminder to update arci-speak-cmd's Cargo.toml.
 version = "0.1.0"
 edition = "2021"
