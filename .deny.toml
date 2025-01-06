@@ -56,4 +56,6 @@ license-files = [
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
-allow-git = []
+allow-git = [
+    "https://github.com/kornelski/xml-rs.git", # https://github.com/adnanademovic/rosrust/issues/210
+]
