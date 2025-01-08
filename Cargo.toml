@@ -94,7 +94,7 @@ nix = { version = "0.29", features = ["signal"] }
 num-traits = "0.2"
 paste = "1"
 portpicker = "0.1"
-prettyplease = "=0.2.25"
+prettyplease = "=0.2.27"
 proc-macro2 = "1"
 prost = "0.13"
 prost-types = "0.13"
