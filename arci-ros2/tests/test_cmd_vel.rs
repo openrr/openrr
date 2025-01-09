@@ -12,7 +12,7 @@ use shared::*;
 #[tokio::test]
 async fn test_pub() {
     let node = test_node();
-    let c = Ros2CmdVelMoveBase::new(node.clone(), "/cmd_vel_test");
+    let c = Ros2CmdVelMoveBase::new(node.clone(), "/cmd_vel_test", "/odom");
 
     let mut sub = node
         .r2r()

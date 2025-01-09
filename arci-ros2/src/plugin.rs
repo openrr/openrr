@@ -30,7 +30,11 @@ impl openrr_plugin::Plugin for Ros2Plugin {
         let config: Ros2CmdVelMoveBaseConfig =
             toml::from_str(&args).map_err(anyhow::Error::from)?;
         let node = Node::new("plugin_cmd_vel_node", "arci_ros2")?;
-        Ok(Some(Box::new(Ros2CmdVelMoveBase::new(node, &config.topic))))
+        Ok(Some(Box::new(Ros2CmdVelMoveBase::new(
+            node,
+            &config.cmd_vel_topic,
+            &config.odom_topic,
+        ))))
     }
 
     fn new_navigation(
