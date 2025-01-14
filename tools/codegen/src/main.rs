@@ -26,7 +26,7 @@ fn arci_types(
         .filter_map(Result::ok)
         .filter_map(|entry| {
             let path = entry.path();
-            if !path.is_file() || path.extension().map_or(true, |e| e != "rs") {
+            if !path.is_file() || path.extension().is_none_or(|e| e != "rs") {
                 None
             } else {
                 Some(path)

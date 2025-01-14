@@ -165,7 +165,7 @@ fn gen_client_impl(trait_name: &Ident, item: &ItemTrait) -> TokenStream {
             let call = match &sig.output {
                 syn::ReturnType::Type(_, ty) => {
                     let path = get_ty_path(is_result(ty).unwrap());
-                    if path.map_or(false, |p| p.segments.last().unwrap().ident == "WaitFuture") {
+                    if path.is_some_and(|p| p.segments.last().unwrap().ident == "WaitFuture") {
                         quote! {
                             Ok(wait_from_handle(tokio::spawn(async move {
                                 client.#name(args).await
@@ -278,7 +278,7 @@ fn gen_server_impl(trait_name: &Ident, item: &ItemTrait, pb_traits: &[ItemTrait]
             let call = match &method.sig.output {
                 syn::ReturnType::Type(_, ty) => {
                     let path = get_ty_path(is_result(ty).unwrap());
-                    if path.map_or(false, |p| p.segments.last().unwrap().ident == "WaitFuture") {
+                    if path.is_some_and(|p| p.segments.last().unwrap().ident == "WaitFuture") {
                         quote! {
                             let res = arci::#trait_name::#name(&self.inner, #(#args),*)
                                 .map_err(|e| tonic::Status::unknown(e.to_string()))?

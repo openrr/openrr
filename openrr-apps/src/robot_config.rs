@@ -757,7 +757,7 @@ impl RobotConfig {
         for (name, speak_config) in self
             .speak_configs
             .iter()
-            .filter(|(name, _)| self.speakers.as_ref().map_or(true, |v| v.contains(name)))
+            .filter(|(name, _)| self.speakers.as_ref().is_none_or(|v| v.contains(name)))
         {
             speakers.insert(name.to_owned(), speak_config.build()?.into());
         }
@@ -768,7 +768,7 @@ impl RobotConfig {
                     && self
                         .speakers
                         .as_ref()
-                        .map_or(true, |v| v.contains(&instance.name))
+                        .is_none_or(|v| v.contains(&instance.name))
             }) {
                 if speakers.contains_key(&instance.name) {
                     return Err(Error::DuplicateInstance(format!(
@@ -806,7 +806,7 @@ impl RobotConfig {
         let is_used = |client_name| {
             self.joint_trajectory_clients
                 .as_ref()
-                .map_or(true, |v| v.contains(client_name))
+                .is_none_or(|v| v.contains(client_name))
         };
         let urdf_viz_clients_configs: Vec<_> = self
             .urdf_viz_clients_configs
@@ -862,7 +862,7 @@ impl RobotConfig {
                     && self
                         .joint_trajectory_clients
                         .as_ref()
-                        .map_or(true, |v| v.contains(&instance.name))
+                        .is_none_or(|v| v.contains(&instance.name))
             }) {
                 if clients.contains_key(&instance.name) {
                     return Err(Error::DuplicateInstance(format!(
