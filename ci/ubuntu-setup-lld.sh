@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 codename="$(grep '^VERSION_CODENAME=' /etc/os-release | sed 's/^VERSION_CODENAME=//')"
-llvm_version=16
+llvm_version=19
 echo "deb http://apt.llvm.org/${codename}/ llvm-toolchain-${codename}-${llvm_version} main" |
     sudo tee "/etc/apt/sources.list.d/llvm-toolchain-${codename}-${llvm_version}.list" >/dev/null
 curl https://apt.llvm.org/llvm-snapshot.gpg.key |
