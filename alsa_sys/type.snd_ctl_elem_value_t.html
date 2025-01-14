@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="CTL element value container"><title>snd_ctl_elem_value_t in alsa_sys - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="alsa_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0 (9fc6b4312 2025-01-07)" data-channel="1.84.0" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc type"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../alsa_sys/index.html">alsa_<wbr>sys</a><span class="version">0.3.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">snd_<wbr>ctl_<wbr>elem_<wbr>value_<wbr>t</a></h2><h3><a href="#aliased-type">Aliased type</a></h3></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate alsa_<wbr>sys</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="index.html">alsa_sys</a></span><h1>Type Alias <span class="type">snd_ctl_elem_value_t</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/alsa_sys/generated.rs.html#4868">Source</a> </span></div><pre class="rust item-decl"><code>pub type snd_ctl_elem_value_t = <a class="struct" href="struct._snd_ctl_elem_value.html" title="struct alsa_sys::_snd_ctl_elem_value">_snd_ctl_elem_value</a>;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>CTL element value container</p>
+<p>Contains the value(s) (i.e. members) of a single element. All
+values of a given element are of the same type.</p>
+<p>\par Memory management</p>
+<p>To access a value, a snd_ctl_elem_value_t must be allocated using
+snd_ctl_elem_value_alloca() or snd_ctl_elem_value_malloc(). When
+using the latter, it must be freed again using
+snd_ctl_elem_value_free().</p>
+<p>\par Identifier</p>
+<p>Then, the ID must be filled. It is sufficient to fill only the
+numid, if known. Otherwise, interface type, device, subdevice,
+name, index must all be given.  The following functions can be used
+to fill the ID:</p>
+<ul>
+<li>
+<p>snd_ctl_elem_value_set_id(): Set the ID. Requires an
+snd_ctl_elem_id_t object.</p>
+</li>
+<li>
+<p>snd_ctl_elem_value_set_numid(): Set the numid.</p>
+</li>
+<li>
+<p>Or use all of the following:</p>
+<ul>
+<li>snd_ctl_elem_value_set_interface()</li>
+<li>snd_ctl_elem_value_set_device()</li>
+<li>snd_ctl_elem_value_set_subdevice()</li>
+<li>snd_ctl_elem_value_set_name()</li>
+<li>snd_ctl_elem_value_set_index()</li>
+</ul>
+</li>
+</ul>
+<p>When communicating with the driver (snd_ctl_elem_read(),
+snd_ctl_elem_write()), and the numid was given, the interface,
+device, … are filled (even if you set the before). When the numid
+is unset (i.e. it is 0), it is filled.</p>
+<p>\par Communicating with the driver</p>
+<p>After the value container was created and filled with the ID of the
+desired element, the value(s) can be fetched from the driver (and
+thus from the hardware) or written to the driver.</p>
+<p>To fetch a value, use snd_ctl_elem_read(). Thereafter, use the
+snd_ctl_elem_value_get_*() functions to obtain the actual value.</p>
+<p>To write a new value, first use a snd_ctl_elem_value_set_*() to set
+it, then call snd_ctl_elem_write() to write it to the driver.</p>
+</div></details><h2 id="aliased-type" class="section-header">Aliased Type<a href="#aliased-type" class="anchor">§</a></h2><pre class="rust item-decl"><code>struct snd_ctl_elem_value_t { <span class="comment">/* private fields */</span> }</code></pre><script src="../type.impl/alsa_sys/struct._snd_ctl_elem_value.js" data-self-path="alsa_sys::snd_ctl_elem_value_t" async></script></section></div></main></body></html>

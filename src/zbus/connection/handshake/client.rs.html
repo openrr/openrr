@@ -1,0 +1,639 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zbus-4.4.0/src/connection/handshake/client.rs`."><title>client.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="zbus" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0 (9fc6b4312 2025-01-07)" data-channel="1.84.0" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../../../static.files/storage-59e33391.js"></script><script defer src="../../../../static.files/src-script-56102188.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">zbus/connection/handshake/</div>client.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<a href="#1" id="1">1</a>
+<a href="#2" id="2">2</a>
+<a href="#3" id="3">3</a>
+<a href="#4" id="4">4</a>
+<a href="#5" id="5">5</a>
+<a href="#6" id="6">6</a>
+<a href="#7" id="7">7</a>
+<a href="#8" id="8">8</a>
+<a href="#9" id="9">9</a>
+<a href="#10" id="10">10</a>
+<a href="#11" id="11">11</a>
+<a href="#12" id="12">12</a>
+<a href="#13" id="13">13</a>
+<a href="#14" id="14">14</a>
+<a href="#15" id="15">15</a>
+<a href="#16" id="16">16</a>
+<a href="#17" id="17">17</a>
+<a href="#18" id="18">18</a>
+<a href="#19" id="19">19</a>
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a>
+<a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
+<a href="#36" id="36">36</a>
+<a href="#37" id="37">37</a>
+<a href="#38" id="38">38</a>
+<a href="#39" id="39">39</a>
+<a href="#40" id="40">40</a>
+<a href="#41" id="41">41</a>
+<a href="#42" id="42">42</a>
+<a href="#43" id="43">43</a>
+<a href="#44" id="44">44</a>
+<a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
+<a href="#47" id="47">47</a>
+<a href="#48" id="48">48</a>
+<a href="#49" id="49">49</a>
+<a href="#50" id="50">50</a>
+<a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a></pre></div><pre class="rust"><code><span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>std::collections::VecDeque;
+<span class="kw">use </span>tracing::{debug, instrument, trace, warn};
+
+<span class="kw">use </span>sha1::{Digest, Sha1};
+
+<span class="kw">use crate</span>::{conn::socket::ReadHalf, is_flatpak, names::OwnedUniqueName, Message};
+
+<span class="kw">use super</span>::{
+    random_ascii, sasl_auth_id, AuthMechanism, Authenticated, BoxedSplit, Command, Common, Cookie,
+    Error, Handshake, OwnedGuid, <span class="prelude-ty">Result</span>, Str,
+};
+
+<span class="doccomment">/// A representation of an in-progress handshake, client-side
+///
+/// This struct is an async-compatible representation of the initial handshake that must be
+/// performed before a D-Bus connection can be used.
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Client {
+    common: Common,
+    server_guid: <span class="prelude-ty">Option</span>&lt;OwnedGuid&gt;,
+    bus: bool,
+}
+
+<span class="kw">impl </span>Client {
+    <span class="doccomment">/// Start a handshake on this client socket
+    </span><span class="kw">pub fn </span>new(
+        socket: BoxedSplit,
+        mechanisms: <span class="prelude-ty">Option</span>&lt;VecDeque&lt;AuthMechanism&gt;&gt;,
+        server_guid: <span class="prelude-ty">Option</span>&lt;OwnedGuid&gt;,
+        bus: bool,
+    ) -&gt; Client {
+        <span class="kw">let </span>mechanisms = mechanisms.unwrap_or_else(|| {
+            <span class="kw">let </span><span class="kw-2">mut </span>mechanisms = VecDeque::new();
+            mechanisms.push_back(AuthMechanism::External);
+            mechanisms.push_back(AuthMechanism::Cookie);
+            mechanisms.push_back(AuthMechanism::Anonymous);
+            mechanisms
+        });
+
+        Client {
+            common: Common::new(socket, mechanisms),
+            server_guid,
+            bus,
+        }
+    }
+
+    <span class="doccomment">/// Respond to a cookie authentication challenge from the server.
+    ///
+    /// Returns the next command to send to the server.
+    </span><span class="kw">async fn </span>handle_cookie_challenge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Command&gt; {
+        <span class="kw">let </span>context = std::str::from_utf8(<span class="kw-2">&amp;</span>data)
+            .map_err(|<span class="kw">_</span>| Error::Handshake(<span class="string">"Cookie context was not valid UTF-8"</span>.into()))<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>split = context.split_ascii_whitespace();
+        <span class="kw">let </span>context = split
+            .next()
+            .ok_or_else(|| Error::Handshake(<span class="string">"Missing cookie context name"</span>.into()))<span class="question-mark">?</span>;
+        <span class="kw">let </span>context = Str::from(context).try_into()<span class="question-mark">?</span>;
+        <span class="kw">let </span>id = split
+            .next()
+            .ok_or_else(|| Error::Handshake(<span class="string">"Missing cookie ID"</span>.into()))<span class="question-mark">?</span>;
+        <span class="kw">let </span>id = id
+            .parse()
+            .map_err(|e| Error::Handshake(<span class="macro">format!</span>(<span class="string">"Invalid cookie ID `{id}`: {e}"</span>)))<span class="question-mark">?</span>;
+        <span class="kw">let </span>server_challenge = split
+            .next()
+            .ok_or_else(|| Error::Handshake(<span class="string">"Missing cookie challenge"</span>.into()))<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>cookie = Cookie::lookup(<span class="kw-2">&amp;</span>context, id).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>cookie = cookie.cookie();
+        <span class="kw">let </span>client_challenge = random_ascii(<span class="number">16</span>);
+        <span class="kw">let </span>sec = <span class="macro">format!</span>(<span class="string">"{server_challenge}:{client_challenge}:{cookie}"</span>);
+        <span class="kw">let </span>sha1 = hex::encode(Sha1::digest(sec));
+        <span class="kw">let </span>data = <span class="macro">format!</span>(<span class="string">"{client_challenge} {sha1}"</span>).into_bytes();
+
+        <span class="prelude-val">Ok</span>(Command::Data(<span class="prelude-val">Some</span>(data)))
+    }
+
+    <span class="kw">fn </span>set_guid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, guid: OwnedGuid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.server_guid {
+            <span class="prelude-val">Some</span>(server_guid) <span class="kw">if </span><span class="kw-2">*</span>server_guid != guid =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Handshake(<span class="macro">format!</span>(
+                    <span class="string">"Server GUID mismatch: expected {server_guid}, got {guid}"</span>,
+                )));
+            }
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; (),
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.server_guid = <span class="prelude-val">Some</span>(guid),
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="comment">// The dbus daemon on some platforms requires sending the zero byte as a
+    // separate message with SCM_CREDS.
+    </span><span class="attr">#[instrument(skip(<span class="self">self</span>))]
+    #[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
+    </span><span class="kw">async fn </span>send_zero_byte(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>write = <span class="self">self</span>.common.socket_mut().write_mut();
+
+        <span class="kw">let </span>written = <span class="kw">match </span>write.send_zero_byte().<span class="kw">await</span>.map_err(|e| {
+            Error::Handshake(<span class="macro">format!</span>(<span class="string">"Could not send zero byte with credentials: {}"</span>, e))
+        })<span class="question-mark">? </span>{
+            <span class="comment">// This likely means that the socket type is unable to send SCM_CREDS.
+            // Let's try to send the 0 byte as a regular message.
+            </span><span class="prelude-val">None </span>=&gt; write.sendmsg(<span class="kw-2">&amp;</span>[<span class="number">0</span>], <span class="kw-2">&amp;</span>[]).<span class="kw">await</span><span class="question-mark">?</span>,
+            <span class="prelude-val">Some</span>(n) =&gt; n,
+        };
+
+        <span class="kw">if </span>written != <span class="number">1 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Handshake(
+                <span class="string">"Could not send zero byte with credentials"</span>.to_string(),
+            ));
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Perform the authentication handshake with the server.
+    ///
+    /// In case of cookie auth, it returns the challenge response to send to the server, so it can
+    /// be batched with rest of the commands.
+    </span><span class="attr">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">async fn </span>authenticate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Command&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>mechanism = <span class="self">self</span>.common.next_mechanism()<span class="question-mark">?</span>;
+            <span class="macro">trace!</span>(<span class="string">"Trying {mechanism} mechanism"</span>);
+            <span class="kw">let </span>auth_cmd = <span class="kw">match </span>mechanism {
+                AuthMechanism::Anonymous =&gt; Command::Auth(<span class="prelude-val">Some</span>(mechanism), <span class="prelude-val">Some</span>(<span class="string">"zbus"</span>.into())),
+                AuthMechanism::External =&gt; {
+                    Command::Auth(<span class="prelude-val">Some</span>(mechanism), <span class="prelude-val">Some</span>(sasl_auth_id()<span class="question-mark">?</span>.into_bytes()))
+                }
+                AuthMechanism::Cookie =&gt; Command::Auth(
+                    <span class="prelude-val">Some</span>(AuthMechanism::Cookie),
+                    <span class="prelude-val">Some</span>(sasl_auth_id()<span class="question-mark">?</span>.into_bytes()),
+                ),
+            };
+            <span class="self">self</span>.common.write_command(auth_cmd).<span class="kw">await</span><span class="question-mark">?</span>;
+
+            <span class="kw">match </span><span class="self">self</span>.common.read_command().<span class="kw">await</span><span class="question-mark">? </span>{
+                Command::Ok(guid) =&gt; {
+                    <span class="macro">trace!</span>(<span class="string">"Received OK from server"</span>);
+                    <span class="self">self</span>.set_guid(guid)<span class="question-mark">?</span>;
+
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+                }
+                Command::Data(data) <span class="kw">if </span>mechanism == AuthMechanism::Cookie =&gt; {
+                    <span class="kw">let </span>data = data.ok_or_else(|| {
+                        Error::Handshake(<span class="string">"Received DATA with no data from server"</span>.into())
+                    })<span class="question-mark">?</span>;
+                    <span class="macro">trace!</span>(<span class="string">"Received cookie challenge from server"</span>);
+                    <span class="kw">let </span>response = <span class="self">self</span>.handle_cookie_challenge(data).<span class="kw">await</span><span class="question-mark">?</span>;
+
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(response));
+                }
+                Command::Rejected(<span class="kw">_</span>) =&gt; <span class="macro">debug!</span>(<span class="string">"{mechanism} rejected by the server"</span>),
+                Command::Error(e) =&gt; <span class="macro">debug!</span>(<span class="string">"Received error from server: {e}"</span>),
+                cmd =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Handshake(<span class="macro">format!</span>(
+                        <span class="string">"Unexpected command from server: {cmd}"
+                    </span>)))
+                }
+            }
+        }
+    }
+
+    <span class="doccomment">/// Sends out all commands after authentication.
+    ///
+    /// This includes the challenge response for cookie auth, if any and returns the number of
+    /// responses expected from the server.
+    </span><span class="attr">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">async fn </span>send_secondary_commands(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        challenge_response: <span class="prelude-ty">Option</span>&lt;Command&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>commands = Vec::with_capacity(<span class="number">4</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(response) = challenge_response {
+            commands.push(response);
+        }
+
+        <span class="kw">let </span>can_pass_fd = <span class="self">self</span>.common.socket_mut().read_mut().can_pass_unix_fd();
+        <span class="kw">if </span>can_pass_fd {
+            <span class="comment">// xdg-dbus-proxy can't handle pipelining, hence this special handling.
+            // FIXME: Remove this as soon as flatpak is fixed and fix is available in major distros.
+            // See https://github.com/flatpak/xdg-dbus-proxy/issues/21
+            </span><span class="kw">if </span>is_flatpak() {
+                <span class="self">self</span>.common.write_command(Command::NegotiateUnixFD).<span class="kw">await</span><span class="question-mark">?</span>;
+                <span class="kw">match </span><span class="self">self</span>.common.read_command().<span class="kw">await</span><span class="question-mark">? </span>{
+                    Command::AgreeUnixFD =&gt; <span class="self">self</span>.common.set_cap_unix_fd(<span class="bool-val">true</span>),
+                    Command::Error(e) =&gt; <span class="macro">warn!</span>(<span class="string">"UNIX file descriptor passing rejected: {e}"</span>),
+                    cmd =&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Handshake(<span class="macro">format!</span>(
+                            <span class="string">"Unexpected command from server: {cmd}"
+                        </span>)))
+                    }
+                }
+            } <span class="kw">else </span>{
+                commands.push(Command::NegotiateUnixFD);
+            }
+        };
+        commands.push(Command::Begin);
+        <span class="kw">let </span>hello_method = <span class="kw">if </span><span class="self">self</span>.bus {
+            <span class="prelude-val">Some</span>(create_hello_method_call())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+
+        <span class="self">self</span>.common
+            .write_commands(<span class="kw-2">&amp;</span>commands, hello_method.as_ref().map(|m| <span class="kw-2">&amp;**</span>m.data()))
+            .<span class="kw">await</span><span class="question-mark">?</span>;
+
+        <span class="comment">// Server replies to all commands except `BEGIN`.
+        </span><span class="prelude-val">Ok</span>(commands.len() - <span class="number">1</span>)
+    }
+
+    <span class="attr">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">async fn </span>receive_secondary_responses(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected_n_responses: usize) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">for </span>response <span class="kw">in </span><span class="self">self</span>.common.read_commands(expected_n_responses).<span class="kw">await</span><span class="question-mark">? </span>{
+            <span class="kw">match </span>response {
+                Command::Ok(guid) =&gt; {
+                    <span class="macro">trace!</span>(<span class="string">"Received OK from server"</span>);
+                    <span class="self">self</span>.set_guid(guid)<span class="question-mark">?</span>;
+                }
+                Command::AgreeUnixFD =&gt; <span class="self">self</span>.common.set_cap_unix_fd(<span class="bool-val">true</span>),
+                Command::Error(e) =&gt; <span class="macro">warn!</span>(<span class="string">"UNIX file descriptor passing rejected: {e}"</span>),
+                <span class="comment">// This also covers "REJECTED", which would mean that the server has rejected the
+                // authentication challenge response (likely cookie) since it already agreed to the
+                // mechanism. Theoretically we should be just trying the next auth mechanism but
+                // this most likely means something is very wrong and we're already too deep into
+                // the handshake to recover.
+                </span>cmd =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Handshake(<span class="macro">format!</span>(
+                        <span class="string">"Unexpected command from server: {cmd}"
+                    </span>)))
+                }
+            }
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="attr">#[async_trait]
+</span><span class="kw">impl </span>Handshake <span class="kw">for </span>Client {
+    <span class="attr">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">async fn </span>perform(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Authenticated&gt; {
+        <span class="macro">trace!</span>(<span class="string">"Initializing"</span>);
+
+        <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
+        </span><span class="self">self</span>.send_zero_byte().<span class="kw">await</span><span class="question-mark">?</span>;
+
+        <span class="kw">let </span>challenge_response = <span class="self">self</span>.authenticate().<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>expected_n_responses = <span class="self">self</span>.send_secondary_commands(challenge_response).<span class="kw">await</span><span class="question-mark">?</span>;
+
+        <span class="kw">if </span>expected_n_responses &gt; <span class="number">0 </span>{
+            <span class="self">self</span>.receive_secondary_responses(expected_n_responses)
+                .<span class="kw">await</span><span class="question-mark">?</span>;
+        }
+
+        <span class="macro">trace!</span>(<span class="string">"Handshake done"</span>);
+        <span class="attr">#[cfg(unix)]
+        </span><span class="kw">let </span>(socket, <span class="kw-2">mut </span>recv_buffer, received_fds, cap_unix_fd, <span class="kw">_</span>) = <span class="self">self</span>.common.into_components();
+        <span class="attr">#[cfg(not(unix))]
+        </span><span class="kw">let </span>(socket, <span class="kw-2">mut </span>recv_buffer, <span class="kw">_</span>, <span class="kw">_</span>) = <span class="self">self</span>.common.into_components();
+        <span class="kw">let </span>(<span class="kw-2">mut </span>read, write) = socket.take();
+
+        <span class="comment">// If we're a bus connection, we need to read the unique name from `Hello` response.
+        </span><span class="kw">let </span>unique_name = <span class="kw">if </span><span class="self">self</span>.bus {
+            <span class="kw">let </span>unique_name = receive_hello_response(<span class="kw-2">&amp;mut </span>read, <span class="kw-2">&amp;mut </span>recv_buffer).<span class="kw">await</span><span class="question-mark">?</span>;
+
+            <span class="prelude-val">Some</span>(unique_name)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+
+        <span class="prelude-val">Ok</span>(Authenticated {
+            socket_write: write,
+            socket_read: <span class="prelude-val">Some</span>(read),
+            server_guid: <span class="self">self</span>.server_guid.unwrap(),
+            <span class="attr">#[cfg(unix)]
+            </span>cap_unix_fd,
+            already_received_bytes: recv_buffer,
+            <span class="attr">#[cfg(unix)]
+            </span>already_received_fds: received_fds,
+            unique_name,
+        })
+    }
+}
+
+<span class="kw">fn </span>create_hello_method_call() -&gt; Message {
+    Message::method(<span class="string">"/org/freedesktop/DBus"</span>, <span class="string">"Hello"</span>)
+        .unwrap()
+        .destination(<span class="string">"org.freedesktop.DBus"</span>)
+        .unwrap()
+        .interface(<span class="string">"org.freedesktop.DBus"</span>)
+        .unwrap()
+        .build(<span class="kw-2">&amp;</span>())
+        .unwrap()
+}
+
+<span class="kw">async fn </span>receive_hello_response(
+    read: <span class="kw-2">&amp;mut </span>Box&lt;<span class="kw">dyn </span>ReadHalf&gt;,
+    recv_buffer: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedUniqueName&gt; {
+    <span class="kw">use </span><span class="kw">crate</span>::message::Type;
+
+    <span class="kw">let </span>reply = read
+        .receive_message(
+            <span class="number">0</span>,
+            recv_buffer,
+            <span class="attr">#[cfg(unix)]
+            </span><span class="kw-2">&amp;mut </span><span class="macro">vec!</span>[],
+        )
+        .<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">match </span>reply.message_type() {
+        Type::MethodReturn =&gt; reply.body().deserialize(),
+        Type::Error =&gt; <span class="prelude-val">Err</span>(Error::from(reply)),
+        m =&gt; <span class="prelude-val">Err</span>(Error::Handshake(<span class="macro">format!</span>(<span class="string">"Unexpected messgage `{m:?}`"</span>))),
+    }
+}
+</code></pre></div></section></main></body></html>

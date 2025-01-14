@@ -1,0 +1,1 @@
+searchState.loadedDescShard("abi_stable_shared", 0, "Gets the name of the static that contains the LibHeader of …\nGets a u64 where the lowest <code>bit_count</code> bits are ones and …")

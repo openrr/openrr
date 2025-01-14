@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DitherType"],"struct":["Identity","RandomNoise","Rectangular","Triangular"],"trait":["AddNoise","Dither","MaybeDither"]};

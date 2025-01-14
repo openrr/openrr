@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="For panicking with formatting in const contexts."><title>const_panic - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="const_panic" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0 (9fc6b4312 2025-01-07)" data-channel="1.84.0" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../const_panic/index.html">const_<wbr>panic</a><span class="version">0.2.12</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#basic" title="Basic">Basic</a></li><li><a href="#custom-types" title="Custom types">Custom types</a></li></ul></li><li><a href="#limitations" title="Limitations">Limitations</a><ul><li><a href="#panic-message-length" title="Panic message length">Panic message length</a></li></ul></li><li><a href="#cargo-features" title="Cargo features">Cargo features</a></li><li><a href="#plans" title="Plans">Plans</a></li><li><a href="#no-std-support" title="No-std support">No-std support</a></li><li><a href="#minimum-supported-rust-version" title="Minimum Supported Rust Version">Minimum Supported Rust Version</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#constants" title="Constants">Constants</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>const_panic</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/const_panic/lib.rs.html#1-335">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>For panicking with formatting in const contexts.</p>
+<p>This library exists because the panic macro was stabilized for use in const contexts
+in Rust 1.57.0, without formatting support.</p>
+<p>All of the types that implement the <a href="fmt/trait.PanicFmt.html" title="trait const_panic::fmt::PanicFmt"><code>PanicFmt</code></a> trait can be formatted in panics.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<ul>
+<li><a href="#basic">Basic</a></li>
+<li><a href="#custom-types">Custom Types</a></li>
+</ul>
+<h4 id="basic"><a class="doc-anchor" href="#basic">§</a>Basic</h4>
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>const_panic::concat_assert;
+
+<span class="kw">const </span>FOO: u32 = <span class="number">10</span>;
+<span class="kw">const </span>BAR: u32 = <span class="number">0</span>;
+<span class="kw">const _</span>: () = assert_non_zero(FOO, BAR);
+
+<span class="attr">#[track_caller]
+</span><span class="kw">const fn </span>assert_non_zero(foo: u32, bar: u32) {
+    <span class="macro">concat_assert!</span>{
+        foo != <span class="number">0 </span>&amp;&amp; bar != <span class="number">0</span>,
+        <span class="string">"\nneither foo nor bar can be zero!\nfoo: "</span>, foo, <span class="string">"\nbar: "</span>, bar
+    }
+}</code></pre></div>
+<p>The above code fails to compile with this error:</p>
+<div class="example-wrap"><pre class="language-text"><code>error[E0080]: evaluation of constant value failed
+ --&gt; src/lib.rs:20:15
+  |
+8 | const _: () = assert_non_zero(FOO, BAR);
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at &#39;
+neither foo nor bar can be zero!
+foo: 10
+bar: 0&#39;, src/lib.rs:8:15</code></pre></div>
+<p>When called at runtime</p>
+
+<div class="example-wrap should_panic"><a href="#" class="tooltip" title="This example panics">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>const_panic::concat_assert;
+
+assert_non_zero(<span class="number">10</span>, <span class="number">0</span>);
+
+<span class="attr">#[track_caller]
+</span><span class="kw">const fn </span>assert_non_zero(foo: u32, bar: u32) {
+    <span class="macro">concat_assert!</span>{
+        foo != <span class="number">0 </span>&amp;&amp; bar != <span class="number">0</span>,
+        <span class="string">"\nneither foo nor bar can be zero!\nfoo: "</span>, foo, <span class="string">"\nbar: "</span>, bar
+    }
+}</code></pre></div>
+<p>it prints this:</p>
+<div class="example-wrap"><pre class="language-text"><code>thread &#39;main&#39; panicked at &#39;
+neither foo nor bar can be zero!
+foo: 10
+bar: 0&#39;, src/lib.rs:6:1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+</code></pre></div><h4 id="custom-types"><a class="doc-anchor" href="#custom-types">§</a>Custom types</h4>
+<p>Panic formatting for custom types can be done in these ways
+(in increasing order of verbosity):</p>
+<ul>
+<li>Using the <a href="derive@crate::PanicFmt"><code>PanicFmt</code> derive</a> macro
+(requires the opt-in <code>"derive"</code> feature)</li>
+<li>Using the <a href="crate::impl_panicfmt"><code>impl_panicfmt</code></a> macro
+(requires the default-enabled <code>"non_basic"</code> feature)</li>
+<li>Using the <a href="crate::flatten_panicvals"><code>flatten_panicvals</code></a> macro
+(requires the default-enabled <code>"non_basic"</code> feature)</li>
+<li>Manually implementing the <a href="fmt/trait.PanicFmt.html" title="trait const_panic::fmt::PanicFmt"><code>PanicFmt</code></a> trait as described in its docs.</li>
+</ul>
+<p>This example uses the <a href="derive@crate::PanicFmt"><code>PanicFmt</code> derive</a> approach.</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>const_panic::{PanicFmt, concat_panic};
+
+<span class="kw">const </span>LAST: u8 = {
+    Foo{
+        x: <span class="kw-2">&amp;</span>[],
+        y: Bar(<span class="bool-val">false</span>, <span class="bool-val">true</span>),
+        z: Qux::Left(<span class="number">23</span>),
+    }.pop().<span class="number">1
+</span>};
+
+<span class="kw">impl </span>Foo&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="doccomment">/// Pops the last element
+    ///
+    /// # Panics
+    ///
+    /// Panics if `self.x` is empty
+    </span><span class="attr">#[track_caller]
+    </span><span class="kw">const fn </span>pop(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; (<span class="self">Self</span>, u8) {
+        <span class="kw">if let </span>[rem @ .., last] = <span class="self">self</span>.x {
+            <span class="self">self</span>.x = rem;
+            (<span class="self">self</span>, <span class="kw-2">*</span>last)
+        } <span class="kw">else </span>{
+            <span class="macro">concat_panic!</span>(
+                <span class="string">"\nexpected a non-empty Foo, found: \n"</span>,
+                <span class="comment">// uses alternative Debug formatting for `self`,
+                // otherwise this would use regular Debug formatting.
+                </span>alt_debug: <span class="self">self
+            </span>)
+        }
+    }
+}
+
+<span class="attr">#[derive(PanicFmt)]
+</span><span class="kw">struct </span>Foo&lt;<span class="lifetime">'a</span>&gt; {
+    x: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8],
+    y: Bar,
+    z: Qux,
+}
+
+<span class="attr">#[derive(PanicFmt)]
+</span><span class="kw">struct </span>Bar(bool, bool);
+
+<span class="attr">#[derive(PanicFmt)]
+</span><span class="kw">enum </span>Qux {
+    Up,
+    Down { x: u32, y: u32 },
+    Left(u64),
+}
+</code></pre></div>
+<p>The above code fails to compile with this error:</p>
+<div class="example-wrap"><pre class="language-text"><code>error[E0080]: evaluation of constant value failed
+  --&gt; src/lib.rs:57:5
+   |
+7  | /     Foo{
+8  | |         x: &amp;[],
+9  | |         y: Bar(false, true),
+10 | |         z: Qux::Left(23),
+11 | |     }.pop().1
+   | |___________^ the evaluated program panicked at &#39;
+expected a non-empty Foo, found:
+Foo {
+    x: [],
+    y: Bar(
+        false,
+        true,
+    ),
+    z: Left(
+        23,
+    ),
+}&#39;, src/lib.rs:11:7
+
+</code></pre></div><h2 id="limitations"><a class="doc-anchor" href="#limitations">§</a>Limitations</h2>
+<p>Arguments to the formatting/panicking macros must have a fully inferred concrete type,
+because <code>const_panic</code> macros use duck typing to call methods on those arguments.</p>
+<p>One effect of that limitation is that you will have to pass suffixed
+integer literals (eg: <code>100u8</code>) when those integers aren’t inferred to be a concrete type.</p>
+<h4 id="panic-message-length"><a class="doc-anchor" href="#panic-message-length">§</a>Panic message length</h4>
+<p>The panic message can only be up to <a href="constant.MAX_PANIC_MSG_LEN.html" title="constant const_panic::MAX_PANIC_MSG_LEN"><code>MAX_PANIC_MSG_LEN</code></a> long,
+after which it is truncated.</p>
+<h2 id="cargo-features"><a class="doc-anchor" href="#cargo-features">§</a>Cargo features</h2>
+<ul>
+<li>
+<p><code>"non_basic"</code>(enabled by default):
+Enables support for formatting structs, enums, and arrays.
+<br>
+Without this feature, you can effectively only format primitive types
+(custom types can manually implement formatting with more difficulty).</p>
+</li>
+<li>
+<p><code>"rust_latest_stable"</code>(disabled by default):
+Enables all the <code>"rust_1_*"</code> features.</p>
+</li>
+<li>
+<p><code>"rust_1_64"</code>(disabled by default):
+Enables formatting of additional items that require Rust 1.64.0 to do so.</p>
+</li>
+<li>
+<p><code>"rust_1_82"</code>(disabled by default):
+Enables formatting of additional items that require Rust 1.82.0 to do so.</p>
+</li>
+<li>
+<p><code>"derive"</code>(disabled by default):
+Enables the <a href="derive@crate::PanicFmt"><code>PanicFmt</code> derive</a> macro.</p>
+</li>
+</ul>
+<h2 id="plans"><a class="doc-anchor" href="#plans">§</a>Plans</h2>
+<p>None for now</p>
+<h2 id="no-std-support"><a class="doc-anchor" href="#no-std-support">§</a>No-std support</h2>
+<p><code>const_panic</code> is <code>#![no_std]</code>, it can be used anywhere Rust can be used.</p>
+<h2 id="minimum-supported-rust-version"><a class="doc-anchor" href="#minimum-supported-rust-version">§</a>Minimum Supported Rust Version</h2>
+<p>This requires Rust 1.57.0, because it uses the <code>panic</code> macro in a const context.</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name" id="reexport.FmtArg"><code>pub use crate::fmt::<a class="struct" href="fmt/struct.FmtArg.html" title="struct const_panic::fmt::FmtArg">FmtArg</a>;</code></div></li><li><div class="item-name" id="reexport.IsCustomType"><code>pub use crate::fmt::<a class="struct" href="fmt/struct.IsCustomType.html" title="struct const_panic::fmt::IsCustomType">IsCustomType</a>;</code></div></li><li><div class="item-name" id="reexport.PanicFmt"><code>pub use crate::fmt::<a class="trait" href="fmt/trait.PanicFmt.html" title="trait const_panic::fmt::PanicFmt">PanicFmt</a>;</code></div></li></ul><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="fmt/index.html" title="mod const_panic::fmt">fmt</a></div><div class="desc docblock-short">Formatting-related items</div></li><li><div class="item-name"><a class="mod" href="utils/index.html" title="mod const_panic::utils">utils</a></div><div class="desc docblock-short">Utility functions</div></li></ul><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="macro" href="macro.coerce_fmt.html" title="macro const_panic::coerce_fmt">coerce_<wbr>fmt</a></div><div class="desc docblock-short">Coerces <code>$reff</code> to a type that has a <code>to_panicvals</code> method,
+which is expected to return a <code>[PanicVal&lt;'_&gt;; LEN]</code>.</div></li><li><div class="item-name"><a class="macro" href="macro.concat_assert.html" title="macro const_panic::concat_assert">concat_<wbr>assert</a></div><div class="desc docblock-short">Asserts that <code>$condition</code> is true.</div></li><li><div class="item-name"><a class="macro" href="macro.concat_panic.html" title="macro const_panic::concat_panic">concat_<wbr>panic</a></div><div class="desc docblock-short">Panics with the concanenation of the arguments.</div></li><li><div class="item-name"><a class="macro" href="macro.unwrap_err.html" title="macro const_panic::unwrap_err">unwrap_<wbr>err</a></div><div class="desc docblock-short">Gets the value in the <code>Err</code> variant.</div></li><li><div class="item-name"><a class="macro" href="macro.unwrap_ok.html" title="macro const_panic::unwrap_ok">unwrap_<wbr>ok</a></div><div class="desc docblock-short">Gets the value in the <code>Ok</code> variant.</div></li><li><div class="item-name"><a class="macro" href="macro.unwrap_some.html" title="macro const_panic::unwrap_some">unwrap_<wbr>some</a></div><div class="desc docblock-short">Gets the value in the <code>Some</code> variant.</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.PanicVal.html" title="struct const_panic::PanicVal">Panic<wbr>Val</a></div><div class="desc docblock-short">An opaque enum of the values that this crate knows how to format,
+along with some formatting metadata.</div></li><li><div class="item-name"><a class="struct" href="struct.StdWrapper.html" title="struct const_panic::StdWrapper">StdWrapper</a></div><div class="desc docblock-short">A wrapper type used to define methods for std types.</div></li></ul><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="constant" href="constant.MAX_PANIC_MSG_LEN.html" title="constant const_panic::MAX_PANIC_MSG_LEN">MAX_<wbr>PANIC_<wbr>MSG_<wbr>LEN</a></div><div class="desc docblock-short">The maximum length of panic messages (in bytes),
+after which the message is truncated.</div></li></ul><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.concat_panic.html" title="fn const_panic::concat_panic">concat_<wbr>panic</a></div><div class="desc docblock-short">Panics by concatenating the argument slice.</div></li></ul></section></div></main></body></html>

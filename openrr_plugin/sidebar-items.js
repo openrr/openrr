@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["export_plugin"],"struct":["GamepadProxy","JointTrajectoryClientProxy","LaserScan2DProxy","LocalizationProxy","MotorDriveEffortProxy","MotorDrivePositionProxy","MotorDriveVelocityProxy","MoveBaseProxy","NavigationProxy","PluginProxy","SpeakerProxy","TransformResolverProxy"],"trait":["Plugin"]};

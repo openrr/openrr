@@ -1,0 +1,182 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="An explanation of the crate’s naming conventions."><title>safe_arch::naming_conventions - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="safe_arch" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0 (9fc6b4312 2025-01-07)" data-channel="1.84.0" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../safe_arch/index.html">safe_<wbr>arch</a><span class="version">0.7.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module naming_<wbr>conventions</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#types" title="Types">Types</a></li><li><a href="#operations" title="Operations">Operations</a></li><li><a href="#operation-glossary" title="Operation Glossary">Operation Glossary</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate safe_<wbr>arch</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="../index.html">safe_arch</a></span><h1>Module <span>naming_conventions</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/safe_arch/naming_conventions.rs.html#1-165">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>An explanation of the crate’s naming conventions.</p>
+<p>This crate attempts to follow the general naming scheme of <code>verb_type</code> when
+the operation is “simple”, and <code>verb_description_words_type</code> when the
+operation (op) needs to be more specific than normal. Like this:</p>
+<ul>
+<li><code>add_m128</code></li>
+<li><code>add_saturating_i8_m128i</code></li>
+</ul>
+<h3 id="types"><a class="doc-anchor" href="#types">§</a>Types</h3>
+<p>Currently, only <code>x86</code> and <code>x86_64</code> types are supported. Among those types:</p>
+<ul>
+<li><code>m128</code> and <code>m256</code> are always considered to hold <code>f32</code> lanes.</li>
+<li><code>m128d</code> and <code>m256d</code> are always considered to hold <code>f64</code> lanes.</li>
+<li><code>m128i</code> and <code>m256i</code> hold integer data, but each op specifies what lane
+width of integers the operation uses.</li>
+<li>If the type has <code>_s</code> on the end then it’s a “scalar” operation that
+affects just the lowest lane. The other lanes are generally copied forward
+from one of the inputs, though the details there vary from op to op.</li>
+<li>The SIMD types are often referred to as “registers” because each SIMD
+typed value represents exactly one CPU register when you’re doing work.</li>
+</ul>
+<h3 id="operations"><a class="doc-anchor" href="#operations">§</a>Operations</h3>
+<p>There’s many operations that can be performed. When possible, <code>safe_arch</code>
+tries to follow normal Rust naming (eg: adding is still <code>add</code> and left
+shifting is still <code>shl</code>), but if an operation doesn’t normally exist at all
+in Rust then we basically have to make something up.</p>
+<p>Many operations have more than one variant, such as <code>add</code> and also
+<code>add_saturating</code>. In this case, <code>safe_arch</code> puts the “core operation” first
+and then any “modifiers” go after, which isn’t how you might normally say it
+in English, but it makes the list of functions sort better.</p>
+<p>As a general note on SIMD terminology: When an operation uses the same
+indexed lane in two <em>different</em> registers to determine the output, that is a
+“vertical” operation. When an operation uses more than one lane in the
+<em>same</em> register to determine the output, that is a “horizontal” operation.</p>
+<ul>
+<li>Vertical: <code>out[0] = a[0] + b[0]</code>, <code>out[1] = a[1] + b[1]</code></li>
+<li>Horizontal: <code>out[0] = a[0] + a[1]</code>, <code>out[1] = b[0] + b[1]</code></li>
+</ul>
+<h3 id="operation-glossary"><a class="doc-anchor" href="#operation-glossary">§</a>Operation Glossary</h3>
+<p>Here follows the list of all the main operations and their explanations.</p>
+<ul>
+<li><code>abs</code>: Absolute value (wrapping).</li>
+<li><code>add</code>: Addition. This is “wrapping” by default, though some other types of
+addition are available. Remember that wrapping signed addition is the same
+as wrapping unsigned addition.</li>
+<li><code>average</code>: Averages the two inputs.</li>
+<li><code>bitand</code>: Bitwise And, <code>a &amp; b</code>, like <a href="https://doc.rust-lang.org/1.84.0/core/ops/bit/trait.BitAnd.html" title="trait core::ops::bit::BitAnd">the trait</a>.</li>
+<li><code>bitandnot</code>: Bitwise <code>(!a) &amp; b</code>. This seems a little funny at first but
+it’s useful for clearing bits. The output will be based on the <code>b</code> side’s
+bit pattern, but with all active bits in <code>a</code> cleared:
+<ul>
+<li><code>bitandnot(0b0010, 0b1011) == 0b1001</code></li>
+</ul>
+</li>
+<li><code>bitor</code>: Bitwise Or, <code>a | b</code>, like <a href="https://doc.rust-lang.org/1.84.0/core/ops/bit/trait.BitOr.html" title="trait core::ops::bit::BitOr">the trait</a>.</li>
+<li><code>bitxor</code>: Bitwise eXclusive Or, <code>a ^ b</code>, like <a href="https://doc.rust-lang.org/1.84.0/core/ops/bit/trait.BitXor.html" title="trait core::ops::bit::BitXor">the
+trait</a>.</li>
+<li><code>blend</code>: Merge the data lanes of two SIMD values by taking either the <code>b</code>
+value or <code>a</code> value for each lane. Depending on the instruction, the blend
+mask can be either an immediate or a runtime value.</li>
+<li><code>cast</code>: Convert between data types while preserving the exact bit
+patterns, like how <a href="https://doc.rust-lang.org/1.84.0/core/intrinsics/fn.transmute.html" title="fn core::intrinsics::transmute"><code>transmute</code></a> works.</li>
+<li><code>ceil</code>: “Ceiling”, rounds towards positive infinity.</li>
+<li><code>cmp</code>: Numeric comparisons of various kinds. This generally gives “mask”
+output where the output value is of the same data type as the inputs, but
+with all the bits in a “true” lane as 1 and all the bits in a “false” lane
+as 0. Remember that with floating point values all 1s bits is a NaN, and
+with signed integers all 1s bits is -1.
+<ul>
+<li>An “Ordered comparison” checks if <em>neither</em> floating point value is NaN.</li>
+<li>An “Unordered comparison” checks if <em>either</em> floating point value is
+NaN.</li>
+</ul>
+</li>
+<li><code>convert</code>: This does some sort of numeric type change. The details can
+vary wildly. Generally, if the number of lanes goes down then the lowest
+lanes will be kept. If the number of lanes goes up then the new high lanes
+will be zero.</li>
+<li><code>div</code>: Division.</li>
+<li><code>dot_product</code>: This works like the matrix math operation. The lanes are
+multiplied and then the results are summed up into a single value.</li>
+<li><code>duplicate</code>: Copy the even or odd indexed lanes to the other set of lanes.
+Eg, <code>[1, 2, 3, 4]</code> becomes <code>[1, 1, 3, 3]</code> or <code>[2, 2, 4, 4]</code>.</li>
+<li><code>extract</code>: Get a value from the lane of a SIMD type into a scalar type.</li>
+<li><code>floor</code>: Rounds towards negative infinity.</li>
+<li><code>fused</code>: All the fused operations are a multiply as well as some sort of
+adding or subtracting. The details depend on which fused operation you
+select. The benefit of this operation over a non-fused operation are that
+it can compute slightly faster than doing the mul and add separately, and
+also the output can have higher accuracy in the result.</li>
+<li><code>insert</code>: The opposite of <code>extract</code>, this puts a new value into a
+particular lane of a SIMD type.</li>
+<li><code>load</code>: Reads an address and makes a SIMD register value. The details can
+vary because there’s more than one type of <code>load</code>, but generally this is a
+<code>&amp;T -&gt; U</code> style operation.</li>
+<li><code>max</code>: Picks the larger value from each of the two inputs.</li>
+<li><code>min</code>: Picks the smaller value from each of the two inputs.</li>
+<li><code>mul</code>: Multiplication. For floating point this is just “normal”
+multiplication, but for integer types you tend to have some options. An
+integer multiplication of X bits will produce a 2X bit output, so
+generally you’ll get to pick if you want to keep the high half of that,
+the low half of that (a normal “wrapping” mul), or “widen” the outputs to
+be all the bits at the expense of not multiplying half the lanes the
+lanes.</li>
+<li><code>pack</code>: Take the integers in the <code>a</code> and <code>b</code> inputs, reduce them to fit
+within the half-sized integer type (eg: <code>i16</code> to <code>i8</code>), and pack them all
+together into the output.</li>
+<li><code>population</code>: The “population” operations refer to the bits within an
+integer. Either counting them or adjusting them in various ways.</li>
+<li><code>rdrand</code>: Use the hardware RNG to make a random value of the given length.</li>
+<li><code>rdseed</code>: Use the hardware RNG to make a random seed of the given length.
+This is less commonly available, but theoretically an improvement over
+<code>rdrand</code> in that if you have to combine more than one usage of this
+operation to make your full seed size then the guess difficulty rises at a
+multiplicative rate instead of just an additive rate. For example, two
+<code>u64</code> outputs concatenated to a single <code>u128</code> have a guess difficulty of
+2^(64*64) with <code>rdseed</code> but only 2^(64+64) with <code>rdrand</code>.</li>
+<li><code>read_timestamp_counter</code>: Lets you read the CPU’s cycle counter, which
+doesn’t strictly mean anything in particular since even the CPU’s clock
+rate isn’t even stable over time, but you might find it interesting as an
+approximation during benchmarks, or something like that.</li>
+<li><code>reciprocal</code>: Turns <code>x</code> into <code>1/x</code>. Can also be combined with a <code>sqrt</code>
+operation.</li>
+<li><code>round</code>: Convert floating point values to whole numbers, according to one
+of several available methods.</li>
+<li><code>set</code>: Places a list of scalar values into a SIMD lane. Conceptually
+similar to how building an array works in Rust.</li>
+<li><code>splat</code>: Not generally an operation of its own, but a modifier to other
+operations such as <code>load</code> and <code>set</code>. This will copy a given value across a
+SIMD type as many times as it can be copied. For example, a 32-bit value
+splatted into a 128-bit register will be copied four times.</li>
+<li><code>shl</code>: Bit shift left. New bits shifted in are always 0. Because the shift
+is the same for both signed and unsigned values, this crate simply marks
+left shift as always being an unsigned operation.
+<ul>
+<li>You can shift by an immediate value (“imm”), all lanes by the same value
+(“all”), or each lane by its own value (“each”).</li>
+</ul>
+</li>
+<li><code>shr</code>: Bit shift right. This comes in two forms: “Arithmetic” shifts shift
+in the starting sign bit (which preserves the sign of the value), and
+“Logical” shifts shift in 0 regardless of the starting sign bit (so the
+result ends up being positive). With normal Rust types, signed integers
+use arithmetic shifts and unsigned integers use logical shifts, so these
+functions are marked as being for signed or unsigned integers
+appropriately.
+<ul>
+<li>As with <code>shl</code>, you can shift by an immediate value (“imm”), all lanes by
+the same value (“all”), or each lane by its own value (“each”).</li>
+</ul>
+</li>
+<li><code>sign_apply</code>: Multiplies one set of values by the signum (1, 0, or -1) of
+another set of values.</li>
+<li><code>sqrt</code>: Square Root.</li>
+<li><code>store</code>: Writes a SIMD value to a memory location.</li>
+<li><code>string_search</code>: A rather specialized instruction that lets you do byte
+based searching within a register. This lets you do some very high speed
+searching through ASCII strings when the stars align.</li>
+<li><code>sub</code>: Subtract.</li>
+<li><code>shuffle</code>: This lets you re-order the data lanes. Sometimes x86/x64 calls
+this is called “shuffle”, and sometimes it’s called “permute”, and there’s
+no particular reasoning behind the different names, so we just call them
+all shuffle.
+<ul>
+<li><code>shuffle_{args}_{lane-type}_{lane-sources}_{simd-type}</code>.</li>
+<li>“args” is the input arguments: <code>a</code> (one arg) or <code>ab</code> (two args), then
+either <code>v</code> (runtime-varying) or <code>i</code> (immediate). All the immediate
+shuffles are macros, of course.</li>
+<li>“lane type” is <code>f32</code>, <code>f64</code>, <code>i8</code>, etc. If there’s a <code>z</code> after the type
+then you’ll also be able to zero an output position instead of making it
+come from a particular source lane.</li>
+<li>“lane sources” is generally either “all” which means that all lanes can
+go to all other lanes, or “half” which means that each half of the lanes
+is isolated from the other half, and you can’t cross data between the
+two halves, only within a half (this is how most of the 256-bit x86/x64
+shuffles work).</li>
+</ul>
+</li>
+<li><code>unpack</code>: Takes a SIMD value and gets out some of the lanes while widening
+them, such as converting <code>i16</code> to <code>i32</code>.</li>
+</ul>
+</div></details></section></div></main></body></html>

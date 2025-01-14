@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["arci_types","get_ty_path","header","is_option","is_primitive","is_result","is_str","is_vec","main","workspace_root","write"],"mod":["plugin","rpc"]};

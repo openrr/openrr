@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ConstantLinearVelocityRigidMotion","ConstantVelocityRigidMotion","InterpolatedRigidMotion"],"trait":["RigidMotion","RigidMotionComposition"]};

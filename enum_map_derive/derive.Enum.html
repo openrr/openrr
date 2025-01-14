@@ -1,0 +1,124 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Derive macro generating an implementation of trait `Enum`."><title>Enum in enum_map_derive - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="enum_map_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0 (9fc6b4312 2025-01-07)" data-channel="1.84.0" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc derive"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../enum_map_derive/index.html">enum_<wbr>map_<wbr>derive</a><span class="version">0.17.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Enum</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#enums-without-payload" title="Enums Without Payload">Enums Without Payload</a></li><li><a href="#enums-with-payload" title="Enums With Payload">Enums With Payload</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#tuple-structs" title="Tuple Structs">Tuple Structs</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate enum_<wbr>map_<wbr>derive</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="index.html">enum_map_derive</a></span><h1>Derive Macro <span class="derive">Enum</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/enum_map_derive/lib.rs.html#162-172">Source</a> </span></div><pre class="rust item-decl"><code>#[derive(Enum)]</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Derive macro generating an implementation of trait <code>Enum</code>.</p>
+<p>When using a derive, enum maps are maintained in the order in which
+enum variants are declared. This is reflected in the value returned
+by <code>Enum::into_usize</code>, iterators of enum map as well as
+<code>EnumMap::as_slice</code> method.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h3 id="enums-without-payload"><a class="doc-anchor" href="#enums-without-payload">§</a>Enums Without Payload</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>enum_map::Enum;
+
+<span class="attr">#[derive(Enum, Debug, PartialEq, Eq)]
+</span><span class="kw">enum </span>A {
+    B,
+    C,
+    D,
+}
+
+<span class="macro">assert_eq!</span>(A::B.into_usize(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(A::C.into_usize(), <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(A::D.into_usize(), <span class="number">2</span>);
+
+<span class="macro">assert_eq!</span>(A::from_usize(<span class="number">0</span>), A::B);
+<span class="macro">assert_eq!</span>(A::from_usize(<span class="number">1</span>), A::C);
+<span class="macro">assert_eq!</span>(A::from_usize(<span class="number">2</span>), A::D);</code></pre></div>
+<h3 id="enums-with-payload"><a class="doc-anchor" href="#enums-with-payload">§</a>Enums With Payload</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>enum_map::Enum;
+
+<span class="attr">#[derive(Enum, Debug, PartialEq, Eq)]
+</span><span class="kw">enum </span>A {
+    B,
+    C,
+    D,
+}
+
+<span class="attr">#[derive(Enum, Debug, PartialEq, Eq)]
+</span><span class="kw">enum </span>X {
+    Y,
+    Z,
+}
+
+<span class="attr">#[derive(Enum, Debug, PartialEq, Eq)]
+</span><span class="kw">enum </span>Foo {
+    Bar(bool, A),
+    Empty,
+    Baz { fa: A, fx: X },
+}
+
+<span class="macro">assert_eq!</span>(Foo::Bar(<span class="bool-val">false</span>, A::B).into_usize(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(Foo::Bar(<span class="bool-val">false</span>, A::D).into_usize(), <span class="number">4</span>);
+<span class="macro">assert_eq!</span>(Foo::Bar(<span class="bool-val">true</span>, A::B).into_usize(), <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(Foo::Bar(<span class="bool-val">true</span>, A::C).into_usize(), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(Foo::Empty.into_usize(), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(Foo::Baz { fa: A::B, fx: X::Y }.into_usize(), <span class="number">7</span>);
+<span class="macro">assert_eq!</span>(Foo::Baz { fa: A::B, fx: X::Z }.into_usize(), <span class="number">10</span>);
+<span class="macro">assert_eq!</span>(Foo::Baz { fa: A::D, fx: X::Y }.into_usize(), <span class="number">9</span>);
+
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">0</span>), Foo::Bar(<span class="bool-val">false</span>, A::B));
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">4</span>), Foo::Bar(<span class="bool-val">false</span>, A::D));
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">1</span>), Foo::Bar(<span class="bool-val">true</span>, A::B));
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">3</span>), Foo::Bar(<span class="bool-val">true</span>, A::C));
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">6</span>), Foo::Empty);
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">7</span>), Foo::Baz { fa: A::B, fx: X::Y });
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">10</span>), Foo::Baz { fa: A::B, fx: X::Z });
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">9</span>), Foo::Baz { fa: A::D, fx: X::Y });
+</code></pre></div>
+<h3 id="structs"><a class="doc-anchor" href="#structs">§</a>Structs</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>enum_map::Enum;
+
+<span class="attr">#[derive(Enum, Debug, PartialEq, Eq)]
+</span><span class="kw">enum </span>A {
+    B,
+    C,
+    D,
+}
+
+<span class="attr">#[derive(Enum, Debug, PartialEq, Eq)]
+</span><span class="kw">enum </span>X {
+    Y,
+    Z,
+}
+
+<span class="attr">#[derive(Enum, Debug, PartialEq, Eq)]
+</span><span class="kw">struct </span>Foo {
+    bar: bool,
+    baz: A,
+    end: X,
+}
+
+<span class="macro">assert_eq!</span>(Foo { bar: <span class="bool-val">false</span>, baz: A::B, end: X::Y }.into_usize(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(Foo { bar: <span class="bool-val">true</span>, baz: A::B, end: X::Y }.into_usize(), <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(Foo { bar: <span class="bool-val">false</span>, baz: A::D, end: X::Y }.into_usize(), <span class="number">4</span>);
+<span class="macro">assert_eq!</span>(Foo { bar: <span class="bool-val">true</span>, baz: A::C, end: X::Z }.into_usize(), <span class="number">9</span>);
+
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">0</span>), Foo { bar: <span class="bool-val">false</span>, baz: A::B, end: X::Y });
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">1</span>), Foo { bar: <span class="bool-val">true</span>, baz: A::B, end: X::Y });
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">4</span>), Foo { bar: <span class="bool-val">false</span>, baz: A::D, end: X::Y });
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">9</span>), Foo { bar: <span class="bool-val">true</span>, baz: A::C, end: X::Z });</code></pre></div>
+<h3 id="tuple-structs"><a class="doc-anchor" href="#tuple-structs">§</a>Tuple Structs</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>enum_map::Enum;
+
+<span class="attr">#[derive(Enum, Debug, PartialEq, Eq)]
+</span><span class="kw">enum </span>A {
+    B,
+    C,
+    D,
+}
+
+<span class="attr">#[derive(Enum, Debug, PartialEq, Eq)]
+</span><span class="kw">enum </span>X {
+    Y,
+    Z,
+}
+
+<span class="attr">#[derive(Enum, Debug, PartialEq, Eq)]
+</span><span class="kw">struct </span>Foo(bool, A, X);
+
+<span class="macro">assert_eq!</span>(Foo(<span class="bool-val">false</span>, A::B, X::Y ).into_usize(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(Foo(<span class="bool-val">true</span>, A::B, X::Y ).into_usize(), <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(Foo(<span class="bool-val">false</span>, A::D, X::Y ).into_usize(), <span class="number">4</span>);
+<span class="macro">assert_eq!</span>(Foo(<span class="bool-val">true</span>, A::C, X::Z ).into_usize(), <span class="number">9</span>);
+
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">0</span>), Foo(<span class="bool-val">false</span>, A::B, X::Y));
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">1</span>), Foo(<span class="bool-val">true</span>, A::B, X::Y));
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">4</span>), Foo(<span class="bool-val">false</span>, A::D, X::Y));
+<span class="macro">assert_eq!</span>(Foo::from_usize(<span class="number">9</span>), Foo(<span class="bool-val">true</span>, A::C, X::Z));</code></pre></div>
+</div></details></section></div></main></body></html>

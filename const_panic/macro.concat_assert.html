@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Asserts that `$condition` is true."><title>concat_assert in const_panic - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="const_panic" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0 (9fc6b4312 2025-01-07)" data-channel="1.84.0" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../const_panic/index.html">const_<wbr>panic</a><span class="version">0.2.12</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">concat_<wbr>assert</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li><li><a href="#formatted-assertion" title="Formatted assertion">Formatted assertion</a></li><li><a href="#more-formatting" title="More formatting">More formatting</a></li><li><a href="#unformatted-assertion" title="Unformatted assertion">Unformatted assertion</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate const_<wbr>panic</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="index.html">const_panic</a></span><h1>Macro <span class="macro">concat_assert</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/const_panic/macros/concat_assert.rs.html#114-124">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! concat_assert {
+    ($condition:expr $(,)?) =&gt; { ... };
+    ($condition:expr, $($fmt:tt)*) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Asserts that <code>$condition</code> is true.</p>
+<p>When only the <code>$condition</code> argument is passed,
+this delegates to the <a href="https://doc.rust-lang.org/1.84.0/core/macro.assert.html" title="macro core::assert"><code>core::assert</code></a> macro.</p>
+<p>When two or more arguments are passed,
+this panics with formatting by delegating the second and remaining arguments
+to the <a href="macro.concat_panic.html" title="macro const_panic::concat_panic"><code>concat_panic</code></a> macro.</p>
+<h4 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h4><h4 id="formatted-assertion"><a class="doc-anchor" href="#formatted-assertion">§</a>Formatted assertion</h4>
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>const_panic::concat_assert;
+
+<span class="kw">const </span>ONE: Even = Even::new(<span class="number">1</span>);
+
+<span class="kw">struct </span>Even(u32);
+
+<span class="kw">impl </span>Even {
+    <span class="attr">#[track_caller]
+    </span><span class="kw">const fn </span>new(n: u32) -&gt; <span class="self">Self </span>{
+        <span class="macro">concat_assert!</span>(n % <span class="number">2 </span>== <span class="number">0</span>, <span class="string">"\nexpected the argument to be even, found: "</span>, n);
+         
+        Even(n)
+    }
+}</code></pre></div>
+<p>the above code errors with this message:</p>
+<div class="example-wrap"><pre class="language-text"><code>error[E0080]: evaluation of constant value failed
+ --&gt; src/macros/concat_assert.rs:16:19
+  |
+4 | const ONE: Even = Even::new(1);
+  |                   ^^^^^^^^^^^^ the evaluated program panicked at &#39;
+expected the argument to be even, found: 1&#39;, src/macros/concat_assert.rs:4:19
+</code></pre></div><h4 id="more-formatting"><a class="doc-anchor" href="#more-formatting">§</a>More formatting</h4>
+<p>This example demonstrates what error non-<code>#[track_caller]</code> functions produce,
+and uses the <code>"non_basic"</code> feature(enabled by default).</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>const_panic::concat_assert;
+
+<span class="kw">const </span>SUM: u64 = sum(<span class="kw-2">&amp;</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>], <span class="number">1</span>..<span class="number">40</span>);
+
+<span class="kw">const fn </span>sum(<span class="kw-2">mut </span>slice: <span class="kw-2">&amp;</span>[u32], range: std::ops::Range&lt;usize&gt;) -&gt; u64 {
+    <span class="macro">concat_assert!</span>(
+        range.start &lt;= range.end &amp;&amp; range.end &lt;= slice.len(),
+        <span class="string">"\ncannot index slice of length `"</span>, slice.len(),
+        <span class="string">"` with `"</span>, range, <span class="string">"` range"
+    </span>);
+     
+    <span class="kw">let </span><span class="kw-2">mut </span>sum = <span class="number">0u64</span>;
+     
+    <span class="kw">while let </span>[curr, <span class="kw-2">ref </span>rem @ ..] = <span class="kw-2">*</span>slice {
+        sum += curr <span class="kw">as </span>u64;
+         
+        slice = rem;
+    }
+     
+    sum
+}</code></pre></div>
+<p>the above code errors with this message:</p>
+<div class="example-wrap"><pre class="language-text"><code>error[E0080]: evaluation of constant value failed
+  --&gt; src/macros/concat_assert.rs:52:5
+   |
+6  |   const SUM: u64 = sum(&amp;[3, 5, 8], 1..40);
+   |                    ---------------------- inside `SUM` at src/macros/concat_assert.rs:6:18
+...
+9  | /     concat_assert!(
+10 | |         range.start &lt;= range.end &amp;&amp; range.end &lt;= slice.len(),
+11 | |         &quot;\ncannot index slice of length `&quot;, slice.len(),
+12 | |         &quot;` with `&quot;, range, &quot;` range&quot;
+13 | |     );
+   | |     ^
+   | |     |
+   | |_____the evaluated program panicked at &#39;
+cannot index slice of length `3` with `1..40` range&#39;, src/macros/concat_assert.rs:9:5
+   |       inside `_doctest_main_src_macros_concat_assert_rs_46_0::sum` at /home/matias/Documents/proyectos programacion/const_panic/src/macros.rs:240:21
+   |
+   = note: this error originates in the macro `$crate::concat_panic` (in Nightly builds, run with -Z macro-backtrace for more info)</code></pre></div><h4 id="unformatted-assertion"><a class="doc-anchor" href="#unformatted-assertion">§</a>Unformatted assertion</h4>
+<p>When only the <code>$condition</code> argument is passed,
+this delegates to the <a href="https://doc.rust-lang.org/1.84.0/core/macro.assert.html" title="macro core::assert"><code>core::assert</code></a> macro.</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>const_panic::concat_assert;
+
+<span class="kw">const _</span>: () = <span class="macro">concat_assert!</span>(<span class="macro">cfg!</span>(any(feature = <span class="string">"foo"</span>, feature = <span class="string">"bar"</span>)) );</code></pre></div>
+<p>the above code errors with this message:</p>
+<div class="example-wrap"><pre class="language-text"><code>error[E0080]: evaluation of constant value failed
+ --&gt; src/macros/concat_assert.rs:48:15
+  |
+6 | const _: () = concat_assert!(cfg!(any(feature = &quot;foo&quot;, feature = &quot;bar&quot;)) );
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at &#39;assertion failed: cfg!(any(feature = \&quot;foo\&quot;, feature = \&quot;bar\&quot;))&#39;, src/macros/concat_assert.rs:6:15
+  |
+  = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)</code></pre></div></div></details></section></div></main></body></html>
