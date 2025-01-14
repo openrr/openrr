@@ -82,7 +82,7 @@ pub(crate) fn gen(workspace_root: &Path) -> Result<()> {
                                 sabi_args.push(quote! { &#pat.into() });
                                 continue;
                             }
-                            let t = if is_vec(&arg.ty).map_or(false, |ty| !is_primitive(ty)) {
+                            let t = if is_vec(&arg.ty).is_some_and(|ty| !is_primitive(ty)) {
                                 quote! { #pat.into_iter().map(Into::into).collect() }
                             } else {
                                 quote! { #pat.into() }
@@ -94,8 +94,8 @@ pub(crate) fn gen(workspace_root: &Path) -> Result<()> {
                 }
                 let (return_result, is_vec) = match &method.sig.output {
                     syn::ReturnType::Type(_, ty) => match is_result(ty) {
-                        Some(ty) => (true, is_vec(ty).map_or(false, |ty| !is_primitive(ty))),
-                        None => (false, is_vec(ty).map_or(false, |ty| !is_primitive(ty))),
+                        Some(ty) => (true, is_vec(ty).is_some_and(|ty| !is_primitive(ty))),
+                        None => (false, is_vec(ty).is_some_and(|ty| !is_primitive(ty))),
                     },
                     syn::ReturnType::Default => (false, false),
                 };
