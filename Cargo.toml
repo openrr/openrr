@@ -65,7 +65,6 @@ openrr-tracing = { version = "0.1.0", default-features = false }
 abi_stable = "0.11"
 anyhow = "1"
 assert_approx_eq = "1.1"
-assimp = "0.3"
 async-ffi = { version = "0.5", features = ["abi_stable"] }
 async-recursion = "1"
 async-trait = "0.1"
