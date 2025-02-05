@@ -75,8 +75,8 @@ clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
 criterion = "0.5"
 easy-ext = "1"
-eframe = "0.30"
-egui_extras = "0.30"
+eframe = "0.31"
+egui_extras = "0.31"
 flaky_test = "0.2"
 flume = "0.11"
 fs-err = "3"
@@ -94,13 +94,13 @@ nix = { version = "0.29", features = ["signal"] }
 num-traits = "0.2"
 paste = "1"
 portpicker = "0.1"
-prettyplease = "=0.2.27"
+prettyplease = "=0.2.29"
 proc-macro2 = "1"
 prost = "0.13"
 prost-types = "0.13"
 quote = "1"
 r2r = "0.9"
-rand = "0.8"
+rand = "0.9"
 rayon = "1.5"
 rodio = "0.20"
 ros-nalgebra = "0.1"
@@ -130,7 +130,7 @@ tracing-subscriber = { version = "0.3", default-features = false, features = ["a
 trajectory = "0.1"
 urdf-rs = "0.9"
 urdf-viz = "0.46"
-ureq = { version = "2", features = ["json"] }
+ureq = { version = "3", features = ["json"] }
 url = "2"
 
 [workspace.lints.rust]
