@@ -166,8 +166,6 @@ openrr-remote = { path = "openrr-remote" }
 openrr-teleop = { path = "openrr-teleop" }
 openrr-tracing = { path = "openrr-tracing" }
 
-xml-rs = { version = "0.3", git = "https://github.com/kornelski/xml-rs.git", tag = "0.3.6" } # https://github.com/adnanademovic/rosrust/issues/210
-
 [profile.release]
 lto = true
 codegen-units = 1
