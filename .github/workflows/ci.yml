@@ -158,10 +158,10 @@ jobs:
           apt-get -y install curl libclang-dev
           apt-get -y install ros-$ROS2_DISTRO-geometry-msgs ros-$ROS2_DISTRO-nav2-msgs ros-$ROS2_DISTRO-ros2-control ros-$ROS2_DISTRO-ros2-controllers ros-$ROS2_DISTRO-tf2-msgs
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with:
-          # rust-cache does not recognize the matrix.
-          key: ros2_arci_ros2-${{ matrix.distro }}
+      # - uses: Swatinem/rust-cache@v2
+      #   with:
+      #     # rust-cache does not recognize the matrix.
+      #     key: ros2_arci_ros2-${{ matrix.distro }}
       - run: ci/ubuntu-setup-lld.sh
       - name: cargo build
         shell: bash -ieo pipefail {0}
