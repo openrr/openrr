@@ -37,6 +37,41 @@ sudo apt install cmake build-essential libudev-dev xorg-dev libglu1-mesa-dev lib
 
 ## Architecture
 
+```mermaid
+graph TD;
+    subgraph openrr[ ]
+        apps
+        openrr-libs
+        arci
+        arci-implementations
+    end
+    subgraph apps[ ]
+        openrr-apps
+        your-apps["Your Applications"]
+    end
+    subgraph openrr-libs[ ]
+        openrr-client
+        openrr-teleop
+        openrr-libs-other[...]
+    end
+    subgraph arci-implementations[ ]
+        arci-ros
+        arci-ros2
+        arci-urdf-viz
+    end
+    openrr-client --> openrr-apps;
+    openrr-client --> your-apps;
+    openrr-teleop --> openrr-apps;
+    arci["arci (Abstract Robot Control Interface)"] --> openrr-client;
+    arci --> openrr-teleop;
+    arci-ros --> arci;
+    arci-ros2 --> arci;
+    arci-urdf-viz --> arci;
+    ROS --> arci-ros;
+    ROS2 --> arci-ros2;
+    urdf-viz --> arci-urdf-viz;
+```
+
 ![architecture](https://raw.githubusercontent.com/openrr/openrr/main/img/architecture.png)
 
 `arci` is a hardware abstraction layer for openrr.

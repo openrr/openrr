@@ -21,8 +21,8 @@ ignore = [
 # https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html
 [bans]
 multiple-versions = "allow" # TODO
-wildcards = "allow" # https://github.com/EmbarkStudios/cargo-deny/issues/448
-skip = []
+wildcards = "deny"
+allow-wildcard-paths = true
 
 # https://embarkstudios.github.io/cargo-deny/checks/licenses/cfg.html
 [licenses]
@@ -54,4 +54,5 @@ license-files = [
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
-allow-git = []
+allow-git = [
+]
