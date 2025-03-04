@@ -90,7 +90,7 @@ where
             }
             let mut new_angles = generate_random_joint_positions_from_limits(&limits);
             modify_to_nearest_angle(&initial_angles, &mut new_angles, &limits);
-            arm.set_joint_positions(&new_angles)?;
+            arm.set_joint_positions_with_constraints(&new_angles, constraints)?;
         }
         // failed
         tracing::debug!(
