@@ -1,6 +1,7 @@
 # https://embarkstudios.github.io/cargo-deny/checks/advisories/cfg.html
 [advisories]
 yanked = "deny"
+unmaintained = "none"
 ignore = [
     "RUSTSEC-2020-0027", # traitobject 0.1, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2020-0071", # time 0.1, transitively dep of rosrust (via xml-rpc)
@@ -8,14 +9,6 @@ ignore = [
     "RUSTSEC-2021-0079", # hyper 0.10, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2022-0022", # hyper 0.10, transitively dep of rosrust (via xml-rpc)
     "RUSTSEC-2024-0421", # idna <1.0.3, transitively dep of rosrust (via xml-rpc)
-    "RUSTSEC-2021-0144", # unmaintained (traitobject), transitively dep of rosrust (via xml-rpc)
-    "RUSTSEC-2021-0146", # unmaintained (twoway), transitively dep of rosrust (via xml-rpc)
-    "RUSTSEC-2021-0150", # unmaintained (ncollide3d)
-    "RUSTSEC-2023-0028", # unmaintained (buf_redux), transitively dep of rosrust (via xml-rpc)
-    "RUSTSEC-2023-0050", # unmaintained (multipart), transitively dep of rosrust (via xml-rpc)
-    "RUSTSEC-2023-0081", # unmaintained (safemem), transitively dep of rosrust (via xml-rpc)
-    "RUSTSEC-2024-0014", # unmaintained (generational-arena), dep of abi_stable
-    "RUSTSEC-2024-0320", # unmaintained (yaml-rust), dep of rosrust
 ]
 
 # https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html
