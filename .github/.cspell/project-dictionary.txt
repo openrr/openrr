@@ -40,7 +40,6 @@ nanos
 nanosec
 nomotion
 nsec
-odometry
 oneshot
 pathplanning
 peekable
@@ -63,7 +62,6 @@ rustflags
 RUSTSEC
 rviz
 sabi
-safemem
 slerp
 smilerobotics
 srvs
@@ -81,7 +79,6 @@ traj
 trajs
 trimesh
 turtlebot
-twoway
 undock
 unistd
 unparse
