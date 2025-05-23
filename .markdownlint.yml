@@ -4,3 +4,4 @@ MD013: false # line-length
 MD024: false # no-duplicate-heading/no-duplicate-header
 MD033: false # no-inline-html
 MD036: false # no-emphasis-as-heading/no-emphasis-as-header
+MD059: false # descriptive-link-text # TODO
