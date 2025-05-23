@@ -1,0 +1,1 @@
+searchState.loadedDescShard("r2r_actions", 0, "If Bindgen could only determine the size and alignment of a\nReturns the argument unchanged.\nReturns the argument unchanged.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.")

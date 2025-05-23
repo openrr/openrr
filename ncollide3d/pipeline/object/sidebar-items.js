@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["GeometricQueryType"],"struct":["CollisionGroups","CollisionGroupsPairFilter","CollisionObject","CollisionObjectSlab","CollisionObjectSlabHandle","CollisionObjectUpdateFlags","CollisionObjects"],"trait":["CollisionObjectHandle","CollisionObjectRef","CollisionObjectSet"]};

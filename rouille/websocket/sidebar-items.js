@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Message","SendError","WebsocketError"],"fn":["requested_protocols","start"],"struct":["RequestedProtocolsIter","Websocket"]};

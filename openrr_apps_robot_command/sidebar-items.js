@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["main","shell_completion"],"struct":["RobotCommandArgs"]};

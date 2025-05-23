@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Axis","AxisOrBtn","Button","EventType"],"mod":["filter","state"],"struct":["Code","Event"]};
