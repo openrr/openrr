@@ -350,22 +350,28 @@ jobs:
         if: github.repository_owner == 'openrr' && (github.event_name == 'schedule' || github.event_name == 'push' && github.ref == 'refs/heads/main') && steps.diff.outputs.success == 'false'
 
   coverage:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 120
+    container:
+      image: ubuntu:20.04
     steps:
       - uses: actions/checkout@v4
       - uses: taiki-e/install-action@protoc
+      - run: |
+          apt-get update
+          apt-get install -y \
+            gnupg g++ lsb-release sudo
       - run: ci/free-device-space.sh
       - run: ci/ubuntu-install-dependencies.sh
       - run: ci/ubuntu-setup-lld.sh
       - name: Install ROS1
         run: |
           # ros1
-          sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-          sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+          sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+          apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 
-          sudo apt-get update
-          sudo apt-get install -y \
+          apt-get update
+          apt-get install -y \
             ros-noetic-ros-base ros-noetic-joy ros-noetic-pr2-description
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
