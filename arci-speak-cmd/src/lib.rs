@@ -56,10 +56,9 @@ fn run_local_command(message: &str) -> io::Result<()> {
     if status.success() {
         Ok(())
     } else {
-        Err(io::Error::new(
-            io::ErrorKind::Other,
-            format!("failed to run `{CMD_NAME}` with message {message:?}"),
-        ))
+        Err(io::Error::other(format!(
+            "failed to run `{CMD_NAME}` with message {message:?}"
+        )))
     }
 }
 
@@ -73,10 +72,9 @@ fn run_local_command(message: &str) -> io::Result<()> {
     if status.success() {
         Ok(())
     } else {
-        Err(io::Error::new(
-            io::ErrorKind::Other,
-            format!("failed to run `powershell` with message {message:?}"),
-        ))
+        Err(io::Error::other(format!(
+            "failed to run `powershell` with message {message:?}"
+        )))
     }
 }
 
