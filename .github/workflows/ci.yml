@@ -67,7 +67,7 @@ jobs:
       - run: cargo test --workspace --exclude arci-ros --exclude arci-ros2 --exclude openrr-apps
       - name: cargo test (openrr-apps without ros)
         working-directory: openrr-apps
-        run: cargo test --no-default-features --features gui,assimp
+        run: cargo test --no-default-features --features gui
 
   ros1_arci_ros:
     strategy:
@@ -130,7 +130,7 @@ jobs:
         run: |
           source /opt/ros/${{ matrix.distro }}/setup.bash
           rosdep install -y -i --from-paths .
-          cargo test --no-default-features --features ros,assimp
+          cargo test --no-default-features --features ros
 
   ros2_arci_ros2:
     strategy:
