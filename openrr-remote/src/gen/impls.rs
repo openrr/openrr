@@ -996,3 +996,165 @@ where
         Ok(tonic::Response::new(res))
     }
 }
+impl From<arci::TrajectoryPoint> for pb::TrajectoryPoint {
+    fn from(v: arci::TrajectoryPoint) -> Self {
+        let arci::TrajectoryPoint { positions, velocities, time_from_start } = v;
+        Self {
+            positions,
+            velocities: velocities.unwrap_or_default(),
+            time_from_start: Some(time_from_start.try_into().unwrap()),
+        }
+    }
+}
+impl From<pb::TrajectoryPoint> for arci::TrajectoryPoint {
+    fn from(v: pb::TrajectoryPoint) -> Self {
+        let pb::TrajectoryPoint { positions, velocities, time_from_start } = v;
+        Self {
+            positions,
+            velocities: if velocities.is_empty() { None } else { Some(velocities) },
+            time_from_start: time_from_start.unwrap().try_into().unwrap(),
+        }
+    }
+}
+impl From<arci::Scan2D> for pb::Scan2D {
+    fn from(v: arci::Scan2D) -> Self {
+        let arci::Scan2D {
+            angle_min,
+            angle_max,
+            angle_increment,
+            time_increment,
+            scan_time,
+            range_min,
+            range_max,
+            ranges,
+            intensities,
+        } = v;
+        Self {
+            angle_min,
+            angle_max,
+            angle_increment,
+            time_increment,
+            scan_time,
+            range_min,
+            range_max,
+            ranges,
+            intensities,
+        }
+    }
+}
+impl From<pb::Scan2D> for arci::Scan2D {
+    fn from(v: pb::Scan2D) -> Self {
+        let pb::Scan2D {
+            angle_min,
+            angle_max,
+            angle_increment,
+            time_increment,
+            scan_time,
+            range_min,
+            range_max,
+            ranges,
+            intensities,
+        } = v;
+        Self {
+            angle_min,
+            angle_max,
+            angle_increment,
+            time_increment,
+            scan_time,
+            range_min,
+            range_max,
+            ranges,
+            intensities,
+        }
+    }
+}
+impl From<arci::BaseVelocity> for pb::BaseVelocity {
+    fn from(v: arci::BaseVelocity) -> Self {
+        let arci::BaseVelocity { x, y, theta } = v;
+        Self { x, y, theta }
+    }
+}
+impl From<pb::BaseVelocity> for arci::BaseVelocity {
+    fn from(v: pb::BaseVelocity) -> Self {
+        let pb::BaseVelocity { x, y, theta } = v;
+        Self { x, y, theta }
+    }
+}
+impl From<arci::gamepad::Button> for pb::Button {
+    fn from(v: arci::gamepad::Button) -> Self {
+        match v {
+            arci::gamepad::Button::South => Self::South,
+            arci::gamepad::Button::East => Self::East,
+            arci::gamepad::Button::North => Self::North,
+            arci::gamepad::Button::West => Self::West,
+            arci::gamepad::Button::LeftTrigger => Self::LeftTrigger,
+            arci::gamepad::Button::LeftTrigger2 => Self::LeftTrigger2,
+            arci::gamepad::Button::RightTrigger => Self::RightTrigger,
+            arci::gamepad::Button::RightTrigger2 => Self::RightTrigger2,
+            arci::gamepad::Button::Select => Self::Select,
+            arci::gamepad::Button::Start => Self::Start,
+            arci::gamepad::Button::Mode => Self::Mode,
+            arci::gamepad::Button::LeftThumb => Self::LeftThumb,
+            arci::gamepad::Button::RightThumb => Self::RightThumb,
+            arci::gamepad::Button::DPadUp => Self::DPadUp,
+            arci::gamepad::Button::DPadDown => Self::DPadDown,
+            arci::gamepad::Button::DPadLeft => Self::DPadLeft,
+            arci::gamepad::Button::DPadRight => Self::DPadRight,
+            arci::gamepad::Button::Unknown => Self::Unknown,
+        }
+    }
+}
+impl From<pb::Button> for arci::gamepad::Button {
+    fn from(v: pb::Button) -> Self {
+        match v {
+            pb::Button::South => Self::South,
+            pb::Button::East => Self::East,
+            pb::Button::North => Self::North,
+            pb::Button::West => Self::West,
+            pb::Button::LeftTrigger => Self::LeftTrigger,
+            pb::Button::LeftTrigger2 => Self::LeftTrigger2,
+            pb::Button::RightTrigger => Self::RightTrigger,
+            pb::Button::RightTrigger2 => Self::RightTrigger2,
+            pb::Button::Select => Self::Select,
+            pb::Button::Start => Self::Start,
+            pb::Button::Mode => Self::Mode,
+            pb::Button::LeftThumb => Self::LeftThumb,
+            pb::Button::RightThumb => Self::RightThumb,
+            pb::Button::DPadUp => Self::DPadUp,
+            pb::Button::DPadDown => Self::DPadDown,
+            pb::Button::DPadLeft => Self::DPadLeft,
+            pb::Button::DPadRight => Self::DPadRight,
+            pb::Button::Unknown => Self::Unknown,
+        }
+    }
+}
+impl From<arci::gamepad::Axis> for pb::Axis {
+    fn from(v: arci::gamepad::Axis) -> Self {
+        match v {
+            arci::gamepad::Axis::LeftStickX => Self::LeftStickX,
+            arci::gamepad::Axis::LeftStickY => Self::LeftStickY,
+            arci::gamepad::Axis::LeftTrigger => Self::LeftTrigger,
+            arci::gamepad::Axis::RightStickX => Self::RightStickX,
+            arci::gamepad::Axis::RightStickY => Self::RightStickY,
+            arci::gamepad::Axis::RightTrigger => Self::RightTrigger,
+            arci::gamepad::Axis::DPadX => Self::DPadX,
+            arci::gamepad::Axis::DPadY => Self::DPadY,
+            arci::gamepad::Axis::Unknown => Self::Unknown,
+        }
+    }
+}
+impl From<pb::Axis> for arci::gamepad::Axis {
+    fn from(v: pb::Axis) -> Self {
+        match v {
+            pb::Axis::LeftStickX => Self::LeftStickX,
+            pb::Axis::LeftStickY => Self::LeftStickY,
+            pb::Axis::LeftTrigger => Self::LeftTrigger,
+            pb::Axis::RightStickX => Self::RightStickX,
+            pb::Axis::RightStickY => Self::RightStickY,
+            pb::Axis::RightTrigger => Self::RightTrigger,
+            pb::Axis::DPadX => Self::DPadX,
+            pb::Axis::DPadY => Self::DPadY,
+            pb::Axis::Unknown => Self::Unknown,
+        }
+    }
+}
