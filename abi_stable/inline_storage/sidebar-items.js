@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["alignment"],"trait":["AlignerFor","InlineStorage"],"type":["GetAlignerFor"]};

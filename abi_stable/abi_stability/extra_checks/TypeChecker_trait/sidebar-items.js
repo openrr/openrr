@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["TypeChecker_Interface","TypeChecker_TO"],"trait":["TypeChecker"],"type":["TypeChecker_Backend","TypeChecker_CTO"]};

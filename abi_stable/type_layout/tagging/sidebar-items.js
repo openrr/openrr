@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CTVariant","Primitive","TagVariant"],"struct":["CheckableTag","FromLiteral","KeyValue","Tag","TagErrors"]};

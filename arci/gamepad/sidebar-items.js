@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Axis","Button","GamepadEvent"],"trait":["Gamepad"]};

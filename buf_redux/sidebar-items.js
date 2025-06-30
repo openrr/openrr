@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["copy_buf","set_drop_err_handler"],"macro":["do_read","flush_amt"],"mod":["policy"],"struct":["BufReader","BufWriter","Buffer","IntoInnerError","LineWriter","Unbuffer"]};

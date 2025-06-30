@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PathSample"],"struct":["ArrowheadCap","NoCap","PolylinePath","PolylinePattern"],"trait":["CurveSampler","PolylineCompatibleCap","StrokePattern"]};

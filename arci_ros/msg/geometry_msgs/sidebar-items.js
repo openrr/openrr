@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Point","Pose","PoseStamped","PoseWithCovariance","PoseWithCovarianceStamped","Quaternion","Transform","Twist","Vector3"]};

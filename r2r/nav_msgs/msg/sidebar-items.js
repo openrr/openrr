@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Goals","GridCells","MapMetaData","OccupancyGrid","Odometry","Path"]};

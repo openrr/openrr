@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BVHImpl","BVTNodeId","BestFirstVisitStatus","BinaryPartition","DBVTNodeId","VisitStatus"],"struct":["BVT","DBVT","DBVTLeaf","DBVTLeafId"],"trait":["BVH","BestFirstVisitor","SimultaneousVisitor","Visitor"]};
