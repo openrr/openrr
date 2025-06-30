@@ -226,7 +226,7 @@ mod tests {
                             check_command(&robot_command, log, command_path);
                         }
                         Err(err) => {
-                            error!("Error in {:?}: {}", command_file_path, err);
+                            error!("Error in {command_file_path:?}: {err}");
                             log.push(false);
                         }
                     }

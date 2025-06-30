@@ -65,7 +65,7 @@ async fn main() -> Result<()> {
 
     let test_name = "test_send_velocity";
     let client = influxdb::Client::new("http://127.0.0.1:8086", test_name);
-    let query = format!("CREATE DATABASE {}", test_name);
+    let query = format!("CREATE DATABASE {test_name}");
     client.query(influxdb::ReadQuery::new(query)).await.unwrap();
     for v in v.iter().rev() {
         let _res = client.query(v).await;

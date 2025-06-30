@@ -53,7 +53,7 @@ impl MotorDriveVelocity for JointVelocityController {
             .publisher
             .send(Float64 { data: vel })
             .map_err(|e| arci::Error::Connection {
-                message: format!("Error to publish motor velocity. \"{:?}\"", e),
+                message: format!("Error to publish motor velocity. \"{e:?}\""),
             })
     }
 
