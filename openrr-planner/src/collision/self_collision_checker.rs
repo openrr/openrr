@@ -150,7 +150,7 @@ where
             // Summarize the calculation time
             let mut vec_used: Vec<_> = self_checker.used_duration().iter().collect();
             vec_used.sort_by(|a, b| b.1.cmp(a.1));
-            let sum_duration: Duration = self_checker.used_duration().iter().map(|(_k, v)| v).sum();
+            let sum_duration: Duration = self_checker.used_duration().values().sum();
             debug!("total: {sum_duration:?}");
             debug!("detailed: {vec_used:?}");
         }
