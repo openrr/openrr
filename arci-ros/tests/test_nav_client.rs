@@ -28,14 +28,12 @@ fn test_nav_client() {
     let _roscore = run_roscore_and_rosrust_init_once("arci_ros_nav_client_test");
 
     let (goal_rx, _goal_subscriber) = subscribe_with_channel::<move_base_msgs::MoveBaseActionGoal>(
-        &format!("{}/goal", MOVE_BASE_ACTION),
+        &format!("{MOVE_BASE_ACTION}/goal"),
         1,
     );
 
-    let (_cancel_rx, _cancel_subscriber) = subscribe_with_channel::<actionlib_msgs::GoalID>(
-        &format!("{}/cancel", MOVE_BASE_ACTION),
-        1,
-    );
+    let (_cancel_rx, _cancel_subscriber) =
+        subscribe_with_channel::<actionlib_msgs::GoalID>(&format!("{MOVE_BASE_ACTION}/cancel"), 1);
 
     let client = arci_ros::RosNavClient::new(
         false,
