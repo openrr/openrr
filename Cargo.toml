@@ -79,7 +79,7 @@ heck = "0.4"
 image = { version = "0.24", default-features = false }
 indexmap = "2"
 influxdb = "0.7"
-k = { git = "ssh://git@github.com/rocsys/k.git", branch = "main" }
+k = { git = "https://github.com/rocsys/k.git", branch = "main" }
 mesh-loader = "0.1.4"
 nalgebra = "0.30"
 ncollide3d = "0.33"
