@@ -80,8 +80,7 @@ fn create_joint_trajectory_clients_inner(
         all_client.run_send_joint_positions_thread();
         Ok(all_client)
     };
-    let all_client: Arc<dyn JointTrajectoryClient> = if lazy && urdf_robot.is_some() {
-        let urdf_robot = urdf_robot.as_ref().unwrap();
+    let all_client: Arc<dyn JointTrajectoryClient> = if lazy && let Some(urdf_robot) = &urdf_robot {
         Arc::new(arci::Lazy::with_joint_names(
             create_all_client,
             urdf_robot
