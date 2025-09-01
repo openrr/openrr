@@ -8,13 +8,13 @@ use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
-    visit_mut::{self, VisitMut},
     Ident, ItemTrait,
+    visit_mut::{self, VisitMut},
 };
 
 use super::*;
 
-pub(crate) fn gen(workspace_root: &Path) -> Result<()> {
+pub(crate) fn r#gen(workspace_root: &Path) -> Result<()> {
     const FULLY_IGNORE: &[&str] = &["SetCompleteCondition"];
     const IGNORE: &[&str] = &["JointTrajectoryClient", "SetCompleteCondition", "Gamepad"];
 

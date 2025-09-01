@@ -2,7 +2,7 @@ use std::{path::Path, sync::Arc};
 
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
 use openrr_planner::{
-    collision::create_self_collision_checker, SelfCollisionChecker, SelfCollisionCheckerConfig,
+    SelfCollisionChecker, SelfCollisionCheckerConfig, collision::create_self_collision_checker,
 };
 
 pub struct CollisionCheckClient<T>
@@ -118,15 +118,19 @@ mod tests {
             vec![0.0; 8]
         );
 
-        assert!(collision_check_client
-            .send_joint_positions(vec![0.0; 8], std::time::Duration::new(1, 0),)
-            .is_ok());
-        assert!(collision_check_client
-            .send_joint_positions(
-                vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                std::time::Duration::new(1, 0),
-            )
-            .is_err());
+        assert!(
+            collision_check_client
+                .send_joint_positions(vec![0.0; 8], std::time::Duration::new(1, 0),)
+                .is_ok()
+        );
+        assert!(
+            collision_check_client
+                .send_joint_positions(
+                    vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                    std::time::Duration::new(1, 0),
+                )
+                .is_err()
+        );
     }
 
     #[tokio::test]
@@ -160,23 +164,31 @@ mod tests {
             vec![0.0; 2]
         );
 
-        assert!(collision_check_client
-            .send_joint_positions(vec![0.0; 2], std::time::Duration::new(1, 0),)
-            .is_ok());
-        assert!(collision_check_client
-            .send_joint_positions(vec![1.57, 0.0], std::time::Duration::new(1, 0),)
-            .is_err());
+        assert!(
+            collision_check_client
+                .send_joint_positions(vec![0.0; 2], std::time::Duration::new(1, 0),)
+                .is_ok()
+        );
+        assert!(
+            collision_check_client
+                .send_joint_positions(vec![1.57, 0.0], std::time::Duration::new(1, 0),)
+                .is_err()
+        );
 
         let point_ok = TrajectoryPoint::new([0.0; 2].to_vec(), std::time::Duration::new(1, 0));
         let trajectory_ok = vec![point_ok];
-        assert!(collision_check_client
-            .send_joint_trajectory(trajectory_ok)
-            .is_ok());
+        assert!(
+            collision_check_client
+                .send_joint_trajectory(trajectory_ok)
+                .is_ok()
+        );
 
         let point_err = TrajectoryPoint::new([1.57, 0.0].to_vec(), std::time::Duration::new(2, 0));
         let trajectory_err = vec![point_err];
-        assert!(collision_check_client
-            .send_joint_trajectory(trajectory_err)
-            .is_err());
+        assert!(
+            collision_check_client
+                .send_joint_trajectory(trajectory_err)
+                .is_err()
+        );
     }
 }

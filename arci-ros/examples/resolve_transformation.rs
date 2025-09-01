@@ -3,7 +3,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-use anyhow::{anyhow, Error};
+use anyhow::{Error, anyhow};
 use arci::TransformResolver;
 use arci_ros::RosTransformResolver;
 

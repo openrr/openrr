@@ -5,13 +5,13 @@ use std::{
 
 use arci::{nalgebra as na, *};
 use r2r::{
-    geometry_msgs::msg::{PoseWithCovariance, PoseWithCovarianceStamped},
     QosProfile,
+    geometry_msgs::msg::{PoseWithCovariance, PoseWithCovarianceStamped},
 };
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
-use crate::{utils, Node};
+use crate::{Node, utils};
 
 /// `arci::Localization` implementation for ROS2.
 pub struct Ros2LocalizationClient {

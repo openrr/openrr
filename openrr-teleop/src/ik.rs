@@ -4,8 +4,8 @@ use std::{
 };
 
 use arci::{
-    gamepad::{Axis, Button, GamepadEvent},
     JointTrajectoryClient, Speaker,
+    gamepad::{Axis, Button, GamepadEvent},
 };
 use async_trait::async_trait;
 use k::{Translation3, Vector3};

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use arci::{BaseVelocity, DummyMotorDriveVelocity, MotorDriveVelocity, MoveBase};
 use assert_approx_eq::assert_approx_eq;
-use openrr_base::{differential_drive::*, BaseAcceleration};
+use openrr_base::{BaseAcceleration, differential_drive::*};
 
 #[test]
 fn test_diff_drive() {

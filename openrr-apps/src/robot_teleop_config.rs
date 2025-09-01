@@ -11,7 +11,7 @@ use openrr_teleop::ControlModesConfig;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{resolve_plugin_path, Error};
+use crate::{Error, resolve_plugin_path};
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(rename_all = "kebab-case")]

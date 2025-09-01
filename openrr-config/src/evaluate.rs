@@ -1,6 +1,6 @@
 use std::{env, path::Path, process::Command};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 
 /// Evaluates the given string and returns a concatenated string of the results.
 ///
@@ -111,7 +111,7 @@ mod tests {
         );
         evaluate("$(echo a", None).unwrap_err();
         evaluate("${OPENRR_CONFIG_TEST_ENV}", None).unwrap_err();
-        env::set_var("OPENRR_CONFIG_TEST_ENV", "a");
+        unsafe { env::set_var("OPENRR_CONFIG_TEST_ENV", "a") }
         assert_eq!(evaluate("${OPENRR_CONFIG_TEST_ENV}", None).unwrap(), "a");
         assert_eq!(evaluate("${OPENRR_CONFIG_TEST_ENV}b", None).unwrap(), "ab");
         assert_eq!(evaluate("${OPENRR_CONFIG_TEST_ENV}}", None).unwrap(), "a}");

@@ -10,11 +10,11 @@ use arci::{
 use msg::trajectory_msgs::JointTrajectory;
 
 use crate::{
+    JointStateProvider, JointStateProviderFromJointTrajectoryControllerState,
+    LazyJointStateProvider, SubscriberHandler,
     create_joint_trajectory_message_for_send_joint_positions,
     create_joint_trajectory_message_for_send_joint_trajectory,
-    extract_current_joint_positions_from_state, msg, JointStateProvider,
-    JointStateProviderFromJointTrajectoryControllerState, LazyJointStateProvider,
-    SubscriberHandler,
+    extract_current_joint_positions_from_state, msg,
 };
 
 #[derive(Clone)]

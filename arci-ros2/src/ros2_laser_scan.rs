@@ -4,10 +4,10 @@ use std::{
 };
 
 use arci::*;
-use r2r::{sensor_msgs::msg::LaserScan, QosProfile};
+use r2r::{QosProfile, sensor_msgs::msg::LaserScan};
 use serde::{Deserialize, Serialize};
 
-use crate::{utils, Node};
+use crate::{Node, utils};
 
 /// `arci::LaserScan2D` implementation for ROS2.
 pub struct Ros2LaserScan2D {

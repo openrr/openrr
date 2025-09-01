@@ -9,19 +9,19 @@ use arci::{
     BaseVelocity, Error as ArciError, JointTrajectoryClient, JointTrajectoryClientsContainer,
     Localization, MoveBase, Navigation, Speaker, WaitFuture,
 };
-use k::{nalgebra::Isometry2, Chain, Isometry3};
+use k::{Chain, Isometry3, nalgebra::Isometry2};
 use openrr_planner::{
-    collision::parse_colon_separated_pairs, JointPathPlannerConfig, SelfCollisionChecker,
-    SelfCollisionCheckerConfig,
+    JointPathPlannerConfig, SelfCollisionChecker, SelfCollisionCheckerConfig,
+    collision::parse_colon_separated_pairs,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::{
-    create_collision_avoidance_client, create_collision_check_client, create_ik_solver_with_chain,
     CollisionAvoidanceClient, CollisionCheckClient, Error, IkClient, IkSolverConfig,
-    IkSolverWithChain,
+    IkSolverWithChain, create_collision_avoidance_client, create_collision_check_client,
+    create_ik_solver_with_chain,
 };
 
 type ArcCollisionAvoidanceClient = Arc<CollisionAvoidanceClient<Arc<dyn JointTrajectoryClient>>>;

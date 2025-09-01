@@ -258,9 +258,11 @@ async fn test_joint_positions() {
 
     // reference of the 4th joint (2.0) is larger than its upper limit (1.5)
     let invalid_positions = vec![0.1, -0.1, 1.0, 2.0, -1.0, 0.2];
-    assert!(client
-        .send_joint_positions("arm_collision_checked", &invalid_positions, 0.1)
-        .is_err());
+    assert!(
+        client
+            .send_joint_positions("arm_collision_checked", &invalid_positions, 0.1)
+            .is_err()
+    );
     let p2 = client.current_joint_positions("arm").unwrap();
     // positions are not changed with invalid commands
     for (l, r) in p2.iter().zip(valid_positions.iter()) {

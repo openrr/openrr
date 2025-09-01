@@ -1,7 +1,7 @@
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc, RwLock,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };
@@ -16,7 +16,7 @@ use r2r::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{utils, Node};
+use crate::{Node, utils};
 
 /// `arci::JointTrajectoryClient` implementation for ROS2.
 pub struct Ros2ControlClient {

@@ -5,9 +5,9 @@ mod shared;
 use std::time::Duration;
 
 use arci::MoveBase;
-use arci_ros2::{r2r, Ros2CmdVelMoveBase};
+use arci_ros2::{Ros2CmdVelMoveBase, r2r};
 use assert_approx_eq::assert_approx_eq;
-use r2r::{nav_msgs::msg::Odometry, QosProfile};
+use r2r::{QosProfile, nav_msgs::msg::Odometry};
 use shared::*;
 
 const ODOMETRY_TOPIC: &str = "/odom";

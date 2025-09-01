@@ -172,8 +172,8 @@ mod tests {
         DummyJointTrajectoryClient, DummyLocalization, DummyMoveBase, DummyNavigation, DummySpeaker,
     };
     use openrr_client::{
-        create_random_jacobian_ik_solver, IkSolverParameters, IkSolverWithChain,
-        OpenrrClientsConfig,
+        IkSolverParameters, IkSolverWithChain, OpenrrClientsConfig,
+        create_random_jacobian_ik_solver,
     };
 
     use super::*;

@@ -13,8 +13,8 @@ use async_recursion::async_recursion;
 use clap::Parser;
 use clap_complete::Shell;
 use k::nalgebra::{Isometry2, Vector2};
-use openrr_client::{isometry, RobotClient};
-use rustyline::{error::ReadlineError, DefaultEditor};
+use openrr_client::{RobotClient, isometry};
+use rustyline::{DefaultEditor, error::ReadlineError};
 use tracing::{error, info};
 
 use crate::Error as OpenrrCommandError;

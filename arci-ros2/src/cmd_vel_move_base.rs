@@ -7,7 +7,7 @@ use arci::*;
 use r2r::{geometry_msgs::msg::Twist, nav_msgs::msg::Odometry};
 use serde::{Deserialize, Serialize};
 
-use crate::{utils, Node};
+use crate::{Node, utils};
 
 /// `arci::MoveBase` implementation for ROS2.
 pub struct Ros2CmdVelMoveBase {

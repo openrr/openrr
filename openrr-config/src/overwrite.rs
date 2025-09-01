@@ -1,7 +1,7 @@
 use std::{iter, mem};
 
-use anyhow::{bail, Context, Result};
-use toml::{value, Value};
+use anyhow::{Context, Result, bail};
+use toml::{Value, value};
 use toml_query::{delete::TomlValueDeleteExt, insert::TomlValueInsertExt, read::TomlValueReadExt};
 use tracing::debug;
 
@@ -545,22 +545,25 @@ mod tests {
                 "urdf_viz_clients_configs[0].wrap_with_joint_position_limiter =",
             )
             .unwrap();
-            assert!(v
-                .read("urdf_viz_clients_configs[0].wrap_with_joint_position_limiter")
-                .unwrap()
-                .is_none());
+            assert!(
+                v.read("urdf_viz_clients_configs[0].wrap_with_joint_position_limiter")
+                    .unwrap()
+                    .is_none()
+            );
             overwrite(
                 v,
                 "urdf_viz_clients_configs[0].wrap_with_joint_position_limiter = false",
             )
             .unwrap();
-            assert!(!read(
-                v,
-                "urdf_viz_clients_configs[0].wrap_with_joint_position_limiter"
-            )
-            .unwrap()
-            .as_bool()
-            .unwrap());
+            assert!(
+                !read(
+                    v,
+                    "urdf_viz_clients_configs[0].wrap_with_joint_position_limiter"
+                )
+                .unwrap()
+                .as_bool()
+                .unwrap()
+            );
         }
 
         let s = r#"
@@ -607,12 +610,14 @@ axis_map = [
                     .unwrap(),
                 "DPadN"
             );
-            assert!(read(v, "gil_gamepad_config.map.axis_map[0]")
-                .unwrap()
-                .as_array()
-                .unwrap()
-                .get(1)
-                .is_none());
+            assert!(
+                read(v, "gil_gamepad_config.map.axis_map[0]")
+                    .unwrap()
+                    .as_array()
+                    .unwrap()
+                    .get(1)
+                    .is_none()
+            );
         }
     }
 }

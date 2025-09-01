@@ -7,10 +7,11 @@ use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::{
-    collision::{parse_colon_separated_pairs, RobotCollisionDetector},
+    CollisionDetector, TrajectoryPoint,
+    collision::{RobotCollisionDetector, parse_colon_separated_pairs},
     errors::*,
     funcs::create_chain_from_joint_names,
-    interpolate, CollisionDetector, TrajectoryPoint,
+    interpolate,
 };
 
 pub struct SelfCollisionChecker<N>
@@ -224,16 +225,22 @@ fn test_create_self_collision_checker() {
         robot,
     );
 
-    assert!(self_collision_checker
-        .check_joint_positions(&[0.0; 16], &[0.0; 16], std::time::Duration::new(1, 0),)
-        .is_ok());
-    assert!(self_collision_checker
-        .check_joint_positions(
-            &[0.0; 16],
-            &[1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            std::time::Duration::new(1, 0),
-        )
-        .is_err());
+    assert!(
+        self_collision_checker
+            .check_joint_positions(&[0.0; 16], &[0.0; 16], std::time::Duration::new(1, 0),)
+            .is_ok()
+    );
+    assert!(
+        self_collision_checker
+            .check_joint_positions(
+                &[0.0; 16],
+                &[
+                    1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+                ],
+                std::time::Duration::new(1, 0),
+            )
+            .is_err()
+    );
 
     let l_shoulder_yaw_node = self_collision_checker
         .collision_check_robot()
@@ -245,20 +252,24 @@ fn test_create_self_collision_checker() {
         .map(|j| j.name.to_owned())
         .collect::<Vec<String>>();
 
-    assert!(self_collision_checker
-        .check_partial_joint_positions(
-            using_joint_names.as_slice(),
-            &[0.0],
-            &[0.0],
-            std::time::Duration::new(1, 0),
-        )
-        .is_ok());
-    assert!(self_collision_checker
-        .check_partial_joint_positions(
-            using_joint_names.as_slice(),
-            &[0.0],
-            &[1.57],
-            std::time::Duration::new(1, 0),
-        )
-        .is_err());
+    assert!(
+        self_collision_checker
+            .check_partial_joint_positions(
+                using_joint_names.as_slice(),
+                &[0.0],
+                &[0.0],
+                std::time::Duration::new(1, 0),
+            )
+            .is_ok()
+    );
+    assert!(
+        self_collision_checker
+            .check_partial_joint_positions(
+                using_joint_names.as_slice(),
+                &[0.0],
+                &[1.57],
+                std::time::Duration::new(1, 0),
+            )
+            .is_err()
+    );
 }

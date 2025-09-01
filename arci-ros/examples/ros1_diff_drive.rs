@@ -3,7 +3,7 @@ async fn main() -> Result<(), anyhow::Error> {
     use arci::{BaseVelocity, Gamepad};
     use arci_gamepad_gilrs::*;
     use arci_ros::JointVelocityController;
-    use openrr_base::{differential_drive::*, BaseAcceleration};
+    use openrr_base::{BaseAcceleration, differential_drive::*};
     use openrr_teleop::{ControlMode, MoveBaseMode};
 
     arci_ros::init("diff_drive");

@@ -79,7 +79,7 @@ fn test_convert_system_time_to_ros_time() {
 #[flaky_test::flaky_test]
 fn test_subscribe_with_channel() {
     use arci::{BaseVelocity, MoveBase};
-    use arci_ros::{msg::geometry_msgs::Twist, RosCmdVelMoveBase};
+    use arci_ros::{RosCmdVelMoveBase, msg::geometry_msgs::Twist};
     use assert_approx_eq::assert_approx_eq;
 
     println!("test subscriber helper is running!");

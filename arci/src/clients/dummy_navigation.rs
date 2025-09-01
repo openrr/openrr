@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use nalgebra::{Isometry2, Vector2};
 
-use crate::{error::Error, traits::Navigation, WaitFuture};
+use crate::{WaitFuture, error::Error, traits::Navigation};
 
 /// Dummy Navigation for debug or tests.
 #[derive(Debug)]
@@ -62,15 +62,16 @@ mod tests {
     #[tokio::test]
     async fn test_set() {
         let nav = DummyNavigation::new();
-        assert!(nav
-            .send_goal_pose(
+        assert!(
+            nav.send_goal_pose(
                 Isometry2::new(Vector2::new(1.0, 2.0), 3.0),
                 "",
                 std::time::Duration::default(),
             )
             .unwrap()
             .await
-            .is_ok());
+            .is_ok()
+        );
 
         let current_goal_pose = nav.current_goal_pose().unwrap();
         assert_approx_eq!(current_goal_pose.translation.x, 1.0);

@@ -2,7 +2,7 @@
 
 use std::time::{Duration, SystemTime};
 
-use arci::{nalgebra, BaseVelocity};
+use arci::{BaseVelocity, nalgebra};
 use serde::Deserialize;
 
 pub type Timestamp = chrono::DateTime<chrono::Utc>;

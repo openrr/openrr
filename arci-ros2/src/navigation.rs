@@ -1,7 +1,7 @@
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };
@@ -15,7 +15,7 @@ use r2r::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{utils, Node};
+use crate::{Node, utils};
 
 /// `arci::Navigation` implementation for ROS2.
 pub struct Ros2Navigation {

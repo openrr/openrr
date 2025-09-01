@@ -1,7 +1,7 @@
 use std::fmt;
 
 use arci::nalgebra as na;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -1,14 +1,14 @@
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };
 
 use arci::{
-    gamepad::{Button, Gamepad, GamepadEvent},
     Speaker,
+    gamepad::{Button, Gamepad, GamepadEvent},
 };
 use tokio::sync::Mutex as TokioMutex;
 use tracing::{debug, warn};

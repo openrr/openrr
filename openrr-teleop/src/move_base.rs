@@ -1,8 +1,8 @@
 use std::sync::Mutex;
 
 use arci::{
-    gamepad::{Axis, Button, GamepadEvent},
     BaseVelocity, MoveBase,
+    gamepad::{Axis, Button, GamepadEvent},
 };
 use async_trait::async_trait;
 

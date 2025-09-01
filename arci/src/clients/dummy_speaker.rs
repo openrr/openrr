@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use crate::{error::Error, traits::Speaker, WaitFuture};
+use crate::{WaitFuture, error::Error, traits::Speaker};
 
 /// Dummy Speaker for debug or tests.
 #[derive(Debug, Default)]

@@ -169,12 +169,14 @@ mod tests {
             "b".to_owned(),
         ]));
         let limiter = JointVelocityLimiter::new(client.clone(), limits);
-        assert!(tokio_test::block_on(
-            limiter
-                .send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs_f64(4.0))
-                .unwrap()
-        )
-        .is_ok());
+        assert!(
+            tokio_test::block_on(
+                limiter
+                    .send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs_f64(4.0))
+                    .unwrap()
+            )
+            .is_ok()
+        );
         let joint_positions = limiter.current_joint_positions().unwrap();
         assert_eq!(joint_positions.len(), 2);
         assert_approx_eq!(joint_positions[0], 1.0);
@@ -214,23 +216,25 @@ mod tests {
             "b".to_owned(),
         ]));
         let limiter = JointVelocityLimiter::new(client.clone(), limits);
-        assert!(tokio_test::block_on(
-            limiter
-                .send_joint_trajectory(vec![
-                    TrajectoryPoint {
-                        positions: vec![1.0, 2.0],
-                        velocities: Some(vec![3.0, 4.0]),
-                        time_from_start: std::time::Duration::from_secs_f64(4.0)
-                    },
-                    TrajectoryPoint {
-                        positions: vec![3.0, 6.0],
-                        velocities: Some(vec![3.0, 4.0]),
-                        time_from_start: std::time::Duration::from_secs_f64(8.0)
-                    }
-                ])
-                .unwrap()
-        )
-        .is_ok());
+        assert!(
+            tokio_test::block_on(
+                limiter
+                    .send_joint_trajectory(vec![
+                        TrajectoryPoint {
+                            positions: vec![1.0, 2.0],
+                            velocities: Some(vec![3.0, 4.0]),
+                            time_from_start: std::time::Duration::from_secs_f64(4.0)
+                        },
+                        TrajectoryPoint {
+                            positions: vec![3.0, 6.0],
+                            velocities: Some(vec![3.0, 4.0]),
+                            time_from_start: std::time::Duration::from_secs_f64(8.0)
+                        }
+                    ])
+                    .unwrap()
+            )
+            .is_ok()
+        );
         let joint_positions = limiter.current_joint_positions().unwrap();
         assert_eq!(joint_positions.len(), 2);
         assert_approx_eq!(joint_positions[0], 3.0);

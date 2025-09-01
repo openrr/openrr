@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use k::{nalgebra as na, RealField, Vector3};
+use k::{RealField, Vector3, nalgebra as na};
 use ncollide3d::{
     procedural::IndexBuffer::{Split, Unified},
     shape::{Ball, Cuboid, Cylinder, ShapeHandle, TriMesh},

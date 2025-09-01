@@ -9,8 +9,9 @@ use std::{
 
 use anyhow::format_err;
 use arci::{
-    nalgebra as na, BaseVelocity, JointPositionLimit, JointPositionLimiter, JointTrajectoryClient,
+    BaseVelocity, JointPositionLimit, JointPositionLimiter, JointTrajectoryClient,
     JointVelocityLimiter, Localization, MoveBase, Navigation, TrajectoryPoint, WaitFuture,
+    nalgebra as na,
 };
 use schemars::JsonSchema;
 use scoped_sleep::ScopedSleep;
@@ -373,12 +374,14 @@ impl UrdfVizWebClient {
                     let current = continue_on_err!(get_joint_positions(&bomb.0.base_url)).positions;
                     let duration_sec = duration.as_secs_f64();
                     let unit_sec = UNIT_DURATION.as_secs_f64();
-                    let trajectories = continue_on_err!(openrr_planner::interpolate(
-                        &[current, target.positions.to_vec()],
-                        duration_sec,
-                        unit_sec,
-                    )
-                    .ok_or_else(|| arci::Error::InterpolationError("".to_owned())));
+                    let trajectories = continue_on_err!(
+                        openrr_planner::interpolate(
+                            &[current, target.positions.to_vec()],
+                            duration_sec,
+                            unit_sec,
+                        )
+                        .ok_or_else(|| arci::Error::InterpolationError("".to_owned()))
+                    );
 
                     for traj in trajectories {
                         if matches!(
@@ -445,7 +448,9 @@ impl JointTrajectoryClient for UrdfVizWebClient {
             .unwrap()
             .has_send_joint_positions_thread
         {
-            panic!("send_joint_positions called without run_send_joint_positions_thread being called first");
+            panic!(
+                "send_joint_positions called without run_send_joint_positions_thread being called first"
+            );
         }
 
         Ok(self

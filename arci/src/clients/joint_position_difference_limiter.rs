@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{error::Error, traits::JointTrajectoryClient, TrajectoryPoint, WaitFuture};
+use crate::{TrajectoryPoint, WaitFuture, error::Error, traits::JointTrajectoryClient};
 
 const ZERO_VELOCITY_THRESHOLD: f64 = 1.0e-6;
 
@@ -218,8 +218,8 @@ mod test {
     use assert_approx_eq::assert_approx_eq;
 
     use super::{
-        interpolate, interpolate_joint_trajectory, should_interpolate_joint_trajectory,
-        JointPositionDifferenceLimiter, JointTrajectoryClient, TrajectoryPoint,
+        JointPositionDifferenceLimiter, JointTrajectoryClient, TrajectoryPoint, interpolate,
+        interpolate_joint_trajectory, should_interpolate_joint_trajectory,
     };
     use crate::DummyJointTrajectoryClient;
 
@@ -234,14 +234,16 @@ mod test {
         );
         assert!(interpolated.is_ok());
         assert!(interpolated.unwrap().is_none());
-        assert!(interpolate(
-            vec![0.0, 1.0],
-            &[0.0, 0.0],
-            &[-1.0, 2.0],
-            &Duration::from_secs(0),
-            &Duration::from_secs(1),
-        )
-        .is_err());
+        assert!(
+            interpolate(
+                vec![0.0, 1.0],
+                &[0.0, 0.0],
+                &[-1.0, 2.0],
+                &Duration::from_secs(0),
+                &Duration::from_secs(1),
+            )
+            .is_err()
+        );
     }
     #[test]
     fn interpolate_interpolated() {
@@ -352,12 +354,14 @@ mod test {
             assert_eq!(c, w);
         }
         *wrapped_client.positions.lock().unwrap() = vec![0.0, 1.0];
-        assert!(tokio_test::block_on(
-            client
-                .send_joint_positions(vec![-1.0, 2.0], Duration::from_secs(1))
-                .unwrap()
-        )
-        .is_ok());
+        assert!(
+            tokio_test::block_on(
+                client
+                    .send_joint_positions(vec![-1.0, 2.0], Duration::from_secs(1))
+                    .unwrap()
+            )
+            .is_ok()
+        );
         assert!(wrapped_client.last_trajectory.lock().unwrap().is_empty());
         assert_eq!(
             wrapped_client.current_joint_positions().unwrap(),
@@ -385,12 +389,14 @@ mod test {
             assert_eq!(c, w);
         }
         *wrapped_client.positions.lock().unwrap() = vec![0.0, 1.0];
-        assert!(tokio_test::block_on(
-            client
-                .send_joint_positions(vec![-1.0, 2.0], Duration::from_secs(1))
-                .unwrap()
-        )
-        .is_ok());
+        assert!(
+            tokio_test::block_on(
+                client
+                    .send_joint_positions(vec![-1.0, 2.0], Duration::from_secs(1))
+                    .unwrap()
+            )
+            .is_ok()
+        );
         let actual_trajectory = wrapped_client.last_trajectory.lock().unwrap().clone();
         assert_eq!(actual_trajectory.len(), 2);
         assert_eq!(actual_trajectory[0].positions, vec![-0.5, 1.5]);

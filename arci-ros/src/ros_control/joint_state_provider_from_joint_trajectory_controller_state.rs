@@ -1,6 +1,6 @@
 use msg::control_msgs::JointTrajectoryControllerState;
 
-use crate::{error::Error, msg, JointStateProvider, SubscriberHandler};
+use crate::{JointStateProvider, SubscriberHandler, error::Error, msg};
 
 pub(crate) struct JointStateProviderFromJointTrajectoryControllerState(
     SubscriberHandler<JointTrajectoryControllerState>,
