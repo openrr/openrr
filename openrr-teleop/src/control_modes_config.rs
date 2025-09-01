@@ -75,10 +75,10 @@ impl ControlModesConfig {
             )));
         }
 
-        if let Some(mode) = &self.move_base_mode {
-            if let Some(m) = move_base {
-                modes.push(Arc::new(MoveBaseMode::new(mode.clone(), m.clone())));
-            }
+        if let Some(mode) = &self.move_base_mode
+            && let Some(m) = move_base
+        {
+            modes.push(Arc::new(MoveBaseMode::new(mode.clone(), m.clone())));
         }
 
         for ik_mode_teleop_config in &self.ik_mode_teleop_configs {
@@ -117,11 +117,12 @@ impl ControlModesConfig {
             modes.push(Arc::new(ik_mode));
         }
 
-        if !joints_poses.is_empty() {
-            if let Some(sender_config) = &self.joints_pose_sender_config {
-                let mut joint_trajectory_clients = HashMap::new();
-                for joints_pose in &joints_poses {
-                    joint_trajectory_clients.insert(
+        if !joints_poses.is_empty()
+            && let Some(sender_config) = &self.joints_pose_sender_config
+        {
+            let mut joint_trajectory_clients = HashMap::new();
+            for joints_pose in &joints_poses {
+                joint_trajectory_clients.insert(
                         joints_pose.client_name.to_owned(),
                         joint_trajectory_client_map
                             .get(&joints_pose.client_name)
@@ -137,27 +138,25 @@ impl ControlModesConfig {
                             })?
                             .clone(),
                     );
-                }
-                modes.push(Arc::new(JointsPoseSender::new_from_config(
-                    sender_config.clone(),
-                    joints_poses,
-                    joint_trajectory_clients,
-                    speaker.clone(),
-                )));
             }
+            modes.push(Arc::new(JointsPoseSender::new_from_config(
+                sender_config.clone(),
+                joints_poses,
+                joint_trajectory_clients,
+                speaker.clone(),
+            )));
         }
 
-        if !self.command_configs.is_empty() {
-            if let Some(base_path) = base_path {
-                if let Some(e) = RobotCommandExecutor::new(
-                    base_path,
-                    self.command_configs.clone(),
-                    robot_client,
-                    speaker.clone(),
-                ) {
-                    modes.push(Arc::new(e));
-                }
-            }
+        if !self.command_configs.is_empty()
+            && let Some(base_path) = base_path
+            && let Some(e) = RobotCommandExecutor::new(
+                base_path,
+                self.command_configs.clone(),
+                robot_client,
+                speaker.clone(),
+            )
+        {
+            modes.push(Arc::new(e));
         }
 
         Ok(modes)

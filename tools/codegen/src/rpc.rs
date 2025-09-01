@@ -230,12 +230,11 @@ fn gen_server_impl(trait_name: &Ident, item: &ItemTrait, pb_traits: &[ItemTrait]
                     syn::FnArg::Typed(arg) => {
                         let pat = &arg.pat;
                         let mut into = quote! { .into() };
-                        if let Some(path) = get_ty_path(&arg.ty) {
-                            if USE_TRY_INTO
+                        if let Some(path) = get_ty_path(&arg.ty)
+                            && USE_TRY_INTO
                                 .contains(&&*path.segments.last().unwrap().ident.to_string())
-                            {
-                                into = quote! { .try_into().unwrap() }
-                            }
+                        {
+                            into = quote! { .try_into().unwrap() }
                         }
                         Some(match arg_len {
                             0 => unreachable!(),
@@ -265,10 +264,10 @@ fn gen_server_impl(trait_name: &Ident, item: &ItemTrait, pb_traits: &[ItemTrait]
                 .items
                 .iter()
                 .find_map(|m| {
-                    if let syn::TraitItem::Fn(m) = m {
-                        if m.sig.ident == *name {
-                            return Some(m.clone());
-                        }
+                    if let syn::TraitItem::Fn(m) = m
+                        && m.sig.ident == *name
+                    {
+                        return Some(m.clone());
                     }
                     None
                 })

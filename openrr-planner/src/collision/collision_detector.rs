@@ -305,10 +305,10 @@ where
                 })
                 .collect::<Vec<_>>();
             debug!("name={}, ln={}", l.name, col_pose_vec.len());
-            if !col_pose_vec.is_empty() {
-                if let Some(joint_name) = link_joint_map.get(&l.name) {
-                    name_collision_model_map.insert(joint_name.to_owned(), col_pose_vec);
-                }
+            if !col_pose_vec.is_empty()
+                && let Some(joint_name) = link_joint_map.get(&l.name)
+            {
+                name_collision_model_map.insert(joint_name.to_owned(), col_pose_vec);
             }
         }
         CollisionDetector {

@@ -67,14 +67,13 @@ pub(crate) fn r#gen(workspace_root: &Path) -> Result<()> {
                         }
                         syn::FnArg::Typed(arg) => {
                             let pat = &arg.pat;
-                            if let Some(path) = get_ty_path(&arg.ty) {
-                                if USE_TRY_INTO
+                            if let Some(path) = get_ty_path(&arg.ty)
+                                && USE_TRY_INTO
                                     .contains(&&*path.segments.last().unwrap().ident.to_string())
-                                {
-                                    arci_args.push(quote! { #pat.try_into()? });
-                                    sabi_args.push(quote! { rtry!(#pat.try_into()) });
-                                    continue;
-                                }
+                            {
+                                arci_args.push(quote! { #pat.try_into()? });
+                                sabi_args.push(quote! { rtry!(#pat.try_into()) });
+                                continue;
                             }
                             if matches!(&*arg.ty, syn::Type::Reference(_)) && !is_str(&arg.ty) {
                                 arci_args.push(quote! { (*#pat).into() });
@@ -230,23 +229,23 @@ pub(crate) fn r#gen(workspace_root: &Path) -> Result<()> {
             to_arci.push(pat);
             return;
         }
-        if let Some(ty) = is_option(ty) {
-            if let Some(ty) = is_vec(ty) {
-                let t = if is_primitive(ty) {
-                    quote! { map(|v| v.into_iter().collect()) }
-                } else {
-                    quote! { map(|v| v.into_iter().map(Into::into).collect()) }
-                };
-                let mut to = quote! { #index_or_ident.into_option().#t, };
-                let mut from = quote! { #index_or_ident.#t.into(), };
-                if ident.is_some() {
-                    from = quote! { #ident: #from };
-                    to = quote! { #ident: #to };
-                }
-                from_arci.push(from);
-                to_arci.push(to);
-                return;
+        if let Some(ty) = is_option(ty)
+            && let Some(ty) = is_vec(ty)
+        {
+            let t = if is_primitive(ty) {
+                quote! { map(|v| v.into_iter().collect()) }
+            } else {
+                quote! { map(|v| v.into_iter().map(Into::into).collect()) }
+            };
+            let mut to = quote! { #index_or_ident.into_option().#t, };
+            let mut from = quote! { #index_or_ident.#t.into(), };
+            if ident.is_some() {
+                from = quote! { #ident: #from };
+                to = quote! { #ident: #to };
             }
+            from_arci.push(from);
+            to_arci.push(to);
+            return;
         }
         if let Some(ty) = is_vec(ty) {
             let mut t = if is_primitive(ty) {
