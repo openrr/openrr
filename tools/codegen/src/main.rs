@@ -59,12 +59,11 @@ fn arci_types(
 }
 
 fn is_str(ty: &syn::Type) -> bool {
-    if let syn::Type::Reference(ty) = ty {
-        if let Some(path) = get_ty_path(&ty.elem) {
-            if path.is_ident("str") {
-                return true;
-            }
-        }
+    if let syn::Type::Reference(ty) = ty
+        && let Some(path) = get_ty_path(&ty.elem)
+        && path.is_ident("str")
+    {
+        return true;
     }
     false
 }
@@ -78,62 +77,62 @@ fn get_ty_path(ty: &syn::Type) -> Option<&syn::Path> {
 
 fn is_option(ty: &syn::Type) -> Option<&syn::Type> {
     let path = get_ty_path(ty)?;
-    if path.segments.len() == 1 && path.segments[0].ident == "Option" {
-        if let syn::PathArguments::AngleBracketed(args) = &path.segments.last().unwrap().arguments {
-            if let syn::GenericArgument::Type(ty) = &args.args[0] {
-                return Some(ty);
-            }
-        }
+    if path.segments.len() == 1
+        && path.segments[0].ident == "Option"
+        && let syn::PathArguments::AngleBracketed(args) = &path.segments.last().unwrap().arguments
+        && let syn::GenericArgument::Type(ty) = &args.args[0]
+    {
+        return Some(ty);
     }
     None
 }
 
 fn is_result(ty: &syn::Type) -> Option<&syn::Type> {
     let path = get_ty_path(ty)?;
-    if path.segments.len() == 1 && path.segments[0].ident == "Result" {
-        if let syn::PathArguments::AngleBracketed(args) = &path.segments.last().unwrap().arguments {
-            if let syn::GenericArgument::Type(ty) = &args.args[0] {
-                return Some(ty);
-            }
-        }
+    if path.segments.len() == 1
+        && path.segments[0].ident == "Result"
+        && let syn::PathArguments::AngleBracketed(args) = &path.segments.last().unwrap().arguments
+        && let syn::GenericArgument::Type(ty) = &args.args[0]
+    {
+        return Some(ty);
     }
     None
 }
 
 fn is_vec(ty: &syn::Type) -> Option<&syn::Type> {
     let path = get_ty_path(ty)?;
-    if path.segments.len() == 1 && path.segments[0].ident == "Vec" {
-        if let syn::PathArguments::AngleBracketed(args) = &path.segments.last().unwrap().arguments {
-            if let syn::GenericArgument::Type(ty) = &args.args[0] {
-                return Some(ty);
-            }
-        }
+    if path.segments.len() == 1
+        && path.segments[0].ident == "Vec"
+        && let syn::PathArguments::AngleBracketed(args) = &path.segments.last().unwrap().arguments
+        && let syn::GenericArgument::Type(ty) = &args.args[0]
+    {
+        return Some(ty);
     }
     None
 }
 
 pub(crate) fn is_primitive(ty: &syn::Type) -> bool {
-    if let Some(path) = get_ty_path(ty) {
-        if let Some(ident) = path.get_ident() {
-            return matches!(
-                ident.to_string().as_str(),
-                "isize"
-                    | "i8"
-                    | "i16"
-                    | "i32"
-                    | "i64"
-                    | "i128"
-                    | "usize"
-                    | "u8"
-                    | "u16"
-                    | "u32"
-                    | "u64"
-                    | "u128"
-                    | "f32"
-                    | "f64"
-                    | "bool"
-            );
-        }
+    if let Some(path) = get_ty_path(ty)
+        && let Some(ident) = path.get_ident()
+    {
+        return matches!(
+            ident.to_string().as_str(),
+            "isize"
+                | "i8"
+                | "i16"
+                | "i32"
+                | "i64"
+                | "i128"
+                | "usize"
+                | "u8"
+                | "u16"
+                | "u32"
+                | "u64"
+                | "u128"
+                | "f32"
+                | "f64"
+                | "bool"
+        );
     }
     false
 }

@@ -25,13 +25,13 @@ pub(crate) impl WebServer {
                 if let Some(positions) = handle.take_target_joint_positions() {
                     *handle.current_joint_positions() = positions;
                 }
-                if let Some(origin) = handle.pop_target_object_origin() {
-                    if origin.id == urdf_viz::ROBOT_OBJECT_ID {
-                        *handle.current_robot_origin() = urdf_viz::RobotOrigin {
-                            position: origin.position,
-                            quaternion: origin.quaternion,
-                        };
-                    }
+                if let Some(origin) = handle.pop_target_object_origin()
+                    && origin.id == urdf_viz::ROBOT_OBJECT_ID
+                {
+                    *handle.current_robot_origin() = urdf_viz::RobotOrigin {
+                        position: origin.position,
+                        quaternion: origin.quaternion,
+                    };
                 }
             }
         });

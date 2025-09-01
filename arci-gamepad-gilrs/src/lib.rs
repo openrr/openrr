@@ -306,10 +306,10 @@ impl GilGamepad {
             Some(gilrs::Event {
                 id: recv_id, event, ..
             }) => {
-                if id == Into::<usize>::into(recv_id) {
-                    if let Some(e) = map.convert_event(event) {
-                        tx.send(e).unwrap();
-                    }
+                if id == Into::<usize>::into(recv_id)
+                    && let Some(e) = map.convert_event(event)
+                {
+                    tx.send(e).unwrap();
                 }
             }
             None => {
@@ -331,11 +331,11 @@ impl GilGamepad {
             Some(gilrs::Event {
                 id: recv_id, event, ..
             }) => {
-                if id == Into::<usize>::into(recv_id) {
-                    if let Some(e) = map.convert_event(event) {
-                        tx.send(e.clone()).unwrap();
-                        msg = e;
-                    }
+                if id == Into::<usize>::into(recv_id)
+                    && let Some(e) = map.convert_event(event)
+                {
+                    tx.send(e.clone()).unwrap();
+                    msg = e;
                 }
             }
             None => tx.send(msg.clone()).unwrap(),

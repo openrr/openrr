@@ -836,10 +836,8 @@ impl RobotConfig {
         let use_urdf = !urdf_viz_clients_configs.is_empty()
             || !ros_clients_configs.is_empty()
             || !ros_action_clients_configs.is_empty();
-        if use_urdf {
-            if let Some(urdf_path) = self.openrr_clients_config.urdf_full_path() {
-                urdf_robot = Some(urdf_rs::utils::read_urdf_or_xacro(urdf_path)?);
-            }
+        if use_urdf && let Some(urdf_path) = self.openrr_clients_config.urdf_full_path() {
+            urdf_robot = Some(urdf_rs::utils::read_urdf_or_xacro(urdf_path)?);
         }
 
         let mut clients = arci_urdf_viz::create_joint_trajectory_clients_lazy(
