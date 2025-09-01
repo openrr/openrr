@@ -3,7 +3,7 @@
 mod shared;
 
 use arci::{BaseVelocity, MoveBase};
-use arci_ros2::{r2r, Ros2CmdVelMoveBase};
+use arci_ros2::{Ros2CmdVelMoveBase, r2r};
 use assert_approx_eq::assert_approx_eq;
 use futures::stream::StreamExt;
 use r2r::geometry_msgs::msg::Twist;

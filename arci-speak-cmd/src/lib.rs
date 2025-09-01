@@ -66,7 +66,9 @@ fn run_local_command(message: &str) -> io::Result<()> {
 fn run_local_command(message: &str) -> io::Result<()> {
     // TODO: Ideally, it would be more efficient to use SAPI directly via winapi or something.
     // https://stackoverflow.com/questions/1040655/ms-speech-from-command-line
-    let cmd = format!("PowerShell -Command \"Add-Type –AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak('{message}');\"");
+    let cmd = format!(
+        "PowerShell -Command \"Add-Type –AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak('{message}');\""
+    );
     let status = Command::new("powershell").arg(cmd).status()?;
 
     if status.success() {

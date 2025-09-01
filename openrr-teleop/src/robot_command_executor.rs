@@ -4,13 +4,13 @@ use std::{
 };
 
 use arci::{
-    gamepad::{Button, GamepadEvent},
     Speaker,
+    gamepad::{Button, GamepadEvent},
 };
 use async_trait::async_trait;
 use clap::Parser;
-use openrr_client::{resolve_relative_path, ArcRobotClient};
-use openrr_command::{load_command_file_and_filter, RobotCommand};
+use openrr_client::{ArcRobotClient, resolve_relative_path};
+use openrr_command::{RobotCommand, load_command_file_and_filter};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};
@@ -288,12 +288,14 @@ mod test {
             String::from("file_path")
         );
 
-        assert!(RobotCommandExecutor::new(
-            PathBuf::from("path"),
-            vec![],
-            robot_client,
-            DummySpeaker::new()
-        )
-        .is_none());
+        assert!(
+            RobotCommandExecutor::new(
+                PathBuf::from("path"),
+                vec![],
+                robot_client,
+                DummySpeaker::new()
+            )
+            .is_none()
+        );
     }
 }

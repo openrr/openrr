@@ -38,7 +38,7 @@ members = [
 # ci/publish.sh locally to publish the remaining crates.
 # NOTE: when updating this, reminder to update arci-speak-cmd's Cargo.toml.
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 license = "Apache-2.0"
 repository = "https://github.com/openrr/openrr"
 homepage = "https://openrr.github.io"

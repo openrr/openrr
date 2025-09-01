@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
-use k::{nalgebra as na, Constraints, Isometry3};
-use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+use k::{Constraints, Isometry3, nalgebra as na};
+use schemars::{JsonSchema, r#gen::SchemaGenerator, schema::Schema};
 use serde::{Deserialize, Serialize};
 
 pub fn isometry(x: f64, y: f64, z: f64, roll: f64, pitch: f64, yaw: f64) -> k::Isometry3<f64> {
@@ -346,7 +346,7 @@ fn default_num_max_try() -> usize {
     300
 }
 
-fn constraints_schema(gen: &mut SchemaGenerator) -> Schema {
+fn constraints_schema(generator: &mut SchemaGenerator) -> Schema {
     fn default_true() -> bool {
         true
     }
@@ -383,7 +383,7 @@ fn constraints_schema(gen: &mut SchemaGenerator) -> Schema {
         }
     }
 
-    ConstraintsSchema::json_schema(gen)
+    ConstraintsSchema::json_schema(generator)
 }
 
 pub fn create_ik_solver_with_chain(

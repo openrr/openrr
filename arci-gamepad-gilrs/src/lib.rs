@@ -2,15 +2,15 @@
 
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };
 
 use arci::{gamepad::*, *};
 use indexmap::IndexMap;
-use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+use schemars::{JsonSchema, r#gen::SchemaGenerator, schema::Schema};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use tracing::{debug, error, info};
@@ -117,7 +117,7 @@ impl JsonSchema for Map {
         "Map".to_string()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         // https://docs.rs/gilrs/0.8/gilrs/ev/enum.Button.html
         #[allow(dead_code)]
         #[derive(JsonSchema)]
@@ -165,7 +165,7 @@ impl JsonSchema for Map {
             axis_value_map: Vec<(Axis, f64)>,
         }
 
-        MapRepr::json_schema(gen)
+        MapRepr::json_schema(generator)
     }
 }
 

@@ -12,14 +12,13 @@ mod impls;
 use std::{sync::Arc, time::SystemTime};
 
 use abi_stable::{
-    declare_root_module_statics,
+    StableAbi, declare_root_module_statics,
     library::RootModule,
     package_version_strings,
     prefix_type::PrefixTypeTrait,
     rtry, sabi_trait,
     sabi_types::VersionStrings,
     std_types::{RBoxError, RDuration, ROk, ROption, RString, RVec},
-    StableAbi,
 };
 use anyhow::format_err;
 use arci::nalgebra;

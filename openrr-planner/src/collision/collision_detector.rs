@@ -392,10 +392,12 @@ mod tests {
         let target = Cuboid::new(Vector3::new(0.2, 0.3, 0.1));
         let target_pose = Isometry3::new(Vector3::new(0.7, 0.0, 0.6), na::zero());
 
-        assert!(detector
-            .detect_env(&robot, &target, &target_pose)
-            .next()
-            .is_none());
+        assert!(
+            detector
+                .detect_env(&robot, &target, &target_pose)
+                .next()
+                .is_none()
+        );
 
         let angles = [
             -0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -434,10 +436,12 @@ mod tests {
 
         let angles = [0.0; 16];
         robot.set_joint_positions(&angles).unwrap();
-        assert!(detector
-            .detect_self(&robot, &collision_check_pairs)
-            .next()
-            .is_none());
+        assert!(
+            detector
+                .detect_self(&robot, &collision_check_pairs)
+                .next()
+                .is_none()
+        );
 
         let angles = [
             -1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,

@@ -3,14 +3,14 @@ mod rpc;
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{format_err, Result};
+use anyhow::{Result, format_err};
 use fs_err as fs;
 use proc_macro2::TokenStream;
 
 fn main() -> Result<()> {
     let workspace_root = workspace_root();
-    plugin::gen(&workspace_root)?;
-    rpc::gen(&workspace_root)?;
+    plugin::r#gen(&workspace_root)?;
+    rpc::r#gen(&workspace_root)?;
     Ok(())
 }
 

@@ -1,8 +1,8 @@
 use std::{sync::Mutex, time::Duration};
 
 use arci::{
-    gamepad::{Axis, Button, GamepadEvent},
     JointTrajectoryClient, Speaker,
+    gamepad::{Axis, Button, GamepadEvent},
 };
 use async_trait::async_trait;
 use schemars::JsonSchema;

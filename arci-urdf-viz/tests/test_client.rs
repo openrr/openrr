@@ -98,9 +98,11 @@ fn test_create_joint_trajectory_clients() {
     const DEFAULT_PORT: u16 = 7777;
 
     // empty config is no-op. it also does not connect to the server.
-    assert!(arci_urdf_viz::create_joint_trajectory_clients(vec![], None)
-        .unwrap()
-        .is_empty());
+    assert!(
+        arci_urdf_viz::create_joint_trajectory_clients(vec![], None)
+            .unwrap()
+            .is_empty()
+    );
     assert!(
         arci_urdf_viz::create_joint_trajectory_clients_lazy(vec![], None)
             .unwrap()
@@ -140,22 +142,26 @@ fn test_create_joint_trajectory_clients() {
         arci_urdf_viz::create_joint_trajectory_clients_lazy(configs.clone(), None).unwrap();
 
     // error when client name conflict
-    assert!(arci_urdf_viz::create_joint_trajectory_clients(
-        vec![configs[0].clone(), configs[0].clone()],
-        None
-    )
-    .err()
-    .unwrap()
-    .to_string()
-    .contains("client named 'c1' has already been specified"));
-    assert!(arci_urdf_viz::create_joint_trajectory_clients_lazy(
-        vec![configs[0].clone(), configs[0].clone()],
-        None
-    )
-    .err()
-    .unwrap()
-    .to_string()
-    .contains("client named 'c1' has already been specified"));
+    assert!(
+        arci_urdf_viz::create_joint_trajectory_clients(
+            vec![configs[0].clone(), configs[0].clone()],
+            None
+        )
+        .err()
+        .unwrap()
+        .to_string()
+        .contains("client named 'c1' has already been specified")
+    );
+    assert!(
+        arci_urdf_viz::create_joint_trajectory_clients_lazy(
+            vec![configs[0].clone(), configs[0].clone()],
+            None
+        )
+        .err()
+        .unwrap()
+        .to_string()
+        .contains("client named 'c1' has already been specified")
+    );
 }
 
 #[test]

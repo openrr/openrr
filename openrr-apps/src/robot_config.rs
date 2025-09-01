@@ -444,7 +444,9 @@ pub struct OpenrrTracingConfig {
 
 // Creates dummy schema for dummy fields.
 #[cfg(not(feature = "ros"))]
-fn unimplemented_schema(_gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+fn unimplemented_schema(
+    _generator: &mut schemars::r#gen::SchemaGenerator,
+) -> schemars::schema::Schema {
     unimplemented!()
 }
 

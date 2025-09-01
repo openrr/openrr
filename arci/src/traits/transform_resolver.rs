@@ -1,6 +1,6 @@
 use auto_impl::auto_impl;
 
-use crate::{error::Error, Isometry3};
+use crate::{Isometry3, error::Error};
 
 #[auto_impl(Box, Arc)]
 pub trait TransformResolver: Send + Sync {

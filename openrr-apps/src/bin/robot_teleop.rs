@@ -2,12 +2,12 @@
 use std::thread;
 use std::{fs, path::PathBuf, sync::Arc};
 
-use anyhow::{format_err, Result};
+use anyhow::{Result, format_err};
 use arci_gamepad_gilrs::GilGamepad;
 use clap::Parser;
 use openrr_apps::{
-    utils::{init_tracing, init_tracing_with_file_appender, LogConfig},
     BuiltinGamepad, Error, GamepadKind, RobotTeleopConfig,
+    utils::{LogConfig, init_tracing, init_tracing_with_file_appender},
 };
 use openrr_client::ArcRobotClient;
 use openrr_plugin::PluginProxy;
@@ -218,13 +218,15 @@ mod tests {
         assert!(RobotTeleopArgs::try_parse_from([bin]).is_ok());
         assert!(RobotTeleopArgs::try_parse_from([bin, "--show-default-config"]).is_ok());
         assert!(RobotTeleopArgs::try_parse_from([bin, "--config-path", "path"]).is_ok());
-        assert!(RobotTeleopArgs::try_parse_from([
-            bin,
-            "--show-default-config",
-            "--config-path",
-            "path"
-        ])
-        .is_ok());
+        assert!(
+            RobotTeleopArgs::try_parse_from([
+                bin,
+                "--show-default-config",
+                "--config-path",
+                "path"
+            ])
+            .is_ok()
+        );
     }
 
     #[test]

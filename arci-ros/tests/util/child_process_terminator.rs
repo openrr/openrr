@@ -1,7 +1,7 @@
 use std::process::{Child, Command, Stdio};
 
 use nix::{
-    sys::signal::{kill, Signal},
+    sys::signal::{Signal, kill},
     unistd::Pid,
 };
 
@@ -21,27 +21,31 @@ impl ChildProcessTerminator {
 
     #[allow(dead_code)]
     pub(crate) fn spawn_example(command: &mut Command) -> ChildProcessTerminator {
-        assert!(Command::new("cargo")
-            .arg("build")
-            .arg("--all-targets")
-            .output()
-            .unwrap()
-            .status
-            .success());
+        assert!(
+            Command::new("cargo")
+                .arg("build")
+                .arg("--all-targets")
+                .output()
+                .unwrap()
+                .status
+                .success()
+        );
 
         Self::spawn(command)
     }
 
     #[allow(dead_code)]
     pub(crate) fn spawn_example_bench(command: &mut Command) -> ChildProcessTerminator {
-        assert!(Command::new("cargo")
-            .arg("build")
-            .arg("--all-targets")
-            .arg("--release")
-            .output()
-            .unwrap()
-            .status
-            .success());
+        assert!(
+            Command::new("cargo")
+                .arg("build")
+                .arg("--all-targets")
+                .arg("--release")
+                .output()
+                .unwrap()
+                .status
+                .success()
+        );
 
         Self::spawn(command)
     }

@@ -17,7 +17,7 @@ limitations under the License.
 
 use std::sync::Mutex;
 
-use k::{nalgebra as na, InverseKinematicsSolver, SubsetOf};
+use k::{InverseKinematicsSolver, SubsetOf, nalgebra as na};
 use na::RealField;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 

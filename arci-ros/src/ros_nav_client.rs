@@ -5,7 +5,7 @@ use nalgebra as na;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{define_action_client, msg, ActionResultWait};
+use crate::{ActionResultWait, define_action_client, msg};
 define_action_client!(MoveBaseActionClient, msg::move_base_msgs, MoveBase);
 
 impl From<na::Isometry2<f64>> for msg::geometry_msgs::Pose {

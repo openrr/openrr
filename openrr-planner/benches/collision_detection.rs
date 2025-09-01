@@ -1,11 +1,11 @@
 use std::{f64::consts::PI, path::Path};
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use k::joint::Range;
 use na::RealField;
 use nalgebra as na;
 use openrr_planner::collision::{
-    create_all_collision_pairs, create_robot_collision_detector, RobotCollisionDetectorConfig,
+    RobotCollisionDetectorConfig, create_all_collision_pairs, create_robot_collision_detector,
 };
 
 fn generate_random_joint_angles_from_limits<T>(limits: &[Option<k::joint::Range<T>>]) -> Vec<T>

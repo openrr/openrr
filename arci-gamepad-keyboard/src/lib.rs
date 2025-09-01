@@ -6,13 +6,13 @@ use std::{
     collections::HashMap,
     io::{self, Read, Write},
     sync::{
-        atomic::{AtomicBool, Ordering::Relaxed},
         Arc,
+        atomic::{AtomicBool, Ordering::Relaxed},
     },
 };
 
 use arci::{gamepad::*, *};
-use termios::{tcsetattr, Termios};
+use termios::{Termios, tcsetattr};
 use tracing::{debug, error};
 
 #[derive(Debug)]
@@ -213,11 +213,11 @@ impl KeyboardGamepad {
         let is_running_cloned = is_running.clone();
 
         // Based on https://stackoverflow.com/questions/26321592/how-can-i-read-one-character-from-stdin-without-having-to-hit-enter
-        let stdin = 0; // couldn't get std::os::unix::io::FromRawFd to work
-                       // on /dev/stdin or /dev/tty
+        // couldn't get std::os::unix::io::FromRawFd to work on /dev/stdin or /dev/tty
+        let stdin = 0;
         let termios = Termios::from_fd(stdin).unwrap();
-        let mut new_termios = termios; // make a mutable copy of termios
-                                       // that we will modify
+        // make a mutable copy of termios that we will modify
+        let mut new_termios = termios;
         new_termios.c_lflag &= !(termios::ICANON | termios::ECHO); // no echo and canonical mode
         tcsetattr(stdin, termios::TCSANOW, &new_termios).unwrap();
         let mut reader = io::stdin();

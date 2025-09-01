@@ -7,19 +7,19 @@ use std::{
 use anyhow::Result;
 use rand::prelude::*;
 use serde::Deserialize;
-use tracing::{debug, warn, Event, Level, Subscriber};
+use tracing::{Event, Level, Subscriber, debug, warn};
 use tracing_appender::{
     non_blocking::WorkerGuard,
     rolling::{RollingFileAppender, Rotation},
 };
 use tracing_subscriber::{
+    EnvFilter,
     fmt::{
-        format::{Format, Writer},
         FmtContext, FormatEvent, FormatFields, Layer,
+        format::{Format, Writer},
     },
     layer::SubscriberExt,
     registry::LookupSpan,
-    EnvFilter,
 };
 
 use crate::{RobotConfig, RobotTeleopConfig};
@@ -145,20 +145,20 @@ mod test {
         assert!(path.is_some());
         assert_eq!(path.unwrap(), PathBuf::from("a.toml"));
         //
-        std::env::set_var(OPENRR_APPS_CONFIG_ENV_NAME, "b.yaml");
+        unsafe { std::env::set_var(OPENRR_APPS_CONFIG_ENV_NAME, "b.yaml") }
         let path = get_apps_robot_config(Some(PathBuf::from("a.toml")));
         assert!(path.is_some());
         assert_eq!(path.unwrap(), PathBuf::from("a.toml"));
-        std::env::remove_var(OPENRR_APPS_CONFIG_ENV_NAME);
+        unsafe { std::env::remove_var(OPENRR_APPS_CONFIG_ENV_NAME) }
 
         let path = get_apps_robot_config(None);
         assert!(path.is_none());
 
-        std::env::set_var(OPENRR_APPS_CONFIG_ENV_NAME, "b.yaml");
+        unsafe { std::env::set_var(OPENRR_APPS_CONFIG_ENV_NAME, "b.yaml") }
         let path = get_apps_robot_config(None);
         assert!(path.is_some());
         assert_eq!(path.unwrap(), PathBuf::from("b.yaml"));
-        std::env::remove_var(OPENRR_APPS_CONFIG_ENV_NAME);
+        unsafe { std::env::remove_var(OPENRR_APPS_CONFIG_ENV_NAME) }
     }
     #[test]
     fn test_log_config_default() {
@@ -196,7 +196,7 @@ pub fn init(name: &str, config: &RobotConfig) {
 
 /// Do something needed to start the program for multiple
 pub fn init_with_anonymize(name: &str, config: &RobotConfig) {
-    let suffix: u64 = rand::thread_rng().gen();
+    let suffix: u64 = rand::thread_rng().r#gen();
     let anon_name = format!("{name}_{suffix}");
     init(&anon_name, config);
 }

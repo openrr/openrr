@@ -5,13 +5,13 @@ mod shared;
 use std::time::Duration;
 
 use arci::Localization;
-use arci_ros2::{r2r, Ros2LocalizationClient};
+use arci_ros2::{Ros2LocalizationClient, r2r};
 use assert_approx_eq::assert_approx_eq;
 use futures::StreamExt;
 use r2r::{
+    QosProfile,
     geometry_msgs::msg::{Point, Pose, PoseWithCovariance, PoseWithCovarianceStamped, Quaternion},
     std_msgs::msg::Header,
-    QosProfile,
 };
 use shared::*;
 

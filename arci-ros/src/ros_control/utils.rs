@@ -1,12 +1,12 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use anyhow::format_err;
-use arci::{copy_joint_positions, Error, JointTrajectoryClient, TrajectoryPoint};
+use arci::{Error, JointTrajectoryClient, TrajectoryPoint, copy_joint_positions};
 
 use crate::{
+    JointStateProvider, LazyJointStateProvider, RosControlClientBuilder,
     msg::trajectory_msgs::{JointTrajectory, JointTrajectoryPoint},
-    wrap_joint_trajectory_client, JointStateProvider, LazyJointStateProvider,
-    RosControlClientBuilder,
+    wrap_joint_trajectory_client,
 };
 
 pub(crate) fn extract_current_joint_positions_from_state(

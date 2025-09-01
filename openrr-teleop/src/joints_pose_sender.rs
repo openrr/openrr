@@ -1,8 +1,8 @@
 use std::{collections::HashMap, sync::Mutex, time::Duration};
 
 use arci::{
-    gamepad::{Button, GamepadEvent},
     JointTrajectoryClient, Speaker,
+    gamepad::{Button, GamepadEvent},
 };
 use async_trait::async_trait;
 use openrr_client::JointsPose;

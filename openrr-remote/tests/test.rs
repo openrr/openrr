@@ -1,18 +1,18 @@
 use std::{
     net::SocketAddr,
     sync::{
-        atomic::{AtomicU16, Ordering},
         Arc,
+        atomic::{AtomicU16, Ordering},
     },
     time::{Duration, SystemTime},
 };
 
 use anyhow::Result;
 use arci::{
-    gamepad::GamepadEvent, BaseVelocity, DummyGamepad, DummyJointTrajectoryClient,
-    DummyLaserScan2D, DummyLocalization, DummyMoveBase, DummyNavigation, DummySpeaker,
-    DummyTransformResolver, Gamepad, Isometry2, JointTrajectoryClient, LaserScan2D, Localization,
-    MoveBase, Navigation, Scan2D, Speaker, TrajectoryPoint, TransformResolver, Vector2,
+    BaseVelocity, DummyGamepad, DummyJointTrajectoryClient, DummyLaserScan2D, DummyLocalization,
+    DummyMoveBase, DummyNavigation, DummySpeaker, DummyTransformResolver, Gamepad, Isometry2,
+    JointTrajectoryClient, LaserScan2D, Localization, MoveBase, Navigation, Scan2D, Speaker,
+    TrajectoryPoint, TransformResolver, Vector2, gamepad::GamepadEvent,
 };
 use assert_approx_eq::assert_approx_eq;
 use openrr_remote::{
@@ -37,7 +37,7 @@ async fn joint_trajectory_client() -> Result<()> {
     {
         let client =
             RemoteJointTrajectoryClientReceiver::new(DummyJointTrajectoryClient::new(vec![
-                "a".to_owned()
+                "a".to_owned(),
             ]));
         tokio::spawn(client.serve(addr));
         tokio::time::sleep(Duration::from_secs(1)).await;
@@ -266,7 +266,7 @@ async fn multiple() -> Result<()> {
     {
         let client =
             RemoteJointTrajectoryClientReceiver::new(DummyJointTrajectoryClient::new(vec![
-                "a".to_owned()
+                "a".to_owned(),
             ]));
         let speaker = RemoteSpeakerReceiver::new(recv_speaker.clone());
         let base = RemoteMoveBaseReceiver::new(DummyMoveBase::new());

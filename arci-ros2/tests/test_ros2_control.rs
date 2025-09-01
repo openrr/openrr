@@ -4,14 +4,14 @@ mod shared;
 
 use std::{
     sync::{
-        atomic::{AtomicUsize, Ordering},
         Arc, Mutex,
+        atomic::{AtomicUsize, Ordering},
     },
     time::Duration,
 };
 
 use arci::*;
-use arci_ros2::{r2r, Node, Ros2ControlClient};
+use arci_ros2::{Node, Ros2ControlClient, r2r};
 use futures::{
     future::{self, Either},
     stream::{Stream, StreamExt},
@@ -102,7 +102,7 @@ async fn run_goal(
 async fn test_control_server(
     node: Node,
     mut requests: impl Stream<Item = r2r::ActionServerGoalRequest<FollowJointTrajectory::Action>>
-        + Unpin,
+    + Unpin,
     state: Arc<Mutex<JointTrajectoryControllerState>>,
 ) {
     while let Some(req) = requests.next().await {

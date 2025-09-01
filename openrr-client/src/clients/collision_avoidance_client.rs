@@ -1,7 +1,7 @@
 use std::{path::Path, sync::Arc};
 
 use arci::{Error, JointTrajectoryClient, TrajectoryPoint, WaitFuture};
-use openrr_planner::{create_joint_path_planner, JointPathPlannerConfig};
+use openrr_planner::{JointPathPlannerConfig, create_joint_path_planner};
 
 // TODO: speed limit
 fn trajectory_from_positions(
@@ -152,15 +152,19 @@ mod tests {
         );
 
         // No collision case
-        assert!(collision_avoidance_client
-            .send_joint_positions(vec![0.0; 8], std::time::Duration::new(1, 0),)
-            .is_ok());
+        assert!(
+            collision_avoidance_client
+                .send_joint_positions(vec![0.0; 8], std::time::Duration::new(1, 0),)
+                .is_ok()
+        );
         // Collision occurs in the reference position
-        assert!(collision_avoidance_client
-            .send_joint_positions(
-                vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                std::time::Duration::new(1, 0),
-            )
-            .is_err());
+        assert!(
+            collision_avoidance_client
+                .send_joint_positions(
+                    vec![1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                    std::time::Duration::new(1, 0),
+                )
+                .is_err()
+        );
     }
 }

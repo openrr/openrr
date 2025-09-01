@@ -4,14 +4,14 @@ mod shared;
 
 use std::{
     sync::{
-        atomic::{AtomicBool, AtomicUsize, Ordering},
         Arc,
+        atomic::{AtomicBool, AtomicUsize, Ordering},
     },
     time::Duration,
 };
 
 use arci::*;
-use arci_ros2::{r2r, Node, Ros2Navigation};
+use arci_ros2::{Node, Ros2Navigation, r2r};
 use assert_approx_eq::assert_approx_eq;
 use futures::{
     future::{self, Either},
@@ -67,8 +67,8 @@ async fn test_nav_timeout() {
 
     node.run_spin_thread(Duration::from_millis(100));
 
-    assert!(nav
-        .send_goal_pose(
+    assert!(
+        nav.send_goal_pose(
             Isometry2::new(Vector2::new(-0.6, 0.2), 1.0),
             "map",
             Duration::from_secs(1),
@@ -77,7 +77,8 @@ async fn test_nav_timeout() {
         .await
         .unwrap_err()
         .to_string()
-        .contains("timeout"));
+        .contains("timeout")
+    );
 }
 
 #[flaky_test::flaky_test(tokio(flavor = "multi_thread"))]

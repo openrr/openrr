@@ -4,8 +4,8 @@ use anyhow::Result;
 use clap::{CommandFactory, Parser};
 use clap_complete::Shell;
 use openrr_apps::{
-    utils::{init_tracing, init_tracing_with_file_appender, LogConfig},
     Error, RobotConfig,
+    utils::{LogConfig, init_tracing, init_tracing_with_file_appender},
 };
 use openrr_client::BoxRobotClient;
 use openrr_command::{RobotCommand, RobotCommandExecutor};
@@ -120,13 +120,15 @@ mod tests {
         assert!(RobotCommandArgs::try_parse_from([bin]).is_ok());
         assert!(RobotCommandArgs::try_parse_from([bin, "--show-default-config"]).is_ok());
         assert!(RobotCommandArgs::try_parse_from([bin, "--config-path", "path", "list"]).is_ok());
-        assert!(RobotCommandArgs::try_parse_from([
-            bin,
-            "--show-default-config",
-            "--config-path",
-            "path"
-        ])
-        .is_ok());
+        assert!(
+            RobotCommandArgs::try_parse_from([
+                bin,
+                "--show-default-config",
+                "--config-path",
+                "path"
+            ])
+            .is_ok()
+        );
     }
 
     #[test]

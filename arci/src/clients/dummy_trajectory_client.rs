@@ -75,11 +75,13 @@ mod tests {
         assert_eq!(pos.len(), 2);
         assert_approx_eq!(pos[0], 0.0);
         assert_approx_eq!(pos[1], 0.0);
-        assert!(client
-            .send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs(1))
-            .unwrap()
-            .await
-            .is_ok());
+        assert!(
+            client
+                .send_joint_positions(vec![1.0, 2.0], std::time::Duration::from_secs(1))
+                .unwrap()
+                .await
+                .is_ok()
+        );
         let pos2 = client.current_joint_positions().unwrap();
         assert_eq!(pos2.len(), 2);
         assert_approx_eq!(pos2[0], 1.0);

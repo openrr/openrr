@@ -63,15 +63,19 @@ fn test_robot_client() {
     assert_eq!(client.joint_names()[0], "joint0");
     assert_approx_eq!(client.current_joint_positions().unwrap()[1], 1f64);
 
-    assert!(client
-        .send_joint_positions(vec![0.5, 1.5, 2.5], std::time::Duration::from_millis(100),)
-        .is_ok());
+    assert!(
+        client
+            .send_joint_positions(vec![0.5, 1.5, 2.5], std::time::Duration::from_millis(100),)
+            .is_ok()
+    );
 
-    assert!(client
-        .send_joint_trajectory(vec![TrajectoryPoint {
-            positions: vec![1.0, 2.0, 3.0],
-            velocities: Some(vec![3.5, 4.5, 5.5]),
-            time_from_start: std::time::Duration::from_millis(100),
-        }])
-        .is_ok());
+    assert!(
+        client
+            .send_joint_trajectory(vec![TrajectoryPoint {
+                positions: vec![1.0, 2.0, 3.0],
+                velocities: Some(vec![3.5, 4.5, 5.5]),
+                time_from_start: std::time::Duration::from_millis(100),
+            }])
+            .is_ok()
+    );
 }

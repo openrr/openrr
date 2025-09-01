@@ -469,17 +469,23 @@ mod tests {
             .map(|j| j.name.to_owned())
             .collect::<Vec<String>>();
 
-        assert!(planner
-            .plan_avoid_self_collision(using_joint_names.as_slice(), &[0.0], &[0.0],)
-            .is_ok());
+        assert!(
+            planner
+                .plan_avoid_self_collision(using_joint_names.as_slice(), &[0.0], &[0.0],)
+                .is_ok()
+        );
         // an error occurs in the start
-        assert!(planner
-            .plan_avoid_self_collision(using_joint_names.as_slice(), &[1.57], &[0.0],)
-            .is_err());
+        assert!(
+            planner
+                .plan_avoid_self_collision(using_joint_names.as_slice(), &[1.57], &[0.0],)
+                .is_err()
+        );
         // an error occurs in the goal
-        assert!(planner
-            .plan_avoid_self_collision(using_joint_names.as_slice(), &[0.0], &[1.57],)
-            .is_err());
+        assert!(
+            planner
+                .plan_avoid_self_collision(using_joint_names.as_slice(), &[0.0], &[1.57],)
+                .is_err()
+        );
     }
 
     // This test potentially fails because of RRT-based planning,
@@ -512,16 +518,20 @@ mod tests {
             .collect::<Vec<String>>();
 
         // an error occurs since the arms collide
-        assert!(planner
-            .plan_avoid_self_collision(using_joint_names.as_slice(), &[0.0; 6], &[0.0; 6],)
-            .is_err());
+        assert!(
+            planner
+                .plan_avoid_self_collision(using_joint_names.as_slice(), &[0.0; 6], &[0.0; 6],)
+                .is_err()
+        );
         // the planner PROBABLY generates a trajectory avoiding self-collisions
-        assert!(planner
-            .plan_avoid_self_collision(
-                using_joint_names.as_slice(),
-                &[0.0, -0.3, 0.0, 0.0, 0.0, 0.0],
-                &[0.0, 0.3, 0.0, 0.0, 0.0, 0.0],
-            )
-            .is_ok());
+        assert!(
+            planner
+                .plan_avoid_self_collision(
+                    using_joint_names.as_slice(),
+                    &[0.0, -0.3, 0.0, 0.0, 0.0, 0.0],
+                    &[0.0, 0.3, 0.0, 0.0, 0.0, 0.0],
+                )
+                .is_ok()
+        );
     }
 }

@@ -5,8 +5,8 @@ mod shared;
 use std::time::Duration;
 
 use arci::{LaserScan2D, Scan2D};
-use arci_ros2::{r2r, Ros2LaserScan2D};
-use r2r::{sensor_msgs::msg::LaserScan, std_msgs::msg::Header, QosProfile};
+use arci_ros2::{Ros2LaserScan2D, r2r};
+use r2r::{QosProfile, sensor_msgs::msg::LaserScan, std_msgs::msg::Header};
 use shared::*;
 
 const LASER_SCAN_TOPIC: &str = "/scan";

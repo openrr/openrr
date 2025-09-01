@@ -23,7 +23,7 @@ use k::nalgebra as na;
 use ncollide3d::shape::Compound;
 use openrr_planner::FromUrdf;
 use urdf_rs::Robot;
-use urdf_viz::{kiss3d::window::Window, Action, Key, Modifiers, WindowEvent};
+use urdf_viz::{Action, Key, Modifiers, WindowEvent, kiss3d::window::Window};
 
 struct CollisionAvoidApp {
     planner: openrr_planner::JointPathPlannerWithIk<

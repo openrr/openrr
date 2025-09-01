@@ -1,4 +1,4 @@
-use crate::{error::Error, msg::sensor_msgs::JointState, JointStateProvider, SubscriberHandler};
+use crate::{JointStateProvider, SubscriberHandler, error::Error, msg::sensor_msgs::JointState};
 
 pub(crate) struct JointStateProviderFromJointState(SubscriberHandler<JointState>);
 

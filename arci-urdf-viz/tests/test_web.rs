@@ -2,7 +2,7 @@ mod util;
 
 use std::{f64, time::Duration};
 
-use arci::{nalgebra, Localization, MoveBase, Navigation};
+use arci::{Localization, MoveBase, Navigation, nalgebra};
 use arci_urdf_viz::*;
 use assert_approx_eq::assert_approx_eq;
 use urdf_viz::WebServer;

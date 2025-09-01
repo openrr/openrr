@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use arci::{gamepad::GamepadEvent, Gamepad};
+use arci::{Gamepad, gamepad::GamepadEvent};
 use arci_ros::RosJoyGamepad;
 
 mod util;

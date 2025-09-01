@@ -106,7 +106,7 @@ use std::{env, path::PathBuf, process::Command, time::Duration};
 
 use anyhow::Result;
 use arci::{DummyJointTrajectoryClient, JointTrajectoryClient};
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use fs_err as fs;
 use openrr_plugin::{JointTrajectoryClientProxy, PluginProxy};
 
@@ -231,7 +231,7 @@ fn test_plugin() -> Result<PathBuf> {
         r#"
 [package]
 name = "test_plugin"
-edition = "2021"
+edition = "2024"
 
 [workspace]
 
