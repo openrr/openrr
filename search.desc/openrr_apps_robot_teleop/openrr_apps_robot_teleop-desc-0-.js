@@ -1,0 +1,1 @@
+searchState.loadedDescShard("openrr_apps_robot_teleop", 0, "An openrr teleoperation tool.\nPath to the setting file.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nPath to log directory for tracing FileAppender.\nSet options from command line. These settings take …\nPrints the default setting as TOML.\nSet options from command line. These settings take …")

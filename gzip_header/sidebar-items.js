@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ExtraFlags","FileSystemType"],"fn":["read_gz_header"],"struct":["Crc","CrcReader","GzBuilder","GzHeader"]};

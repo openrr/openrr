@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["DEFAULT_BUFFERED_LINES_LIMIT"],"struct":["ErrorCounter","NonBlocking","NonBlockingBuilder","WorkerGuard"]};

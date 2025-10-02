@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["gen","gen_plugin_trait","gen_proxy_type"],"struct":["ReplacePath"]};

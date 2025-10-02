@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["assert_correct_default_storage","assert_correct_storage"],"struct":["AssertCsArgs","EnumInfo","NonExhaustive","UnwrapEnumError"],"trait":["DeserializeEnum","GetEnumInfo","GetVTable","NonExhaustiveMarker","NonExhaustiveSharedOps","SerializeEnum","ValidDiscriminant"],"type":["NonExhaustiveFor","NonExhaustiveWI","NonExhaustiveWS"]};

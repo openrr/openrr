@@ -1,0 +1,562 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Contains items for adding checks to individual types."><title>abi_stable::abi_stability::extra_checks - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module extra_<wbr>checks</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#implementing-and-using-extrachecks" title="Implementing and using ExtraChecks">Implementing and using ExtraChecks</a></li><li><a href="#combination" title="Combination">Combination</a><ul><li><a href="#failure" title="Failure">Failure</a></li><li><a href="#example" title="Example">Example</a></li></ul></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#alphabetic" title="Alphabetic.">Alphabetic.</a></li><li><a href="#associated-constant" title="Associated Constant.">Associated Constant.</a></li></ul></li></ul><h3><a href="#modules">Module Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In abi_<wbr>stable::<wbr>abi_<wbr>stability</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">abi_stable</a>::<wbr><a href="../index.html">abi_stability</a></div><h1>Module <span>extra_checks</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/abi_stable/abi_stability/extra_checks.rs.html#1-888">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Contains items for adding checks to individual types.</p>
+<h2 id="implementing-and-using-extrachecks"><a class="doc-anchor" href="#implementing-and-using-extrachecks">§</a>Implementing and using ExtraChecks</h2>
+<p>To add extra checks to a type follow these steps:</p>
+<ul>
+<li>
+<p>Create some type and implement ExtraChecks for it,</p>
+</li>
+<li>
+<p>Apply the <code>#[sabi(extra_checks = const expression that implements ExtraChecks)]</code>
+attribute to a type that uses <code>#[derive(StableAbi)]</code>.</p>
+</li>
+</ul>
+<h2 id="combination"><a class="doc-anchor" href="#combination">§</a>Combination</h2>
+<p>This is how an ExtraChecks can be combined across all
+dynamic libraries to ensure some property(which can be relied on for safety).</p>
+<p>This is a very similar process to how abi_stable ensures that
+vtables and modules are consistent across dynamic libraries.</p>
+<h4 id="failure"><a class="doc-anchor" href="#failure">§</a>Failure</h4>
+<p>Loading many libraries that contain ExtraChecks trait objects that need
+to be combined can fail if the representative version of the trait objects
+are incompatible with those of the library,
+even if both the library and the binary are otherwise compatible.</p>
+<p>The graphs below uses the <code>LIBRARY( ExtraChecks trait object )</code> format,
+where the trait object is compatible only if the one in the binary
+is a prefix of the string in the library,
+and all the libraries have a prefix of the same string.</p>
+<p>This is fine:</p>
+<div class="example-wrap"><pre class="language-text"><code>A(&quot;ab&quot;)&lt;---B(&quot;abc&quot;)
+\__________C(&quot;abcd&quot;)</code></pre></div>
+<p>This is not fine</p>
+<div class="example-wrap"><pre class="language-text"><code> __________D(&quot;abe&quot;)
+/
+A(&quot;ab&quot;)&lt;---B(&quot;abc&quot;)
+\__________C(&quot;abcd&quot;)</code></pre></div>
+<p>The case that is not fine happens when the <code>ExtraChecks_TO::combine</code> method returned an error.</p>
+<h4 id="example"><a class="doc-anchor" href="#example">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>abi_stable::{
+    abi_stability::{
+        check_layout_compatibility,
+        extra_checks::{
+            ExtraChecks, ExtraChecksBox, ExtraChecksError, ExtraChecksRef,
+            ExtraChecksStaticRef, ForExtraChecksImplementor, TypeCheckerMut,
+        },
+    },
+    marker_type::UnsafeIgnoredType,
+    sabi_extern_fn,
+    sabi_trait::prelude::TD_Opaque,
+    std_types::{RCow, RCowSlice, ROption, RResult, RSome, RStr},
+    type_layout::TypeLayout,
+    GetStaticEquivalent, StableAbi,
+};
+
+<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Display};
+
+<span class="kw">const </span>LAYOUT0: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout = &lt;WithConstant&lt;V1_0&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT;
+<span class="kw">const </span>LAYOUT1: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout = &lt;WithConstant&lt;V1_1&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT;
+<span class="kw">const </span>LAYOUT1B: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout =
+    &lt;WithConstant&lt;V1_1_Incompatible&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT;
+<span class="kw">const </span>LAYOUT2: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout = &lt;WithConstant&lt;V1_2&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT;
+
+<span class="kw">fn </span>main() {
+    <span class="comment">// Compared LAYOUT0 to LAYOUT1B,
+    // then stored LAYOUT0.extra_checks as the ExtraChecks associated with both layouts.
+    </span>check_layout_compatibility(LAYOUT0, LAYOUT1B).unwrap();
+
+    <span class="comment">// Compared LAYOUT1 to LAYOUT2,
+    // then stored LAYOUT2.extra_checks as the ExtraChecks associated with both layouts.
+    </span>check_layout_compatibility(LAYOUT1, LAYOUT2).unwrap();
+
+    <span class="comment">// Compared LAYOUT0 to LAYOUT2:
+    // - the comparison succeeded,
+    // - then both are combined.
+    // - The combined trait object is attempted to be combined with the
+    //      ExtraChecks in the global map associated to both LAYOUT0 and LAYOUT2,
+    //      which are LAYOUT1B.extra_checks and LAYOUT2.extra_checks respectively.
+    // - Combining the trait objects with the ones in the global map fails because
+    //      the one from LAYOUT1B is incompatible with the one from LAYOUT2.
+    </span>check_layout_compatibility(LAYOUT0, LAYOUT2).unwrap_err();
+}
+
+<span class="comment">//////////////////////////////////////////////////////////////////////////////////
+
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(
+    <span class="comment">// Replaces the C:StableAbi constraint with `C:GetStaticEquivalent`
+    // (a supertrait of StableAbi).
+    </span>not_stableabi(C),
+    bound(C: GetConstant),
+    extra_checks = <span class="self">Self</span>::CHECKER
+)]
+</span><span class="kw">struct </span>WithConstant&lt;C&gt; {
+    <span class="comment">// UnsafeIgnoredType is equivalent to PhantomData,
+    // except that all `UnsafeIgnoredType` are considered the same type by `StableAbi`.
+    </span>_marker: UnsafeIgnoredType&lt;C&gt;,
+}
+
+<span class="kw">impl</span>&lt;C&gt; WithConstant&lt;C&gt; {
+    <span class="kw">const </span>NEW: <span class="self">Self </span>= <span class="self">Self </span>{
+        _marker: UnsafeIgnoredType::NEW,
+    };
+}
+
+<span class="kw">impl</span>&lt;C&gt; WithConstant&lt;C&gt;
+<span class="kw">where
+    </span>C: GetConstant,
+{
+    <span class="kw">const </span>CHECKER: ConstChecker = ConstChecker {
+        chars: RStr::from_str(C::CHARS),
+    };
+}
+
+<span class="kw">trait </span>GetConstant {
+    <span class="kw">const </span>CHARS: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
+}
+
+<span class="kw">use </span><span class="self">self</span>::constants::<span class="kw-2">*</span>;
+
+<span class="attr">#[allow(non_camel_case_types)]
+</span><span class="kw">mod </span>constants {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+    <span class="attr">#[derive(GetStaticEquivalent)]
+    </span><span class="kw">pub struct </span>V1_0;
+
+    <span class="kw">impl </span>GetConstant <span class="kw">for </span>V1_0 {
+        <span class="kw">const </span>CHARS: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"ab"</span>;
+    }
+
+    <span class="attr">#[derive(GetStaticEquivalent)]
+    </span><span class="kw">pub struct </span>V1_1;
+
+    <span class="kw">impl </span>GetConstant <span class="kw">for </span>V1_1 {
+        <span class="kw">const </span>CHARS: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"abc"</span>;
+    }
+
+    <span class="attr">#[derive(GetStaticEquivalent)]
+    </span><span class="kw">pub struct </span>V1_1_Incompatible;
+
+    <span class="kw">impl </span>GetConstant <span class="kw">for </span>V1_1_Incompatible {
+        <span class="kw">const </span>CHARS: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"abd"</span>;
+    }
+
+    <span class="attr">#[derive(GetStaticEquivalent)]
+    </span><span class="kw">pub struct </span>V1_2;
+
+    <span class="kw">impl </span>GetConstant <span class="kw">for </span>V1_2 {
+        <span class="kw">const </span>CHARS: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"abcd"</span>;
+    }
+}
+
+<span class="comment">/////////////////////////////////////////
+
+</span><span class="attr">#[repr(C)]
+#[derive(Debug, Clone, StableAbi)]
+</span><span class="kw">pub struct </span>ConstChecker {
+    chars: RStr&lt;<span class="lifetime">'static</span>&gt;,
+}
+
+<span class="kw">impl </span>Display <span class="kw">for </span>ConstChecker {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">writeln!</span>(
+            f,
+            <span class="string">"ConstChecker: \
+        Checks that the associated constant for \
+        the other type is compatible with:\n{}\n.\
+    "</span>,
+            <span class="self">self</span>.chars
+        )
+    }
+}
+
+<span class="kw">impl </span>ConstChecker {
+    <span class="kw">fn </span>check_compatible_inner(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        other: <span class="kw-2">&amp;</span>ConstChecker,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), UnequalConstError&gt; {
+        <span class="kw">if </span>other.chars.starts_with(<span class="kw-2">&amp;*</span><span class="self">self</span>.chars) {
+            <span class="prelude-val">Ok</span>(())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(UnequalConstError {
+                expected: <span class="self">self</span>.chars,
+                found: other.chars,
+            })
+        }
+    }
+}
+<span class="kw">unsafe impl </span>ExtraChecks <span class="kw">for </span>ConstChecker {
+    <span class="kw">fn </span>type_layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout {
+        &lt;<span class="self">Self </span><span class="kw">as </span>StableAbi&gt;::LAYOUT
+    }
+
+    <span class="kw">fn </span>check_compatibility(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        _layout_containing_self: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout,
+        layout_containing_other: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout,
+        checker: TypeCheckerMut&lt;<span class="lifetime">'_</span>&gt;,
+    ) -&gt; RResult&lt;(), ExtraChecksError&gt; {
+        <span class="self">Self</span>::downcast_with_layout(layout_containing_other, checker, |other, <span class="kw">_</span>| {
+            <span class="self">self</span>.check_compatible_inner(other)
+        })
+    }
+
+    <span class="kw">fn </span>nested_type_layouts(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RCowSlice&lt;<span class="lifetime">'_</span>, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout&gt; {
+        RCow::from_slice(<span class="kw-2">&amp;</span>[])
+    }
+
+    <span class="kw">fn </span>combine(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        other: ExtraChecksRef&lt;<span class="lifetime">'_</span>&gt;,
+        checker: TypeCheckerMut&lt;<span class="lifetime">'_</span>&gt;,
+    ) -&gt; RResult&lt;ROption&lt;ExtraChecksBox&gt;, ExtraChecksError&gt; {
+        <span class="self">Self</span>::downcast_with_object(other, checker, |other, <span class="kw">_</span>| {
+            <span class="kw">let </span>(min, max) = min_max_by(<span class="self">self</span>, other, |x| x.chars.len());
+            min.check_compatible_inner(max)
+                .map(|<span class="kw">_</span>| RSome(ExtraChecksBox::from_value(max.clone(), TD_Opaque)))
+        })
+    }
+}
+
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>UnequalConstError {
+    expected: RStr&lt;<span class="lifetime">'static</span>&gt;,
+    found: RStr&lt;<span class="lifetime">'static</span>&gt;,
+}
+
+<span class="kw">impl </span>Display <span class="kw">for </span>UnequalConstError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">writeln!</span>(
+    f,
+    <span class="string">"Expected the `GetConstant::CHARS` associated constant to be compatible with:\
+     \n    {}\
+     \nFound:\
+     \n    {}\
+    "</span>,
+    <span class="self">self</span>.expected,
+    <span class="self">self</span>.found,
+)
+    }
+}
+
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>UnequalConstError {}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>min_max_by&lt;T, F, K&gt;(l: T, r: T, <span class="kw-2">mut </span>f: F) -&gt; (T, T)
+<span class="kw">where
+    </span>F: FnMut(<span class="kw-2">&amp;</span>T) -&gt; K,
+    K: Ord,
+{
+    <span class="kw">if </span>f(<span class="kw-2">&amp;</span>l) &lt; f(<span class="kw-2">&amp;</span>r) {
+        (l, r)
+    } <span class="kw">else </span>{
+        (r, l)
+    }
+}
+
+</code></pre></div>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="alphabetic"><a class="doc-anchor" href="#alphabetic">§</a>Alphabetic.</h4>
+<p>This defines an ExtraChecks which checks that fields are alphabetically sorted</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    abi_stability::{
+        check_layout_compatibility,
+        extra_checks::{
+            ExtraChecks, ExtraChecksError, ExtraChecksStaticRef,
+            ForExtraChecksImplementor, TypeCheckerMut,
+        },
+    },
+    sabi_extern_fn,
+    sabi_trait::prelude::TD_Opaque,
+    std_types::{RCow, RCowSlice, RDuration, ROption, RResult, RStr, RString},
+    type_layout::TypeLayout,
+    StableAbi,
+};
+
+<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Display};
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>rect_layout = &lt;Rectangle <span class="kw">as </span>StableAbi&gt;::LAYOUT;
+    <span class="kw">let </span>person_layout = &lt;Person <span class="kw">as </span>StableAbi&gt;::LAYOUT;
+
+    <span class="comment">// This passes because the fields are in order
+    </span>check_layout_compatibility(rect_layout, rect_layout)
+        .unwrap_or_else(|e| <span class="macro">panic!</span>(<span class="string">"{}"</span>, e));
+
+    <span class="comment">// This errors because the struct's fields aren't in order
+    </span>check_layout_compatibility(person_layout, person_layout).unwrap_err();
+}
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(extra_checks = InOrderChecker)]
+</span><span class="kw">struct </span>Rectangle {
+    x: u32,
+    y: u32,
+    z: u32,
+}
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(extra_checks = InOrderChecker)]
+</span><span class="kw">struct </span>Person {
+    name: RString,
+    surname: RString,
+    age: RDuration,
+}
+
+<span class="comment">/////////////////////////////////////////
+
+</span><span class="attr">#[repr(C)]
+#[derive(Debug, Clone, StableAbi)]
+</span><span class="kw">pub struct </span>InOrderChecker;
+
+<span class="kw">impl </span>Display <span class="kw">for </span>InOrderChecker {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(
+            <span class="string">"InOrderChecker: Checks that field names are sorted alphabetically."</span>,
+        )
+    }
+}
+
+<span class="kw">unsafe impl </span>ExtraChecks <span class="kw">for </span>InOrderChecker {
+    <span class="kw">fn </span>type_layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout {
+        &lt;<span class="self">Self </span><span class="kw">as </span>StableAbi&gt;::LAYOUT
+    }
+
+    <span class="kw">fn </span>check_compatibility(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        layout_containing_self: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout,
+        layout_containing_other: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout,
+        checker: TypeCheckerMut&lt;<span class="lifetime">'_</span>&gt;,
+    ) -&gt; RResult&lt;(), ExtraChecksError&gt; {
+        <span class="self">Self</span>::downcast_with_layout(layout_containing_other, checker, |<span class="kw">_</span>, <span class="kw">_</span>| {
+            <span class="kw">let </span>fields = <span class="kw">match </span>layout_containing_self.get_fields() {
+                <span class="prelude-val">Some</span>(fields) <span class="kw">if </span>!fields.is_empty() =&gt; fields,
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+            };
+
+            <span class="kw">let </span><span class="kw-2">mut </span>prev = fields.iter().next().unwrap();
+            <span class="kw">for </span>curr <span class="kw">in </span>fields {
+                <span class="kw">if </span>prev.name() &gt; curr.name() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(OutOfOrderError {
+                        previous_one: prev.name(),
+                        first_one: curr.name(),
+                    });
+                }
+                prev = curr;
+            }
+            <span class="prelude-val">Ok</span>(())
+        })
+    }
+
+    <span class="kw">fn </span>nested_type_layouts(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RCowSlice&lt;<span class="lifetime">'_</span>, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout&gt; {
+        RCow::from_slice(<span class="kw-2">&amp;</span>[])
+    }
+}
+
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>OutOfOrderError {
+    previous_one: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+
+    <span class="doccomment">/// The first field that is out of order.
+    </span>first_one: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+}
+
+<span class="kw">impl </span>Display <span class="kw">for </span>OutOfOrderError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">writeln!</span>(
+            f,
+            <span class="string">"Expected fields to be alphabetically sorted.\n\
+         Found field '{}' before '{}'\
+        "</span>,
+            <span class="self">self</span>.previous_one, <span class="self">self</span>.first_one,
+        )
+    }
+}
+
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>OutOfOrderError {}
+
+</code></pre></div>
+<h4 id="associated-constant"><a class="doc-anchor" href="#associated-constant">§</a>Associated Constant.</h4>
+<p>This defines an ExtraChecks which checks that an associated constant is
+the same for both types.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    abi_stability::{
+        check_layout_compatibility,
+        extra_checks::{
+            ExtraChecks, ExtraChecksError, ExtraChecksStaticRef,
+            ForExtraChecksImplementor, TypeCheckerMut,
+        },
+    },
+    marker_type::UnsafeIgnoredType,
+    sabi_extern_fn,
+    sabi_trait::prelude::TD_Opaque,
+    std_types::{RCow, RCowSlice, RDuration, RResult, RStr, RString},
+    type_layout::TypeLayout,
+    GetStaticEquivalent, StableAbi,
+};
+
+<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Display};
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>const0 = &lt;WithConstant&lt;N0&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT;
+    <span class="kw">let </span>const_second_0 = &lt;WithConstant&lt;SecondN0&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT;
+    <span class="kw">let </span>const1 = &lt;WithConstant&lt;N1&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT;
+    <span class="kw">let </span>const2 = &lt;WithConstant&lt;N2&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT;
+
+    check_layout_compatibility(const0, const0).unwrap();
+    check_layout_compatibility(const_second_0, const_second_0).unwrap();
+    check_layout_compatibility(const1, const1).unwrap();
+    check_layout_compatibility(const2, const2).unwrap();
+
+    <span class="comment">////////////
+    // WithConstant&lt;SecondN0&gt; and WithConstant&lt;N0&gt; are compatible with each other
+    // because their `GetConstant::NUMBER` associated constant is the same value.
+    </span>check_layout_compatibility(const0, const_second_0).unwrap();
+    check_layout_compatibility(const_second_0, const0).unwrap();
+
+    <span class="comment">////////////
+    // None of the lines below are compatible because their
+    // `GetConstant::NUMBER` associated constant isn't the same value.
+    </span>check_layout_compatibility(const0, const1).unwrap_err();
+    check_layout_compatibility(const0, const2).unwrap_err();
+
+    check_layout_compatibility(const1, const0).unwrap_err();
+    check_layout_compatibility(const1, const2).unwrap_err();
+
+    check_layout_compatibility(const2, const0).unwrap_err();
+    check_layout_compatibility(const2, const1).unwrap_err();
+}
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(
+    <span class="comment">// Replaces the C:StableAbi constraint with `C:GetStaticEquivalent`
+    // (a supertrait of StableAbi).
+    </span>not_stableabi(C),
+    bound(C:GetConstant),
+    extra_checks = <span class="self">Self</span>::CHECKER,
+)]
+</span><span class="kw">struct </span>WithConstant&lt;C&gt; {
+    <span class="comment">// UnsafeIgnoredType is equivalent to PhantomData,
+    // except that all `UnsafeIgnoredType` are considered the same type by `StableAbi`.
+    </span>_marker: UnsafeIgnoredType&lt;C&gt;,
+}
+
+<span class="kw">impl</span>&lt;C&gt; WithConstant&lt;C&gt; {
+    <span class="kw">const </span>NEW: <span class="self">Self </span>= <span class="self">Self </span>{
+        _marker: UnsafeIgnoredType::NEW,
+    };
+}
+
+<span class="kw">impl</span>&lt;C&gt; WithConstant&lt;C&gt;
+<span class="kw">where
+    </span>C: GetConstant,
+{
+    <span class="kw">const </span>CHECKER: ConstChecker = ConstChecker { number: C::NUMBER };
+}
+
+<span class="kw">trait </span>GetConstant {
+    <span class="kw">const </span>NUMBER: u64;
+}
+
+<span class="attr">#[derive(GetStaticEquivalent)]
+</span><span class="kw">struct </span>N0;
+<span class="kw">impl </span>GetConstant <span class="kw">for </span>N0 {
+    <span class="kw">const </span>NUMBER: u64 = <span class="number">0</span>;
+}
+
+<span class="attr">#[derive(GetStaticEquivalent)]
+</span><span class="kw">struct </span>SecondN0;
+<span class="kw">impl </span>GetConstant <span class="kw">for </span>SecondN0 {
+    <span class="kw">const </span>NUMBER: u64 = <span class="number">0</span>;
+}
+
+<span class="attr">#[derive(GetStaticEquivalent)]
+</span><span class="kw">struct </span>N1;
+<span class="kw">impl </span>GetConstant <span class="kw">for </span>N1 {
+    <span class="kw">const </span>NUMBER: u64 = <span class="number">1</span>;
+}
+
+<span class="attr">#[derive(GetStaticEquivalent)]
+</span><span class="kw">struct </span>N2;
+<span class="kw">impl </span>GetConstant <span class="kw">for </span>N2 {
+    <span class="kw">const </span>NUMBER: u64 = <span class="number">2</span>;
+}
+
+<span class="comment">/////////////////////////////////////////
+
+</span><span class="attr">#[repr(C)]
+#[derive(Debug, Clone, StableAbi)]
+</span><span class="kw">pub struct </span>ConstChecker {
+    number: u64,
+}
+
+<span class="kw">impl </span>Display <span class="kw">for </span>ConstChecker {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">writeln!</span>(
+            f,
+            <span class="string">"ConstChecker: \
+            Checks that the associated constant for \
+            for the other type is {}.\
+        "</span>,
+            <span class="self">self</span>.number
+        )
+    }
+}
+
+<span class="kw">unsafe impl </span>ExtraChecks <span class="kw">for </span>ConstChecker {
+    <span class="kw">fn </span>type_layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout {
+        &lt;<span class="self">Self </span><span class="kw">as </span>StableAbi&gt;::LAYOUT
+    }
+
+    <span class="kw">fn </span>check_compatibility(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        layout_containing_self: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout,
+        layout_containing_other: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout,
+        checker: TypeCheckerMut&lt;<span class="lifetime">'_</span>&gt;,
+    ) -&gt; RResult&lt;(), ExtraChecksError&gt; {
+        <span class="self">Self</span>::downcast_with_layout(layout_containing_other, checker, |other, <span class="kw">_</span>| {
+            <span class="kw">if </span><span class="self">self</span>.number == other.number {
+                <span class="prelude-val">Ok</span>(())
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(UnequalConstError {
+                    expected: <span class="self">self</span>.number,
+                    found: other.number,
+                })
+            }
+        })
+    }
+
+    <span class="kw">fn </span>nested_type_layouts(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RCowSlice&lt;<span class="lifetime">'_</span>, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>TypeLayout&gt; {
+        RCow::from_slice(<span class="kw-2">&amp;</span>[])
+    }
+}
+
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>UnequalConstError {
+    expected: u64,
+    found: u64,
+}
+
+<span class="kw">impl </span>Display <span class="kw">for </span>UnequalConstError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">writeln!</span>(
+            f,
+            <span class="string">"Expected the `GetConstant::NUMBER` associated constant to be:\
+         \n    {}\
+         \nFound:\
+         \n    {}\
+        "</span>,
+            <span class="self">self</span>.expected, <span class="self">self</span>.found,
+        )
+    }
+}
+
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>UnequalConstError {}
+
+</code></pre></div>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="ExtraChecks_trait/index.html" title="mod abi_stable::abi_stability::extra_checks::ExtraChecks_trait">Extra<wbr>Checks_<wbr>trait</a></dt><dd>This module is generated by the <a href="../../attr.sabi_trait.html" title="attr abi_stable::sabi_trait"><code>#[sabi_trait]</code></a> attribute on <a href="trait.ExtraChecks.html" title="trait abi_stable::abi_stability::extra_checks::ExtraChecks">ExtraChecks</a></dd><dt><a class="mod" href="TypeChecker_trait/index.html" title="mod abi_stable::abi_stability::extra_checks::TypeChecker_trait">Type<wbr>Checker_<wbr>trait</a></dt><dd>This module is generated by the <a href="../../attr.sabi_trait.html" title="attr abi_stable::sabi_trait"><code>#[sabi_trait]</code></a> attribute on <a href="trait.TypeChecker.html" title="trait abi_stable::abi_stability::extra_checks::TypeChecker">TypeChecker</a></dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.ExtraChecks_TO.html" title="struct abi_stable::abi_stability::extra_checks::ExtraChecks_TO">Extra<wbr>Checks_<wbr>TO</a></dt><dd>The trait object for <a href="trait.ExtraChecks.html" title="trait abi_stable::abi_stability::extra_checks::ExtraChecks">ExtraChecks</a>.</dd><dt><a class="struct" href="struct.TypeChecker_TO.html" title="struct abi_stable::abi_stability::extra_checks::TypeChecker_TO">Type<wbr>Checker_<wbr>TO</a></dt><dd>The trait object for <a href="trait.TypeChecker.html" title="trait abi_stable::abi_stability::extra_checks::TypeChecker">TypeChecker</a>.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.ExtraChecksError.html" title="enum abi_stable::abi_stability::extra_checks::ExtraChecksError">Extra<wbr>Checks<wbr>Error</a></dt><dd>The errors returned from <code>ExtraChecks</code> and <code>ForExtraChecksImplementor</code> methods.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.ExtraChecks.html" title="trait abi_stable::abi_stability::extra_checks::ExtraChecks">Extra<wbr>Checks</a></dt><dd>Allows defining extra checks for a type.</dd><dt><a class="trait" href="trait.ForExtraChecksImplementor.html" title="trait abi_stable::abi_stability::extra_checks::ForExtraChecksImplementor">ForExtra<wbr>Checks<wbr>Implementor</a></dt><dd>An extension trait for <code>ExtraChecks</code> implementors.</dd><dt><a class="trait" href="trait.TypeChecker.html" title="trait abi_stable::abi_stability::extra_checks::TypeChecker">Type<wbr>Checker</a></dt><dd>This checks that the layout of types coming from dynamic libraries
+are compatible with those of the binary/dynlib that loads them.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.ExtraChecksBox.html" title="type abi_stable::abi_stability::extra_checks::ExtraChecksBox">Extra<wbr>Checks<wbr>Box</a></dt><dd>An ffi-safe equivalent of <code>Box&lt;dyn ExtraChecks&gt;</code>.</dd><dt><a class="type" href="type.ExtraChecksRef.html" title="type abi_stable::abi_stability::extra_checks::ExtraChecksRef">Extra<wbr>Checks<wbr>Ref</a></dt><dd>An ffi-safe equivalent of <code>&amp;'a dyn ExtraChecks</code>.</dd><dt><a class="type" href="type.ExtraChecksStaticRef.html" title="type abi_stable::abi_stability::extra_checks::ExtraChecksStaticRef">Extra<wbr>Checks<wbr>Static<wbr>Ref</a></dt><dd>An ffi-safe equivalent of <code>&amp;'static dyn ExtraChecks</code>.</dd><dt><a class="type" href="type.ExtraChecks_CTO.html" title="type abi_stable::abi_stability::extra_checks::ExtraChecks_CTO">Extra<wbr>Checks_<wbr>CTO</a></dt><dd>A type alias for the const-constructible <a href="struct.ExtraChecks_TO.html" title="struct abi_stable::abi_stability::extra_checks::ExtraChecks_TO"><code>ExtraChecks_TO</code></a>.</dd><dt><a class="type" href="type.StoredExtraChecks.html" title="type abi_stable::abi_stability::extra_checks::StoredExtraChecks">Stored<wbr>Extra<wbr>Checks</a></dt><dd>The version of <code>ExtraChecks</code> that is stored in <code>TypeLayout</code>.</dd><dt><a class="type" href="type.TypeCheckerMut.html" title="type abi_stable::abi_stability::extra_checks::TypeCheckerMut">Type<wbr>Checker<wbr>Mut</a></dt><dd>An ffi-safe equivalent of &amp;’b mut dyn TypeChecker</dd><dt><a class="type" href="type.TypeChecker_CTO.html" title="type abi_stable::abi_stability::extra_checks::TypeChecker_CTO">Type<wbr>Checker_<wbr>CTO</a></dt><dd>A type alias for the const-constructible <a href="struct.TypeChecker_TO.html" title="struct abi_stable::abi_stability::extra_checks::TypeChecker_TO"><code>TypeChecker_TO</code></a>.</dd></dl></section></div></main></body></html>

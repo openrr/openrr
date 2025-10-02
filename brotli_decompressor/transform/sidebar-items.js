@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["kNumTransforms","kTransforms"],"fn":["TransformDictionaryWord"],"struct":["Transform"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["FieldOffsetWithVis","ImplGetNestedFieldOffset"],"trait":["GetFieldOffset","GetPubFieldOffset","ImplsGetFieldOffset"],"type":["FieldAlignment","FieldPrivacy","FieldType","PrivFieldAlignment","PrivFieldType"]};

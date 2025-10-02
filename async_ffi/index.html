@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="FFI-compatible `Future`s"><title>async_ffi - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="async_ffi" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../async_ffi/index.html">async_<wbr>ffi</a><span class="version">0.5.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#ffi-compatible-futures" title="FFI-compatible `Future`s">FFI-compatible <code>Future</code>s</a><ul><li><a href="#examples" title="Examples">Examples</a></li><li><a href="#proc-macro-helpers" title="Proc-macro helpers">Proc-macro helpers</a></li><li><a href="#panics" title="Panics">Panics</a></li><li><a href="#variants-of-ffifuture" title="Variants of `FfiFuture`">Variants of <code>FfiFuture</code></a></li><li><a href="#performance-and-cost" title="Performance and cost">Performance and cost</a></li><li><a href="#abi-stable-support" title="`abi-stable` support"><code>abi-stable</code> support</a></li></ul></li></ul><h3><a href="#structs">Crate Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#constants" title="Constants">Constants</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>async_ffi</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/async_ffi/lib.rs.html#1-587">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="ffi-compatible-futures"><a class="doc-anchor" href="#ffi-compatible-futures">§</a>FFI-compatible <a href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html" title="trait core::future::future::Future"><code>Future</code></a>s</h2>
+<p>Rust currently doesn’t provide stable ABI nor stable layout of related structs like
+<code>dyn Future</code> or <code>Waker</code>.
+With this crate, we can wrap async blocks or async functions to make a <code>Future</code> FFI-safe.</p>
+<p><a href="type.FfiFuture.html" title="type async_ffi::FfiFuture"><code>FfiFuture</code></a> provides the same functionality as <code>Box&lt;dyn Future&lt;Output = T&gt; + Send&gt;</code> but
+it’s FFI-compatible, aka. <code>repr(C)</code>. Any <code>Future&lt;Output = T&gt; + Send + 'static</code> can be converted
+into <a href="type.FfiFuture.html" title="type async_ffi::FfiFuture"><code>FfiFuture</code></a> by calling <a href="trait.FutureExt.html#method.into_ffi" title="method async_ffi::FutureExt::into_ffi"><code>into_ffi</code></a> on it, after <code>use</code>ing the
+trait <a href="trait.FutureExt.html" title="trait async_ffi::FutureExt"><code>FutureExt</code></a>.</p>
+<p><a href="type.FfiFuture.html" title="type async_ffi::FfiFuture"><code>FfiFuture</code></a> implements <code>Future&lt;Output = T&gt; + Send</code>. You can <code>await</code> a <a href="type.FfiFuture.html" title="type async_ffi::FfiFuture"><code>FfiFuture</code></a> just like
+a normal <code>Future</code> to wait and get the output.</p>
+<p>For non-<a href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send"><code>Send</code></a> or non-<code>'static</code> futures, see the section
+<a href="#variants-of-ffifuture">Variants of <code>FfiFuture</code></a> below.</p>
+<h3 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h3>
+<p>Provide some async functions in library: (plugin side)</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Compile with `crate-type = ["cdylib"]`.
+</span><span class="kw">use </span>async_ffi::{FfiFuture, FutureExt};
+
+<span class="attr">#[no_mangle]
+</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>work(arg: u32) -&gt; FfiFuture&lt;u32&gt; {
+    <span class="kw">async move </span>{
+        <span class="kw">let </span>ret = do_some_io(arg).<span class="kw">await</span>;
+        do_some_sleep(<span class="number">42</span>).<span class="kw">await</span>;
+        ret
+    }
+    .into_ffi()
+}</code></pre></div>
+<p>Execute async functions from external library: (host or executor side)</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>async_ffi::{FfiFuture, FutureExt};
+
+<span class="comment">// #[link(name = "myplugin...")]
+</span><span class="kw">extern </span><span class="string">"C" </span>{
+    <span class="attr">#[no_mangle]
+    </span><span class="kw">fn </span>work(arg: u32) -&gt; FfiFuture&lt;u32&gt;;
+}
+
+<span class="kw">async fn </span>run_work(arg: u32) -&gt; u32 {
+    <span class="kw">unsafe </span>{ work(arg).<span class="kw">await </span>}
+}</code></pre></div>
+<h3 id="proc-macro-helpers"><a class="doc-anchor" href="#proc-macro-helpers">§</a>Proc-macro helpers</h3>
+<p>If you enable the feature <code>macros</code> (disabled by default), an attribute-like procedural macro
+<code>async_ffi</code>
+is available at top-level. See its own documentation for details.</p>
+<p>With the macro, the example above can be simplified to:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>async_ffi::async_ffi;
+
+<span class="attr">#[no_mangle]
+#[async_ffi]
+</span><span class="kw">pub async extern </span><span class="string">"C" </span><span class="kw">fn </span>work(arg: u32) -&gt; u32 {
+    <span class="kw">let </span>ret = do_some_io(arg).<span class="kw">await</span>;
+    do_some_sleep(<span class="number">42</span>).<span class="kw">await</span>;
+    ret
+}</code></pre></div>
+<h3 id="panics"><a class="doc-anchor" href="#panics">§</a>Panics</h3>
+<p>You should know that
+<a href="https://doc.rust-lang.org/nomicon/ffi.html#ffi-and-panics">unwinding across an FFI boundary is Undefined Behaviour</a>.</p>
+<h4 id="panic-in-futurepoll"><a class="doc-anchor" href="#panic-in-futurepoll">§</a>Panic in <code>Future::poll</code></h4>
+<p>Since the body of <code>async fn</code> is translated to <a href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html#tymethod.poll" title="method core::future::future::Future::poll"><code>Future::poll</code></a> by the compiler, the <code>poll</code>
+method is likely to panic. If this happen, the wrapped <a href="type.FfiFuture.html" title="type async_ffi::FfiFuture"><code>FfiFuture</code></a> will catch unwinding
+with <a href="https://doc.rust-lang.org/1.90.0/std/panic/fn.catch_unwind.html" title="fn std::panic::catch_unwind"><code>std::panic::catch_unwind</code></a>, returning <a href="enum.FfiPoll.html#variant.Panicked" title="variant async_ffi::FfiPoll::Panicked"><code>FfiPoll::Panicked</code></a> to cross the FFI boundary.
+And the other side (usually the plugin host) will get this value in the implementation of
+<code>&lt;FfiFuture&lt;T&gt; as std::future::Future&gt;::poll</code>, and explicit propagate the panic,
+just like <a href="https://doc.rust-lang.org/1.90.0/std/sync/poison/mutex/struct.Mutex.html" title="struct std::sync::poison::mutex::Mutex"><code>std::sync::Mutex</code></a>’s poisoning mechanism.</p>
+<h4 id="panic-in-futuredrop-or-any-waker-vtable-functions-waker"><a class="doc-anchor" href="#panic-in-futuredrop-or-any-waker-vtable-functions-waker">§</a>Panic in <code>Future::drop</code> or any waker vtable functions <code>Waker::*</code></h4>
+<p>Unfortunately, this is very difficult to handle since drop cleanup and <code>Waker</code> functions are
+expected to be infallible. If these functions panic, we would just call <a href="https://doc.rust-lang.org/1.90.0/std/process/fn.abort.html" title="fn std::process::abort"><code>std::process::abort</code></a>
+to terminate the whole program.</p>
+<h3 id="variants-of-ffifuture"><a class="doc-anchor" href="#variants-of-ffifuture">§</a>Variants of <code>FfiFuture</code></h3>
+<p>There are a few variants of <a href="type.FfiFuture.html" title="type async_ffi::FfiFuture"><code>FfiFuture</code></a>. The table below shows their corresponding <code>std</code>
+type.</p>
+<div><table><thead><tr><th>Type</th><th>The corresponding <code>std</code> type</th></tr></thead><tbody>
+<tr><td><a href="type.FfiFuture.html" title="type async_ffi::FfiFuture"><code>FfiFuture&lt;T&gt;</code></a></td><td><code>Box&lt;dyn Future&lt;Output = T&gt; + Send + 'static&gt;</code></td></tr>
+<tr><td><a href="type.LocalFfiFuture.html" title="type async_ffi::LocalFfiFuture"><code>LocalFfiFuture&lt;T&gt;</code></a></td><td><code>Box&lt;dyn Future&lt;Output = T&gt; + 'static&gt;</code></td></tr>
+<tr><td><a href="struct.BorrowingFfiFuture.html" title="struct async_ffi::BorrowingFfiFuture"><code>BorrowingFfiFuture&lt;'a, T&gt;</code></a></td><td><code>Box&lt;dyn Future&lt;Output = T&gt; + Send + 'a&gt;</code></td></tr>
+<tr><td><a href="struct.LocalBorrowingFfiFuture.html" title="struct async_ffi::LocalBorrowingFfiFuture"><code>LocalBorrowingFfiFuture&lt;'a, T&gt;</code></a></td><td><code>Box&lt;dyn Future&lt;Output = T&gt; + 'a&gt;</code></td></tr>
+</tbody></table>
+</div>
+<p>All of these variants are ABI-compatible to each other, since lifetimes and <a href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send"><code>Send</code></a> cannot be
+represented by the C ABI. These bounds are only checked in the Rust side. It’s your duty to
+guarantee that the <a href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send"><code>Send</code></a> and lifetime bounds are respected in the foreign code of your
+external <code>fn</code>s.</p>
+<h3 id="performance-and-cost"><a class="doc-anchor" href="#performance-and-cost">§</a>Performance and cost</h3>
+<p>The conversion between <code>FfiFuture</code> and orinary <code>Future</code> is not cost-free. Currently
+<a href="struct.BorrowingFfiFuture.html#method.new" title="associated function async_ffi::BorrowingFfiFuture::new"><code>FfiFuture::new</code></a> and its alias <a href="trait.FutureExt.html#method.into_ffi" title="method async_ffi::FutureExt::into_ffi"><code>FutureExt::into_ffi</code></a> does one extra allocation.
+When <code>poll</code>ing an <code>FfiFuture</code>, the <code>Waker</code> supplied does one extra allocation when <code>clone</code>d.</p>
+<p>It’s recommended to only wrap you <code>async</code> code once right at the FFI boundary, and use ordinary
+<code>Future</code> everywhere else. It’s usually not a good idea to use <code>FfiFuture</code> in methods, trait
+methods, or generic codes.</p>
+<h3 id="abi-stable-support"><a class="doc-anchor" href="#abi-stable-support">§</a><a href="https://github.com/rodrimati1992/abi_stable_crates/"><code>abi-stable</code></a> support</h3>
+<p>If you want to use this crate with <a href="https://github.com/rodrimati1992/abi_stable_crates/"><code>abi-stable</code></a> interfaces. You can enable the feature flag
+<code>abi_stable</code> (disabled by default), then the struct <code>FfiFuture</code> and friends would derive
+<code>abi_stable::StableAbi</code>.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.BorrowingFfiFuture.html" title="struct async_ffi::BorrowingFfiFuture">Borrowing<wbr>FfiFuture</a></dt><dd>The FFI compatible future type with <a href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send"><code>Send</code></a> bound.</dd><dt><a class="struct" href="struct.FfiContext.html" title="struct async_ffi::FfiContext">FfiContext</a></dt><dd>The FFI compatible <a href="https://doc.rust-lang.org/1.90.0/core/task/wake/struct.Context.html" title="struct core::task::wake::Context"><code>std::task::Context</code></a></dd><dt><a class="struct" href="struct.LocalBorrowingFfiFuture.html" title="struct async_ffi::LocalBorrowingFfiFuture">Local<wbr>Borrowing<wbr>FfiFuture</a></dt><dd>The FFI compatible future type without <a href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send"><code>Send</code></a> bound.</dd><dt><a class="struct" href="struct.PollPanicked.html" title="struct async_ffi::PollPanicked">Poll<wbr>Panicked</a></dt><dd>Represents that the poll function panicked.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.FfiPoll.html" title="enum async_ffi::FfiPoll">FfiPoll</a></dt><dd>The FFI compatible <a href="https://doc.rust-lang.org/1.90.0/core/task/poll/enum.Poll.html" title="enum core::task::poll::Poll"><code>std::task::Poll</code></a></dd></dl><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><dl class="item-table"><dt><a class="constant" href="constant.ABI_VERSION.html" title="constant async_ffi::ABI_VERSION">ABI_<wbr>VERSION</a></dt><dd>The ABI version of <a href="type.FfiFuture.html" title="type async_ffi::FfiFuture"><code>FfiFuture</code></a> and all variants.
+Every non-compatible ABI change will increase this number, as well as the crate major version.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.ContextExt.html" title="trait async_ffi::ContextExt">Context<wbr>Ext</a></dt><dd>Helper trait to provide convenience methods for converting a <a href="https://doc.rust-lang.org/1.90.0/core/task/wake/struct.Context.html" title="struct core::task::wake::Context"><code>std::task::Context</code></a> to <a href="struct.FfiContext.html" title="struct async_ffi::FfiContext"><code>FfiContext</code></a></dd><dt><a class="trait" href="trait.FutureExt.html" title="trait async_ffi::FutureExt">Future<wbr>Ext</a></dt><dd>Helper trait to provide conversion from <code>Future</code> to <a href="type.FfiFuture.html" title="type async_ffi::FfiFuture"><code>FfiFuture</code></a> or <a href="type.LocalFfiFuture.html" title="type async_ffi::LocalFfiFuture"><code>LocalFfiFuture</code></a>.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.FfiFuture.html" title="type async_ffi::FfiFuture">FfiFuture</a></dt><dd>The FFI compatible future type with <a href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send"><code>Send</code></a> bound and <code>'static</code> lifetime,
+which is needed for most use cases.</dd><dt><a class="type" href="type.LocalFfiFuture.html" title="type async_ffi::LocalFfiFuture">Local<wbr>FfiFuture</a></dt><dd>The FFI compatible future type without <code>Send</code> bound but with <code>'static</code> lifetime.</dd></dl></section></div></main></body></html>

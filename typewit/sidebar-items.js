@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["TypeCmp"],"fn":["type_eq"],"macro":["inj_type_fn","polymatch","simple_type_witness","type_fn","type_ne"],"mod":["const_marker","type_fn","type_ne"],"struct":["TypeEq","TypeNe"],"trait":["HasTypeWitness","Identity","MakeTypeWitness","TypeWitnessTypeArg"]};

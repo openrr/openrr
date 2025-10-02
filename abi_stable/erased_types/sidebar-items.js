@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["interfaces","trait_objects"],"struct":["DynTrait","RequiredTraits","TypeInfo","UneraseError","VTable_Ref"],"trait":["DeserializeDyn","InterfaceType","IteratorItem","IteratorItemOrDefault","MakeRequiredTraits","MakeVTable","SerializeProxyType","SerializeType"]};

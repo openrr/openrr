@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["IsAccessible","IsConditional"],"fn":["panic_on_missing_field_ty","panic_on_missing_fieldname"],"struct":["PTStructLayout","PrefixRef","WithMetadata_"],"trait":["PrefixRefTrait","PrefixTypeTrait"],"type":["FieldAccessibility","FieldConditionality","WithMetadata"]};

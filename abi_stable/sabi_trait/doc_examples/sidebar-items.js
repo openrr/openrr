@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["Action_trait","ConstExample_trait","Doer_trait"],"struct":["Action_TO","ConstExample_TO","Doer_TO"],"trait":["Action","ConstExample","Doer"],"type":["Action_CTO","ConstExample_CTO","Doer_CTO"]};

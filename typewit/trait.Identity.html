@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Emulation of `T == U` bounds."><title>Identity in typewit - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="typewit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../typewit/index.html">typewit</a><span class="version">1.14.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Identity</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#projection" title="Projection">Projection</a></li><li><a href="#example" title="Example">Example</a><ul><li><a href="#type-parameter-alias" title="Type Parameter Alias">Type Parameter Alias</a></li><li><a href="#projection-1" title="Projection">Projection</a></li></ul></li></ul><h3><a href="#required-associated-consts">Required Associated Constants</a></h3><ul class="block"><li><a href="#associatedconstant.TYPE_EQ" title="TYPE_EQ">TYPE_EQ</a></li></ul><h3><a href="#required-associated-types">Required Associated Types</a></h3><ul class="block"><li><a href="#associatedtype.Type" title="Type">Type</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate typewit</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">typewit</a></div><h1>Trait <span class="trait">Identity</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/typewit/type_identity.rs.html#65-75">Source</a> </span></div><pre class="rust item-decl"><code>pub trait Identity {
+    type <a href="#associatedtype.Type" class="associatedtype">Type</a>: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>;
+
+    const <a href="#associatedconstant.TYPE_EQ" class="constant">TYPE_EQ</a>: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;Self, Self::<a class="associatedtype" href="trait.Identity.html#associatedtype.Type" title="type typewit::Identity::Type">Type</a>&gt;;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Emulation of <code>T == U</code> bounds.</p>
+<p>This trait emulates <code>T == U</code> bounds with <code>T: Identity&lt;Type = U&gt;</code>.</p>
+<h2 id="projection"><a class="doc-anchor" href="#projection">§</a>Projection</h2>
+<p>Because this trait uses <a href="struct.TypeEq.html" title="struct typewit::TypeEq"><code>TypeEq</code></a> for casting between <code>Self</code> and <a href="trait.Identity.html#associatedtype.Type"><code>Self::Type</code></a>,
+you can transform the arguments of that <code>TypeEq</code> to cast any composition of those types,
+e.g: cast between <code>Vec&lt;Self&gt;</code> and <code>Vec&lt;Self::Type&gt;</code></p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2><h4 id="type-parameter-alias"><a class="doc-anchor" href="#type-parameter-alias">§</a>Type Parameter Alias</h4>
+<p>(this example requires Rust 1.61.0, because it uses trait bounds in a <code>const fn</code>)</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{Identity, TypeEq};
+ 
+<span class="macro">assert_eq!</span>(foo(<span class="number">3</span>), [<span class="number">3</span>, <span class="number">3</span>]);
+ 
+<span class="macro">assert_eq!</span>(foo::&lt;<span class="kw-2">&amp;</span>str, <span class="number">2</span>, <span class="kw">_</span>&gt;(<span class="string">"hello"</span>), [<span class="string">"hello"</span>, <span class="string">"hello"</span>]);
+
+
+<span class="kw">const fn </span>foo&lt;T, <span class="kw">const </span>N: usize, R&gt;(val: T) -&gt; R
+<span class="kw">where
+    </span><span class="comment">// emulates a `[T; N] == R` bound
+    </span>[T; N]: Identity&lt;Type = R&gt;,
+    T: Copy,
+{
+    Identity::TYPE_EQ <span class="comment">// returns a `TypeEq&lt;[T; N], R&gt;`
+        </span>.to_right([val; N]) <span class="comment">// casts `[T; N]` to `R`
+</span>}</code></pre></div>
+<h4 id="projection-1"><a class="doc-anchor" href="#projection-1">§</a>Projection</h4>
+<p>Demonstrating that any projection of <code>Self</code> and <code>Self::Type</code> can
+be casted to each other.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{Identity, TypeEq, type_fn};
+ 
+<span class="macro">assert_eq!</span>(make_vec::&lt;u8&gt;(), <span class="macro">vec!</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]);
+ 
+<span class="kw">fn </span>make_vec&lt;T&gt;() -&gt; Vec&lt;T&gt; 
+<span class="kw">where
+    </span>T: Identity&lt;Type = u8&gt;
+{
+    <span class="kw">let </span>te: TypeEq&lt;Vec&lt;T&gt;, Vec&lt;u8&gt;&gt; = T::TYPE_EQ.project::&lt;VecFn&gt;();
+     
+    te.to_left(<span class="macro">vec!</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]) <span class="comment">// casts `Vec&lt;u8&gt;` to `Vec&lt;T&gt;`
+</span>}
+ 
+<span class="macro">type_fn!</span>{
+    <span class="comment">// A type-level function (TypeFn implementor) from `T` to `Vec&lt;T&gt;`
+    </span><span class="kw">struct </span>VecFn;
+    <span class="kw">impl</span>&lt;T&gt; T =&gt; Vec&lt;T&gt;
+}</code></pre></div>
+</div></details><h2 id="required-associated-consts" class="section-header">Required Associated Constants<a href="#required-associated-consts" class="anchor">§</a></h2><div class="methods"><details class="toggle" open><summary><section id="associatedconstant.TYPE_EQ" class="method"><a class="src rightside" href="../src/typewit/type_identity.rs.html#74">Source</a><h4 class="code-header">const <a href="#associatedconstant.TYPE_EQ" class="constant">TYPE_EQ</a>: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;Self, Self::<a class="associatedtype" href="trait.Identity.html#associatedtype.Type" title="type typewit::Identity::Type">Type</a>&gt;</h4></section></summary><div class="docblock"><p>Proof that <code>Self</code> is the same type as <code>Self::Type</code>,
+provides methods for casting between <code>Self</code> and <code>Self::Type</code>.</p>
+</div></details></div><h2 id="required-associated-types" class="section-header">Required Associated Types<a href="#required-associated-types" class="anchor">§</a></h2><div class="methods"><details class="toggle" open><summary><section id="associatedtype.Type" class="method"><a class="src rightside" href="../src/typewit/type_identity.rs.html#70">Source</a><h4 class="code-header">type <a href="#associatedtype.Type" class="associatedtype">Type</a>: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></h4></section></summary><div class="docblock"><p>The same type as <code>Self</code>,
+used to emulate type equality bounds (<code>T == U</code>)
+with associated type equality constraints
+(<code>T: Identity&lt;Type = U&gt;</code>).</p>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><details class="toggle implementors-toggle"><summary><section id="impl-Identity-for-T" class="impl"><a class="src rightside" href="../src/typewit/type_identity.rs.html#77-81">Source</a><a href="#impl-Identity-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="trait.Identity.html" title="trait typewit::Identity">Identity</a> for T</h3></section></summary><div class="impl-items"><section id="associatedconstant.TYPE_EQ-1" class="associatedconstant trait-impl"><a class="src rightside" href="../src/typewit/type_identity.rs.html#80">Source</a><a href="#associatedconstant.TYPE_EQ-1" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.TYPE_EQ" class="constant">TYPE_EQ</a>: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;Self, Self::<a class="associatedtype" href="trait.Identity.html#associatedtype.Type" title="type typewit::Identity::Type">Type</a>&gt; = TypeEq::NEW</h4></section><section id="associatedtype.Type-1" class="associatedtype trait-impl"><a class="src rightside" href="../src/typewit/type_identity.rs.html#78">Source</a><a href="#associatedtype.Type-1" class="anchor">§</a><h4 class="code-header">type <a href="#associatedtype.Type" class="associatedtype">Type</a> = T</h4></section></div></details></div><script src="../trait.impl/typewit/type_identity/trait.Identity.js" async></script></section></div></main></body></html>

@@ -1,0 +1,1 @@
+searchState.loadedDescShard("openrr_apps_robot_command", 0, "An openrr command line tool.\nSet options from command line. These settings take …\nPath to the setting file.\nReturns the argument unchanged.\nUse interactive mode\nCalls <code>U::from(self)</code>.\nPath to log directory for tracing FileAppender.\nPrints the default setting as TOML.")

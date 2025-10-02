@@ -1,0 +1,1 @@
+searchState.loadedDescShard("openrr_apps_joint_position_sender", 0, "An openrr GUI tool to send joint positions.\nSet options from command line. These settings take …\nPath to the setting file.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.")

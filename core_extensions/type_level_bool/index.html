@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Type level booleans"><title>core_extensions::type_level_bool - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="core_extensions" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../core_extensions/index.html">core_<wbr>extensions</a><span class="version">1.5.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module type_<wbr>level_<wbr>bool</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate core_<wbr>extensions</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">core_extensions</a></div><h1>Module <span>type_level_bool</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/core_extensions/type_level_bool.rs.html#1-293">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Type level booleans</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>Access of privileges based on renamed Boolean types.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::marker::PhantomData;
+
+<span class="kw">use </span>core_extensions::CovariantPhantom;
+
+<span class="kw">pub use </span>core_extensions::type_level_bool::{
+   Boolean <span class="kw">as </span>PrivilegeLevel,
+   False <span class="kw">as </span>Unprivileged,
+   True <span class="kw">as </span>Privileged,
+};
+
+
+<span class="attr">#[repr(C)]
+#[derive(Debug)]
+</span><span class="kw">struct </span>User&lt;P&gt;{
+   name: String,
+   privilege_level: CovariantPhantom&lt;P&gt;,
+}
+
+<span class="kw">impl</span>&lt;P: PrivilegeLevel&gt; User&lt;P&gt;{
+   <span class="kw">fn </span>new(name: String, privilege_level: P) -&gt; <span class="self">Self </span>{
+       <span class="self">Self</span>{name, privilege_level: PhantomData}
+   }
+   <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>)-&gt;<span class="kw-2">&amp;</span>str{
+       <span class="kw-2">&amp;</span><span class="self">self</span>.name
+   }
+   <span class="kw">fn </span>into_unprivileged(<span class="self">self</span>) -&gt; User&lt;Unprivileged&gt; {
+       User{name: <span class="self">self</span>.name, privilege_level: PhantomData}
+   }
+   <span class="kw">fn </span>as_unprivileged(<span class="self">self</span>: <span class="kw-2">&amp;mut </span>User&lt;P&gt;) -&gt; <span class="kw-2">&amp;mut </span>User&lt;Unprivileged&gt; {
+       <span class="comment">// Only the type parameter P changes here
+       </span><span class="kw">unsafe</span>{ mem::transmute(<span class="self">self</span>) }
+   }
+}
+
+<span class="kw">impl </span>User&lt;Privileged&gt;{
+   <span class="kw">fn </span>set_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: String){
+       <span class="self">self</span>.name = name;
+   }
+}
+
+<span class="kw">let </span><span class="kw-2">mut </span>user: User&lt;Privileged&gt; = User::new(<span class="string">"bob"</span>.into(), Privileged);
+<span class="macro">assert_eq!</span>(user.name(), <span class="string">"bob"</span>);
+
+user.set_name(<span class="string">"paul"</span>.into());
+<span class="macro">assert_eq!</span>(user.name(), <span class="string">"paul"</span>);
+
+{
+   <span class="kw">let </span>user: <span class="kw-2">&amp;mut </span>User&lt;Unprivileged&gt; = user.as_unprivileged();
+
+   <span class="comment">// Unprivileged Users can't change their name.
+   // user.set_name("james".into());
+
+   </span><span class="macro">assert_eq!</span>(user.name(), <span class="string">"paul"</span>);
+}
+
+user.set_name(<span class="string">"john"</span>.into());
+<span class="macro">assert_eq!</span>(user.name(), <span class="string">"john"</span>);
+</code></pre></div>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.False.html" title="struct core_extensions::type_level_bool::False">False</a></dt><dd>Represents a type-level <code>false</code></dd><dt><a class="struct" href="struct.True.html" title="struct core_extensions::type_level_bool::True">True</a></dt><dd>Represents a type-level <code>true</code></dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Boolean.html" title="trait core_extensions::type_level_bool::Boolean">Boolean</a></dt><dd>Represents a type-level <code>bool</code></dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.And.html" title="type core_extensions::type_level_bool::And">And</a></dt><dd><code>And</code>s two <a href="./trait.Boolean.html">Boolean</a>s</dd><dt><a class="type" href="type.Not.html" title="type core_extensions::type_level_bool::Not">Not</a></dt><dd>Negates a <a href="./trait.Boolean.html">Boolean</a>.</dd><dt><a class="type" href="type.Or.html" title="type core_extensions::type_level_bool::Or">Or</a></dt><dd><code>Or</code>s two <a href="./trait.Boolean.html">Boolean</a>s</dd><dt><a class="type" href="type.Xor.html" title="type core_extensions::type_level_bool::Xor">Xor</a></dt><dd><code>Xor</code>s two <a href="./trait.Boolean.html">Boolean</a>s</dd></dl></section></div></main></body></html>

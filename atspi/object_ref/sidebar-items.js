@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["OBJECT_REF_SIGNATURE"],"struct":["ObjectRef"]};

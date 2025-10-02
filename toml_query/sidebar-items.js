@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["debug","error","info","log","trace","warn"],"mod":["delete","error","insert","log","read","set","value"]};

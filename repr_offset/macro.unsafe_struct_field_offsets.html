@@ -1,0 +1,163 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Declares a sequence of associated constants with the offsets of the listed fields, and implements the `GetFieldOffset` trait."><title>unsafe_struct_field_offsets in repr_offset - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../repr_offset/index.html">repr_<wbr>offset</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">unsafe_<wbr>struct_<wbr>field_<wbr>offsets</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#safety" title="Safety">Safety</a></li><li><a href="#parameters" title="Parameters">Parameters</a><ul><li><a href="#self" title="`Self`"><code>Self</code></a></li><li><a href="#alignment" title="`alignment`"><code>alignment</code></a></li><li><a href="#usize_offsets" title="`usize_offsets`"><code>usize_offsets</code></a></li><li><a href="#impl_getfieldoffset" title="`impl_GetFieldOffset`"><code>impl_GetFieldOffset</code></a></li></ul></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#syntax-example" title="Syntax example">Syntax example</a></li><li><a href="#unaligned-struct-example" title="Unaligned struct example">Unaligned struct example</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate repr_<wbr>offset</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">repr_offset</a></div><h1>Macro <span class="macro">unsafe_struct_field_offsets</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/repr_offset/macros/unsafe_struct_field_offsets.rs.html#172-230">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! unsafe_struct_field_offsets {
+    (
+        $( Self = $Self:ty, )?
+        alignment =  $alignment:ty,
+        $( usize_offsets = $usize_offsets:ident,)?
+        $( impl_GetFieldOffset = $impl_gfo:ident,)?
+
+        $(#[$impl_attr:meta])*
+        impl[ $($impl_params:tt)* ] $self:ty
+        $(where [ $($where:tt)* ])?
+        {
+            $(
+                $(#[$const_attr:meta])*
+                $( pub $(($($inn:tt)*))? )?
+                const $offset:ident, $field_ident:tt: $field_ty:ty;
+            )*
+        }
+    ) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Declares a sequence of associated constants with the offsets of the listed fields,
+and implements the <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a> trait.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<p>Callers must ensure that:</p>
+<ul>
+<li>
+<p>The type that the offsets are for is a <code>#[repr(C)]</code> struct.</p>
+</li>
+<li>
+<p>All field types are listed,in declaration order.</p>
+</li>
+<li>
+<p>The <code>alignment</code> parameter is <a href="./alignment/struct.Unaligned.html"><code>Unaligned</code></a> if the struct is <code>#[repr(C,packed)]</code>,
+and <a href="./alignment/struct.Aligned.html"><code>Aligned</code></a> if it’s not.</p>
+</li>
+</ul>
+<h2 id="parameters"><a class="doc-anchor" href="#parameters">§</a>Parameters</h2><h4 id="self"><a class="doc-anchor" href="#self">§</a><code>Self</code></h4>
+<p>The optional <code>Self</code> parameter overrides which struct the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> constants
+(that this outputs) are an offset inside of.</p>
+<p>Note that passing the this parameter unconditionally causes the type
+not to implement <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a>.</p>
+<h4 id="alignment"><a class="doc-anchor" href="#alignment">§</a><code>alignment</code></h4>
+<p>The <code>alignment</code> parameter can be either <a href="./alignment/struct.Aligned.html"><code>Aligned</code></a> or <a href="./alignment/struct.Unaligned.html"><code>Unaligned</code></a>,
+and describes whether the fields are aligned or potentially unaligned,
+changing how fields are accessed in <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> methods.</p>
+<h4 id="usize_offsets"><a class="doc-anchor" href="#usize_offsets">§</a><code>usize_offsets</code></h4>
+<p>The optional <code>usize_offsets</code> parameter determines whether type of the
+generated constants is <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> or <code>usize</code>.<br></p>
+<p>The valid values for this parameter are:</p>
+<ul>
+<li>(not passing this parameter): The constants are <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a>s.</li>
+<li><code>false</code>: The constants are <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a>s.</li>
+<li><code>true</code>: The constants are <code>usize</code>s.</li>
+</ul>
+<h4 id="impl_getfieldoffset"><a class="doc-anchor" href="#impl_getfieldoffset">§</a><code>impl_GetFieldOffset</code></h4>
+<p>The optional <code>impl_GetFieldOffset</code> parameter determines whether <code>$self</code>
+implements the <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a> trait,
+which allows getting the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> for each field using the
+<a href="./macro.OFF.html"><code>OFF</code></a>,
+<a href="./macro.off.html"><code>off</code></a>,
+<a href="./macro.PUB_OFF.html"><code>PUB_OFF</code></a>, and
+<a href="./macro.pub_off.html"><code>pub_off</code></a> macros.</p>
+<p>The valid values for this parameter are:</p>
+<ul>
+<li>(not passing this parameter): Implements <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a>.</li>
+<li><code>false</code>: Does not implement <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a>.</li>
+<li><code>true</code>: Implements <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a>.</li>
+</ul>
+<p>Note that passing the <code>Self</code> parameter unconditionally causes the type
+not to implement <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a>.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="syntax-example"><a class="doc-anchor" href="#syntax-example">§</a>Syntax example</h4>
+<p>This demonstrates the macro being used with all of the syntax.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{unsafe_struct_field_offsets, Aligned};
+
+<span class="attr">#[repr(C)]
+</span><span class="kw">struct </span>Bar&lt;T: Copy, U&gt;(T,U)
+<span class="kw">where </span>U: Clone;
+
+<span class="macro">unsafe_struct_field_offsets!</span>{
+    <span class="comment">// Optional parameter.
+    // Generic parameters from the impl block can be used here.
+    </span><span class="self">Self </span>= Bar&lt;T, U&gt;,
+
+    alignment =  Aligned,
+
+    <span class="comment">// Optional parameter.
+    </span>usize_offsets = <span class="bool-val">false</span>,
+
+    <span class="comment">// Optional parameter.
+    </span>impl_GetFieldOffset = <span class="bool-val">false</span>,
+
+    <span class="kw">impl</span>[T: Copy, U] Bar&lt;T, U&gt;
+    <span class="kw">where</span>[ U: Clone ]
+    {
+        <span class="kw">pub const </span>OFFSET_0, <span class="number">0</span>: T;
+        <span class="kw">pub const </span>OFFSET_1, <span class="number">1</span>: U;
+    }
+}
+</code></pre></div>
+<h4 id="unaligned-struct-example"><a class="doc-anchor" href="#unaligned-struct-example">§</a>Unaligned struct example</h4>
+<p>This example demonstrates how you can replace fields in a packed struct,
+as well as getting a raw pointer to a field,
+using both <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> methods, and extension traits from the <a href="./ext/index.html"><code>ext</code></a> module</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    unsafe_struct_field_offsets,
+    off,
+    ROExtAcc, ROExtOps, Unaligned,
+};
+
+<span class="comment">// Replacing the table field
+</span>{
+    <span class="kw">let </span><span class="kw-2">mut </span>bar = Bar{ mugs: <span class="number">3</span>, bottles: <span class="number">5</span>, table: <span class="string">"wooden"</span>.to_string() };
+    
+    <span class="macro">assert_eq!</span>( replace_table_a(<span class="kw-2">&amp;mut </span>bar, <span class="string">"metallic"</span>.to_string()), <span class="string">"wooden"</span>.to_string());
+    <span class="macro">assert_eq!</span>( replace_table_b(<span class="kw-2">&amp;mut </span>bar, <span class="string">"granite"</span>.to_string()), <span class="string">"metallic"</span>.to_string());
+    <span class="macro">assert_eq!</span>( replace_table_b(<span class="kw-2">&amp;mut </span>bar, <span class="string">"carbonite"</span>.to_string()), <span class="string">"granite"</span>.to_string());
+     
+    <span class="kw">fn </span>replace_table_a(this: <span class="kw-2">&amp;mut </span>Bar, replacement: String)-&gt; String{
+        Bar::OFFSET_TABLE.replace_mut(this, replacement)
+    }
+    
+    <span class="kw">fn </span>replace_table_b(this: <span class="kw-2">&amp;mut </span>Bar, replacement: String)-&gt; String{
+        this.f_replace(<span class="macro">off!</span>(table), replacement)
+    }
+}
+
+<span class="comment">// Getting raw pointers to fields
+</span><span class="kw">unsafe </span>{
+    <span class="kw">let </span>bar = Bar{ mugs: <span class="number">3</span>, bottles: <span class="number">5</span>, table: <span class="string">"wooden"</span>.to_string() };
+
+    <span class="macro">assert_eq!</span>(get_mugs_ptr(<span class="kw-2">&amp;</span>bar).read_unaligned(), <span class="number">3</span>);
+
+    <span class="macro">assert_eq!</span>(get_bottles_ptr(<span class="kw-2">&amp;</span>bar).read_unaligned(), <span class="number">5</span>);
+
+    <span class="kw">fn </span>get_mugs_ptr(this: <span class="kw-2">&amp;</span>Bar) -&gt; <span class="kw-2">*const </span>u32 {
+        Bar::OFFSET_MUGS.get_ptr(this)
+    }
+    
+    <span class="kw">fn </span>get_bottles_ptr(this: <span class="kw-2">&amp;</span>Bar) -&gt; <span class="kw-2">*const </span>u16 {
+        this.f_get_ptr(<span class="macro">off!</span>(bottles))
+    }
+}
+
+
+
+<span class="attr">#[repr(C,packed)]
+</span><span class="kw">struct </span>Bar{
+    mugs: u32,
+    bottles: u16,
+    table: String,
+}
+
+<span class="macro">unsafe_struct_field_offsets!</span>{
+    alignment =  Unaligned,
+
+    <span class="kw">impl</span>[] Bar {
+        <span class="kw">pub const </span>OFFSET_MUGS, mugs: u32;
+        <span class="kw">pub const </span>OFFSET_BOTTLES, bottles: u16;
+        <span class="kw">pub const </span>OFFSET_TABLE, table: String;
+    }
+}
+</code></pre></div>
+</div></details></section></div></main></body></html>

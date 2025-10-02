@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BoolWitG"],"struct":["Bool","Char","I128","I16","I32","I64","I8","Isize","U128","U16","U32","U64","U8","Usize"],"trait":["ConstMarker","ConstMarkerOf"],"type":["BoolWit"]};

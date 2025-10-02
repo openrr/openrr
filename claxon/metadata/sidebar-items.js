@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["MetadataBlock"],"fn":["read_metadata_block","read_metadata_block_with_header"],"struct":["GetTag","MetadataBlockReader","SeekPoint","SeekTable","StreamInfo","Tags","VorbisComment"],"type":["MetadataBlockResult"]};

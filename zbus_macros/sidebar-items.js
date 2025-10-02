@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":["dbus_interface","dbus_proxy","interface","proxy"],"derive":["DBusError"]};

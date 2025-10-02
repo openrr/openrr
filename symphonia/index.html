@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Project Symphonia"><title>symphonia - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="symphonia" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../symphonia/index.html">symphonia</a><span class="version">0.5.4</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#project-symphonia" title="Project Symphonia">Project Symphonia</a></li><li><a href="#support" title="Support">Support</a><ul><li><a href="#formats" title="Formats">Formats</a></li><li><a href="#codecs" title="Codecs">Codecs</a></li><li><a href="#metadata" title="Metadata">Metadata</a></li><li><a href="#optimizations" title="Optimizations">Optimizations</a></li></ul></li><li><a href="#usage" title="Usage">Usage</a></li><li><a href="#gapless-playback" title="Gapless Playback">Gapless Playback</a></li><li><a href="#adding-new-formats-and-codecs" title="Adding new formats and codecs">Adding new formats and codecs</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>symphonia</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/symphonia/lib.rs.html#8-302">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="project-symphonia"><a class="doc-anchor" href="#project-symphonia">§</a>Project Symphonia</h2>
+<p>Symphonia is a 100% pure Rust audio decoding and multimedia format demuxing framework.</p>
+<h2 id="support"><a class="doc-anchor" href="#support">§</a>Support</h2>
+<p>Supported formats, codecs, and metadata tags are listed below. By default Symphonia only enables
+royalty-free open standard media formats and codecs. Other formats and codecs must be enabled
+using feature flags.</p>
+<p><strong>Tip:</strong> All formats and codecs can be enabled with the <code>all</code> feature flag.</p>
+<h3 id="formats"><a class="doc-anchor" href="#formats">§</a>Formats</h3>
+<p>The following container formats are supported.</p>
+<div><table><thead><tr><th>Format</th><th>Feature Flag</th><th>Gapless*</th><th>Default</th></tr></thead><tbody>
+<tr><td>AIFF</td><td><code>aiff</code></td><td>Yes</td><td>No</td></tr>
+<tr><td>CAF</td><td><code>caf</code></td><td>No</td><td>No</td></tr>
+<tr><td>ISO/MP4</td><td><code>isomp4</code></td><td>No</td><td>No</td></tr>
+<tr><td>MKV/WebM</td><td><code>mkv</code></td><td>No</td><td>Yes</td></tr>
+<tr><td>OGG</td><td><code>ogg</code></td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Wave</td><td><code>wav</code></td><td>Yes</td><td>Yes</td></tr>
+</tbody></table>
+</div>
+<p>* Gapless playback requires support from both the demuxer and decoder.</p>
+<p><strong>Tip:</strong> All formats can be enabled with the <code>all-codecs</code> feature flag.</p>
+<h3 id="codecs"><a class="doc-anchor" href="#codecs">§</a>Codecs</h3>
+<p>The following codecs are supported.</p>
+<div><table><thead><tr><th>Codec</th><th>Feature Flag</th><th>Gapless</th><th>Default</th></tr></thead><tbody>
+<tr><td>AAC-LC</td><td><code>aac</code></td><td>No</td><td>No</td></tr>
+<tr><td>ADPCM</td><td><code>adpcm</code></td><td>Yes</td><td>Yes</td></tr>
+<tr><td>ALAC</td><td><code>alac</code></td><td>Yes</td><td>No</td></tr>
+<tr><td>FLAC</td><td><code>flac</code></td><td>Yes</td><td>Yes</td></tr>
+<tr><td>MP1</td><td><code>mp1</code>, <code>mpa</code></td><td>No</td><td>No</td></tr>
+<tr><td>MP2</td><td><code>mp2</code>, <code>mpa</code></td><td>No</td><td>No</td></tr>
+<tr><td>MP3</td><td><code>mp3</code>, <code>mpa</code></td><td>Yes</td><td>No</td></tr>
+<tr><td>PCM</td><td><code>pcm</code></td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Vorbis</td><td><code>vorbis</code></td><td>Yes</td><td>Yes</td></tr>
+</tbody></table>
+</div>
+<p><strong>Tip:</strong> All codecs can be enabled with the <code>all-codecs</code> feature flag. Similarly, all MPEG
+audio codecs can be enabled with the <code>mpa</code> feature flag.</p>
+<h3 id="metadata"><a class="doc-anchor" href="#metadata">§</a>Metadata</h3>
+<p>The following metadata tagging formats are supported. These are always enabled.</p>
+<ul>
+<li>ID3v1</li>
+<li>ID3v2</li>
+<li>ISO/MP4</li>
+<li>RIFF</li>
+<li>Vorbis Comment (in OGG &amp; FLAC)</li>
+</ul>
+<h3 id="optimizations"><a class="doc-anchor" href="#optimizations">§</a>Optimizations</h3>
+<p>SIMD optimizations are <strong>not</strong> enabled by default. They may be enabled on a per-instruction
+set basis using the following feature flags. Enabling any SIMD support feature flags will pull
+in the <code>rustfft</code> dependency.</p>
+<div><table><thead><tr><th>Instruction Set</th><th>Feature Flag</th><th>Default</th></tr></thead><tbody>
+<tr><td>SSE</td><td><code>opt-simd-sse</code></td><td>No</td></tr>
+<tr><td>AVX</td><td><code>opt-simd-avx</code></td><td>No</td></tr>
+<tr><td>Neon</td><td><code>opt-simd-neon</code></td><td>No</td></tr>
+</tbody></table>
+</div>
+<p><strong>Tip:</strong> All SIMD optimizations can be enabled with the <code>opt-simd</code> feature flag.</p>
+<h2 id="usage"><a class="doc-anchor" href="#usage">§</a>Usage</h2>
+<p>The following steps describe a basic usage of Symphonia:</p>
+<ol>
+<li>Instantiate a <a href="../symphonia_core/codecs/struct.CodecRegistry.html" title="struct symphonia_core::codecs::CodecRegistry"><code>CodecRegistry</code></a> and register all the codecs
+that are of interest. Alternatively, you may use <a href="default/fn.get_codecs.html" title="fn symphonia::default::get_codecs"><code>default::get_codecs</code></a> to get the default
+registry with all the enabled codecs pre-registered. The registry will be used to
+instantiate a <a href="../symphonia_core/codecs/trait.Decoder.html" title="trait symphonia_core::codecs::Decoder"><code>Decoder</code></a> later.</li>
+<li>Instantiate a <a href="../symphonia_core/probe/struct.Probe.html" title="struct symphonia_core::probe::Probe"><code>Probe</code></a> and register all the formats that are of
+interest. Alternatively, you may use <a href="default/fn.get_probe.html" title="fn symphonia::default::get_probe"><code>default::get_probe</code></a> to get a default format probe
+with all the enabled formats pre-registered. The probe will be used to automatically detect
+the media format and instantiate a compatible <a href="../symphonia_core/formats/trait.FormatReader.html" title="trait symphonia_core::formats::FormatReader"><code>FormatReader</code></a>.</li>
+<li>Make sure the <a href="../symphonia_core/io/trait.MediaSource.html" title="trait symphonia_core::io::MediaSource"><code>MediaSource</code></a> trait is implemented for whatever
+source you are using. This trait is already implemented for <code>std::fs::File</code> and
+<code>std::io::Cursor</code>.</li>
+<li>Instantiate a <a href="../symphonia_core/io/media_source_stream/struct.MediaSourceStream.html" title="struct symphonia_core::io::media_source_stream::MediaSourceStream"><code>MediaSourceStream</code></a> with the <code>MediaSource</code>
+above.</li>
+<li>Using the <code>Probe</code>, call <a href="../symphonia_core/probe/struct.Probe.html#method.format" title="method symphonia_core::probe::Probe::format"><code>format</code></a> and pass it the
+<code>MediaSourceStream</code>.</li>
+<li>If the probe successfully detects a compatible format, a <code>FormatReader</code> will be returned.
+This is an instance of a demuxer that can read and demux the provided source into
+<a href="../symphonia_core/formats/struct.Packet.html" title="struct symphonia_core::formats::Packet"><code>Packet</code></a>s.</li>
+<li>At this point it is possible to interrogate the <code>FormatReader</code> for general information about
+the media and metadata. Examine the <a href="../symphonia_core/formats/struct.Track.html" title="struct symphonia_core::formats::Track"><code>Track</code></a> listing using
+<a href="../symphonia_core/formats/trait.FormatReader.html#tymethod.tracks" title="method symphonia_core::formats::FormatReader::tracks"><code>tracks</code></a> and select one or more tracks of interest to
+decode.</li>
+<li>To instantiate a <code>Decoder</code> for a selected <code>Track</code>, call the <code>CodecRegistry</code>’s
+<a href="../symphonia_core/codecs/struct.CodecRegistry.html#method.make" title="method symphonia_core::codecs::CodecRegistry::make"><code>make</code></a> function and pass it
+the <a href="../symphonia_core/codecs/struct.CodecParameters.html" title="struct symphonia_core::codecs::CodecParameters"><code>CodecParameters</code></a> for that track. This step is repeated
+once per selected track.</li>
+<li>To decode a track, obtain a packet from the <code>FormatReader</code> by
+calling <a href="../symphonia_core/formats/trait.FormatReader.html#tymethod.next_packet" title="method symphonia_core::formats::FormatReader::next_packet"><code>next_packet</code></a> and then pass the
+<code>Packet</code> to the <code>Decoder</code> for that track. The <a href="../symphonia_core/codecs/trait.Decoder.html#tymethod.decode" title="method symphonia_core::codecs::Decoder::decode"><code>decode</code></a>
+function will read a packet and return an <a href="../symphonia_core/audio/enum.AudioBufferRef.html" title="enum symphonia_core::audio::AudioBufferRef"><code>AudioBufferRef</code></a>
+(an “any-type” <a href="../symphonia_core/audio/struct.AudioBuffer.html" title="struct symphonia_core::audio::AudioBuffer"><code>AudioBuffer</code></a>).</li>
+<li>The <code>AudioBufferRef</code> may be used to access the decoded audio samples directly, or it can be
+copied into a <a href="../symphonia_core/audio/struct.SampleBuffer.html" title="struct symphonia_core::audio::SampleBuffer"><code>SampleBuffer</code></a> or
+<a href="../symphonia_core/audio/struct.RawSampleBuffer.html" title="struct symphonia_core::audio::RawSampleBuffer"><code>RawSampleBuffer</code></a> to export the audio out of Symphonia.</li>
+<li>Repeat step 9 and 10 until the end-of-stream error is returned.</li>
+</ol>
+<p>An example implementation of a simple audio player (symphonia-play) can be found in the
+Project Symphonia git repository.</p>
+<h2 id="gapless-playback"><a class="doc-anchor" href="#gapless-playback">§</a>Gapless Playback</h2>
+<p>Gapless playback is disabled by default. To enable gapless playback, set
+<a href="../symphonia_core/formats/struct.FormatOptions.html#structfield.enable_gapless" title="field symphonia_core::formats::FormatOptions::enable_gapless"><code>FormatOptions::enable_gapless</code></a> to <code>true</code>.</p>
+<h2 id="adding-new-formats-and-codecs"><a class="doc-anchor" href="#adding-new-formats-and-codecs">§</a>Adding new formats and codecs</h2>
+<p>Simply implement the <a href="../symphonia_core/codecs/trait.Decoder.html" title="trait symphonia_core::codecs::Decoder"><code>Decoder</code></a> trait for a decoder or the
+<a href="../symphonia_core/formats/trait.FormatReader.html" title="trait symphonia_core::formats::FormatReader"><code>FormatReader</code></a> trait for a demuxer trait and register with
+the appropriate registry or probe!</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.core"><code>pub use <a class="mod" href="../symphonia_core/index.html" title="mod symphonia_core">symphonia_core</a> as core;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="default/index.html" title="mod symphonia::default">default</a></dt><dd>The <code>default</code> module provides convenience functions and registries to get an implementer
+up-and-running as quickly as possible, and to reduce boiler-plate. Using the <code>default</code>
+module is completely optional and incurs no overhead unless actually used.</dd></dl></section></div></main></body></html>

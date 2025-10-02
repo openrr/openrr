@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["bools","downcasting","impl_enum","trait_marker"]};

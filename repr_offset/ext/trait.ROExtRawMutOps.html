@@ -1,0 +1,458 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension trait for mutable raw pointers to do generic field operations, where the field is determined by a `FieldOffset` parameter."><title>ROExtRawMutOps in repr_offset::ext - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../repr_offset/index.html">repr_<wbr>offset</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">ROExt<wbr>RawMut<wbr>Ops</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#safety" title="Safety">Safety</a></li><li><a href="#alignment" title="Alignment">Alignment</a></li><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.f_copy_from" title="f_copy_from">f_copy_from</a></li><li><a href="#tymethod.f_copy_from_nonoverlapping" title="f_copy_from_nonoverlapping">f_copy_from_nonoverlapping</a></li><li><a href="#tymethod.f_replace_raw" title="f_replace_raw">f_replace_raw</a></li><li><a href="#tymethod.f_swap_nonoverlapping" title="f_swap_nonoverlapping">f_swap_nonoverlapping</a></li><li><a href="#tymethod.f_swap_raw" title="f_swap_raw">f_swap_raw</a></li><li><a href="#tymethod.f_write" title="f_write">f_write</a></li></ul><h3><a href="#foreign-impls">Implementations on Foreign Types</a></h3><ul class="block"><li><a href="#impl-ROExtRawMutOps%3CAligned%3E-for-*mut+S" title="*mut S">*mut S</a></li><li><a href="#impl-ROExtRawMutOps%3CUnaligned%3E-for-*mut+S" title="*mut S">*mut S</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In repr_<wbr>offset::<wbr>ext</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">repr_offset</a>::<wbr><a href="index.html">ext</a></div><h1>Trait <span class="trait">ROExtRawMutOps</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/repr_offset/ext.rs.html#833-1199">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe trait ROExtRawMutOps&lt;A&gt;: <a class="trait" href="trait.ROExtRawMutAcc.html" title="trait repr_offset::ext::ROExtRawMutAcc">ROExtRawMutAcc</a> {
+    // Required methods
+    unsafe fn <a href="#tymethod.f_write" class="fn">f_write</a>&lt;F&gt;(
+        self,
+        offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+        value: F,
+    );
+<span class="item-spacer"></span>    unsafe fn <a href="#tymethod.f_copy_from" class="fn">f_copy_from</a>&lt;F&gt;(
+        self,
+        offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+        source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+    );
+<span class="item-spacer"></span>    unsafe fn <a href="#tymethod.f_copy_from_nonoverlapping" class="fn">f_copy_from_nonoverlapping</a>&lt;F&gt;(
+        self,
+        offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+        source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+    );
+<span class="item-spacer"></span>    unsafe fn <a href="#tymethod.f_replace_raw" class="fn">f_replace_raw</a>&lt;F&gt;(
+        self,
+        offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+        value: F,
+    ) -&gt; F;
+<span class="item-spacer"></span>    unsafe fn <a href="#tymethod.f_swap_raw" class="fn">f_swap_raw</a>&lt;F&gt;(
+        self,
+        offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+        right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+    );
+<span class="item-spacer"></span>    unsafe fn <a href="#tymethod.f_swap_nonoverlapping" class="fn">f_swap_nonoverlapping</a>&lt;F&gt;(
+        self,
+        offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+        right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+    );
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension trait for mutable raw pointers to do generic field operations,
+where the field is determined by a <a href="../struct.FieldOffset.html"><code>FieldOffset</code></a> parameter.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<p>This trait must not to be implemented outside the <code>repr_offset</code> crate.</p>
+<h2 id="alignment"><a class="doc-anchor" href="#alignment">§</a>Alignment</h2>
+<p>The <code>A</code> type parameter is the <a href="../alignment/trait.Alignment.html"><code>Alignment</code></a> of the field,
+used to implement methods differently depending on whether the field is
+<a href="../alignment/struct.Aligned.html"><code>Aligned</code></a> or <a href="../alignment/struct.Unaligned.html"><code>Unaligned</code></a>.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>This example shows how you can do the equivalent of <code>std::mem::replace</code>
+in partially initialized structs.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprPacked,
+    utils::moved,
+    ROExtRawMutOps, off,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>value = ReprPacked {
+    a: <span class="bool-val">false</span>,
+    b: <span class="prelude-val">None</span>,
+    c: <span class="string">""</span>,
+    d: [<span class="number">0u64</span>; <span class="number">10</span>],
+};
+
+<span class="kw">let </span>(a, b) = <span class="kw">unsafe</span>{ replace_fields(<span class="kw-2">&amp;mut </span>value, <span class="bool-val">true</span>, <span class="prelude-val">Some</span>(<span class="string">'!'</span>)) };
+
+<span class="macro">assert_eq!</span>(moved(a), <span class="bool-val">false</span>);
+<span class="macro">assert_eq!</span>(moved(value.a), <span class="bool-val">true</span>);
+
+<span class="macro">assert_eq!</span>(moved(b), <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(moved(value.b), <span class="prelude-val">Some</span>(<span class="string">'!'</span>));
+
+<span class="macro">assert_eq!</span>(moved(value.c), <span class="string">""</span>);
+
+
+<span class="doccomment">/// Replaces the `a` and `b` fields in `this`
+///
+/// # Safety
+///
+/// The fields up to and including `b` must be initialized.
+</span><span class="kw">unsafe fn </span>replace_fields(
+    this: <span class="kw-2">*mut </span>ReprPacked&lt;bool, <span class="prelude-ty">Option</span>&lt;char&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, [u64; <span class="number">10</span>]&gt;,
+    a: bool,
+    b: <span class="prelude-ty">Option</span>&lt;char&gt;,
+) -&gt; (bool, <span class="prelude-ty">Option</span>&lt;char&gt;) {
+    (
+        this.f_replace_raw(<span class="macro">off!</span>(a), a),
+        this.f_replace_raw(<span class="macro">off!</span>(b), b),
+    )
+}</code></pre></div>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.f_write" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#881">Source</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_write" class="fn">f_write</a>&lt;F&gt;(self, offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;, value: F)</h4></section></summary><div class="docblock"><p>Overwrites the value of a field (determined by <code>offset</code>) from <code>self</code>,
+without dropping the previous value.</p>
+<h5 id="safety-1"><a class="doc-anchor" href="#safety-1">§</a>Safety</h5>
+<p>You must ensure these properties:</p>
+<ul>
+<li>
+<p><code>self</code> must point to an allocated object (this includes the stack)
+allocated at least up to the field (inclusive).</p>
+</li>
+<li>
+<p>If the passed in <code>offset</code> is a <code>FieldOffset&lt;_, _, Aligned&gt;</code>
+(because it is for an aligned field), <code>self</code> must be an aligned pointer.</p>
+</li>
+<li>
+<p>The field must be writable(if in doubt, all of the pointed-to value).</p>
+</li>
+</ul>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprC,
+    utils::moved,
+    ROExtRawMutOps, off,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>value = ReprC {
+    a: <span class="number">0</span>,
+    b: <span class="prelude-val">None</span>::&lt;u32&gt;,
+    c: Vec::new(),
+    d: String::new(),
+};
+
+<span class="kw">let </span>ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>value;
+<span class="kw">unsafe</span>{
+    ptr.f_write(<span class="macro">off!</span>(a), <span class="number">3</span>);
+    ptr.f_write(<span class="macro">off!</span>(b), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+    ptr.f_write(<span class="macro">off!</span>(c), <span class="macro">vec!</span>[<span class="number">8</span>, <span class="number">13</span>]);
+    ptr.f_write(<span class="macro">off!</span>(d), <span class="string">"world"</span>.to_string());
+}
+
+<span class="macro">assert_eq!</span>(value.a, <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(value.b, <span class="prelude-val">Some</span>(<span class="number">5</span>));
+<span class="macro">assert_eq!</span>(value.c, <span class="macro">vec!</span>[<span class="number">8</span>, <span class="number">13</span>]);
+<span class="macro">assert_eq!</span>(value.d, <span class="string">"world"</span>.to_string());
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.f_copy_from" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#944-948">Source</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_copy_from" class="fn">f_copy_from</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+    source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section></summary><div class="docblock"><p>Copies a field (determined by <code>offset</code>) from <code>source</code> to <code>self</code>.</p>
+<h5 id="safety-2"><a class="doc-anchor" href="#safety-2">§</a>Safety</h5>
+<p>You must ensure these properties:</p>
+<ul>
+<li>
+<p><code>self</code> and <code>source</code> must point to an allocated object (this includes the stack)
+allocated at lest up to the field (inclusive).</p>
+</li>
+<li>
+<p>If the passed in <code>offset</code> is a <code>FieldOffset&lt;_, _, Aligned&gt;</code>
+(because it is for an aligned field), both <code>self</code> and <code>source</code> must be aligned pointers.</p>
+</li>
+<li>
+<p>The field must be writable (if in doubt, all of the pointed-to value must be writble).</p>
+</li>
+</ul>
+<p><a href="https://doc.rust-lang.org/core/ptr/fn.copy.html"><code>core::ptr::copy</code></a> describes what happens when <code>self</code> ànd <code>source</code> overlap.</p>
+<h5 id="example-2"><a class="doc-anchor" href="#example-2">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprC,
+    ROExtRawMutOps, off,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>left = ReprC {
+    a: <span class="number">3u128</span>,
+    b: <span class="prelude-val">Some</span>(<span class="number">5u64</span>),
+    c: <span class="kw-2">&amp;</span>[<span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>][..],
+    d: (),
+};
+<span class="kw">let </span>right = ReprC {
+    a: <span class="number">55</span>,
+    b: <span class="prelude-val">None</span>,
+    c: <span class="kw-2">&amp;</span>[<span class="number">34</span>, <span class="number">51</span>, <span class="number">89</span>][..],
+    d: (),
+};
+
+<span class="kw">let </span>left_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>left;
+<span class="kw">unsafe</span>{
+    left_ptr.f_copy_from(<span class="macro">off!</span>(a), <span class="kw-2">&amp;</span>right);
+    left_ptr.f_copy_from(<span class="macro">off!</span>(b), <span class="kw-2">&amp;</span>right);
+    left_ptr.f_copy_from(<span class="macro">off!</span>(c), <span class="kw-2">&amp;</span>right);
+}
+
+<span class="macro">assert_eq!</span>(left.a, <span class="number">55</span>);
+<span class="macro">assert_eq!</span>(right.a, <span class="number">55</span>);
+
+<span class="macro">assert_eq!</span>(left.b, <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(right.b, <span class="prelude-val">None</span>);
+
+<span class="macro">assert_eq!</span>(left.c, <span class="kw-2">&amp;</span>[<span class="number">34</span>, <span class="number">51</span>, <span class="number">89</span>][..]);
+<span class="macro">assert_eq!</span>(right.c, <span class="kw-2">&amp;</span>[<span class="number">34</span>, <span class="number">51</span>, <span class="number">89</span>][..]);
+
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.f_copy_from_nonoverlapping" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#1010-1014">Source</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_copy_from_nonoverlapping" class="fn">f_copy_from_nonoverlapping</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+    source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section></summary><div class="docblock"><p>Copies a field (determined by <code>offset</code>) from <code>source</code> to <code>self</code>.</p>
+<h5 id="safety-3"><a class="doc-anchor" href="#safety-3">§</a>Safety</h5>
+<p>You must ensure these properties:</p>
+<ul>
+<li>
+<p><code>self</code> and <code>source</code> must point to an allocated object (this includes the stack)
+allocated at lest up to the field (inclusive).</p>
+</li>
+<li>
+<p>If the passed in <code>offset</code> is a <code>FieldOffset&lt;_, _, Aligned&gt;</code>
+(because it is for an aligned field), both <code>self</code> and <code>source</code> must be aligned pointers.</p>
+</li>
+<li>
+<p>The field must be writable (if in doubt, all of the pointed-to value must be writble).</p>
+</li>
+<li>
+<p>The field in <code>self</code> and the same field in <code>source</code> must not overlap,
+(if in doubt, the pointers must not point to overlapping memory).</p>
+</li>
+</ul>
+<h5 id="example-3"><a class="doc-anchor" href="#example-3">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprPacked,
+    utils::moved,
+    ROExtRawMutOps, off,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>left = ReprPacked {
+    a: <span class="bool-val">false</span>,
+    b: <span class="prelude-val">None</span>,
+    c: <span class="string">"foo"</span>,
+    d: (),
+};
+<span class="kw">let </span>right = ReprPacked {
+    a: <span class="bool-val">true</span>,
+    b: <span class="prelude-val">Some</span>(<span class="string">'?'</span>),
+    c: <span class="string">"bar"</span>,
+    d: (),
+};
+
+<span class="kw">let </span>left_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>left;
+<span class="kw">unsafe</span>{
+    left_ptr.f_copy_from_nonoverlapping(<span class="macro">off!</span>(a), <span class="kw-2">&amp;</span>right);
+    left_ptr.f_copy_from_nonoverlapping(<span class="macro">off!</span>(b), <span class="kw-2">&amp;</span>right);
+    left_ptr.f_copy_from_nonoverlapping(<span class="macro">off!</span>(c), <span class="kw-2">&amp;</span>right);
+}
+
+<span class="macro">assert_eq!</span>(moved(left.a), <span class="bool-val">true</span>);
+<span class="macro">assert_eq!</span>(moved(right.a), <span class="bool-val">true</span>);
+
+<span class="macro">assert_eq!</span>(moved(left.b), <span class="prelude-val">Some</span>(<span class="string">'?'</span>));
+<span class="macro">assert_eq!</span>(moved(right.b), <span class="prelude-val">Some</span>(<span class="string">'?'</span>));
+
+<span class="macro">assert_eq!</span>(moved(left.c), <span class="string">"bar"</span>);
+<span class="macro">assert_eq!</span>(moved(right.c), <span class="string">"bar"</span>);
+
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.f_replace_raw" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#1060">Source</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_replace_raw" class="fn">f_replace_raw</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+    value: F,
+) -&gt; F</h4></section></summary><div class="docblock"><p>Replaces a field (determined by <code>offset</code>) with <code>value</code>,
+returning the previous value of the field.</p>
+<h5 id="safety-4"><a class="doc-anchor" href="#safety-4">§</a>Safety</h5>
+<p>You must ensure these properties:</p>
+<ul>
+<li>
+<p><code>self</code> must point to an allocated object (this includes the stack)
+allocated at lest up to the field (inclusive).</p>
+</li>
+<li>
+<p>If the passed in <code>offset</code> is a <code>FieldOffset&lt;_, _, Aligned&gt;</code>
+(because it is for an aligned field), <code>self</code> must be an aligned pointers.</p>
+</li>
+</ul>
+<h5 id="example-4"><a class="doc-anchor" href="#example-4">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprPacked,
+    utils::moved,
+    ROExtRawMutOps, off,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>value = ReprPacked {
+    a: <span class="number">3u128</span>,
+    b: <span class="prelude-val">Some</span>(<span class="number">5u64</span>),
+    c: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>],
+    d: (),
+};
+
+<span class="kw">let </span>ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>value;
+<span class="kw">unsafe </span>{
+    <span class="macro">assert_eq!</span>(ptr.f_replace_raw(<span class="macro">off!</span>(a), <span class="number">200</span>), <span class="number">3</span>);
+    <span class="macro">assert_eq!</span>(ptr.f_replace_raw(<span class="macro">off!</span>(b), <span class="prelude-val">None</span>), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+    <span class="macro">assert_eq!</span>(ptr.f_replace_raw(<span class="macro">off!</span>(c), <span class="macro">vec!</span>[<span class="number">2</span>, <span class="number">3</span>]), <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>]);
+}
+
+<span class="macro">assert_eq!</span>(moved(value.a), <span class="number">200</span>);
+<span class="macro">assert_eq!</span>(moved(value.b), <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(moved(value.c), <span class="macro">vec!</span>[<span class="number">2</span>, <span class="number">3</span>]);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.f_swap_raw" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#1125-1129">Source</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_swap_raw" class="fn">f_swap_raw</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+    right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section></summary><div class="docblock"><p>Swaps a field (determined by <code>offset</code>) from <code>self</code> with the same field in <code>right</code>.</p>
+<h5 id="safety-5"><a class="doc-anchor" href="#safety-5">§</a>Safety</h5>
+<p>You must ensure these properties:</p>
+<ul>
+<li>
+<p><code>self</code> and <code>source</code> must point to an allocated object (this includes the stack)
+allocated at lest up to the field (inclusive).</p>
+</li>
+<li>
+<p>If the passed in <code>offset</code> is a <code>FieldOffset&lt;_, _, Aligned&gt;</code>
+(because it is for an aligned field), both <code>self</code> and <code>source</code> must be aligned pointers.</p>
+</li>
+<li>
+<p>The field in <code>self</code> and the same field in <code>source</code> must be writable
+(if in doubt, all of the pointed-to value must be writble).</p>
+</li>
+</ul>
+<p><a href="https://doc.rust-lang.org/core/ptr/fn.swap.html"><code>core::ptr::swap</code></a> describes what happens when <code>self</code> ànd <code>source</code> overlap.</p>
+<h5 id="example-5"><a class="doc-anchor" href="#example-5">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprC,
+    ROExtRawMutOps, off,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>left = ReprC {
+    a: <span class="number">3u128</span>,
+    b: <span class="prelude-val">Some</span>(<span class="number">5u64</span>),
+    c: <span class="kw-2">&amp;</span>[<span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>][..],
+    d: (),
+};
+<span class="kw">let </span><span class="kw-2">mut </span>right = ReprC {
+    a: <span class="number">55</span>,
+    b: <span class="prelude-val">None</span>,
+    c: <span class="kw-2">&amp;</span>[<span class="number">34</span>, <span class="number">51</span>, <span class="number">89</span>][..],
+    d: (),
+};
+
+<span class="kw">let </span>left_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>left;
+<span class="kw">unsafe</span>{
+    left_ptr.f_swap_raw(<span class="macro">off!</span>(a), <span class="kw-2">&amp;mut </span>right);
+    left_ptr.f_swap_raw(<span class="macro">off!</span>(b), <span class="kw-2">&amp;mut </span>right);
+    left_ptr.f_swap_raw(<span class="macro">off!</span>(c), <span class="kw-2">&amp;mut </span>right);
+}
+
+<span class="macro">assert_eq!</span>(left.a, <span class="number">55</span>);
+<span class="macro">assert_eq!</span>(right.a, <span class="number">3</span>);
+
+<span class="macro">assert_eq!</span>(left.b, <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(right.b, <span class="prelude-val">Some</span>(<span class="number">5</span>));
+
+<span class="macro">assert_eq!</span>(left.c, <span class="kw-2">&amp;</span>[<span class="number">34</span>, <span class="number">51</span>, <span class="number">89</span>][..]);
+<span class="macro">assert_eq!</span>(right.c, <span class="kw-2">&amp;</span>[<span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>][..]);
+
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.f_swap_nonoverlapping" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#1194-1198">Source</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_swap_nonoverlapping" class="fn">f_swap_nonoverlapping</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+    right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section></summary><div class="docblock"><p>Swaps a field (determined by <code>offset</code>) from <code>self</code> with the same field in <code>right</code>.
+<code>self</code> and <code>right</code> must not overlap.</p>
+<h5 id="safety-6"><a class="doc-anchor" href="#safety-6">§</a>Safety</h5>
+<p>You must ensure these properties:</p>
+<ul>
+<li>
+<p><code>self</code> and <code>source</code> must point to an allocated object (this includes the stack)
+allocated at lest up to the field (inclusive).</p>
+</li>
+<li>
+<p>If the passed in <code>offset</code> is a <code>FieldOffset&lt;_, _, Aligned&gt;</code>
+(because it is for an aligned field), both <code>self</code> and <code>source</code> must be aligned pointers.</p>
+</li>
+<li>
+<p>The field in <code>self</code> and the same field in <code>source</code> must be writable
+(if in doubt, all of the pointed-to value must be writble).</p>
+</li>
+<li>
+<p>The field in <code>self</code> and the same field in <code>source</code> must not overlap,
+(if in doubt, the pointers must not point to overlapping memory).</p>
+</li>
+</ul>
+<h5 id="example-6"><a class="doc-anchor" href="#example-6">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprPacked,
+    utils::moved,
+    ROExtRawMutOps, off,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>left = ReprPacked {
+    a: <span class="bool-val">false</span>,
+    b: <span class="prelude-val">None</span>,
+    c: <span class="string">"foo"</span>,
+    d: (),
+};
+<span class="kw">let </span><span class="kw-2">mut </span>right = ReprPacked {
+    a: <span class="bool-val">true</span>,
+    b: <span class="prelude-val">Some</span>(<span class="string">'?'</span>),
+    c: <span class="string">"bar"</span>,
+    d: (),
+};
+
+<span class="kw">let </span>left_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>left;
+<span class="kw">unsafe</span>{
+    left_ptr.f_swap_nonoverlapping(<span class="macro">off!</span>(a), <span class="kw-2">&amp;mut </span>right);
+    left_ptr.f_swap_nonoverlapping(<span class="macro">off!</span>(b), <span class="kw-2">&amp;mut </span>right);
+    left_ptr.f_swap_nonoverlapping(<span class="macro">off!</span>(c), <span class="kw-2">&amp;mut </span>right);
+}
+
+<span class="macro">assert_eq!</span>(moved(left.a), <span class="bool-val">true</span>);
+<span class="macro">assert_eq!</span>(moved(right.a), <span class="bool-val">false</span>);
+
+<span class="macro">assert_eq!</span>(moved(left.b), <span class="prelude-val">Some</span>(<span class="string">'?'</span>));
+<span class="macro">assert_eq!</span>(moved(right.b), <span class="prelude-val">None</span>);
+
+<span class="macro">assert_eq!</span>(moved(left.c), <span class="string">"bar"</span>);
+<span class="macro">assert_eq!</span>(moved(right.c), <span class="string">"foo"</span>);
+
+</code></pre></div>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="foreign-impls" class="section-header">Implementations on Foreign Types<a href="#foreign-impls" class="anchor">§</a></h2><details class="toggle implementors-toggle"><summary><section id="impl-ROExtRawMutOps%3CAligned%3E-for-*mut+S" class="impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#impl-ROExtRawMutOps%3CAligned%3E-for-*mut+S" class="anchor">§</a><h3 class="code-header">impl&lt;S&gt; <a class="trait" href="trait.ROExtRawMutOps.html" title="trait repr_offset::ext::ROExtRawMutOps">ROExtRawMutOps</a>&lt;<a class="struct" href="../alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt; for <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a></h3></section></summary><div class="impl-items"><section id="method.f_write" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_write" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_write" class="fn">f_write</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;,
+    value: F,
+)</h4></section><section id="method.f_copy_from" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_copy_from" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_copy_from" class="fn">f_copy_from</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;,
+    source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section><section id="method.f_copy_from_nonoverlapping" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_copy_from_nonoverlapping" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_copy_from_nonoverlapping" class="fn">f_copy_from_nonoverlapping</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;,
+    source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section><section id="method.f_replace_raw" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_replace_raw" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_replace_raw" class="fn">f_replace_raw</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;,
+    value: F,
+) -&gt; F</h4></section><section id="method.f_swap_raw" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_swap_raw" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_swap_raw" class="fn">f_swap_raw</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;,
+    right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section><section id="method.f_swap_nonoverlapping" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_swap_nonoverlapping" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_swap_nonoverlapping" class="fn">f_swap_nonoverlapping</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;,
+    right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-ROExtRawMutOps%3CUnaligned%3E-for-*mut+S" class="impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#impl-ROExtRawMutOps%3CUnaligned%3E-for-*mut+S" class="anchor">§</a><h3 class="code-header">impl&lt;S&gt; <a class="trait" href="trait.ROExtRawMutOps.html" title="trait repr_offset::ext::ROExtRawMutOps">ROExtRawMutOps</a>&lt;<a class="struct" href="../alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt; for <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a></h3></section></summary><div class="impl-items"><section id="method.f_write-1" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_write-1" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_write" class="fn">f_write</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;,
+    value: F,
+)</h4></section><section id="method.f_copy_from-1" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_copy_from-1" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_copy_from" class="fn">f_copy_from</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;,
+    source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section><section id="method.f_copy_from_nonoverlapping-1" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_copy_from_nonoverlapping-1" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_copy_from_nonoverlapping" class="fn">f_copy_from_nonoverlapping</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;,
+    source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section><section id="method.f_replace_raw-1" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_replace_raw-1" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_replace_raw" class="fn">f_replace_raw</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;,
+    value: F,
+) -&gt; F</h4></section><section id="method.f_swap_raw-1" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_swap_raw-1" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_swap_raw" class="fn">f_swap_raw</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;,
+    right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section><section id="method.f_swap_nonoverlapping-1" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_swap_nonoverlapping-1" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_swap_nonoverlapping" class="fn">f_swap_nonoverlapping</a>&lt;F&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, <a class="struct" href="../alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;,
+    right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut </a>Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>,
+)</h4></section></div></details><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"></div><script src="../../trait.impl/repr_offset/ext/trait.ROExtRawMutOps.js" data-ignore-extern-crates="core" async></script></section></div></main></body></html>

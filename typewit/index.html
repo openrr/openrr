@@ -1,0 +1,482 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate provides abstractions for creating type witnesses."><title>typewit - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="typewit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../typewit/index.html">typewit</a><span class="version">1.14.2</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#what-are-type-witnesses" title="What are type witnesses">What are type witnesses</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#polymorphic-function" title="Polymorphic function">Polymorphic function</a></li><li><a href="#indexing-polymorphism" title="Indexing polymorphism">Indexing polymorphism</a></li><li><a href="#downcasting-const-generic-type" title="Downcasting const generic type">Downcasting const generic type</a></li><li><a href="#builder" title="Builder">Builder</a></li><li><a href="#generic-const-expressions" title="Generic Const Expressions">Generic Const Expressions</a></li></ul></li><li><a href="#cargo-features" title="Cargo features">Cargo features</a><ul><li><a href="#default-features" title="Default-features">Default-features</a></li><li><a href="#rust-versions-and-standard-crates" title="Rust-versions and standard crates">Rust-versions and standard crates</a></li><li><a href="#nightly-features" title="Nightly features">Nightly features</a></li></ul></li><li><a href="#no-std-support" title="No-std support">No-std support</a></li><li><a href="#minimum-supported-rust-version" title="Minimum Supported Rust Version">Minimum Supported Rust Version</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>typewit</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/typewit/lib.rs.html#1-674">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate provides abstractions for creating
+<a href="#what-are-type-witnesses">type witnesses</a>.</p>
+<p>The inciting motivation for this crate is emulating trait polymorphism in <code>const fn</code>
+(as of 2025-07-20, it’s not possible to call trait methods in const contexts on stable).</p>
+<h2 id="what-are-type-witnesses"><a class="doc-anchor" href="#what-are-type-witnesses">§</a>What are type witnesses</h2>
+<p>Type witnesses are values that prove the equality of a type parameter to a
+fixed set of possible types.</p>
+<p>The simplest type witness is <a href="struct.TypeEq.html" title="struct typewit::TypeEq"><code>TypeEq&lt;L, R&gt;</code></a>,
+which only proves equality of its <code>L</code> and <code>R</code> type parameters,
+and can be used to coerce between them.</p>
+<p>Most type witnesses are enums with <a href="struct.TypeEq.html" title="struct typewit::TypeEq"><code>TypeEq</code></a> fields,
+which can coerce between a type parameter and as many types as there are variants.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p><span id="example0"></span></p>
+<h4 id="polymorphic-function"><a class="doc-anchor" href="#polymorphic-function">§</a>Polymorphic function</h4>
+<p>This demonstrates how one can write a polymorphic <code>const fn</code>
+(as of 2025-07-20, trait methods can’t be called in const fns on stable)</p>
+<p>(this example requires Rust 1.61.0, since it uses trait bounds in const)</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{HasTypeWitness, TypeEq};
+ 
+<span class="kw">const </span>VALS: [<span class="kw-2">&amp;</span>str; <span class="number">6</span>] = [
+    message(<span class="number">0</span>),
+    message(<span class="number">1</span>),
+    message(<span class="number">2</span>),
+    message(<span class="number">3</span>),
+    message(<span class="string">"hi"</span>),
+    message(<span class="string">"foo"</span>),
+];
+<span class="macro">assert_eq!</span>(VALS, [<span class="string">"A"</span>, <span class="string">"B"</span>, <span class="string">"C"</span>, <span class="string">"A"</span>, <span class="string">"hi"</span>, <span class="string">"foo"</span>]);
+ 
+ 
+<span class="comment">// A "method" of the `Message` trait (declared below)
+</span><span class="kw">const fn </span>message&lt;<span class="lifetime">'a</span>, T: Message&lt;<span class="lifetime">'a</span>&gt;&gt;(val: T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str {
+    <span class="kw">match </span>HasTypeWitness::WITNESS {
+        MessageWitness::Usize(te) =&gt; {
+            <span class="comment">// `te` (a `TypeEq&lt;T, usize&gt;`) allows coercing between `T` and `usize`,
+            // because `TypeEq` is a value-level proof that both types are the same.
+            </span><span class="kw">let </span>index: usize = te.to_right(val);
+            [<span class="string">"A"</span>, <span class="string">"B"</span>, <span class="string">"C"</span>][index % <span class="number">3</span>]
+        }
+        MessageWitness::Str(te) =&gt; {
+            <span class="comment">// `te` is a `TypeEq&lt;T, &amp;'a str&gt;`
+            </span>te.to_right(val)
+        }
+    }
+}
+ 
+<span class="comment">// The trait that we use to emulate polymorphic dispatch,
+// the limitation is that it can only emulate it for a limited set of types known
+// to the crate that defines the trait, in this case that's `usize` and `&amp;str`.
+</span><span class="kw">trait </span>Message&lt;<span class="lifetime">'a</span>&gt;: HasTypeWitness&lt;MessageWitness&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;&gt; { }
+ 
+<span class="comment">// replacing these impls with a blanket impl leads to worse compilation errors
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Message&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>usize {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Message&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>str {}
+ 
+<span class="comment">// This macro declares `enum MessageWitness&lt;'a, __Wit&gt;`, a type witness enum,
+// where each variant requires and then guarantees `__Wit` to be a particular type.
+// (the `__Wit` type parameter is implicitly added after all generics)
+</span><span class="macro">typewit::simple_type_witness!</span> {
+    <span class="kw">enum </span>MessageWitness&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="comment">// This variant requires `__Wit == usize`
+        </span>Usize = usize,
+    
+        <span class="comment">// This variant requires `__Wit == &amp;'a str`
+        </span>Str = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+    }
+}</code></pre></div>
+<p><span id="example-uses-type-fn"></span></p>
+<h4 id="indexing-polymorphism"><a class="doc-anchor" href="#indexing-polymorphism">§</a>Indexing polymorphism</h4>
+<p>This function demonstrates const fn polymorphism
+and projecting <a href="struct.TypeEq.html" title="struct typewit::TypeEq"><code>TypeEq</code></a> by implementing <a href="type_fn/trait.TypeFn.html" title="trait typewit::type_fn::TypeFn"><code>TypeFn</code></a>.</p>
+<p>(this example requires Rust 1.71.0, because it uses <code>&lt;[T]&gt;::split_at</code> in a const context.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::ops::Range;
+ 
+<span class="kw">use </span>typewit::{HasTypeWitness, TypeEq};
+ 
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>array = [<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>, <span class="number">34</span>, <span class="number">55</span>, <span class="number">89</span>];
+ 
+    <span class="macro">assert_eq!</span>(index(<span class="kw-2">&amp;</span>array, <span class="number">0</span>), <span class="kw-2">&amp;</span><span class="number">3</span>);
+    <span class="macro">assert_eq!</span>(index(<span class="kw-2">&amp;</span>array, <span class="number">3</span>), <span class="kw-2">&amp;</span><span class="number">13</span>);
+    <span class="macro">assert_eq!</span>(index(<span class="kw-2">&amp;</span>array, <span class="number">0</span>..<span class="number">4</span>), [<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">13</span>]);
+    <span class="macro">assert_eq!</span>(index(<span class="kw-2">&amp;</span>array, <span class="number">3</span>..<span class="number">5</span>), [<span class="number">13</span>, <span class="number">21</span>]);
+}
+ 
+<span class="kw">const fn </span>index&lt;T, I&gt;(slice: <span class="kw-2">&amp;</span>[T], idx: I) -&gt; <span class="kw-2">&amp;</span>SliceIndexRet&lt;I, T&gt;
+<span class="kw">where
+    </span>I: SliceIndex&lt;T&gt;,
+{
+    <span class="comment">// `I::WITNESS` is `&lt;I as HasTypeWitness&lt;IndexWitness&lt;I&gt;&gt;&gt;::WITNESS`,
+    </span><span class="kw">match </span>I::WITNESS {
+        IndexWitness::Usize(arg_te) =&gt; {
+            <span class="comment">// `arg_te` (a `TypeEq&lt;I, usize&gt;`) allows coercing between `I` and `usize`,
+            // because `TypeEq` is a value-level proof that both types are the same.
+            </span><span class="kw">let </span>idx: usize = arg_te.to_right(idx);
+ 
+            <span class="comment">// using the `TypeFn` impl for `FnSliceIndexRet&lt;T&gt;` to 
+            // map `TypeEq&lt;I, usize&gt;` 
+            // to  `TypeEq&lt;SliceIndexRet&lt;I, T&gt;, SliceIndexRet&lt;usize, T&gt;&gt;`
+            </span>arg_te.project::&lt;FnSliceIndexRet&lt;T&gt;&gt;()
+                <span class="comment">// converts`TypeEq&lt;SliceIndexRet&lt;I, T&gt;, T&gt;` 
+                //      to `TypeEq&lt;&amp;SliceIndexRet&lt;I, T&gt;, &amp;T&gt;`
+                </span>.in_ref()
+                .to_left(<span class="kw-2">&amp;</span>slice[idx])
+        }
+        IndexWitness::Range(arg_te) =&gt; {
+            <span class="kw">let </span>range: Range&lt;usize&gt; = arg_te.to_right(idx);
+            <span class="kw">let </span>ret: <span class="kw-2">&amp;</span>[T] = slice_range(slice, range);
+            arg_te.project::&lt;FnSliceIndexRet&lt;T&gt;&gt;().in_ref().to_left(ret)
+        }
+    }
+}
+ 
+<span class="comment">// This macro declares a type witness enum
+</span><span class="macro">typewit::simple_type_witness!</span> {
+    <span class="comment">// Declares `enum IndexWitness&lt;__Wit&gt;` 
+    // (the `__Wit` type parameter is implicitly added after all generics)
+    </span><span class="kw">enum </span>IndexWitness {
+        <span class="comment">// This variant requires `__Wit == usize`
+        </span>Usize = usize,
+    
+        <span class="comment">// This variant requires `__Wit == Range&lt;usize&gt;`
+        </span>Range = Range&lt;usize&gt;,
+    }
+}
+ 
+<span class="doccomment">/// Trait for all types that can be used as slice indices
+/// 
+/// The `HasTypeWitness` supertrait allows getting a `IndexWitness&lt;Self&gt;`
+/// with its `WITNESS` associated constant.
+</span><span class="kw">trait </span>SliceIndex&lt;T&gt;: HasTypeWitness&lt;IndexWitness&lt;<span class="self">Self</span>&gt;&gt; + Sized {
+    <span class="kw">type </span>Returns: <span class="question-mark">?</span>Sized;
+}
+<span class="kw">impl</span>&lt;T&gt; SliceIndex&lt;T&gt; <span class="kw">for </span>usize {
+    <span class="kw">type </span>Returns = T;
+}
+<span class="kw">impl</span>&lt;T&gt; SliceIndex&lt;T&gt; <span class="kw">for </span>Range&lt;usize&gt; {
+    <span class="kw">type </span>Returns = [T];
+}
+ 
+<span class="kw">type </span>SliceIndexRet&lt;I, T&gt; = &lt;I <span class="kw">as </span>SliceIndex&lt;T&gt;&gt;::Returns;
+ 
+<span class="comment">// Declares `struct FnSliceIndexRet&lt;T&gt;`
+// a type-level function (TypeFn implementor) from `I` to `SliceIndexRet&lt;I, T&gt;`
+</span><span class="macro">typewit::type_fn!</span> {
+    <span class="kw">struct </span>FnSliceIndexRet&lt;T&gt;;
+
+    <span class="kw">impl</span>&lt;I: SliceIndex&lt;T&gt;&gt; I =&gt; SliceIndexRet&lt;I, T&gt;
+}
+ 
+<span class="kw">const fn </span>slice_range&lt;T&gt;(slice: <span class="kw-2">&amp;</span>[T], range: Range&lt;usize&gt;) -&gt; <span class="kw-2">&amp;</span>[T] {
+    <span class="kw">let </span>suffix = slice.split_at(range.start).<span class="number">1</span>;
+    suffix.split_at(range.end - range.start).<span class="number">0
+</span>}
+ </code></pre></div>
+<p>When the wrong type is passed for the index,
+the compile-time error is the same as with normal generic functions:</p>
+<div class="example-wrap"><pre class="language-text"><code>error[E0277]: the trait bound `RangeFull: SliceIndex&lt;{integer}&gt;` is not satisfied
+  --&gt; src/main.rs:43:30
+   |
+13 |     assert_eq!(index(&amp;array, ..), [13, 21]);
+   |                -----         ^^ the trait `SliceIndex&lt;{integer}&gt;` is not implemented for `RangeFull`
+   |                |
+   |                required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `SliceIndex&lt;T&gt;`:
+             std::ops::Range&lt;usize&gt;
+             usize</code></pre></div><h4 id="downcasting-const-generic-type"><a class="doc-anchor" href="#downcasting-const-generic-type">§</a>Downcasting const generic type</h4>
+<p>This example demonstrates “downcasting” from a type with a const parameter to
+a concrete instance of that type.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{const_marker::Usize, TypeCmp, TypeEq};
+ 
+<span class="macro">assert_eq!</span>(<span class="kw-2">*</span>mutate(<span class="kw-2">&amp;mut </span>Arr([])), Arr([]));
+<span class="macro">assert_eq!</span>(<span class="kw-2">*</span>mutate(<span class="kw-2">&amp;mut </span>Arr([<span class="number">1</span>])), Arr([<span class="number">1</span>]));
+<span class="macro">assert_eq!</span>(<span class="kw-2">*</span>mutate(<span class="kw-2">&amp;mut </span>Arr([<span class="number">1</span>, <span class="number">2</span>])), Arr([<span class="number">1</span>, <span class="number">2</span>]));
+<span class="macro">assert_eq!</span>(<span class="kw-2">*</span>mutate(<span class="kw-2">&amp;mut </span>Arr([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])), Arr([<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>])); <span class="comment">// this is different!
+</span><span class="macro">assert_eq!</span>(<span class="kw-2">*</span>mutate(<span class="kw-2">&amp;mut </span>Arr([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>])), Arr([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>])); 
+ 
+<span class="attr">#[derive(Debug, PartialEq)]
+</span><span class="kw">struct </span>Arr&lt;<span class="kw">const </span>N: usize&gt;([u8; N]);
+ 
+<span class="kw">fn </span>mutate&lt;<span class="kw">const </span>N: usize&gt;(arr: <span class="kw-2">&amp;mut </span>Arr&lt;N&gt;) -&gt; <span class="kw-2">&amp;mut </span>Arr&lt;N&gt; {
+    <span class="kw">if let </span>TypeCmp::Eq(te) =  Usize::&lt;N&gt;.equals(Usize::&lt;<span class="number">3</span>&gt;) {
+        <span class="kw">let </span>tem = te <span class="comment">// `te` is a `TypeEq&lt;Usize&lt;N&gt;, Usize&lt;3&gt;&gt;`
+            </span>.project::&lt;GArr&gt;() <span class="comment">// returns `TypeEq&lt;Arr&lt;N&gt;, Arr&lt;3&gt;&gt;`
+            </span>.in_mut(); <span class="comment">// returns `TypeEq&lt;&amp;mut Arr&lt;N&gt;, &amp;mut Arr&lt;3&gt;&gt;`
+ 
+        // `tem.to_right(arr)` downcasts `arr` to `&amp;mut Arr&lt;3&gt;`
+        </span>tetra_sum(tem.to_right(arr));
+    }
+ 
+    arr
+}
+ 
+<span class="kw">fn </span>tetra_sum(arr: <span class="kw-2">&amp;mut </span>Arr&lt;<span class="number">3</span>&gt;) {
+    arr.<span class="number">0</span>[<span class="number">1</span>] += arr.<span class="number">0</span>[<span class="number">0</span>];
+    arr.<span class="number">0</span>[<span class="number">2</span>] += arr.<span class="number">0</span>[<span class="number">1</span>];
+}
+ 
+<span class="comment">// Declares `struct GArr`
+// a type-level function (TypeFn implementor) from `Usize&lt;N&gt;` to `Arr&lt;N&gt;`
+</span><span class="macro">typewit::type_fn!</span>{
+    <span class="kw">struct </span>GArr;
+ 
+    <span class="kw">impl</span>&lt;<span class="kw">const </span>N: usize&gt; Usize&lt;N&gt; =&gt; Arr&lt;N&gt;
+}</code></pre></div>
+<h4 id="builder"><a class="doc-anchor" href="#builder">§</a>Builder</h4>
+<p>Using a type witness to help encode a type-level enum,
+and to match on that type-level enum inside of a function.</p>
+<p>The type-level enum is used to track the initialization of fields in a builder.</p>
+<p>This example requires Rust 1.65.0, because it uses Generic Associated Types.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::HasTypeWitness;
+ 
+<span class="kw">fn </span>main() {
+    <span class="comment">// all default fields
+    </span><span class="macro">assert_eq!</span>(
+        StructBuilder::new().build(), 
+        Struct{foo: <span class="string">"default value"</span>.into(), bar: <span class="macro">vec!</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]},
+    );
+ 
+    <span class="comment">// defaulted bar field
+    </span><span class="macro">assert_eq!</span>(
+        StructBuilder::new().foo(<span class="string">"hello"</span>).build(), 
+        Struct{foo: <span class="string">"hello"</span>.into(), bar: <span class="macro">vec!</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]},
+    );
+ 
+    <span class="comment">// defaulted foo field
+    </span><span class="macro">assert_eq!</span>(
+        StructBuilder::new().bar([<span class="number">13</span>, <span class="number">21</span>, <span class="number">34</span>]).build(), 
+        Struct{foo: <span class="string">"default value"</span>.into(), bar: <span class="macro">vec!</span>[<span class="number">13</span>, <span class="number">21</span>, <span class="number">34</span>]},
+    );
+ 
+    <span class="comment">// all initialized fields
+    </span><span class="macro">assert_eq!</span>(
+        StructBuilder::new().foo(<span class="string">"world"</span>).bar([<span class="number">55</span>, <span class="number">89</span>]).build(), 
+        Struct{foo: <span class="string">"world"</span>.into(), bar: <span class="macro">vec!</span>[<span class="number">55</span>, <span class="number">89</span>]},
+    );
+}
+ 
+ 
+<span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">struct </span>Struct {
+    foo: String,
+    bar: Vec&lt;u32&gt;,
+}
+ 
+<span class="kw">struct </span>StructBuilder&lt;FooInit: InitState, BarInit: InitState&gt; {
+    <span class="comment">// If `FooInit` is `Uninit`, then this field is a `()`
+    // If `FooInit` is `Init`, then this field is a `String`
+    </span>foo: BuilderField&lt;FooInit, String&gt;,
+
+    <span class="comment">// If `BarInit` is `Uninit`, then this field is a `()`
+    // If `BarInit` is `Init`, then this field is a `Vec&lt;u32&gt;`
+    </span>bar: BuilderField&lt;BarInit, Vec&lt;u32&gt;&gt;,
+}
+ 
+<span class="kw">impl </span>StructBuilder&lt;Uninit, Uninit&gt; {
+    <span class="kw">pub const fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            foo: (),
+            bar: (),
+        }
+    }
+}
+ 
+<span class="kw">impl</span>&lt;FooInit: InitState, BarInit: InitState&gt; StructBuilder&lt;FooInit, BarInit&gt; {
+    <span class="doccomment">/// Sets the `foo` field
+    </span><span class="kw">pub fn </span>foo(<span class="self">self</span>, foo: <span class="kw">impl </span>Into&lt;String&gt;) -&gt; StructBuilder&lt;Init, BarInit&gt; {
+        StructBuilder {
+            foo: foo.into(),
+            bar: <span class="self">self</span>.bar,
+        }
+    }
+
+    <span class="doccomment">/// Sets the `bar` field
+    </span><span class="kw">pub fn </span>bar(<span class="self">self</span>, bar: <span class="kw">impl </span>Into&lt;Vec&lt;u32&gt;&gt;) -&gt; StructBuilder&lt;FooInit, Init&gt; {
+        StructBuilder {
+            foo: <span class="self">self</span>.foo,
+            bar: bar.into(),
+        }
+    }
+ 
+    <span class="doccomment">/// Builds `Struct`, 
+    /// providing default values for fields that haven't been set.
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; Struct {
+        Struct {
+            foo: init_or_else::&lt;FooInit, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="self">self</span>.foo, || <span class="string">"default value"</span>.to_string()),
+            bar: init_or_else::&lt;BarInit, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="self">self</span>.bar, || <span class="macro">vec!</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]),
+        }
+    }
+}
+ 
+<span class="comment">// Emulates a type-level `enum InitState { Init, Uninit }`
+</span><span class="kw">trait </span>InitState: Sized + HasTypeWitness&lt;InitWit&lt;<span class="self">Self</span>&gt;&gt; {
+    <span class="comment">// How a builder represents an initialized/uninitialized field.
+    // If `Self` is `Uninit`, then this is `()`.
+    // If `Self` is `Init`, then this is `T`.
+    </span><span class="kw">type </span>BuilderField&lt;T&gt;;
+}
+ 
+<span class="comment">// If `I` is `Uninit`, then this evaluates to `()`
+// If `I` is `Init`, then this evaluates to `T`
+</span><span class="kw">type </span>BuilderField&lt;I, T&gt; = &lt;I <span class="kw">as </span>InitState&gt;::BuilderField::&lt;T&gt;;
+ 
+<span class="doccomment">/// Gets `T` out of `maybe_init` if it's actually initialized,
+/// otherwise returns `else_()`.
+</span><span class="kw">fn </span>init_or_else&lt;I, T, F&gt;(maybe_init: BuilderField&lt;I, T&gt;, else_: F) -&gt; T
+<span class="kw">where
+    </span>I: InitState,
+    F: FnOnce() -&gt; T
+{
+    <span class="macro">typewit::type_fn!</span> {
+        <span class="comment">// Declares the `HelperFn` type-level function (TypeFn implementor)
+        // from `I` to `BuilderField&lt;I, T&gt;`
+        </span><span class="kw">struct </span>HelperFn&lt;T&gt;;
+        <span class="kw">impl</span>&lt;I: InitState&gt; I =&gt; BuilderField&lt;I, T&gt;
+    }
+ 
+    <span class="comment">// matching on the type-level `InitState` enum by using `InitWit`.
+    // `WITNESS` comes from the `HasTypeWitness` trait
+    </span><span class="kw">match </span>I::WITNESS {
+        <span class="comment">// `te: TypeEq&lt;FooInit, Init&gt;`
+        </span>InitWit::InitW(te) =&gt; {
+            te.map(HelperFn::NEW) <span class="comment">//: TypeEq&lt;BuilderField&lt;I, T&gt;, T&gt;
+              </span>.to_right(maybe_init)
+        }
+        InitWit::UninitW(<span class="kw">_</span>) =&gt; else_(),
+    }
+}
+ 
+<span class="comment">// Emulates a type-level `InitState::Init` variant.
+// Marks a field as initialized.
+</span><span class="kw">enum </span>Init {}
+ 
+<span class="kw">impl </span>InitState <span class="kw">for </span>Init {
+    <span class="kw">type </span>BuilderField&lt;T&gt; = T;
+}
+ 
+<span class="comment">// Emulates a type-level `InitState::Uninit` variant.
+// Marks a field as uninitialized.
+</span><span class="kw">enum </span>Uninit {}
+ 
+<span class="kw">impl </span>InitState <span class="kw">for </span>Uninit {
+    <span class="kw">type </span>BuilderField&lt;T&gt; = ();
+}
+ 
+<span class="macro">typewit::simple_type_witness!</span> {
+    <span class="comment">// Declares `enum InitWit&lt;__Wit&gt;`, a type witness.
+    // (the `__Wit` type parameter is implicitly added after all generics)
+    </span><span class="kw">enum </span>InitWit {
+        <span class="comment">// This variant requires `__Wit == Init`
+        </span>InitW = Init,
+        <span class="comment">// This variant requires `__Wit == Uninit`
+        </span>UninitW = Uninit,
+    }
+}</code></pre></div>
+<h4 id="generic-const-expressions"><a class="doc-anchor" href="#generic-const-expressions">§</a>Generic Const Expressions</h4>
+<p>This example uses <a href="const_marker/struct.Usize.html" title="struct typewit::const_marker::Usize"><code>Usize</code></a> to coerce an arrays whose length is generic to
+another generic, but equal, length.</p>
+<p>This example requires the <code>"generic_const_exprs"</code> crate feature because it uses the
+currently-unstable <a href="https://doc.rust-lang.org/unstable-book/language-features/generic-const-exprs.html"><code>generic_const_exprs</code></a> language feature.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#![feature(generic_const_exprs)]
+ 
+</span><span class="kw">use </span>typewit::{const_marker::Usize, TypeCmp, TypeEq};
+ 
+ 
+<span class="kw">let </span><span class="kw-2">mut </span>arrays = Arrays::&lt;<span class="number">1</span>, <span class="number">3</span>&gt; { a: [<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>], b: [<span class="number">13</span>, <span class="number">21</span>, <span class="number">34</span>] };
+ 
+arrays.swap_inner();
+ 
+<span class="macro">assert_eq!</span>(arrays.a, [<span class="number">13</span>, <span class="number">21</span>, <span class="number">34</span>]);
+<span class="macro">assert_eq!</span>(arrays.b, [<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]);
+ 
+ 
+<span class="kw">struct </span>Arrays&lt;<span class="kw">const </span>A: usize, <span class="kw">const </span>B: usize&gt; 
+<span class="kw">where
+    </span>[u8; A * B]:, 
+    [u8; B * A]:,
+{
+    a: [u8; A * B],
+    b: [u8; B * A],
+}
+ 
+<span class="kw">impl</span>&lt;<span class="kw">const </span>A: usize, <span class="kw">const </span>B: usize&gt; Arrays&lt;A, B&gt; 
+<span class="kw">where
+    </span>[u8; A * B]:, 
+    [u8; B * A]:,
+{
+    <span class="comment">// Swaps the two array fields
+    </span><span class="kw">const fn </span>swap_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>a = TypeEq::new::&lt;u8&gt;() <span class="comment">// : TypeEq&lt;u8, u8&gt;
+            </span>.in_array(commutative_proof::&lt;A, B&gt;()) <span class="comment">// : TypeEq&lt;[u8; A * B], [u8; B * A]&gt;
+            </span>.in_mut() <span class="comment">// : TypeEq&lt;&amp;mut [u8; A * B], &amp;mut [u8; B * A]&gt;
+            </span>.to_right(
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>.a <span class="comment">// : &amp;mut [u8; A * B] 
+            </span>); <span class="comment">// : &amp;mut [u8; B * A] 
+         
+        </span>core::mem::swap(a, <span class="kw-2">&amp;mut </span><span class="self">self</span>.b);
+    }
+}
+ 
+<span class="kw">const fn </span>commutative_proof&lt;<span class="kw">const </span>A: usize, <span class="kw">const </span>B: usize&gt;(
+) -&gt; TypeEq&lt;Usize&lt;{A * B}&gt;, Usize&lt;{B * A}&gt;&gt;
+{
+    <span class="comment">// panic-safety: A * B == B * A always holds, so this `unwrap_eq` can never panic
+    </span>Usize::&lt;{A * B}&gt;.equals(Usize::&lt;{B * A}&gt;).unwrap_eq()
+}
+ </code></pre></div>
+<p>If you tried to swap the fields directly, you’d get this error:</p>
+<div class="example-wrap"><pre class="language-text"><code>error[E0308]: mismatched types
+  --&gt; src/lib.rs:437:38
+   |
+42 |         core::mem::swap(&amp;mut self.a, &amp;mut self.b);
+   |                                      ^^^^^^^^^^^ expected `A * B`, found `B * A`
+   |
+   = note: expected constant `A * B`
+              found constant `B * A`</code></pre></div><h2 id="cargo-features"><a class="doc-anchor" href="#cargo-features">§</a>Cargo features</h2>
+<p>These are the features of this crate.</p>
+<h4 id="default-features"><a class="doc-anchor" href="#default-features">§</a>Default-features</h4>
+<p>These features are enabled by default:</p>
+<ul>
+<li><code>"proc_macros"</code>: uses proc macros to improve compile-errors involving
+macro-generated impls.</li>
+</ul>
+<h4 id="rust-versions-and-standard-crates"><a class="doc-anchor" href="#rust-versions-and-standard-crates">§</a>Rust-versions and standard crates</h4>
+<p>These features enable items that have a minimum Rust version:</p>
+<ul>
+<li>
+<p><code>"rust_stable"</code>: enables all the <code>"rust_1_*"</code> features.</p>
+</li>
+<li>
+<p><code>"rust_1_83"</code>: turns functions that take mutable references into <code>const fn</code>s,
+enables <a href="const_marker/index.html" title="mod typewit::const_marker"><code>const_marker</code></a> items for comparing <a href="const_marker/trait.ConstMarker.html" title="trait typewit::const_marker::ConstMarker"><code>ConstMarker</code></a>s,
+and enables the <code>"rust_1_65"</code> feature.</p>
+</li>
+<li>
+<p><code>"rust_1_65"</code>: enables the <a href="crate::type_constructors"><code>type_constructors</code></a> module,
+the <a href="crate::methods"><code>methods</code></a> module,
+and the <code>"rust_1_61"</code> feature.</p>
+</li>
+<li>
+<p><code>"rust_1_61"</code>: enables <a href="crate::MetaBaseTypeWit"><code>MetaBaseTypeWit</code></a>,
+<a href="crate::BaseTypeWitness"><code>BaseTypeWitness</code></a>,
+and the <code>{TypeCmp, TypeNe}::{zip*, in_array}</code> methods.</p>
+</li>
+</ul>
+<p>These features enable items that require a non-<code>core</code> standard crate:</p>
+<ul>
+<li><code>"alloc"</code>: enable items that use anything from the standard <code>alloc</code> crate.</li>
+</ul>
+<h4 id="nightly-features"><a class="doc-anchor" href="#nightly-features">§</a>Nightly features</h4>
+<p>These features require the nightly Rust compiler:</p>
+<ul>
+<li>
+<p><code>"adt_const_marker"</code>:
+enables the <code>"rust_stable"</code> crate feature,
+and marker types in the <a href="const_marker/index.html" title="mod typewit::const_marker"><code>const_marker</code></a> module that have
+non-primitive <code>const</code> parameters.</p>
+</li>
+<li>
+<p><code>"generic_const_exprs"</code>:
+enables the <code>"rust_stable"</code> crate feature,
+and doc examples that use the <a href="https://doc.rust-lang.org/unstable-book/language-features/generic-const-exprs.html"><code>generic_const_exprs</code></a> unstable language feature.</p>
+</li>
+</ul>
+<h2 id="no-std-support"><a class="doc-anchor" href="#no-std-support">§</a>No-std support</h2>
+<p><code>typewit</code> is <code>#![no_std]</code>, it can be used anywhere Rust can be used.</p>
+<p>You need to enable the <code>"alloc"</code> feature to enable items that use anything
+from the standard <code>alloc</code> crate.</p>
+<h2 id="minimum-supported-rust-version"><a class="doc-anchor" href="#minimum-supported-rust-version">§</a>Minimum Supported Rust Version</h2>
+<p><code>typewit</code> supports Rust 1.57.0.</p>
+<p>Features that require newer versions of Rust, or the nightly compiler,
+need to be explicitly enabled with crate features.</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.CallFn"><code>pub use crate::type_fn::<a class="type" href="type_fn/type.CallFn.html" title="type typewit::type_fn::CallFn">CallFn</a>;</code></dt><dt id="reexport.CallInjFn"><code>pub use crate::type_fn::<a class="type" href="type_fn/type.CallInjFn.html" title="type typewit::type_fn::CallInjFn">CallInjFn</a>;</code></dt><dt id="reexport.InjTypeFn"><code>pub use crate::type_fn::<a class="trait" href="type_fn/trait.InjTypeFn.html" title="trait typewit::type_fn::InjTypeFn">InjTypeFn</a>;</code></dt><dt id="reexport.RevTypeFn"><code>pub use crate::type_fn::<a class="trait" href="type_fn/trait.RevTypeFn.html" title="trait typewit::type_fn::RevTypeFn">RevTypeFn</a>;</code></dt><dt id="reexport.TypeFn"><code>pub use crate::type_fn::<a class="trait" href="type_fn/trait.TypeFn.html" title="trait typewit::type_fn::TypeFn">TypeFn</a>;</code></dt><dt id="reexport.UncallFn"><code>pub use crate::type_fn::<a class="type" href="type_fn/type.UncallFn.html" title="type typewit::type_fn::UncallFn">UncallFn</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="const_marker/index.html" title="mod typewit::const_marker">const_<wbr>marker</a></dt><dd>Marker types for passing constants as type arguments.</dd><dt><a class="mod" href="type_fn/index.html" title="mod typewit::type_fn">type_fn</a></dt><dd>Type-level functions.</dd><dt><a class="mod" href="type_ne/index.html" title="mod typewit::type_ne">type_ne</a></dt><dd><a href="struct.TypeNe.html" title="struct typewit::TypeNe"><code>TypeNe</code></a>-related items</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.inj_type_fn.html" title="macro typewit::inj_type_fn">inj_<wbr>type_<wbr>fn</a></dt><dd>Declares an
+<a href="type_fn/trait.InjTypeFn.html" title="trait typewit::type_fn::InjTypeFn">injective type-level function</a></dd><dt><a class="macro" href="macro.polymatch.html" title="macro typewit::polymatch">polymatch</a></dt><dd>Match which expands top-level <code>|</code> patterns to multiple match arms.</dd><dt><a class="macro" href="macro.simple_type_witness.html" title="macro typewit::simple_type_witness">simple_<wbr>type_<wbr>witness</a></dt><dd>Declares a <a href="index.html#what-are-type-witnesses" title="mod typewit">type witness</a> enum.</dd><dt><a class="macro" href="macro.type_fn.html" title="macro typewit::type_fn">type_fn</a></dt><dd>Declares a type-level function (struct that implements <a href="type_fn/trait.TypeFn.html" title="trait typewit::type_fn::TypeFn"><code>TypeFn</code></a>)</dd><dt><a class="macro" href="macro.type_ne.html" title="macro typewit::type_ne">type_ne</a></dt><dd>Constructs a <a href="struct.TypeNe.html" title="struct typewit::TypeNe"><code>TypeNe</code></a>
+of types that are statically known to be different.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a></dt><dd>Value-level proof that <code>L</code> is the same type as <code>R</code></dd><dt><a class="struct" href="struct.TypeNe.html" title="struct typewit::TypeNe">TypeNe</a></dt><dd>Value-level proof that <code>L</code> is a different type to <code>R</code></dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.TypeCmp.html" title="enum typewit::TypeCmp">TypeCmp</a></dt><dd>A witness of whether its <code>L</code> and <code>R</code> type parameters are the same or different types.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.HasTypeWitness.html" title="trait typewit::HasTypeWitness">HasType<wbr>Witness</a></dt><dd>Gets a <a href="index.html#what-are-type-witnesses" title="mod typewit">type witness</a> for <code>Self</code>.</dd><dt><a class="trait" href="trait.Identity.html" title="trait typewit::Identity">Identity</a></dt><dd>Emulation of <code>T == U</code> bounds.</dd><dt><a class="trait" href="trait.MakeTypeWitness.html" title="trait typewit::MakeTypeWitness">Make<wbr>Type<wbr>Witness</a></dt><dd>Constructs this <a href="index.html#what-are-type-witnesses" title="mod typewit">type witness</a>.</dd><dt><a class="trait" href="trait.TypeWitnessTypeArg.html" title="trait typewit::TypeWitnessTypeArg">Type<wbr>Witness<wbr>Type<wbr>Arg</a></dt><dd>Gets the type argument that this <a href="index.html#what-are-type-witnesses" title="mod typewit">type witness</a> witnesses.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.type_eq.html" title="fn typewit::type_eq">type_eq</a></dt><dd>Constructs a <a href="struct.TypeEq.html" title="struct typewit::TypeEq"><code>TypeEq&lt;T, T&gt;</code></a></dd></dl></section></div></main></body></html>

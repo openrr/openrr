@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["OFF","PUB_OFF","off","pub_off","unsafe_struct_field_offsets"],"mod":["alignment","ext","for_examples","get_field_offset","offset_calc","privacy","utils"],"struct":["FieldOffset"]};

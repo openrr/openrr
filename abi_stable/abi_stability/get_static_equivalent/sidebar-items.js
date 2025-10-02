@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Unsized"],"trait":["GetStaticEquivalent_"],"type":["GetStaticEquivalent"]};

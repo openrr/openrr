@@ -1,0 +1,164 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="eframe - the `egui` framework crate"><title>eframe - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="eframe" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../eframe/index.html">eframe</a><span class="version">0.30.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#compiling-for-web" title="Compiling for web">Compiling for web</a></li><li><a href="#simplified-usage" title="Simplified usage">Simplified usage</a></li><li><a href="#usage-native" title="Usage, native:">Usage, native:</a></li><li><a href="#usage-web" title="Usage, web:">Usage, web:</a></li><li><a href="#feature-flags" title="Feature flags">Feature flags</a></li><li><a href="#instrumentation" title="Instrumentation">Instrumentation</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#constants" title="Constants">Constants</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>eframe</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/eframe/lib.rs.html#1-458">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>eframe - the <a href="../egui/index.html" title="mod egui"><code>egui</code></a> framework crate</p>
+<p>If you are planning to write an app for web or native,
+and want to use <a href="../egui/index.html" title="mod egui"><code>egui</code></a> for everything, then <code>eframe</code> is for you!</p>
+<p>To get started, see the <a href="https://github.com/emilk/egui/tree/master/examples">examples</a>.
+To learn how to set up <code>eframe</code> for web and native, go to <a href="https://github.com/emilk/eframe_template/">https://github.com/emilk/eframe_template/</a> and follow the instructions there!</p>
+<p>In short, you implement <a href="trait.App.html" title="trait eframe::App"><code>App</code></a> (especially <a href="trait.App.html#tymethod.update" title="method eframe::App::update"><code>App::update</code></a>) and then
+call <a href="fn.run_native.html" title="fn eframe::run_native"><code>crate::run_native</code></a> from your <code>main.rs</code>, and/or use <code>eframe::WebRunner</code> from your <code>lib.rs</code>.</p>
+<h3 id="compiling-for-web"><a class="doc-anchor" href="#compiling-for-web">§</a>Compiling for web</h3>
+<p>You need to install the <code>wasm32</code> target with <code>rustup target add wasm32-unknown-unknown</code>.</p>
+<p>Build the <code>.wasm</code> using <code>cargo build --target wasm32-unknown-unknown</code>
+and then use <a href="https://github.com/rustwasm/wasm-bindgen"><code>wasm-bindgen</code></a> to generate the JavaScript glue code.</p>
+<p>See the <a href="https://github.com/emilk/eframe_template/"><code>eframe_template</code> repository</a> for more.</p>
+<h3 id="simplified-usage"><a class="doc-anchor" href="#simplified-usage">§</a>Simplified usage</h3>
+<p>If your app is only for native, and you don’t need advanced features like state persistence,
+then you can use the simpler function <a href="fn.run_simple_native.html" title="fn eframe::run_simple_native"><code>run_simple_native</code></a>.</p>
+<h3 id="usage-native"><a class="doc-anchor" href="#usage-native">§</a>Usage, native:</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>eframe::egui;
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>native_options = eframe::NativeOptions::default();
+    eframe::run_native(<span class="string">"My egui App"</span>, native_options, Box::new(|cc| <span class="prelude-val">Ok</span>(Box::new(MyEguiApp::new(cc)))));
+}
+
+<span class="attr">#[derive(Default)]
+</span><span class="kw">struct </span>MyEguiApp {}
+
+<span class="kw">impl </span>MyEguiApp {
+    <span class="kw">fn </span>new(cc: <span class="kw-2">&amp;</span>eframe::CreationContext&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="comment">// Customize egui here with cc.egui_ctx.set_fonts and cc.egui_ctx.set_visuals.
+        // Restore app state using cc.storage (requires the "persistence" feature).
+        // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
+        // for e.g. egui::PaintCallback.
+        </span><span class="self">Self</span>::default()
+    }
+}
+
+<span class="kw">impl </span>eframe::App <span class="kw">for </span>MyEguiApp {
+   <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>egui::Context, frame: <span class="kw-2">&amp;mut </span>eframe::Frame) {
+       egui::CentralPanel::default().show(ctx, |ui| {
+           ui.heading(<span class="string">"Hello World!"</span>);
+       });
+   }
+}</code></pre></div>
+<h3 id="usage-web"><a class="doc-anchor" href="#usage-web">§</a>Usage, web:</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>wasm_bindgen::prelude::<span class="kw-2">*</span>;
+
+<span class="doccomment">/// Your handle to the web app from JavaScript.
+</span><span class="attr">#[derive(Clone)]
+#[wasm_bindgen]
+</span><span class="kw">pub struct </span>WebHandle {
+    runner: eframe::WebRunner,
+}
+
+<span class="attr">#[wasm_bindgen]
+</span><span class="kw">impl </span>WebHandle {
+    <span class="doccomment">/// Installs a panic hook, then returns.
+    </span><span class="attr">#[allow(clippy::new_without_default)]
+    #[wasm_bindgen(constructor)]
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="comment">// Redirect [`log`] message to `console.log` and friends:
+        </span>eframe::WebLogger::init(log::LevelFilter::Debug).ok();
+
+        <span class="self">Self </span>{
+            runner: eframe::WebRunner::new(),
+        }
+    }
+
+    <span class="doccomment">/// Call this once from JavaScript to start your app.
+    </span><span class="attr">#[wasm_bindgen]
+    </span><span class="kw">pub async fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>, canvas: web_sys::HtmlCanvasElement) -&gt; <span class="prelude-ty">Result</span>&lt;(), wasm_bindgen::JsValue&gt; {
+        <span class="self">self</span>.runner
+            .start(
+                canvas,
+                eframe::WebOptions::default(),
+                Box::new(|cc| <span class="prelude-val">Ok</span>(Box::new(MyEguiApp::new(cc))),)
+            )
+            .<span class="kw">await
+    </span>}
+
+    <span class="comment">// The following are optional:
+
+    </span><span class="doccomment">/// Shut down eframe and clean up resources.
+    </span><span class="attr">#[wasm_bindgen]
+    </span><span class="kw">pub fn </span>destroy(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.runner.destroy();
+    }
+
+    <span class="doccomment">/// Example on how to call into your app from JavaScript.
+    </span><span class="attr">#[wasm_bindgen]
+    </span><span class="kw">pub fn </span>example(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(app) = <span class="self">self</span>.runner.app_mut::&lt;MyEguiApp&gt;() {
+            app.example();
+        }
+    }
+
+    <span class="doccomment">/// The JavaScript can check whether or not your app has crashed:
+    </span><span class="attr">#[wasm_bindgen]
+    </span><span class="kw">pub fn </span>has_panicked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.runner.has_panicked()
+    }
+
+    <span class="attr">#[wasm_bindgen]
+    </span><span class="kw">pub fn </span>panic_message(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+        <span class="self">self</span>.runner.panic_summary().map(|s| s.message())
+    }
+
+    <span class="attr">#[wasm_bindgen]
+    </span><span class="kw">pub fn </span>panic_callstack(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+        <span class="self">self</span>.runner.panic_summary().map(|s| s.callstack())
+    }
+}</code></pre></div>
+<h3 id="feature-flags"><a class="doc-anchor" href="#feature-flags">§</a>Feature flags</h3>
+<ul>
+<li>
+<p><strong><code>accesskit</code></strong> <em>(enabled by default)</em> —  Enable platform accessibility API implementations through <a href="https://accesskit.dev/">AccessKit</a>.</p>
+</li>
+<li>
+<p><strong><code>android-game-activity</code></strong> —  Enable the <code>game-activity</code> backend via <code>egui-winit</code> on Android</p>
+</li>
+<li>
+<p><strong><code>android-native-activity</code></strong> —  Enable the <code>native-activity</code> backend via <code>egui-winit</code> on Android</p>
+</li>
+<li>
+<p><strong><code>default_fonts</code></strong> <em>(enabled by default)</em> —  If set, egui will use <code>include_bytes!</code> to bundle some fonts.
+If you plan on specifying your own fonts you may disable this feature.</p>
+</li>
+<li>
+<p><strong><code>glow</code></strong> <em>(enabled by default)</em> —  Use <a href="https://github.com/grovesNL/glow"><code>glow</code></a> for painting, via <a href="https://github.com/emilk/egui/tree/master/crates/egui_glow"><code>egui_glow</code></a>.</p>
+</li>
+<li>
+<p><strong><code>persistence</code></strong> —  Enable saving app state to disk.</p>
+</li>
+<li>
+<p><strong><code>wayland</code></strong> <em>(enabled by default)</em> —  Enables wayland support and fixes clipboard issue.</p>
+</li>
+<li>
+<p><strong><code>web_screen_reader</code></strong> <em>(enabled by default)</em> —  Enable screen reader support (requires <code>ctx.options_mut(|o| o.screen_reader = true);</code>) on web.</p>
+<p>For other platforms, use the <code>accesskit</code> feature instead.</p>
+</li>
+<li>
+<p><strong><code>wgpu</code></strong> —  Use <a href="https://docs.rs/wgpu"><code>wgpu</code></a> for painting (via <a href="https://github.com/emilk/egui/tree/master/crates/egui-wgpu"><code>egui-wgpu</code></a>).</p>
+<p>This overrides the <code>glow</code> feature.</p>
+<p>By default, only WebGPU is enabled on web.
+If you want to enable WebGL, you need to turn on the <code>webgl</code> feature of crate <code>wgpu</code>:</p>
+<div class="example-wrap"><pre class="language-toml"><code>wgpu = { version = &quot;*&quot;, features = [&quot;webgpu&quot;, &quot;webgl&quot;] }</code></pre></div>
+<p>By default, eframe will prefer WebGPU over WebGL, but
+you can configure this at run-time with [<code>NativeOptions::wgpu_options</code>].</p>
+</li>
+<li>
+<p><strong><code>x11</code></strong> <em>(enabled by default)</em> —  Enables compiling for x11.</p>
+</li>
+<li>
+<p><strong><code>__screenshot</code></strong> —  If set, eframe will look for the env-var <code>EFRAME_SCREENSHOT_TO</code> and write a screenshot to that location, and then quit.
+This is used to generate images for examples.</p>
+</li>
+</ul>
+<h3 id="instrumentation"><a class="doc-anchor" href="#instrumentation">§</a>Instrumentation</h3>
+<p>This crate supports using the <a href="https://crates.io/crates/profiling">profiling</a> crate for instrumentation.
+You can enable features on the profiling crates in your application to add instrumentation for all
+crates that support it, including egui. See the profiling crate docs for more information.</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+profiling = &quot;1.0&quot;
+[features]
+profile-with-puffin = [&quot;profiling/profile-with-puffin&quot;]</code></pre></div></div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.egui"><code>pub use <a class="mod" href="../egui/index.html" title="mod egui">egui</a>;</code></dt><dt id="reexport.emath"><code>pub use egui::<a class="mod" href="../emath/index.html" title="mod emath">emath</a>;</code></dt><dt id="reexport.epaint"><code>pub use egui::<a class="mod" href="../epaint/index.html" title="mod epaint">epaint</a>;</code></dt><dt id="reexport.egui_glow"><code>pub use <a class="mod" href="../egui_glow/index.html" title="mod egui_glow">egui_glow</a>;</code></dt><dt id="reexport.glow"><code>pub use <a class="mod" href="../glow/index.html" title="mod glow">glow</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="icon_data/index.html" title="mod eframe::icon_data">icon_<wbr>data</a></dt><dd>Helpers for loading <a href="../egui/viewport/struct.IconData.html" title="struct egui::viewport::IconData"><code>egui::IconData</code></a>.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.CreationContext.html" title="struct eframe::CreationContext">Creation<wbr>Context</a></dt><dd>Data that is passed to <a href="type.AppCreator.html" title="type eframe::AppCreator"><code>AppCreator</code></a> that can be used to setup and initialize your app.</dd><dt><a class="struct" href="struct.EventLoopBuilder.html" title="struct eframe::EventLoopBuilder">Event<wbr>Loop<wbr>Builder</a></dt><dd>Object that allows building the event loop.</dd><dt><a class="struct" href="struct.Frame.html" title="struct eframe::Frame">Frame</a></dt><dd>Represents the surroundings of your app.</dd><dt><a class="struct" href="struct.IntegrationInfo.html" title="struct eframe::IntegrationInfo">Integration<wbr>Info</a></dt><dd>Information about the integration passed to the use app each frame.</dd><dt><a class="struct" href="struct.NativeOptions.html" title="struct eframe::NativeOptions">Native<wbr>Options</a></dt><dd>Options controlling the behavior of a native window.</dd><dt><a class="struct" href="struct.WindowAttributes.html" title="struct eframe::WindowAttributes">Window<wbr>Attributes</a></dt><dd>Attributes used when creating a window.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Error.html" title="enum eframe::Error">Error</a></dt><dd>The different problems that can occur when trying to run <code>eframe</code>.</dd><dt><a class="enum" href="enum.HardwareAcceleration.html" title="enum eframe::HardwareAcceleration">Hardware<wbr>Acceleration</a></dt><dd>Selects the level of hardware graphics acceleration.</dd><dt><a class="enum" href="enum.Renderer.html" title="enum eframe::Renderer">Renderer</a></dt><dd>What rendering backend to use.</dd><dt><a class="enum" href="enum.UserEvent.html" title="enum eframe::UserEvent">User<wbr>Event</a></dt><dd>The custom even <code>eframe</code> uses with the <a href="../winit/index.html" title="mod winit"><code>winit</code></a> event loop.</dd><dt><a class="enum" href="enum.WebGlContextOption.html" title="enum eframe::WebGlContextOption">WebGl<wbr>Context<wbr>Option</a></dt><dd>WebGL Context options</dd></dl><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><dl class="item-table"><dt><a class="constant" href="constant.APP_KEY.html" title="constant eframe::APP_KEY">APP_KEY</a></dt><dd><a href="trait.Storage.html" title="trait eframe::Storage"><code>Storage</code></a> key used for app</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.App.html" title="trait eframe::App">App</a></dt><dd>Implement this trait to write apps that can be compiled for both web/wasm and desktop/native using <a href="https://github.com/emilk/egui/tree/master/crates/eframe"><code>eframe</code></a>.</dd><dt><a class="trait" href="trait.Storage.html" title="trait eframe::Storage">Storage</a></dt><dd>A place where you can store custom data in a way that persists when you restart the app.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.run_native.html" title="fn eframe::run_native">run_<wbr>native</a></dt><dd>This is how you start a native (desktop) app.</dd><dt><a class="fn" href="fn.run_simple_native.html" title="fn eframe::run_simple_native">run_<wbr>simple_<wbr>native</a></dt><dd>The simplest way to get started when writing a native app.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.AppCreator.html" title="type eframe::AppCreator">AppCreator</a></dt><dd>This is how your app is created.</dd><dt><a class="type" href="type.EventLoopBuilderHook.html" title="type eframe::EventLoopBuilderHook">Event<wbr>Loop<wbr>Builder<wbr>Hook</a></dt><dd>Hook into the building of an event loop before it is run</dd><dt><a class="type" href="type.Result.html" title="type eframe::Result">Result</a></dt><dd>Short for <code>Result&lt;T, eframe::Error&gt;</code>.</dd><dt><a class="type" href="type.WindowBuilderHook.html" title="type eframe::WindowBuilderHook">Window<wbr>Builder<wbr>Hook</a></dt><dd>Hook into the building of a the native window.</dd></dl></section></div></main></body></html>

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["compute_normals","push_circle","push_degenerate_open_top_ring_indices","push_degenerate_top_ring_indices","push_filled_circle_indices","push_open_ring_indices","push_rectangle_indices","push_ring_indices","push_xy_arc","reverse_clockwising","split_index_buffer","split_index_buffer_and_recover_topology"]};

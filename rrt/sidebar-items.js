@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["dual_rrt_connect","smooth_path"]};

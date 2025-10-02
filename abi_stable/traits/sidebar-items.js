@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":["IntoInner","IntoOwned","IntoReprC","IntoReprRust"]};

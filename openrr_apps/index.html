@@ -1,0 +1,227 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="OpenRR applications"><title>openrr_apps - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="openrr_apps" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../openrr_apps/index.html">openrr_<wbr>apps</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#openrr-applications" title="OpenRR applications">OpenRR applications</a><ul><li><a href="#prepare" title="Prepare">Prepare</a></li><li><a href="#how-to-run-openrr_apps_robot_command" title="How to run openrr_apps_robot_command">How to run openrr_apps_robot_command</a></li><li><a href="#how-to-run-openrr_apps_robot_teleop" title="How to run openrr_apps_robot_teleop">How to run openrr_apps_robot_teleop</a></li><li><a href="#how-to-run-openrr_apps_joint_position_sender" title="How to run openrr_apps_joint_position_sender">How to run openrr_apps_joint_position_sender</a></li><li><a href="#how-to-run-openrr_apps_velocity_sender" title="How to run openrr_apps_velocity_sender">How to run openrr_apps_velocity_sender</a></li><li><a href="#environmental-variables-1" title="Environmental Variables">Environmental Variables</a></li><li><a href="#overwrite-configuration-at-startup" title="Overwrite configuration at startup">Overwrite configuration at startup</a></li><li><a href="#schemas-for-config-files" title="Schemas for config files">Schemas for config files</a></li><li><a href="#license" title="License">License</a></li></ul></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>openrr_apps</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/openrr_apps/lib.rs.html#1-8">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="openrr-applications"><a class="doc-anchor" href="#openrr-applications">§</a>OpenRR applications</h2>
+<p><a href="https://crates.io/crates/openrr-apps"><img src="https://img.shields.io/crates/v/openrr-apps.svg?logo=rust" alt="crates.io" /></a> <a href="https://docs.rs/openrr-apps"><img src="https://docs.rs/openrr-apps/badge.svg" alt="docs" /></a> <a href="https://openrr.github.io/openrr/openrr_apps"><img src="https://img.shields.io/badge/docs-main-blue" alt="docs" /></a></p>
+<h3 id="prepare"><a class="doc-anchor" href="#prepare">§</a>Prepare</h3><h4 id="install-urdf-viz"><a class="doc-anchor" href="#install-urdf-viz">§</a>Install urdf-viz</h4><div class="example-wrap"><pre class="language-bash"><code>cargo install urdf-viz</code></pre></div><h4 id="install"><a class="doc-anchor" href="#install">§</a>Install</h4><div class="example-wrap"><pre class="language-bash"><code>cargo install openrr-apps</code></pre></div>
+<p>If you are Windows user, ROS is not supported.
+So remove it.</p>
+<div class="example-wrap"><pre class="language-bash"><code>cargo install openrr-apps --no-default-features --features gui,assimp</code></pre></div><h4 id="option-for-ur10-sample"><a class="doc-anchor" href="#option-for-ur10-sample">§</a>Option: For UR10 sample</h4>
+<p>Install <a href="https://github.com/ros-industrial/universal_robot">Universal Robot software</a>.</p>
+<h4 id="option-for-pr2-sample"><a class="doc-anchor" href="#option-for-pr2-sample">§</a>Option: For PR2 sample</h4>
+<p>Install ros-melodic-pr2-gazebo / ros-melodic-topic-tools.</p>
+<h4 id="option-install-bash-completion-for-openrr_apps_robot_command"><a class="doc-anchor" href="#option-install-bash-completion-for-openrr_apps_robot_command">§</a>Option: Install bash completion for openrr_apps_robot_command</h4>
+<p>If you are using <code>bash</code>,</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_command shell_completion bash &gt; ~/.openrr_command
+source ~/.openrr_command</code></pre></div><h3 id="how-to-run-openrr_apps_robot_command"><a class="doc-anchor" href="#how-to-run-openrr_apps_robot_command">§</a>How to run openrr_apps_robot_command</h3><h4 id="sample-robot"><a class="doc-anchor" href="#sample-robot">§</a>Sample robot</h4>
+<ul>
+<li>Launch urdf-viz.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>urdf-viz ./openrr-planner/sample.urdf &amp;</code></pre></div>
+<ul>
+<li>Run sample commands.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_command \
+  --config-path=./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml \
+  load_commands ./openrr-apps/command/sample_cmd_urdf_viz.txt</code></pre></div><h5 id="environmental-variables"><a class="doc-anchor" href="#environmental-variables">§</a>Environmental Variables</h5>
+<p>If you set <code>export OPENRR_APPS_ROBOT_CONFIG_PATH=some_path_to_config.toml</code>, you can skip
+<code>--config-path</code>. If you give <code>--config-path</code> explicitly, the env var is ignored.</p>
+<ul>
+<li>Run sample commands with env var</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>export OPENRR_APPS_ROBOT_CONFIG_PATH=$(pwd)/openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
+openrr_apps_robot_command load_commands ./openrr-apps/command/sample_cmd_urdf_viz.txt</code></pre></div>
+<p>Do not forget to unset OPENRR_APPS_ROBOT_CONFIG_PATH before try other settings</p>
+<h4 id="ur10-urdf-viz"><a class="doc-anchor" href="#ur10-urdf-viz">§</a>UR10 (urdf-viz)</h4>
+<ul>
+<li>Launch urdf-viz.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>urdf-viz $(rospack find ur_description)/urdf/ur10_robot.urdf.xacro</code></pre></div>
+<ul>
+<li>Run sample commands.</li>
+</ul>
+<p>Change urdf path in <a href="./config/ur10_robot_client_config_for_urdf_viz.toml">the setting file</a> for your environment.</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_command \
+  --config-path=./openrr-apps/config/ur10_robot_client_config_for_urdf_viz.toml \
+  load_commands ./openrr-apps/command/ur10_cmd_urdf_viz.txt</code></pre></div><h4 id="ur10-ros-gazebo"><a class="doc-anchor" href="#ur10-ros-gazebo">§</a>UR10 (ROS gazebo)</h4>
+<ul>
+<li>Launch gazebo.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>roslaunch ur_gazebo ur10.launch</code></pre></div>
+<ul>
+<li>Run sample commands.</li>
+</ul>
+<p>Change urdf path in <a href="./config/ur10_robot_client_config_for_ros.toml">the setting file</a> for your environment.</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_command \
+  --config-path=./openrr-apps/config/ur10_robot_client_config_for_ros.toml \
+  load_commands ./openrr-apps/command/ur10_cmd_ros.txt</code></pre></div><h4 id="pr2-urdf-viz"><a class="doc-anchor" href="#pr2-urdf-viz">§</a>PR2 (urdf-viz)</h4>
+<ul>
+<li>Launch urdf-viz.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>urdf-viz $(rospack find pr2_description)/robots/pr2.urdf.xacro</code></pre></div>
+<ul>
+<li>Run sample commands.</li>
+</ul>
+<p>Change urdf path in <a href="./config/pr2_robot_client_config_for_urdf_viz.toml">the setting file</a> for your environment.</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_command \
+  --config-path=./openrr-apps/config/pr2_robot_client_config_for_urdf_viz.toml \
+  load_commands ./openrr-apps/command/pr2_cmd_urdf_viz.txt</code></pre></div><h4 id="pr2-ros-gazebo"><a class="doc-anchor" href="#pr2-ros-gazebo">§</a>PR2 (ROS gazebo)</h4>
+<ul>
+<li>Launch gazebo.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>cd openrr-apps/launch/
+roslaunch ./pr2.launch wait_time_secs:=10</code></pre></div>
+<ul>
+<li>Run sample commands.</li>
+</ul>
+<p>Change urdf path in <a href="./config/pr2_robot_client_config_for_ros.toml">the setting file</a> for your environment.</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_command \
+  --config-path=./openrr-apps/config/pr2_robot_client_config_for_ros.toml \
+  load_commands ./openrr-apps/command/pr2_cmd_ros.txt</code></pre></div><h3 id="how-to-run-openrr_apps_robot_teleop"><a class="doc-anchor" href="#how-to-run-openrr_apps_robot_teleop">§</a>How to run openrr_apps_robot_teleop</h3><h4 id="sample-robot-1"><a class="doc-anchor" href="#sample-robot-1">§</a>Sample robot</h4>
+<ul>
+<li>Launch urdf-viz.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>urdf-viz ./openrr-planner/sample.urdf &amp;</code></pre></div>
+<ul>
+<li><a id="joystick">Connect joystick</a>.</li>
+</ul>
+<p>Change below joystick settings in <a href="./config/sample_teleop_config_urdf_viz.toml">the setting file</a> for your device.
+Default value is for ‘Sony DualShock 4’.</p>
+<div class="example-wrap"><pre class="language-TOML"><code>gil_gamepad_config.device_id = 0
+gil_gamepad_config.map.button_map = ...
+gil_gamepad_config.map.axis_map = ...
+gil_gamepad_config.map.axis_value_map = ...</code></pre></div>
+<ul>
+<li>Run teleop.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_teleop --config-path=./openrr-apps/config/sample_teleop_config_urdf_viz.toml</code></pre></div>
+<p>If you use gamepad, refer to <a href="../openrr-teleop/">README of openrr-teleop</a>.</p>
+<h4 id="ur10-urdf-viz-1"><a class="doc-anchor" href="#ur10-urdf-viz-1">§</a>UR10 (urdf-viz)</h4>
+<ul>
+<li>Launch urdf-viz.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>urdf-viz $(rospack find ur_description)/urdf/ur10_robot.urdf.xacro</code></pre></div>
+<ul>
+<li>Run teleop.</li>
+</ul>
+<p>Change urdf path and joystick settings (see <a href="#joystick">here</a>) in <a href="./config/ur10_robot_client_config_for_urdf_viz.toml">the setting file</a> for your environment.</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_teleop --config-path=./openrr-apps/config/ur10_teleop_config_urdf_viz.toml</code></pre></div><h4 id="ur10-ros-gazebo-1"><a class="doc-anchor" href="#ur10-ros-gazebo-1">§</a>UR10 (ROS gazebo)</h4>
+<ul>
+<li>Launch gazebo.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>roslaunch ur_gazebo ur10.launch</code></pre></div>
+<ul>
+<li>Run teleop.</li>
+</ul>
+<p>Change urdf path and joystick settings (see <a href="#joystick">here</a>) in <a href="./config/ur10_robot_client_config_for_ros.toml">the setting file</a> for your environment.</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_teleop --config-path=./openrr-apps/config/ur10_teleop_config_ros.toml</code></pre></div><h4 id="pr2-urdf-viz-1"><a class="doc-anchor" href="#pr2-urdf-viz-1">§</a>PR2 (urdf-viz)</h4>
+<ul>
+<li>Launch urdf-viz.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>urdf-viz $(rospack find pr2_description)/robots/pr2.urdf.xacro</code></pre></div>
+<ul>
+<li>Run teleop.</li>
+</ul>
+<p>Change urdf path and joystick settings (see <a href="#joystick">here</a>) in <a href="./config/pr2_robot_client_config_for_urdf_viz.toml">the setting file</a> for your environment.</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_teleop --config-path=./openrr-apps/config/pr2_teleop_config_urdf_viz.toml</code></pre></div><h4 id="pr2-ros-gazebo-1"><a class="doc-anchor" href="#pr2-ros-gazebo-1">§</a>PR2 (ROS gazebo)</h4>
+<ul>
+<li>Launch gazebo.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>cd openrr-apps/launch/
+roslaunch ./pr2.launch wait_time_secs:=10</code></pre></div>
+<ul>
+<li>Run teleop.</li>
+</ul>
+<p>Change urdf path and joystick settings (see <a href="#joystick">here</a>) in <a href="./config/pr2_robot_client_config_for_ros.toml">the setting file</a> for your environment.</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_teleop --config-path=./openrr-apps/config/pr2_teleop_config_ros.toml</code></pre></div><h4 id="irobot-create"><a class="doc-anchor" href="#irobot-create">§</a>iRobot Create</h4>
+<p><a href="https://iroboteducation.github.io/create3_docs/">What is <code>iRobot Create</code>…</a></p>
+<ul>
+<li>Build again to feature ROS2.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>cargo build --release --feature ros2</code></pre></div>
+<ul>
+<li>Run teleop.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_teleop \
+  --config-path ./openrr-apps/config/irobot_create_teleop_config_ros2.toml</code></pre></div><div class="example-wrap"><pre class="language-bash"><code>PrintSpeaker: base
+PrintSpeaker: command dock command
+PrintSpeaker: command undock command</code></pre></div>
+<p>When the <code>dock command</code> is executed, <code>iRobot Create</code> docks to the station; when the <code>undock command</code> is executed, the robot undocks. These are based ROS2 action and follow <a href="https://iroboteducation.github.io/create3_docs/api/docking/">official description</a>.</p>
+<h3 id="how-to-run-openrr_apps_joint_position_sender"><a class="doc-anchor" href="#how-to-run-openrr_apps_joint_position_sender">§</a>How to run openrr_apps_joint_position_sender</h3><h4 id="sample-robot-2"><a class="doc-anchor" href="#sample-robot-2">§</a>Sample robot</h4>
+<ul>
+<li>Launch urdf-viz.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>urdf-viz ./openrr-planner/sample.urdf &amp;</code></pre></div>
+<ul>
+<li>Launch openrr_apps_joint_position_sender.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_joint_position_sender \
+  --config-path ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml</code></pre></div><h4 id="troubleshooting"><a class="doc-anchor" href="#troubleshooting">§</a>Troubleshooting</h4>
+<p>See <a href="../openrr-gui/README.md#troubleshooting">openrr-gui</a> crate for troubleshooting on GUI.</p>
+<h3 id="how-to-run-openrr_apps_velocity_sender"><a class="doc-anchor" href="#how-to-run-openrr_apps_velocity_sender">§</a>How to run openrr_apps_velocity_sender</h3><h4 id="sample-robot-3"><a class="doc-anchor" href="#sample-robot-3">§</a>Sample robot</h4>
+<ul>
+<li>Launch urdf-viz.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>urdf-viz ./openrr-planner/sample.urdf &amp;</code></pre></div>
+<ul>
+<li>Launch openrr_apps_velocity_sender.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_velocity_sender \
+  --config-path ./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml</code></pre></div><h4 id="irobot-create-1"><a class="doc-anchor" href="#irobot-create-1">§</a>iRobot Create</h4>
+<ul>
+<li>Build again to feature ROS2.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>cargo build --release --feature ros2</code></pre></div>
+<ul>
+<li>Launch openrr_apps_velocity_sender.</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_velocity_sender \
+  --config-path ./openrr-apps/config/irobot_create_robot_client_config_ros2.toml</code></pre></div><h3 id="environmental-variables-1"><a class="doc-anchor" href="#environmental-variables-1">§</a>Environmental Variables</h3>
+<p>If you set <code>export OPENRR_APPS_ROBOT_CONFIG_PATH=some_path_to_config.toml</code>, you can skip
+<code>--config-path</code>. If you give <code>--config-path</code> explicitly, the env var is ignored.</p>
+<ul>
+<li>Run for sample urdf with env var</li>
+</ul>
+<div class="example-wrap"><pre class="language-bash"><code>export OPENRR_APPS_ROBOT_CONFIG_PATH=$(pwd)/openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml
+openrr_apps_joint_position_sender</code></pre></div>
+<p>Do not forget to unset OPENRR_APPS_ROBOT_CONFIG_PATH before try other settings</p>
+<h3 id="overwrite-configuration-at-startup"><a class="doc-anchor" href="#overwrite-configuration-at-startup">§</a>Overwrite configuration at startup</h3>
+<p>By using <code>--config</code> flag, you can overwrite the configuration at startup.</p>
+<p>For example, to replace the urdf path:</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_command \
+  --config-path=./openrr-apps/config/sample_robot_client_config_for_urdf_viz.toml \
+  --config=&#39;openrr_clients_config.urdf_path=&quot;path/to/urdf&quot;&#39; \
+  load_commands ./openrr-apps/command/sample_cmd_urdf_viz.txt</code></pre></div>
+<p>In <code>openrr_apps_robot_teleop</code>, there are two flags: <code>--robot-config</code> to overwrite robot config and <code>--teleop-config</code> to overwrite teleop config.</p>
+<p>For example, to run <code>openrr_apps_robot_teleop</code> with <code>arci-gamepad-keyboard</code>:</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_teleop \
+  --config-path=./openrr-apps/config/sample_teleop_config_urdf_viz.toml \
+  --teleop-config=&#39;gamepad=&quot;Keyboard&quot;&#39;</code></pre></div>
+<p>To disable joint_position_limiter:</p>
+<div class="example-wrap"><pre class="language-bash"><code>openrr_apps_robot_teleop \
+  --config-path=./openrr-apps/config/sample_teleop_config_urdf_viz.toml \
+  --robot-config=&#39;urdf_viz_clients_configs[0].wrap_with_joint_position_limiter=false&#39;</code></pre></div>
+<p>To overwrite multiple configs, separate the scripts with a semicolon or a newline. For example:</p>
+<div class="example-wrap"><pre class="language-bash"><code># semicolon-separated
+openrr_apps_robot_teleop \
+  --config-path=./openrr-apps/config/sample_teleop_config_urdf_viz.toml \
+  --robot-config=&#39;urdf_viz_clients_configs[0].wrap_with_joint_position_limiter=false;openrr_clients_config.urdf_path=&quot;path/to/urdf&quot;&#39;
+
+# newline-separated
+{
+  echo &#39;urdf_viz_clients_configs[0].wrap_with_joint_position_limiter=false&#39;
+  echo &#39;openrr_clients_config.urdf_path=&quot;path/to/urdf&quot;&#39;
+} &gt; overwrite.txt
+openrr_apps_robot_teleop \
+  --config-path=./openrr-apps/config/sample_teleop_config_urdf_viz.toml \
+  --robot-config=&quot;$(cat ./overwrite.txt)&quot;</code></pre></div><h3 id="schemas-for-config-files"><a class="doc-anchor" href="#schemas-for-config-files">§</a>Schemas for config files</h3>
+<p>The <code>schema</code> directory contains the JSON schemas for the config files used by openrr, and when combined with an extension of the editor that supports completion using the JSON schema, completion can be enabled.</p>
+<h4 id="visual-studio-code"><a class="doc-anchor" href="#visual-studio-code">§</a>Visual Studio Code</h4>
+<p>In VS Code, you can enable completion and validation by installing the <a href="https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml">Even Better TOML</a> extension and using the <code>evenBetterToml.schema.associations</code> configuration object in <code>settings.json</code>.</p>
+<p>For example:</p>
+<div class="example-wrap"><pre class="language-json"><code>{
+  &quot;evenBetterToml.schema.associations&quot;: {
+    &quot;.*robot_client_config.*\\.toml&quot;: &quot;https://raw.githubusercontent.com/openrr/openrr/main/openrr-apps/schema/robot_config.json&quot;,
+    &quot;.*teleop_config.*\\.toml&quot;: &quot;https://raw.githubusercontent.com/openrr/openrr/main/openrr-apps/schema/robot_teleop_config.json&quot;,
+  },
+}</code></pre></div><img width="581" alt="" src="https://user-images.githubusercontent.com/43724913/116380268-c458c700-a84e-11eb-83d2-3fd33b74183c.png">
+<h3 id="license"><a class="doc-anchor" href="#license">§</a>License</h3>
+<p>Licensed under the <a href="https://github.com/openrr/openrr/blob/main/LICENSE">Apache License, Version 2.0</a>.</p>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="utils/index.html" title="mod openrr_apps::utils">utils</a></dt></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.OpenrrTracingConfig.html" title="struct openrr_apps::OpenrrTracingConfig">Openrr<wbr>Tracing<wbr>Config</a></dt><dt><a class="struct" href="struct.PluginConfig.html" title="struct openrr_apps::PluginConfig">Plugin<wbr>Config</a></dt><dt><a class="struct" href="struct.PluginInstance.html" title="struct openrr_apps::PluginInstance">Plugin<wbr>Instance</a></dt><dt><a class="struct" href="struct.PluginMap.html" title="struct openrr_apps::PluginMap">Plugin<wbr>Map</a></dt><dt><a class="struct" href="struct.RobotConfig.html" title="struct openrr_apps::RobotConfig">Robot<wbr>Config</a></dt><dt><a class="struct" href="struct.RobotTeleopConfig.html" title="struct openrr_apps::RobotTeleopConfig">Robot<wbr>Teleop<wbr>Config</a></dt><dt><a class="struct" href="struct.TeleopPluginConfig.html" title="struct openrr_apps::TeleopPluginConfig">Teleop<wbr>Plugin<wbr>Config</a></dt></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.BuiltinClient.html" title="enum openrr_apps::BuiltinClient">Builtin<wbr>Client</a></dt><dt><a class="enum" href="enum.BuiltinGamepad.html" title="enum openrr_apps::BuiltinGamepad">Builtin<wbr>Gamepad</a></dt><dt><a class="enum" href="enum.ClientKind.html" title="enum openrr_apps::ClientKind">Client<wbr>Kind</a></dt><dt><a class="enum" href="enum.Error.html" title="enum openrr_apps::Error">Error</a></dt><dt><a class="enum" href="enum.GamepadKind.html" title="enum openrr_apps::GamepadKind">Gamepad<wbr>Kind</a></dt><dt><a class="enum" href="enum.PluginInstanceKind.html" title="enum openrr_apps::PluginInstanceKind">Plugin<wbr>Instance<wbr>Kind</a></dt><dd>Trait kind of the instance.</dd><dt><a class="enum" href="enum.SpeakConfig.html" title="enum openrr_apps::SpeakConfig">Speak<wbr>Config</a></dt></dl></section></div></main></body></html>

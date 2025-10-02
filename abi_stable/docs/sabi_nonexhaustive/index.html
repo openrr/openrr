@@ -1,0 +1,799 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Using the `#[sabi(kind(WithNonExhaustive(...)))]` helper attribute for `#[derive(StableAbi)]` allows you to store the enum in `NonExhaustive`, using it as a non-exhaustive enum across ffi."><title>abi_stable::docs::sabi_nonexhaustive - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module sabi_<wbr>nonexhaustive</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#items" title="Items">Items</a></li><li><a href="#parameters" title="Parameters">Parameters</a><ul><li><a href="#specifying-alignment-optional-parameter" title="Specifying alignment (optional parameter)">Specifying alignment (optional parameter)</a></li><li><a href="#size-required-parameter" title="size (required parameter)">size (required parameter)</a></li><li><a href="#traits-optional-parameter" title="Traits (optional parameter)">Traits (optional parameter)</a></li><li><a href="#interface-optional-parameter" title="Interface (optional parameter)">Interface (optional parameter)</a></li><li><a href="#nonexhaustive-assertions" title="NonExhaustive assertions">NonExhaustive assertions</a></li></ul></li><li><a href="#serde-support" title="`serde` support"><code>serde</code> support</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#defining-a-deserializable-nonexhaustive-enum" title="Defining a (de)serializable nonexhaustive enum.">Defining a (de)serializable nonexhaustive enum.</a></li><li><a href="#boxing-variants-of-unknown-size" title="Boxing variants of unknown size">Boxing variants of unknown size</a></li><li><a href="#generic-enum-with-rsmallbox" title="Generic enum with `RSmallBox`">Generic enum with <code>RSmallBox</code></a></li><li><a href="#add-variant-to-private-enum-across-versions" title="Add variant to “private” enum across versions">Add variant to “private” enum across versions</a></li><li><a href="#using-assert_nonexhaustive" title="Using `assert_nonexhaustive`">Using <code>assert_nonexhaustive</code></a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In abi_<wbr>stable::<wbr>docs</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">abi_stable</a>::<wbr><a href="../index.html">docs</a></div><h1>Module <span>sabi_nonexhaustive</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/abi_stable/docs/sabi_nonexhaustive.rs.html#1-876">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Using the <code>#[sabi(kind(WithNonExhaustive(...)))]</code> helper attribute for
+<code>#[derive(StableAbi)]</code> allows you to store the enum
+in <code>NonExhaustive</code>,
+using it as a non-exhaustive enum across ffi.</p>
+<p>The enum can then be wrapped in a
+<a href="../../nonexhaustive_enum/struct.NonExhaustive.html"><code>NonExhaustive&lt;&gt;</code></a>,
+but can only be converted back into it if the discriminant is valid in that context.</p>
+<p>Nonexhaustive enums can safely add variants in minor versions,
+giving library authors some flexibility in their design.</p>
+<h2 id="items"><a class="doc-anchor" href="#items">§</a>Items</h2>
+<p>These are the items relevant to nonexhaustive enums:</p>
+<p><code>Enum</code>: this is the annotated enum,which does not derive <code>StableAbi</code>,
+requiring it to be wrapped in a <code>NonExhaustive&lt;&gt;</code> to be passed through ffi.</p>
+<p><code>Enum_NE</code>(generated): A type alias for <code>NonExhaustive&lt;Enum,_,_&gt;</code>.</p>
+<p><code>Enum_NEMarker</code>(generated):
+A marker type which implements StableAbi with the layout of <code>Enum</code>,
+used as a phantom field of NonExhaustive.</p>
+<p><code>Enum_Storage</code>(generated):
+A type used as storage space by the <code>NonExhaustive&lt;&gt;</code> type to store the enum.</p>
+<p><code>Enum_Bounds</code>(generated):
+Acts as an alias for the traits that were specified in the <code>traits(...)</code> parameter.
+This is only created if the <code>traits(...)</code> parameter is specified.</p>
+<p><code>Enum_Interface</code>(generated):
+Describes the traits required when constructing a <code>NonExhaustive&lt;Enum,_,_&gt;</code>
+and usable with it afterwards
+(this is a type that implements <a href="../../trait.InterfaceType.html" title="trait abi_stable::InterfaceType"><code>InterfaceType</code></a>).</p>
+<h2 id="parameters"><a class="doc-anchor" href="#parameters">§</a>Parameters</h2>
+<p>These are the required and optional parameters for the
+<code>#[sabi(kind(WithNonExhaustive(...)))]</code> helper attribute.</p>
+<h4 id="specifying-alignment-optional-parameter"><a class="doc-anchor" href="#specifying-alignment-optional-parameter">§</a>Specifying alignment (optional parameter)</h4>
+<p>Specifies the alignment of Enum_Storage.</p>
+<p>With a specific alignemnt.<br>
+Syntax:<code>align = integer_literal</code><br>
+Example:<code>align = 8</code><br>
+A non-literal constant expression can also be used:<br>
+Syntax:<code>align = { (&lt;statement&gt;;)* &lt;expression&gt; }</code><br>
+Example:<code>align = { foo() }</code> <br></p>
+<p>With the same alignment is that of another type.<br>
+Syntax:<code>align = type</code><br>
+Example:<code>align = usize</code><br></p>
+<h4 id="size-required-parameter"><a class="doc-anchor" href="#size-required-parameter">§</a>size (required parameter)</h4>
+<p>Specifies the size of Enum_Storage.</p>
+<p>The size of Enum_TE in bytes.<br>
+Syntax:<code>size=integer_literal</code><br>
+Example:<code>size = 8</code> <br>
+A non-literal constant expression can also be used:<br>
+Syntax:<code>size = { (&lt;statement&gt;;)* &lt;expression&gt; }</code><br>
+Example:<code>size = { foo() }</code> <br></p>
+<p>The size of Enum_TE is that of of another type<br>
+Syntax:<code>size = type</code><br>
+Example:<code>size = [usize;8]</code><br>
+Recommendation:
+Use a type that has a stable layout,generally a concrete type.
+It is a bad idea to use <code>Enum</code> since its size is allowed to change.<br></p>
+<h4 id="traits-optional-parameter"><a class="doc-anchor" href="#traits-optional-parameter">§</a>Traits (optional parameter)</h4>
+<p>Specifies the traits required when constructing NonExhaustive from this enum and
+usable after constructing it.</p>
+<p>If neither this parameter nor interface are specified,
+no traits will be required in <code>NonExhaustive&lt;&gt;</code> and none will be usable.</p>
+<p>Syntax:<code>traits(trait0, trait1 = false, trait2 = true, trait3)</code></p>
+<p>Example0:<code>traits(Debug,Display)</code><br>
+Example1:<code>traits(Sync = false, Debug,Display)</code><br>
+Example2:<code>traits(Sync = false, Send = false, Debug, Display)</code><br>
+Example3:<code>traits(Clone, Debug, Display, Error)</code><br></p>
+<p>All the traits are optional.</p>
+<p>These are the valid traits:</p>
+<ul>
+<li>
+<p><code>Send</code>: Required by default, must be unrequired with <code>Send = false</code></p>
+</li>
+<li>
+<p><code>Sync</code>: Required by default, must be unrequired with <code>Sync = false</code></p>
+</li>
+<li>
+<p><code>Clone</code></p>
+</li>
+<li>
+<p><code>Debug</code></p>
+</li>
+<li>
+<p><code>Display</code></p>
+</li>
+<li>
+<p><code>Serialize</code>: <code>serde::Serialize</code>.Look below for clarifications on how to use serde.</p>
+</li>
+<li>
+<p><code>Deserialize</code>: <code>serde::Deserialize</code>.Look below for clarifications on how to use serde.</p>
+</li>
+<li>
+<p><code>Eq</code></p>
+</li>
+<li>
+<p><code>PartialEq</code></p>
+</li>
+<li>
+<p><code>Ord</code></p>
+</li>
+<li>
+<p><code>PartialOrd</code></p>
+</li>
+<li>
+<p><code>Hash</code></p>
+</li>
+<li>
+<p><code>Error</code>: <code>std::error::Error</code></p>
+</li>
+</ul>
+<h4 id="interface-optional-parameter"><a class="doc-anchor" href="#interface-optional-parameter">§</a>Interface (optional parameter)</h4>
+<p>This allows using a pre-existing to specify which traits are
+required when constructing <code>NonExhaustive&lt;&gt;</code> from this enum and are then usable with it.</p>
+<p>The type describes which traits are required using the <a href="../../trait.InterfaceType.html" title="trait abi_stable::InterfaceType"><code>InterfaceType</code></a> trait.</p>
+<p>Syntax:<code>interface=type</code></p>
+<p>Example0:<code>interface = ()</code>.
+This means that no trait is usable/required.<br></p>
+<p>Example1:<code>interface = CloneInterface</code>.
+This means that only Clone is usable/required.<br></p>
+<p>Example2:<code>interface = PartialEqInterface</code>.
+This means that only Debug/PartialEq are usable/required.<br></p>
+<p>Example3:<code>interface = CloneEqInterface</code>.
+This means that only Debug/Clone/Eq/PartialEq are usable/required.<br></p>
+<p>The <code>*Interface</code> types from the examples come from the
+<code>abi_stable::erased_types::interfaces</code> module.</p>
+<h4 id="nonexhaustive-assertions"><a class="doc-anchor" href="#nonexhaustive-assertions">§</a>NonExhaustive assertions</h4>
+<p>This generates a static assertion that the listed types can be stored within <code>NonExhaustive</code>.</p>
+<p>Note that this attribute is implicitly added for non-generic enums,
+it is only required for generic enums.</p>
+<p>Syntax:<code>assert_nonexhaustive = type</code><br>
+Example:<code>assert_nonexhaustive = Foo&lt;u8&gt;</code><br>
+Example:<code>assert_nonexhaustive = Foo&lt;RArc&lt;u8&gt;&gt;</code><br>
+Example:<code>assert_nonexhaustive = Foo&lt;RBox&lt;u8&gt;&gt;</code><br></p>
+<p>Syntax:<code>assert_nonexhaustive(type0, type1)</code><br>
+Example:<code>assert_nonexhaustive(Foo&lt;RArc&lt;u8&gt;&gt;)</code><br>
+Example:<code>assert_nonexhaustive(Foo&lt;u8&gt;, Foo&lt;RVec&lt;()&gt;&gt;)</code><br></p>
+<p><a href="#using_assert_nonexhaustive_example">full example below</a></p>
+<h2 id="serde-support"><a class="doc-anchor" href="#serde-support">§</a><code>serde</code> support</h2>
+<p><code>NonExhaustive&lt;Enum, Storage, Interface&gt;</code> only implements <code>serde::{Serialize,Deserialize}</code>
+if <code>Interface</code> allows them in its <a href="../../trait.InterfaceType.html" title="trait abi_stable::InterfaceType"><code>InterfaceType</code></a> implementation,
+and also implements the <a href="../../nonexhaustive_enum/trait.SerializeEnum.html" title="trait abi_stable::nonexhaustive_enum::SerializeEnum"><code>SerializeEnum</code></a> and <a href="../../nonexhaustive_enum/trait.DeserializeEnum.html" title="trait abi_stable::nonexhaustive_enum::DeserializeEnum"><code>DeserializeEnum</code></a> traits.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="defining-a-deserializable-nonexhaustive-enum"><a class="doc-anchor" href="#defining-a-deserializable-nonexhaustive-enum">§</a>Defining a (de)serializable nonexhaustive enum.</h4>
+<p>This defines a nonexhaustive enum and demonstrates how it is (de)serialized.</p>
+<p>For a more realistic example you can look at the
+“examples/2_nonexhaustive/interface” crate in the repository for this crate.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    external_types::{RawValueBox, RawValueRef},
+    nonexhaustive_enum::{DeserializeEnum, NonExhaustive, SerializeEnum},
+    prefix_type::WithMetadata,
+    sabi_extern_fn,
+    std_types::{RBoxError, RErr, ROk, RResult, RStr, RString},
+    StableAbi,
+};
+
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+
+<span class="attr">#[repr(u8)]
+#[derive(StableAbi, Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[sabi(kind(WithNonExhaustive(
+    <span class="comment">// Determines the maximum size of this enum in semver compatible versions.
+    </span>size = [usize;<span class="number">10</span>]</span>,
+    <span class="comment">// Determines the traits that are required when wrapping this enum in NonExhaustive,
+    // and are then available with it.
+    </span>traits(Debug,Clone,PartialEq,Serialize,Deserialize),
+)))]
+<span class="comment">// The `#[sabi(with_constructor)]` helper attribute here generates constructor functions
+// that look take the fields of the variant as parameters and return a `ValidTag_NE`.
+</span><span class="attr">#[sabi(with_constructor)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>ValidTag {
+    Foo,
+    Bar,
+    Tag {
+        name: RString,
+        tag: RString,
+    },
+}
+
+<span class="comment">/*
+//This was generated by the StableAbi derive macro on ValidTag.
+pub type ValidTag_NE=
+    NonExhaustive&lt;
+        ValidTag,
+        ValidTag_Storage,
+        ValidTag_Interface,
+    &gt;;
+*/
+
+</span><span class="doccomment">/// This describes how the enum is serialized.
+</span><span class="kw">impl </span>SerializeEnum&lt;ValidTag&gt; <span class="kw">for </span>ValidTag_Interface {
+    <span class="doccomment">/// A type that `ValidTag` is converted into(inside `SerializeEnum::serialize_enum`),
+    /// and then serialized.
+    </span><span class="kw">type </span>Proxy = RawValueBox;
+
+    <span class="kw">fn </span>serialize_enum(this: <span class="kw-2">&amp;</span>ValidTag) -&gt; <span class="prelude-ty">Result</span>&lt;RawValueBox, RBoxError&gt; {
+        <span class="kw">match </span>serde_json::value::to_raw_value(this) {
+            <span class="prelude-val">Ok</span>(v) =&gt; <span class="prelude-val">Ok</span>(v.into()),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(RBoxError::new(e)),
+        }
+    }
+}
+
+<span class="doccomment">/// This describes how the enum is deserialized.
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DeserializeEnum&lt;<span class="lifetime">'a</span>, ValidTag_NE&gt; <span class="kw">for </span>ValidTag_Interface {
+    <span class="doccomment">/// A type that is deserialized,
+    /// and then converted into `ValidTag_NE` inside `DeserializeEnum::deserialize_enum`.
+    </span><span class="kw">type </span>Proxy = RawValueRef&lt;<span class="lifetime">'a</span>&gt;;
+
+    <span class="kw">fn </span>deserialize_enum(s: RawValueRef&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ValidTag_NE, RBoxError&gt; {
+        Module::VALUE.deserialize_tag()(s.get_rstr()).into_result()
+    }
+}
+
+
+<span class="macro">assert_eq!</span>(
+    serde_json::from_str::&lt;ValidTag_NE&gt;(<span class="string">r#""Foo""#</span>).unwrap(),
+    ValidTag::Foo_NE()
+);
+
+<span class="macro">assert_eq!</span>(
+    serde_json::from_str::&lt;ValidTag_NE&gt;(<span class="string">r#""Bar""#</span>).unwrap(),
+    ValidTag::Bar_NE()
+);
+
+<span class="macro">assert_eq!</span>(
+    serde_json::from_str::&lt;ValidTag_NE&gt;(
+        <span class="string">r#"
+    {"Tag":{
+        "name":"what",
+        "tag":"the"
+    }}
+"#
+    </span>)
+    .unwrap(),
+    ValidTag::Tag_NE(<span class="string">"what"</span>.into(), <span class="string">"the"</span>.into())
+);
+
+<span class="macro">assert_eq!</span>(
+    <span class="kw-2">&amp;</span>serde_json::to_string(<span class="kw-2">&amp;</span>ValidTag::Foo_NE()).unwrap(),
+    <span class="string">r#""Foo""#</span>,
+);
+
+<span class="macro">assert_eq!</span>(
+    <span class="kw-2">&amp;</span>serde_json::to_string(<span class="kw-2">&amp;</span>ValidTag::Bar_NE()).unwrap(),
+    <span class="string">r#""Bar""#</span>,
+);
+
+
+<span class="comment">// In this struct:
+//
+// - `#[sabi(kind(Prefix))]`
+// Declares this type as being a prefix-type, generating both of these types:
+//
+//     - Module_Prefix`: A struct with the fields up to (and including) the field with the
+//     `#[sabi(last_prefix_field)]` attribute.
+//
+//     - Module_Ref`: An ffi-safe pointer to a `Module`,with methods to get `Module`'s fields.
+//
+// - `#[sabi(missing_field(panic))]`
+//     makes the field accessors of `ModuleRef` panic when attempting to
+//     access nonexistent fields instead of the default of returning an Option&lt;FieldType&gt;.
+//
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(kind(Prefix))]
+#[sabi(missing_field(panic))]
+</span><span class="kw">pub struct </span>Module {
+    <span class="doccomment">/// `#[sabi(last_prefix_field)]`means that it is the last field in the struct
+    /// that was defined in the first compatible version of the library
+    /// (0.1.0, 0.2.0, 0.3.0, 1.0.0, 2.0.0 ,etc),
+    /// requiring new fields to always be added below preexisting ones.
+    </span><span class="attr">#[sabi(last_prefix_field)]
+    </span><span class="kw">pub </span>deserialize_tag:
+        <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(s: RStr&lt;<span class="lifetime">'_</span>&gt;) -&gt; RResult&lt;ValidTag_NE, RBoxError&gt;,
+}
+
+<span class="comment">// This is how you can construct `Module` in a way that allows it to become generic later.
+</span><span class="kw">impl </span>Module {
+    <span class="comment">// This macro declares a `StaticRef&lt;WithMetadata&lt;BoxVtable&lt;T&gt;&gt;&gt;` constant.
+    //
+    // StaticRef represents a reference to data that lives forever,
+    // but is not necessarily `'static` according to the type system.
+    //
+    // StaticRef not necessary in this case, it's more useful with generic types..
+    </span><span class="macro">abi_stable::staticref!</span>(<span class="kw">const </span>TMP0: WithMetadata&lt;<span class="self">Self</span>&gt; = WithMetadata::new(
+        <span class="self">Self</span>{
+            deserialize_tag,
+        },
+    ));
+
+    <span class="kw">const </span>VALUE: Module_Ref = Module_Ref(<span class="self">Self</span>::TMP0.as_prefix());
+}
+
+<span class="comment">/////////////////////////////////////////////////////////////////////////////////////////
+////   In implementation crate (the one that gets compiled as a dynamic library)    /////
+/////////////////////////////////////////////////////////////////////////////////////////
+
+</span><span class="attr">#[sabi_extern_fn]
+</span><span class="kw">pub fn </span>deserialize_tag(s: RStr&lt;<span class="lifetime">'_</span>&gt;) -&gt; RResult&lt;ValidTag_NE, RBoxError&gt; {
+    <span class="kw">match </span>serde_json::from_str::&lt;ValidTag&gt;(s.into()) {
+        <span class="prelude-val">Ok</span>(x) =&gt; ROk(NonExhaustive::new(x)),
+        <span class="prelude-val">Err</span>(e) =&gt; RErr(RBoxError::new(e)),
+    }
+}
+</code></pre></div>
+<h4 id="boxing-variants-of-unknown-size"><a class="doc-anchor" href="#boxing-variants-of-unknown-size">§</a>Boxing variants of unknown size</h4>
+<p>This example demonstrates how one can use boxing to store types larger than <code>[usize;2]</code>
+(the size of <code>RBox&lt;_&gt;</code>),
+because one of the variant contains a generic type.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    nonexhaustive_enum::{NonExhaustive, NonExhaustiveFor},
+    sabi_trait,
+    std_types::{RBox, RString},
+    StableAbi,
+};
+
+<span class="kw">use </span>std::{
+    cmp::PartialEq,
+    fmt::{<span class="self">self</span>, Debug, Display},
+};
+
+<span class="attr">#[repr(u8)]
+#[derive(StableAbi, Debug, Clone, PartialEq)]
+#[sabi(kind(WithNonExhaustive(
+    size = [usize;<span class="number">3</span>]</span>,
+    traits(Debug, Display, Clone, PartialEq),
+)))]
+<span class="attr">#[non_exhaustive]
+</span><span class="kw">pub enum </span>Message&lt;T&gt; {
+    SaysHello,
+    SaysGoodbye,
+
+    <span class="attr">#[sabi(with_boxed_constructor)]
+    </span>Custom(RBox&lt;T&gt;),
+
+    <span class="comment">////////////////////////////////////////
+    // Available since 1.1
+    ////////////////////////////////////////
+    </span><span class="attr">#[sabi(with_boxed_constructor)]
+    </span>SaysThankYou(RBox&lt;SaysThankYou&gt;),
+}
+
+<span class="kw">impl</span>&lt;T&gt; Display <span class="kw">for </span>Message&lt;T&gt;
+<span class="kw">where
+    </span>T: Display,
+{
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Message::SaysHello =&gt; <span class="macro">write!</span>(f, <span class="string">"Hello!"</span>),
+            Message::SaysGoodbye =&gt; <span class="macro">write!</span>(f, <span class="string">"Goodbye!"</span>),
+            Message::Custom(custom) =&gt; Display::fmt(<span class="kw-2">&amp;**</span>custom, f),
+            Message::SaysThankYou(x) =&gt; <span class="macro">writeln!</span>(f, <span class="string">"Thank you,{}!"</span>, x.to),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+        }
+    }
+}
+
+<span class="comment">// Only available since 1.1
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi, Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>SaysThankYou {
+    to: RString,
+}
+
+
+<span class="comment">// Constructing Message::Custom wrapped in a NonExhaustive
+</span>{
+    <span class="kw">let </span>custom_message: Message_NE&lt;RString&gt; = Message::Custom_NE(<span class="string">"Hello"</span>.into());
+
+    <span class="kw">let </span>custom_message_desugar: Message_NE&lt;RString&gt; = {
+        <span class="kw">let </span>x = RBox::new(<span class="string">"Hello"</span>.into());
+        <span class="kw">let </span>x = Message::Custom(x);
+        NonExhaustive::new(x)
+    };
+
+    <span class="macro">assert_eq!</span>(custom_message, custom_message_desugar);
+}
+
+<span class="comment">// Constructing Message::SaysThankYou wrapped in a NonExhaustive
+// This variant is only available since 1.1
+</span>{
+    <span class="kw">let </span>says_thank_you: Message_NE&lt;RString&gt; =
+        Message::SaysThankYou_NE(SaysThankYou { to: <span class="string">"Hello"</span>.into() });
+
+    <span class="kw">let </span>says_thank_you_desugar: Message_NE&lt;RString&gt; = {
+        <span class="kw">let </span>x = SaysThankYou { to: <span class="string">"Hello"</span>.into() };
+        <span class="kw">let </span>x = Message::SaysThankYou(RBox::new(x));
+        NonExhaustive::new(x)
+    };
+
+    <span class="macro">assert_eq!</span>(says_thank_you, says_thank_you_desugar);
+}
+
+
+</code></pre></div>
+<h4 id="generic-enum-with-rsmallbox"><a class="doc-anchor" href="#generic-enum-with-rsmallbox">§</a>Generic enum with <code>RSmallBox</code></h4>
+<p>This example shows how one can use RSmallBox to define a generic nonexhausitve enum.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>abi_stable::{
+    reexports::SelfOps,
+    sabi_types::RSmallBox,
+    std_types::{RString, RVec},
+    StableAbi,
+};
+
+<span class="attr">#[repr(u8)]
+#[derive(StableAbi, Debug, Clone, PartialEq)]
+#[sabi(kind(WithNonExhaustive(
+    <span class="comment">// Determines the maximum size of this enum in semver compatible versions.
+    // This is 11 usize large because:
+    //    - The enum discriminant occupies 1 usize(because the enum is usize aligned).
+    //    - RSmallBox&lt;T,[usize;8]&gt;: is 10 usize large
+    </span>size = [usize;<span class="number">11</span>]</span>,
+    <span class="comment">// Determines the traits that are required when wrapping this enum in NonExhaustive,
+    // and are then available with it.
+    </span>traits(Debug,Clone,PartialEq),
+)))]
+<span class="attr">#[sabi(with_constructor)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>SomeEnum&lt;T&gt; {
+    Foo,
+    Bar,
+    Crash {
+        reason: RString,
+        animal: RString,
+    },
+    <span class="comment">// This variant was added in a newer (compatible) version of the library.
+    </span><span class="attr">#[sabi(with_boxed_constructor)]
+    </span>Other(RSmallBox&lt;T, [usize; <span class="number">8</span>]&gt;),
+}
+
+<span class="kw">impl</span>&lt;T&gt; SomeEnum&lt;T&gt; {
+    <span class="kw">pub fn </span>is_inline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            SomeEnum::Foo =&gt; <span class="bool-val">true</span>,
+            SomeEnum::Bar =&gt; <span class="bool-val">true</span>,
+            SomeEnum::Crash { .. } =&gt; <span class="bool-val">true</span>,
+            SomeEnum::Other(rsbox) =&gt; RSmallBox::is_inline(rsbox),
+            <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>is_heap_allocated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.is_inline()
+    }
+}
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi, Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>FullName {
+    <span class="kw">pub </span>name: RString,
+    <span class="kw">pub </span>surname: RString,
+}
+
+<span class="doccomment">/// A way to represent a frozen `Vec&lt;Vec&lt;T&gt;&gt;`.
+///
+/// This example just constructs NestedVec directly,
+/// realistically it would be constructed in an associated function of NestedVec.
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi, Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>NestedVec&lt;T&gt; {
+    indices: RVec&lt;usize&gt;,
+    nested: RVec&lt;T&gt;,
+    dummy_field: u32,
+}
+
+
+<span class="kw">let </span>crash = SomeEnum::&lt;()&gt;::Crash_NE(<span class="string">"No reason"</span>.into(), <span class="string">"Bandi____"</span>.into());
+
+<span class="kw">let </span>other_fullname = SomeEnum::Other_NE(FullName {
+    name: <span class="string">"R__e"</span>.into(),
+    surname: <span class="string">"L_____e"</span>.into(),
+});
+
+<span class="kw">let </span>other_nestedlist = {
+    <span class="kw">let </span>nestedlist = NestedVec {
+        indices: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>].into(),
+        <span class="comment">// Each line here is a nested list.
+        </span>nested: <span class="macro">vec!</span>[<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>].into(),
+        dummy_field: <span class="number">0</span>,
+    };
+    SomeEnum::Other_NE(nestedlist)
+};
+
+<span class="macro">assert!</span>(crash.as_enum().unwrap().is_inline());
+<span class="macro">assert!</span>(other_fullname.as_enum().unwrap().is_inline());
+<span class="macro">assert!</span>(other_nestedlist.as_enum().unwrap().is_heap_allocated());
+
+
+
+</code></pre></div>
+<h4 id="add-variant-to-private-enum-across-versions"><a class="doc-anchor" href="#add-variant-to-private-enum-across-versions">§</a>Add variant to “private” enum across versions</h4>
+<p>Say that we want to define a “private” enum
+(it’s exposed to the ABI but it’s not public API),
+used internally to send information between instances of the same library,
+of potentially different (compatible) versions.</p>
+<p>If one of the variants from newer versions are sent into a library/binary
+that has a previous version of <code>Event</code>,
+<code>Event_NE</code> (an alias for NonExhaustive wrapping an Event)
+won’t be convertible back into <code>Event</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    nonexhaustive_enum::{NonExhaustive, NonExhaustiveFor},
+    sabi_trait,
+    std_types::{RArc, RString},
+    StableAbi,
+};
+
+<span class="attr">#[doc(hidden)]
+#[repr(C)]
+#[derive(StableAbi, Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub struct </span>ObjectId(<span class="kw">pub </span>usize);
+
+<span class="attr">#[doc(hidden)]
+#[repr(C)]
+#[derive(StableAbi, Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub struct </span>GroupId(<span class="kw">pub </span>usize);
+
+<span class="attr">#[repr(u8)]
+#[derive(StableAbi, Debug, Clone, PartialEq)]
+#[sabi(kind(WithNonExhaustive(
+    size = [usize;<span class="number">8</span>]</span>,
+    traits(Debug, Clone, PartialEq),
+)))]
+<span class="attr">#[sabi(with_constructor)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>Event {
+    CreatedInstance {
+        object_id: ObjectId,
+    },
+    RemovedInstance {
+        object_id: ObjectId,
+    },
+
+    <span class="comment">/////////////////
+    // Added in 1.1
+    /////////////////
+    </span>CreatedGroup {
+        name: RString,
+        group_id: GroupId,
+    },
+    RemovedGroup {
+        name: RString,
+        group_id: GroupId,
+    },
+    AssociatedWithGroup {
+        object_id: ObjectId,
+        group_id: GroupId,
+    },
+
+    <span class="comment">/////////////////
+    // Added in 1.2
+    /////////////////
+    </span>RemovedAssociationWithGroup {
+        object_id: ObjectId,
+        group_id: GroupId,
+    },
+    <span class="attr">#[sabi(with_boxed_constructor)]
+    </span>DummyVariant {
+        pointer: RArc&lt;()&gt;,
+    },
+}
+
+<span class="kw">let </span>objectid_0 = ObjectId(<span class="number">0</span>);
+<span class="kw">let </span>objectid_1 = ObjectId(<span class="number">1</span>);
+
+<span class="kw">let </span>groupid_0 = GroupId(<span class="number">0</span>);
+<span class="kw">let </span>groupid_1 = GroupId(<span class="number">0</span>);
+
+<span class="comment">// Constructing a Event::CreatedInstance wrapped in a NonExhaustive
+</span>{
+    <span class="kw">let </span>from_ne_constructor: Event_NE = Event::CreatedInstance_NE(objectid_0);
+    <span class="kw">let </span>regular = {
+        <span class="kw">let </span>ev = Event::CreatedInstance {
+            object_id: objectid_0,
+        };
+        NonExhaustive::new(ev)
+    };
+
+    <span class="macro">assert_eq!</span>(from_ne_constructor, regular);
+}
+
+<span class="comment">// Constructing a Event::RemovedInstance wrapped in a NonExhaustive
+</span>{
+    <span class="kw">let </span>from_ne_constructor = Event::RemovedInstance_NE(objectid_0);
+    <span class="kw">let </span>regular = {
+        <span class="kw">let </span>ev = Event::RemovedInstance {
+            object_id: objectid_0,
+        };
+        NonExhaustive::new(ev)
+    };
+
+    <span class="macro">assert_eq!</span>(from_ne_constructor, regular);
+}
+
+<span class="comment">// Constructing a Event::RemovedInstance wrapped in a NonExhaustive
+</span>{
+    <span class="kw">let </span>from_ne_constructor = Event::RemovedInstance_NE(objectid_0);
+    <span class="kw">let </span>regular = {
+        <span class="kw">let </span>ev = Event::RemovedInstance {
+            object_id: objectid_0,
+        };
+        NonExhaustive::new(ev)
+    };
+
+    <span class="macro">assert_eq!</span>(from_ne_constructor, regular);
+}
+
+<span class="comment">// Constructing a Event::CreatedGroup wrapped in a NonExhaustive
+// This is only available from 1.1
+</span>{
+    <span class="kw">let </span>from_ne_constructor = Event::CreatedGroup_NE(<span class="string">"hello"</span>.into(), groupid_0);
+    <span class="kw">let </span>regular = {
+        <span class="kw">let </span>ev = Event::CreatedGroup {
+            name: <span class="string">"hello"</span>.into(),
+            group_id: groupid_0,
+        };
+        NonExhaustive::new(ev)
+    };
+
+    <span class="macro">assert_eq!</span>(from_ne_constructor, regular);
+}
+
+<span class="comment">// Constructing a Event::RemovedGroup wrapped in a NonExhaustive
+// This is only available from 1.1
+</span>{
+    <span class="kw">let </span>from_ne_constructor = Event::RemovedGroup_NE(<span class="string">"hello"</span>.into(), groupid_0);
+    <span class="kw">let </span>regular = {
+        <span class="kw">let </span>ev = Event::RemovedGroup {
+            name: <span class="string">"hello"</span>.into(),
+            group_id: groupid_0,
+        };
+        NonExhaustive::new(ev)
+    };
+
+    <span class="macro">assert_eq!</span>(from_ne_constructor, regular);
+}
+
+<span class="comment">// Constructing a Event::AssociatedWithGroup wrapped in a NonExhaustive
+// This is only available from 1.1
+</span>{
+    <span class="kw">let </span>from_ne_constructor = Event::AssociatedWithGroup_NE(objectid_0, groupid_0);
+    <span class="kw">let </span>regular = {
+        <span class="kw">let </span>ev = Event::AssociatedWithGroup {
+            object_id: objectid_0,
+            group_id: groupid_0,
+        };
+        NonExhaustive::new(ev)
+    };
+
+    <span class="macro">assert_eq!</span>(from_ne_constructor, regular);
+}
+
+<span class="comment">// Constructing a Event::RemovedAssociationWithGroup wrapped in a NonExhaustive
+// This is only available from 1.2
+</span>{
+    <span class="kw">let </span>from_ne_constructor =
+        Event::RemovedAssociationWithGroup_NE(objectid_0, groupid_0);
+    <span class="kw">let </span>regular = {
+        <span class="kw">let </span>ev = Event::RemovedAssociationWithGroup {
+            object_id: objectid_0,
+            group_id: groupid_0,
+        };
+        NonExhaustive::new(ev)
+    };
+
+    <span class="macro">assert_eq!</span>(from_ne_constructor, regular);
+}
+
+<span class="comment">// Constructing a Event::DummyVariant wrapped in a NonExhaustive
+// This is only available from 1.2
+</span>{
+    <span class="kw">let </span>from_ne_constructor = Event::DummyVariant_NE(());
+    <span class="kw">let </span>regular = {
+        <span class="kw">let </span>x = RArc::new(());
+        <span class="kw">let </span>x = Event::DummyVariant { pointer: x };
+        NonExhaustive::new(x)
+    };
+
+    <span class="macro">assert_eq!</span>(from_ne_constructor, regular);
+}
+</code></pre></div>
+<p><span id = "using_assert_nonexhaustive_example"></span></p>
+<h4 id="using-assert_nonexhaustive"><a class="doc-anchor" href="#using-assert_nonexhaustive">§</a>Using <code>assert_nonexhaustive</code></h4>
+<p>This example demonstrates the <code>assert_nonexhaustive</code> helper attribute,
+and the errors produced when the enum is too large or is misaligned for its default storage.</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::StableAbi;
+
+<span class="attr">#[repr(u8)]
+#[derive(StableAbi)]
+#[sabi(kind(WithNonExhaustive(
+    <span class="comment">// Determines the maximum size of this enum in semver compatible versions.
+    // maximum size is `size_of::&lt;[u16; 3]&gt;()`
+    </span>size = [u16; <span class="number">3</span>]</span>,
+    <span class="comment">// Determines the maximum alignment of this enum in semver compatible versions.
+    // aligned at most `align_of::&lt;u16&gt;()`
+    </span>align = u16,
+    <span class="comment">// The below attribute is implied for non-generic enums,
+    // it generates a static assertion checking that `Concrete`
+    // fits within its default storage.
+    // assert_nonexhaustive(Concrete)
+</span>)))]
+<span class="attr">#[non_exhaustive]
+</span><span class="kw">pub enum </span>Concrete {
+    Foo,
+    Bar,
+    Tag([u16; <span class="number">3</span>]),
+}
+
+
+<span class="attr">#[repr(u8)]
+#[derive(StableAbi)]
+#[sabi(kind(WithNonExhaustive(
+    <span class="comment">// Determines the maximum size of this enum in semver compatible versions.
+    </span>size = <span class="number">8</span>,
+    <span class="comment">// Determines the maximum alignment of this enum in semver compatible versions.
+    // non-literal constants have to be wrapped in braces
+    </span>align = {alignment()},
+    <span class="comment">// generic enums don't implicitly assert that the enum is compatible with the
+    // default storage, you must specify the tested concrete types
+    </span>assert_nonexhaustive(Generic&lt;[u16; <span class="number">4</span>]</span>&gt;, Generic&lt;u32&gt;, Generic&lt;u64&gt;)
+)))]
+<span class="attr">#[non_exhaustive]
+</span><span class="kw">pub enum </span>Generic&lt;T&gt; {
+    Foo,
+    Bar,
+    Qux(T),
+}
+
+<span class="kw">const fn </span>alignment() -&gt; usize {
+    <span class="number">2
+</span>}</code></pre></div>
+<p>This is the compile-time error for the above code:</p>
+<div class="example-wrap"><pre class="language-text"><code>error[E0080]: evaluation of constant value failed
+ --&gt; src/docs/sabi_nonexhaustive.rs:767:10
+  |
+7 | #[derive(StableAbi)]
+  |          ^^^^^^^^^ the evaluated program panicked at &#39;
+The size of the storage is smaller than the contained type:
+    enum_: &quot;Concrete&quot;
+    enum_size: 8
+    enum_alignment: 2
+    storage_: &quot;Concrete_Storage&quot;
+    storage_size: 6
+    storage_alignment: 2
+&#39;, src/docs/sabi_nonexhaustive.rs:7:10
+  |
+  = note: this error originates in the derive macro `StableAbi` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0080]: evaluation of constant value failed
+  --&gt; src/docs/sabi_nonexhaustive.rs:789:10
+   |
+29 | #[derive(StableAbi)]
+   |          ^^^^^^^^^ the evaluated program panicked at &#39;
+The size of the storage is smaller than the contained type:
+    enum_: &quot;Generic &lt; [u16 ; 4] &gt;&quot;
+    enum_size: 10
+    enum_alignment: 2
+    storage_: &quot;Generic_Storage&quot;
+    storage_size: 8
+    storage_alignment: 2
+&#39;, src/docs/sabi_nonexhaustive.rs:29:10
+   |
+   = note: this error originates in the derive macro `StableAbi` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0080]: evaluation of constant value failed
+  --&gt; src/docs/sabi_nonexhaustive.rs:789:10
+   |
+29 | #[derive(StableAbi)]
+   |          ^^^^^^^^^ the evaluated program panicked at &#39;
+The alignment of the storage is lower than the contained type:
+    enum_: &quot;Generic &lt; u32 &gt;&quot;
+    enum_size: 8
+    enum_alignment: 4
+    storage_: &quot;Generic_Storage&quot;
+    storage_size: 8
+    storage_alignment: 2
+&#39;, src/docs/sabi_nonexhaustive.rs:29:10
+   |
+   = note: this error originates in the derive macro `StableAbi` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0080]: evaluation of constant value failed
+  --&gt; src/docs/sabi_nonexhaustive.rs:789:10
+   |
+29 | #[derive(StableAbi)]
+   |          ^^^^^^^^^ the evaluated program panicked at &#39;
+The alignment and size of the storage is smaller than the contained type:
+    enum_: &quot;Generic &lt; u64 &gt;&quot;
+    enum_size: 16
+    enum_alignment: 8
+    storage_: &quot;Generic_Storage&quot;
+    storage_size: 8
+    storage_alignment: 2
+&#39;, src/docs/sabi_nonexhaustive.rs:29:10
+   |
+   = note: this error originates in the derive macro `StableAbi` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 4 previous errors</code></pre></div></div></details></section></div></main></body></html>

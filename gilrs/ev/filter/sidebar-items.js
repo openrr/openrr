@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["axis_dpad_to_button","deadzone"],"struct":["Jitter","Repeat"],"trait":["Filter","FilterFn"]};

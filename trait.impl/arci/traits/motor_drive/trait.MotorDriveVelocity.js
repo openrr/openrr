@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["arci",[]],["arci_ros",[["impl <a class=\"trait\" href=\"arci/traits/motor_drive/trait.MotorDriveVelocity.html\" title=\"trait arci::traits::motor_drive::MotorDriveVelocity\">MotorDriveVelocity</a> for <a class=\"struct\" href=\"arci_ros/struct.JointVelocityController.html\" title=\"struct arci_ros::JointVelocityController\">JointVelocityController</a>"]]],["openrr_plugin",[["impl <a class=\"trait\" href=\"arci/traits/motor_drive/trait.MotorDriveVelocity.html\" title=\"trait arci::traits::motor_drive::MotorDriveVelocity\">MotorDriveVelocity</a> for <a class=\"struct\" href=\"openrr_plugin/struct.MotorDriveVelocityProxy.html\" title=\"struct openrr_plugin::MotorDriveVelocityProxy\">MotorDriveVelocityProxy</a>"]]],["openrr_remote",[["impl <a class=\"trait\" href=\"arci/traits/motor_drive/trait.MotorDriveVelocity.html\" title=\"trait arci::traits::motor_drive::MotorDriveVelocity\">MotorDriveVelocity</a> for <a class=\"struct\" href=\"openrr_remote/struct.RemoteMotorDriveVelocitySender.html\" title=\"struct openrr_remote::RemoteMotorDriveVelocitySender\">RemoteMotorDriveVelocitySender</a>"]]],["openrr_tracing",[["impl&lt;T: <a class=\"trait\" href=\"arci/traits/motor_drive/trait.MotorDriveVelocity.html\" title=\"trait arci::traits::motor_drive::MotorDriveVelocity\">MotorDriveVelocity</a>&gt; <a class=\"trait\" href=\"arci/traits/motor_drive/trait.MotorDriveVelocity.html\" title=\"trait arci::traits::motor_drive::MotorDriveVelocity\">MotorDriveVelocity</a> for <a class=\"struct\" href=\"openrr_tracing/struct.Tracing.html\" title=\"struct openrr_tracing::Tracing\">Tracing</a>&lt;T&gt;"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[11,348,363,384,504]}

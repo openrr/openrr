@@ -1,0 +1,51 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Gets the `FieldOffset` for the passed in type and (possibly nested) field."><title>OFF in repr_offset - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../repr_offset/index.html">repr_<wbr>offset</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">OFF</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#type-argument" title="Type Argument">Type Argument</a><ul><li><a href="#caveats-with-path-argument" title="Caveats with path argument">Caveats with path argument</a></li></ul></li><li><a href="#example" title="Example">Example</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate repr_<wbr>offset</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">repr_offset</a></div><h1>Macro <span class="macro">OFF</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/repr_offset/macros/off_macro.rs.html#56-87">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! OFF {
+    (
+        $(:: $(@$leading:tt@)? )? $first:ident $(:: $trailing:ident)* ;
+        $($fields:tt).+
+    ) =&gt; { ... };
+    ($type:ty; $($fields:tt).+ ) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Gets the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> for the passed in type and (possibly nested) field.</p>
+<p>This macro allows accessing private fields, following the normal Rust rules around privacy.</p>
+<p>This macro doesn’t allow accessing fields from type parameters in generic functions,
+for that you can use <code>PUB_OFF</code>,
+but it can only get the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> for public fields.</p>
+<h2 id="type-argument"><a class="doc-anchor" href="#type-argument">§</a>Type Argument</h2>
+<p>The type parameter can be passed as either:</p>
+<ul>
+<li>
+<p>The path to the type (including the type name)</p>
+</li>
+<li>
+<p>A type with generic arguments</p>
+</li>
+</ul>
+<h4 id="caveats-with-path-argument"><a class="doc-anchor" href="#caveats-with-path-argument">§</a>Caveats with path argument</h4>
+<p>With the path way of passing the type,
+if the type has all type parameters defaulted or is otherwise generic,
+there can be type inference issues.</p>
+<p>To fix type inference issues with defaulted types,
+you can write <code>&lt;&gt;</code> (eg: <code>OFF!(for_examples::ReprC&lt;&gt;; a.b)</code>).</p>
+<p>If a generic type is passed, and its arguments can be inferred from context,
+it’s only necessary to specify the type of the accessed field,
+otherwise you need to write the full type.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprC,
+    OFF,
+    FieldOffset, ROExtAcc,
+};
+
+<span class="kw">let </span>this = ReprC {a: <span class="number">3u8</span>, b: <span class="number">5u8</span>, c: <span class="number">8u8</span>, d: <span class="number">13u8</span>};
+
+<span class="comment">// Passing the type as a path
+</span><span class="macro">assert_eq!</span>(<span class="macro">OFF!</span>(ReprC; a).get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span>this.a);
+
+<span class="comment">// Passing the type as a type
+</span><span class="macro">assert_eq!</span>(<span class="macro">OFF!</span>(ReprC&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;; b).get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span>this.b);
+
+<span class="comment">// Passing the type as a path
+</span><span class="macro">assert_eq!</span>(this.f_get(<span class="macro">OFF!</span>(ReprC; c)), <span class="kw-2">&amp;</span>this.c);
+
+<span class="comment">// Passing the type as a type
+</span><span class="macro">assert_eq!</span>(this.f_get(<span class="macro">OFF!</span>(ReprC&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;; d)), <span class="kw-2">&amp;</span>this.d);</code></pre></div>
+</div></details></section></div></main></body></html>

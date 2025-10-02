@@ -1,0 +1,70 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This attribute is used for functions which export a module in an `implementation crate`."><title>export_root_module in abi_stable - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">export_<wbr>root_<wbr>module</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#return-type" title="Return Type">Return Type</a></li><li><a href="#generated-code" title="Generated code">Generated code</a></li><li><a href="#remove-type-layout-constant" title="Remove type layout constant">Remove type layout constant</a></li><li><a href="#more-examples" title="More examples">More examples</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate abi_<wbr>stable</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">abi_stable</a></div><h1>Attribute Macro <span class="attr">export_root_module</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/abi_stable_derive/lib.rs.html#25">Source</a> </span></div><pre class="rust item-decl"><code>#[export_root_module]</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This attribute is used for functions which export a module in an <code>implementation crate</code>.</p>
+<p>This is applied to functions like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>abi_stable::prefix_type::PrefixTypeTrait;
+
+<span class="attr">#[abi_stable::export_root_module]
+</span><span class="kw">pub fn </span>get_hello_world_mod() -&gt; TextOperationsMod_Ref {
+    TextOperationsMod { reverse_string }.leak_into_prefix()
+}
+
+
+
+
+</code></pre></div>
+<h2 id="return-type"><a class="doc-anchor" href="#return-type">§</a>Return Type</h2>
+<p>The return type of the annotated function can be one of:</p>
+<ul>
+<li>
+<p>Any type that implements <code>abi_stable::library::RootModule</code></p>
+</li>
+<li>
+<p><code>Result&lt;M, RBoxError&gt;</code>, where <code>M</code> is any type that implements
+<code>abi_stable::library::RootModule</code></p>
+</li>
+<li>
+<p><code>RResult&lt;M, RBoxError&gt;</code>, where <code>M</code> is any type that implements
+<code>abi_stable::library::RootModule</code></p>
+</li>
+</ul>
+<p>All those types are supported through the <a href="./library/trait.IntoRootModuleResult.html"><code>IntoRootModuleResult</code></a> trait,
+which you can implement if you want to return some other type.</p>
+<h2 id="generated-code"><a class="doc-anchor" href="#generated-code">§</a>Generated code</h2>
+<p>Exporting the root module creates a
+<code>static THE_NAME_USED_FOR_ALL_ROOT_MODULES: </code><a href="./library/struct.LibHeader.html"><code>LibHeader</code></a><code> = ... ;</code>
+with these things:</p>
+<ul>
+<li>
+<p>The version of <code>abi_stable</code> used.</p>
+</li>
+<li>
+<p>A <code>#[no_mangle]</code> function that wraps the annotated root-module constructor function,
+converting the return value to <a href="./library/type.RootModuleResult.html"><code>RootModuleResult</code></a>.</p>
+</li>
+<li>
+<p>The type layout of the root module,
+for checking that the types are compatible with whatever loads that library.</p>
+</li>
+<li>
+<p>The version number of the library.</p>
+</li>
+<li>
+<p>A <a href="./sabi_types/struct.LateStaticRef.html"><code>LateStaticRef</code></a> of the root module.</p>
+</li>
+</ul>
+<p>The name used for generated static is the value of
+<a href="./library/constant.ROOT_MODULE_LOADER_NAME.html"><code>abi_stable::library::ROOT_MODULE_LOADER_NAME</code></a>.</p>
+<h2 id="remove-type-layout-constant"><a class="doc-anchor" href="#remove-type-layout-constant">§</a>Remove type layout constant</h2>
+<p>One can avoid generating the type layout constant for the exported root module by using the
+<code>#[unsafe_no_layout_constant]</code> attribute,
+with the downside that if the layout changes(in an incompatible way)
+it could be Undefined Behavior.</p>
+<p>This attribute is useful if one wants to minimize the size of the dynamic library when
+doing a public release.</p>
+<p>This attribute should not be used unconditionally,
+it should be disabled in Continuous Integration so that the
+binary compatibility of a dynamic library is checked at some point before releasing it.</p>
+<h2 id="more-examples"><a class="doc-anchor" href="#more-examples">§</a>More examples</h2>
+<p>For a more detailed example look in the README in the repository for this crate.</p>
+</div></details></section></div></main></body></html>

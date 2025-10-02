@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Retrieve the signature of a method’s argument type from XML."><title>get_method_args_type in zbus_lockstep - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="zbus_lockstep" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../zbus_lockstep/index.html">zbus_<wbr>lockstep</a><span class="version">0.4.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">get_<wbr>method_<wbr>args_<wbr>type</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate zbus_<wbr>lockstep</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">zbus_lockstep</a></div><h1>Function <span class="fn">get_method_args_type</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/zbus_lockstep/lib.rs.html#328-366">Source</a> </span></div><pre class="rust item-decl"><code>pub fn get_method_args_type&lt;'a&gt;(
+    xml: impl <a class="trait" href="https://doc.rust-lang.org/1.90.0/std/io/trait.Read.html" title="trait std::io::Read">Read</a>,
+    interface_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a>,
+    member_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a>,
+    arg_name: <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a>&gt;,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="../zvariant/signature/struct.Signature.html" title="struct zvariant::signature::Signature">Signature</a>&lt;'a&gt;, <a class="struct" href="https://doc.rust-lang.org/1.90.0/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;dyn <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/error/trait.Error.html" title="trait core::error::Error">Error</a>&gt;&gt;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Retrieve the signature of a method’s argument type from XML.</p>
+<p>Useful when one or more arguments, used to call a method, outline a useful type.</p>
+<p>If you provide an argument name, then the signature of that argument is returned.
+If you do not provide an argument name, then the signature of all arguments to the call is
+returned.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::fs::File;
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::io::{Seek, SeekFrom, Write};
+<span class="kw">use </span>tempfile::tempfile;
+<span class="kw">use </span>zvariant::{Type, Value};
+<span class="kw">use </span>zbus_lockstep::get_method_args_type;
+
+<span class="kw">let </span>xml = <span class="string">r#"&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd"&gt;
+ &lt;interface name="org.freedesktop.Notifications"&gt;
+   &lt;method name="Notify"&gt;
+     &lt;arg type="s" name="app_name" direction="in"/&gt;
+     &lt;arg type="u" name="replaces_id" direction="in"/&gt;
+     &lt;arg type="s" name="app_icon" direction="in"/&gt;
+     &lt;arg type="s" name="summary" direction="in"/&gt;
+     &lt;arg type="s" name="body" direction="in"/&gt;
+     &lt;arg type="as" name="actions" direction="in"/&gt;
+     &lt;arg type="a{sv}" name="hints" direction="in"/&gt;
+     &lt;arg type="i" name="expire_timeout" direction="in"/&gt;
+     &lt;arg type="u" name="id" direction="out"/&gt;
+   &lt;/method&gt;
+ &lt;/interface&gt;
+&lt;/node&gt;
+"#</span>;
+
+<span class="attr">#[derive(Debug, PartialEq, Type)]
+</span><span class="kw">struct </span>Notification&lt;<span class="lifetime">'a</span>&gt; {
+   app_name: String,
+   replaces_id: u32,
+   app_icon: String,
+   summary: String,
+   body: String,
+   actions: Vec&lt;String&gt;,
+   hints: HashMap&lt;String, Value&lt;<span class="lifetime">'a</span>&gt;&gt;,  
+   expire_timeout: i32,
+}
+
+<span class="kw">let </span><span class="kw-2">mut </span>xml_file = tempfile().unwrap();
+xml_file.write_all(xml.as_bytes()).unwrap();
+xml_file.seek(SeekFrom::Start(<span class="number">0</span>)).unwrap();
+
+<span class="kw">let </span>interface_name = <span class="string">"org.freedesktop.Notifications"</span>;
+<span class="kw">let </span>member_name = <span class="string">"Notify"</span>;
+     
+<span class="kw">let </span>signature = get_method_args_type(xml_file, interface_name, member_name, <span class="prelude-val">None</span>).unwrap();
+<span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>signature, <span class="kw-2">&amp;</span>Notification::signature());</code></pre></div>
+</div></details></section></div></main></body></html>

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":["export_root_module","sabi_extern_fn","sabi_trait"],"derive":["GetStaticEquivalent","StableAbi"]};

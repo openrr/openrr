@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Creates an iterator over the UTF-16 encoded code points in `iter`, returning unpaired surrogates as `Err`s."><title>decode_utf16 in widestring - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="widestring" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../widestring/index.html">widestring</a><span class="version">1.2.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">decode_<wbr>utf16</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate widestring</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">widestring</a></div><h1>Function <span class="fn">decode_utf16</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/widestring/lib.rs.html#330-332">Source</a> </span></div><pre class="rust item-decl"><code>pub fn decode_utf16&lt;I: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/iter/traits/collect/trait.IntoIterator.html" title="trait core::iter::traits::collect::IntoIterator">IntoIterator</a>&lt;Item = <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.u16.html">u16</a>&gt;&gt;(
+    iter: I,
+) -&gt; <a class="struct" href="iter/struct.DecodeUtf16.html" title="struct widestring::iter::DecodeUtf16">DecodeUtf16</a>&lt;I::<a class="associatedtype" href="https://doc.rust-lang.org/1.90.0/core/iter/traits/collect/trait.IntoIterator.html#associatedtype.IntoIter" title="type core::iter::traits::collect::IntoIterator::IntoIter">IntoIter</a>&gt; <a href="#" class="tooltip" data-notable-ty="DecodeUtf16&lt;I::IntoIter&gt;">ⓘ</a></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Creates an iterator over the UTF-16 encoded code points in <code>iter</code>, returning unpaired surrogates
+as <code>Err</code>s.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p>Basic usage:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::char::decode_utf16;
+
+<span class="comment">// 𝄞mus&lt;invalid&gt;ic&lt;invalid&gt;
+</span><span class="kw">let </span>v = [
+    <span class="number">0xD834</span>, <span class="number">0xDD1E</span>, <span class="number">0x006d</span>, <span class="number">0x0075</span>, <span class="number">0x0073</span>, <span class="number">0xDD1E</span>, <span class="number">0x0069</span>, <span class="number">0x0063</span>, <span class="number">0xD834</span>,
+];
+
+<span class="macro">assert_eq!</span>(
+    decode_utf16(v.iter().cloned())
+        .map(|r| r.map_err(|e| e.unpaired_surrogate()))
+        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+    <span class="macro">vec!</span>[
+        <span class="prelude-val">Ok</span>(<span class="string">'𝄞'</span>),
+        <span class="prelude-val">Ok</span>(<span class="string">'m'</span>), <span class="prelude-val">Ok</span>(<span class="string">'u'</span>), <span class="prelude-val">Ok</span>(<span class="string">'s'</span>),
+        <span class="prelude-val">Err</span>(<span class="number">0xDD1E</span>),
+        <span class="prelude-val">Ok</span>(<span class="string">'i'</span>), <span class="prelude-val">Ok</span>(<span class="string">'c'</span>),
+        <span class="prelude-val">Err</span>(<span class="number">0xD834</span>)
+    ]
+);</code></pre></div>
+<p>A lossy decoder can be obtained by replacing Err results with the replacement character:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::char::{decode_utf16, REPLACEMENT_CHARACTER};
+
+<span class="comment">// 𝄞mus&lt;invalid&gt;ic&lt;invalid&gt;
+</span><span class="kw">let </span>v = [
+    <span class="number">0xD834</span>, <span class="number">0xDD1E</span>, <span class="number">0x006d</span>, <span class="number">0x0075</span>, <span class="number">0x0073</span>, <span class="number">0xDD1E</span>, <span class="number">0x0069</span>, <span class="number">0x0063</span>, <span class="number">0xD834</span>,
+];
+
+<span class="macro">assert_eq!</span>(
+    decode_utf16(v.iter().cloned())
+       .map(|r| r.unwrap_or(REPLACEMENT_CHARACTER))
+       .collect::&lt;String&gt;(),
+    <span class="string">"𝄞mus�ic�"
+</span>);</code></pre></div>
+</div></details><script type="text/json" id="notable-traits-data">{"DecodeUtf16<I::IntoIter>":"<h3>Notable traits for <code><a class=\"struct\" href=\"iter/struct.DecodeUtf16.html\" title=\"struct widestring::iter::DecodeUtf16\">DecodeUtf16</a>&lt;I&gt;</code></h3><pre><code><div class=\"where\">impl&lt;I&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"iter/struct.DecodeUtf16.html\" title=\"struct widestring::iter::DecodeUtf16\">DecodeUtf16</a>&lt;I&gt;<div class=\"where\">where\n    I: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a>&lt;Item = <a class=\"primitive\" href=\"https://doc.rust-lang.org/1.90.0/std/primitive.u16.html\">u16</a>&gt;,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"enum\" href=\"https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html\" title=\"enum core::result::Result\">Result</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.90.0/std/primitive.char.html\">char</a>, <a class=\"struct\" href=\"error/struct.DecodeUtf16Error.html\" title=\"struct widestring::error::DecodeUtf16Error\">DecodeUtf16Error</a>&gt;;</div>"}</script></section></div></main></body></html>

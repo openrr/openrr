@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `openrr-planner/src/planner/ik_planner.rs`."><title>ik_planner.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="openrr_planner" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">openrr_planner/planner/</div>ik_planner.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">/*
+<a href=#2 id=2 data-nosnippet>2</a>Copyright 2017 Takashi Ogura
+<a href=#3 id=3 data-nosnippet>3</a>
+<a href=#4 id=4 data-nosnippet>4</a>Licensed under the Apache License, Version 2.0 (the "License");
+<a href=#5 id=5 data-nosnippet>5</a>you may not use this file except in compliance with the License.
+<a href=#6 id=6 data-nosnippet>6</a>You may obtain a copy of the License at
+<a href=#7 id=7 data-nosnippet>7</a>
+<a href=#8 id=8 data-nosnippet>8</a>    http://www.apache.org/licenses/LICENSE-2.0
+<a href=#9 id=9 data-nosnippet>9</a>
+<a href=#10 id=10 data-nosnippet>10</a>Unless required by applicable law or agreed to in writing, software
+<a href=#11 id=11 data-nosnippet>11</a>distributed under the License is distributed on an "AS IS" BASIS,
+<a href=#12 id=12 data-nosnippet>12</a>WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<a href=#13 id=13 data-nosnippet>13</a>See the License for the specific language governing permissions and
+<a href=#14 id=14 data-nosnippet>14</a>limitations under the License.
+<a href=#15 id=15 data-nosnippet>15</a>*/
+<a href=#16 id=16 data-nosnippet>16</a></span><span class="attr">#![allow(clippy::trivially_copy_pass_by_ref)]
+<a href=#17 id=17 data-nosnippet>17</a></span><span class="kw">use </span>k::nalgebra <span class="kw">as </span>na;
+<a href=#18 id=18 data-nosnippet>18</a><span class="kw">use </span>na::RealField;
+<a href=#19 id=19 data-nosnippet>19</a><span class="kw">use </span>ncollide3d::shape::Compound;
+<a href=#20 id=20 data-nosnippet>20</a>
+<a href=#21 id=21 data-nosnippet>21</a><span class="kw">use </span><span class="kw">super</span>::joint_path_planner::JointPathPlanner;
+<a href=#22 id=22 data-nosnippet>22</a><span class="kw">use </span><span class="kw">crate</span>::errors::<span class="kw-2">*</span>;
+<a href=#23 id=23 data-nosnippet>23</a>
+<a href=#24 id=24 data-nosnippet>24</a><span class="doccomment">/// Joint path planner which supports inverse kinematics
+<a href=#25 id=25 data-nosnippet>25</a></span><span class="kw">pub struct </span>JointPathPlannerWithIk&lt;T, I&gt;
+<a href=#26 id=26 data-nosnippet>26</a><span class="kw">where
+<a href=#27 id=27 data-nosnippet>27</a>    </span>I: k::InverseKinematicsSolver&lt;T&gt;,
+<a href=#28 id=28 data-nosnippet>28</a>    T: RealField + Copy + k::SubsetOf&lt;f64&gt;,
+<a href=#29 id=29 data-nosnippet>29</a>{
+<a href=#30 id=30 data-nosnippet>30</a>    <span class="doccomment">/// Joint Path Planner to be used to find collision free path
+<a href=#31 id=31 data-nosnippet>31</a>    ///
+<a href=#32 id=32 data-nosnippet>32</a>    /// Currently, `JointPathPlanner&lt;N, k::Chain&lt;N&gt;&gt;` is used.
+<a href=#33 id=33 data-nosnippet>33</a>    </span><span class="kw">pub </span>path_planner: JointPathPlanner&lt;T&gt;,
+<a href=#34 id=34 data-nosnippet>34</a>    <span class="doccomment">/// Inverse kinematics solver to find the goal joint angles
+<a href=#35 id=35 data-nosnippet>35</a>    </span><span class="kw">pub </span>ik_solver: I,
+<a href=#36 id=36 data-nosnippet>36</a>}
+<a href=#37 id=37 data-nosnippet>37</a>
+<a href=#38 id=38 data-nosnippet>38</a><span class="kw">impl</span>&lt;T, I&gt; JointPathPlannerWithIk&lt;T, I&gt;
+<a href=#39 id=39 data-nosnippet>39</a><span class="kw">where
+<a href=#40 id=40 data-nosnippet>40</a>    </span><span class="comment">//T: RealField + num_traits::Float + k::SubsetOf&lt;f64&gt;,
+<a href=#41 id=41 data-nosnippet>41</a>    </span>T: RealField + k::SubsetOf&lt;f64&gt; + num_traits::Float,
+<a href=#42 id=42 data-nosnippet>42</a>    I: k::InverseKinematicsSolver&lt;T&gt;,
+<a href=#43 id=43 data-nosnippet>43</a>{
+<a href=#44 id=44 data-nosnippet>44</a>    <span class="doccomment">/// Create instance from `JointPathPlannerBuilder` and `InverseKinematicsSolver`
+<a href=#45 id=45 data-nosnippet>45</a>    ///
+<a href=#46 id=46 data-nosnippet>46</a>    /// # Example
+<a href=#47 id=47 data-nosnippet>47</a>    ///
+<a href=#48 id=48 data-nosnippet>48</a>    /// ```
+<a href=#49 id=49 data-nosnippet>49</a>    /// // Create path planner with loading urdf file and set end link name
+<a href=#50 id=50 data-nosnippet>50</a>    /// let robot = k::Chain::from_urdf_file("sample.urdf").unwrap();
+<a href=#51 id=51 data-nosnippet>51</a>    /// let planner = openrr_planner::JointPathPlannerBuilder::from_urdf_file("sample.urdf")
+<a href=#52 id=52 data-nosnippet>52</a>    ///     .unwrap()
+<a href=#53 id=53 data-nosnippet>53</a>    ///     .collision_check_margin(0.01)
+<a href=#54 id=54 data-nosnippet>54</a>    ///     .reference_robot(std::sync::Arc::new(robot))
+<a href=#55 id=55 data-nosnippet>55</a>    ///     .finalize()
+<a href=#56 id=56 data-nosnippet>56</a>    ///     .unwrap();
+<a href=#57 id=57 data-nosnippet>57</a>    /// // Create inverse kinematics solver
+<a href=#58 id=58 data-nosnippet>58</a>    /// let solver = openrr_planner::JacobianIkSolver::default();
+<a href=#59 id=59 data-nosnippet>59</a>    /// // Create path planner with IK solver
+<a href=#60 id=60 data-nosnippet>60</a>    /// let _planner = openrr_planner::JointPathPlannerWithIk::new(planner, solver);
+<a href=#61 id=61 data-nosnippet>61</a>    /// ```
+<a href=#62 id=62 data-nosnippet>62</a>    </span><span class="kw">pub fn </span>new(path_planner: JointPathPlanner&lt;T&gt;, ik_solver: I) -&gt; <span class="self">Self </span>{
+<a href=#63 id=63 data-nosnippet>63</a>        <span class="self">Self </span>{
+<a href=#64 id=64 data-nosnippet>64</a>            path_planner,
+<a href=#65 id=65 data-nosnippet>65</a>            ik_solver,
+<a href=#66 id=66 data-nosnippet>66</a>        }
+<a href=#67 id=67 data-nosnippet>67</a>    }
+<a href=#68 id=68 data-nosnippet>68</a>
+<a href=#69 id=69 data-nosnippet>69</a>    <span class="doccomment">/// Just solve IK and do not plan
+<a href=#70 id=70 data-nosnippet>70</a>    </span><span class="kw">pub fn </span>solve_ik(
+<a href=#71 id=71 data-nosnippet>71</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#72 id=72 data-nosnippet>72</a>        arm: <span class="kw-2">&amp;</span>k::SerialChain&lt;T&gt;,
+<a href=#73 id=73 data-nosnippet>73</a>        target_pose: <span class="kw-2">&amp;</span>na::Isometry3&lt;T&gt;,
+<a href=#74 id=74 data-nosnippet>74</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#75 id=75 data-nosnippet>75</a>        <span class="prelude-val">Ok</span>(<span class="self">self</span>.ik_solver.solve(arm, target_pose)<span class="question-mark">?</span>)
+<a href=#76 id=76 data-nosnippet>76</a>    }
+<a href=#77 id=77 data-nosnippet>77</a>
+<a href=#78 id=78 data-nosnippet>78</a>    <span class="doccomment">/// Just solve IK with constraints and do not plan
+<a href=#79 id=79 data-nosnippet>79</a>    </span><span class="kw">pub fn </span>solve_ik_with_constraints(
+<a href=#80 id=80 data-nosnippet>80</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#81 id=81 data-nosnippet>81</a>        arm: <span class="kw-2">&amp;</span>k::SerialChain&lt;T&gt;,
+<a href=#82 id=82 data-nosnippet>82</a>        target_pose: <span class="kw-2">&amp;</span>na::Isometry3&lt;T&gt;,
+<a href=#83 id=83 data-nosnippet>83</a>        c: <span class="kw-2">&amp;</span>k::Constraints,
+<a href=#84 id=84 data-nosnippet>84</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#85 id=85 data-nosnippet>85</a>        <span class="prelude-val">Ok</span>(<span class="self">self</span>.ik_solver.solve_with_constraints(arm, target_pose, c)<span class="question-mark">?</span>)
+<a href=#86 id=86 data-nosnippet>86</a>    }
+<a href=#87 id=87 data-nosnippet>87</a>
+<a href=#88 id=88 data-nosnippet>88</a>    <span class="kw">pub fn </span>colliding_link_names(<span class="kw-2">&amp;</span><span class="self">self</span>, objects: <span class="kw-2">&amp;</span>Compound&lt;T&gt;) -&gt; Vec&lt;String&gt; {
+<a href=#89 id=89 data-nosnippet>89</a>        <span class="self">self</span>.path_planner.env_collision_link_names(objects)
+<a href=#90 id=90 data-nosnippet>90</a>    }
+<a href=#91 id=91 data-nosnippet>91</a>
+<a href=#92 id=92 data-nosnippet>92</a>    <span class="doccomment">/// Solve IK and get the path to the final joint positions
+<a href=#93 id=93 data-nosnippet>93</a>    </span><span class="kw">pub fn </span>plan_with_ik(
+<a href=#94 id=94 data-nosnippet>94</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#95 id=95 data-nosnippet>95</a>        target_name: <span class="kw-2">&amp;</span>str,
+<a href=#96 id=96 data-nosnippet>96</a>        target_pose: <span class="kw-2">&amp;</span>na::Isometry3&lt;T&gt;,
+<a href=#97 id=97 data-nosnippet>97</a>        objects: <span class="kw-2">&amp;</span>Compound&lt;T&gt;,
+<a href=#98 id=98 data-nosnippet>98</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;T&gt;&gt;&gt; {
+<a href=#99 id=99 data-nosnippet>99</a>        <span class="self">self</span>.plan_with_ik_with_constraints(
+<a href=#100 id=100 data-nosnippet>100</a>            target_name,
+<a href=#101 id=101 data-nosnippet>101</a>            target_pose,
+<a href=#102 id=102 data-nosnippet>102</a>            objects,
+<a href=#103 id=103 data-nosnippet>103</a>            <span class="kw-2">&amp;</span>k::Constraints::default(),
+<a href=#104 id=104 data-nosnippet>104</a>        )
+<a href=#105 id=105 data-nosnippet>105</a>    }
+<a href=#106 id=106 data-nosnippet>106</a>
+<a href=#107 id=107 data-nosnippet>107</a>    <span class="doccomment">/// Solve IK with constraints and get the path to the final joint positions
+<a href=#108 id=108 data-nosnippet>108</a>    </span><span class="kw">pub fn </span>plan_with_ik_with_constraints(
+<a href=#109 id=109 data-nosnippet>109</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#110 id=110 data-nosnippet>110</a>        target_name: <span class="kw-2">&amp;</span>str,
+<a href=#111 id=111 data-nosnippet>111</a>        target_pose: <span class="kw-2">&amp;</span>na::Isometry3&lt;T&gt;,
+<a href=#112 id=112 data-nosnippet>112</a>        objects: <span class="kw-2">&amp;</span>Compound&lt;T&gt;,
+<a href=#113 id=113 data-nosnippet>113</a>        constraints: <span class="kw-2">&amp;</span>k::Constraints,
+<a href=#114 id=114 data-nosnippet>114</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;T&gt;&gt;&gt; {
+<a href=#115 id=115 data-nosnippet>115</a>        <span class="self">self</span>.path_planner.sync_joint_positions_with_reference();
+<a href=#116 id=116 data-nosnippet>116</a>
+<a href=#117 id=117 data-nosnippet>117</a>        <span class="kw">let </span>end_link = <span class="self">self
+<a href=#118 id=118 data-nosnippet>118</a>            </span>.path_planner
+<a href=#119 id=119 data-nosnippet>119</a>            .collision_check_robot()
+<a href=#120 id=120 data-nosnippet>120</a>            .find(target_name)
+<a href=#121 id=121 data-nosnippet>121</a>            .ok_or_else(|| Error::NotFound(target_name.to_owned()))<span class="question-mark">?</span>;
+<a href=#122 id=122 data-nosnippet>122</a>        <span class="kw">let </span>arm = k::SerialChain::from_end(end_link);
+<a href=#123 id=123 data-nosnippet>123</a>        <span class="kw">let </span>initial = arm.joint_positions();
+<a href=#124 id=124 data-nosnippet>124</a>        <span class="kw">let </span>using_joint_names = arm
+<a href=#125 id=125 data-nosnippet>125</a>            .iter_joints()
+<a href=#126 id=126 data-nosnippet>126</a>            .map(|j| j.name.clone())
+<a href=#127 id=127 data-nosnippet>127</a>            .collect::&lt;Vec&lt;String&gt;&gt;();
+<a href=#128 id=128 data-nosnippet>128</a>        <span class="self">self</span>.ik_solver
+<a href=#129 id=129 data-nosnippet>129</a>            .solve_with_constraints(<span class="kw-2">&amp;</span>arm, target_pose, constraints)<span class="question-mark">?</span>;
+<a href=#130 id=130 data-nosnippet>130</a>        <span class="kw">let </span>goal = arm.joint_positions();
+<a href=#131 id=131 data-nosnippet>131</a>        <span class="self">self</span>.path_planner
+<a href=#132 id=132 data-nosnippet>132</a>            .plan(using_joint_names.as_slice(), <span class="kw-2">&amp;</span>initial, <span class="kw-2">&amp;</span>goal, objects)
+<a href=#133 id=133 data-nosnippet>133</a>    }
+<a href=#134 id=134 data-nosnippet>134</a>
+<a href=#135 id=135 data-nosnippet>135</a>    <span class="doccomment">/// Do not solve IK but get the path to the target joint positions
+<a href=#136 id=136 data-nosnippet>136</a>    </span><span class="kw">pub fn </span>plan_joints&lt;K&gt;(
+<a href=#137 id=137 data-nosnippet>137</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#138 id=138 data-nosnippet>138</a>        using_joint_names: <span class="kw-2">&amp;</span>[String],
+<a href=#139 id=139 data-nosnippet>139</a>        start_angles: <span class="kw-2">&amp;</span>[T],
+<a href=#140 id=140 data-nosnippet>140</a>        goal_angles: <span class="kw-2">&amp;</span>[T],
+<a href=#141 id=141 data-nosnippet>141</a>        objects: <span class="kw-2">&amp;</span>Compound&lt;T&gt;,
+<a href=#142 id=142 data-nosnippet>142</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;T&gt;&gt;&gt; {
+<a href=#143 id=143 data-nosnippet>143</a>        <span class="self">self</span>.path_planner
+<a href=#144 id=144 data-nosnippet>144</a>            .plan(using_joint_names, start_angles, goal_angles, objects)
+<a href=#145 id=145 data-nosnippet>145</a>    }
+<a href=#146 id=146 data-nosnippet>146</a>
+<a href=#147 id=147 data-nosnippet>147</a>    <span class="doccomment">/// Calculate the transforms of all of the links
+<a href=#148 id=148 data-nosnippet>148</a>    </span><span class="kw">pub fn </span>update_transforms(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;na::Isometry3&lt;T&gt;&gt; {
+<a href=#149 id=149 data-nosnippet>149</a>        <span class="self">self</span>.path_planner.update_transforms()
+<a href=#150 id=150 data-nosnippet>150</a>    }
+<a href=#151 id=151 data-nosnippet>151</a>
+<a href=#152 id=152 data-nosnippet>152</a>    <span class="doccomment">/// Get the names of the links
+<a href=#153 id=153 data-nosnippet>153</a>    </span><span class="kw">pub fn </span>joint_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;String&gt; {
+<a href=#154 id=154 data-nosnippet>154</a>        <span class="self">self</span>.path_planner.joint_names()
+<a href=#155 id=155 data-nosnippet>155</a>    }
+<a href=#156 id=156 data-nosnippet>156</a>}</code></pre></div></section></main></body></html>

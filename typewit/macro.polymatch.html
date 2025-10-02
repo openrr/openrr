@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Match which expands top-level `|` patterns to multiple match arms."><title>polymatch in typewit - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="typewit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../typewit/index.html">typewit</a><span class="version">1.14.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">polymatch</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#clarification" title="Clarification">Clarification</a></li><li><a href="#syntax" title="Syntax">Syntax</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#basic" title="Basic">Basic</a></li><li><a href="#full-syntax" title="Full syntax">Full syntax</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate typewit</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">typewit</a></div><h1>Macro <span class="macro">polymatch</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/typewit/macros/polymatch.rs.html#128-135">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! polymatch {
+    ($matching:expr; $($match_arms:tt)*) =&gt; { ... };
+    ($($tt:tt)*) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Match which expands top-level <code>|</code> patterns to multiple match arms.</p>
+<p><a href="#examples"><strong>examples below</strong></a></p>
+<h4 id="clarification"><a class="doc-anchor" href="#clarification">§</a>Clarification</h4>
+<p>“top-level <code>|</code> patterns” means that the <code>|</code> is not inside some other pattern.
+<br>E.g.: the pattern in <code>Foo(x) | Bar(x) =&gt; </code> is a top-level <code>|</code> pattern.
+<br>E.g.: the pattern in <code>(Foo(x) | Bar(x)) =&gt; </code> is not a top-level <code>|</code> pattern,
+because the <code>|</code> is inside parentheses.</p>
+<h2 id="syntax"><a class="doc-anchor" href="#syntax">§</a>Syntax</h2>
+<p>This uses a <code>macro_rules!</code>-like syntax for the parameters of this macro</p>
+<div class="example-wrap"><pre class="language-text"><code>$matched_expression:expr;
+    $( $(|)? $($or_pattern:pat_param)|+ $(if $match_guard:expr)? =&gt; $arm_expr:expr ),*
+    $(,)? </code></pre></div>
+<p><a href="#full-syntax"><strong>example demonstrating all of this syntax</strong></a></p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="basic"><a class="doc-anchor" href="#basic">§</a>Basic</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">assert_eq!</span>(debugify(<span class="prelude-val">Ok</span>(<span class="number">3</span>)), <span class="string">"3"</span>);
+<span class="macro">assert_eq!</span>(debugify(<span class="prelude-val">Err</span>(<span class="string">"hello"</span>)), <span class="string">r#""hello""#</span>);
+ 
+<span class="kw">fn </span>debugify(res: <span class="prelude-ty">Result</span>&lt;u32, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;) -&gt; String {
+    <span class="macro">typewit::polymatch!</span> {res; 
+        <span class="prelude-val">Ok</span>(x) | <span class="prelude-val">Err</span>(x) =&gt; <span class="macro">format!</span>(<span class="string">"{:?}"</span>, x)
+    }
+}</code></pre></div>
+<p>The above invocation of <code>polymatch</code> expands to:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>    <span class="kw">match </span>res {
+        <span class="prelude-val">Ok</span>(x) =&gt; <span class="macro">format!</span>(<span class="string">"{:?}"</span>, x),
+        <span class="prelude-val">Err</span>(x) =&gt; <span class="macro">format!</span>(<span class="string">"{:?}"</span>, x),
+    }</code></pre></div>
+<h4 id="full-syntax"><a class="doc-anchor" href="#full-syntax">§</a>Full syntax</h4>
+<p>Example that uses all of the syntax supported by this macro.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">assert_eq!</span>(bar(Foo::Byte(<span class="number">3</span>)), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(bar(Foo::Byte(<span class="number">9</span>)), <span class="number">18</span>);
+<span class="macro">assert_eq!</span>(bar(Foo::Byte(<span class="number">10</span>)), <span class="number">10</span>);
+ 
+<span class="macro">assert_eq!</span>(bar(Foo::U16(<span class="number">3</span>)), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(bar(Foo::U16(<span class="number">9</span>)), <span class="number">18</span>);
+<span class="macro">assert_eq!</span>(bar(Foo::U16(<span class="number">10</span>)), <span class="number">10</span>);
+ 
+<span class="macro">assert_eq!</span>(bar(Foo::U32(<span class="number">3</span>)), <span class="number">0</span>);
+ 
+<span class="macro">assert_eq!</span>(bar(Foo::Long(<span class="number">3</span>)), <span class="number">0</span>);
+ 
+<span class="kw">enum </span>Foo {
+    Byte(u8),
+    U16(u16),
+    U32(u32),
+    Long(u64),
+}
+ 
+<span class="kw">const fn </span>bar(foo: Foo) -&gt; u64 {
+    <span class="macro">typewit::polymatch!</span> {foo;
+        <span class="comment">// top-level  `|` patterns generate a match arm for every alternate pattern
+        </span>| Foo::Byte(x) 
+        | Foo::U16(x) 
+        <span class="kw">if </span>x &lt; <span class="number">10 
+        </span>=&gt; (x <span class="kw">as </span>u64) * <span class="number">2</span>,
+ 
+        Foo::Byte(x) | Foo::U16(x) =&gt; { x <span class="kw">as </span>u64 }
+ 
+        <span class="comment">// `|` inside patterns behaves like in regular `match` expressions
+        </span>(Foo::U32(<span class="kw">_</span>) | Foo::Long(<span class="kw">_</span>)) =&gt; <span class="number">0
+    </span>}
+}</code></pre></div>
+<p>The above invocation of <code>polymatch</code> expands to:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>    <span class="kw">match </span>foo {
+        Foo::Byte(x) <span class="kw">if </span>x &lt; <span class="number">10  </span>=&gt; (x <span class="kw">as </span>u64) * <span class="number">2</span>,
+        Foo::U16(x) <span class="kw">if </span>x &lt; <span class="number">10  </span>=&gt; (x <span class="kw">as </span>u64) * <span class="number">2</span>,
+ 
+        Foo::Byte(x) =&gt; { x <span class="kw">as </span>u64 }
+        Foo::U16(x) =&gt; { x <span class="kw">as </span>u64 }
+ 
+        (Foo::U32(<span class="kw">_</span>) | Foo::Long(<span class="kw">_</span>)) =&gt; <span class="number">0
+    </span>}</code></pre></div>
+</div></details></section></div></main></body></html>

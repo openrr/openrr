@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["quick_xml",[["impl <a class=\"trait\" href=\"serde_core/ser/trait.Error.html\" title=\"trait serde_core::ser::Error\">Error</a> for <a class=\"enum\" href=\"quick_xml/errors/serialize/enum.DeError.html\" title=\"enum quick_xml::errors::serialize::DeError\">DeError</a>"]]],["serde",[]],["serde_core",[]],["serde_json",[["impl <a class=\"trait\" href=\"serde_core/ser/trait.Error.html\" title=\"trait serde_core::ser::Error\">Error</a> for <a class=\"struct\" href=\"serde_json/struct.Error.html\" title=\"struct serde_json::Error\">Error</a>"]]],["serde_xml_rs",[["impl <a class=\"trait\" href=\"serde_core/ser/trait.Error.html\" title=\"trait serde_core::ser::Error\">Error</a> for <a class=\"enum\" href=\"serde_xml_rs/enum.Error.html\" title=\"enum serde_xml_rs::Error\">Error</a>"]]],["toml",[["impl <a class=\"trait\" href=\"serde_core/ser/trait.Error.html\" title=\"trait serde_core::ser::Error\">Error</a> for <a class=\"enum\" href=\"toml/ser/enum.Error.html\" title=\"enum toml::ser::Error\">Error</a>"]]],["xml_rpc",[["impl <a class=\"trait\" href=\"serde_core/ser/trait.Error.html\" title=\"trait serde_core::ser::Error\">Error</a> for <a class=\"struct\" href=\"xml_rpc/error/struct.FmtError.html\" title=\"struct xml_rpc::error::FmtError\">Error</a>"]]],["zvariant",[["impl <a class=\"trait\" href=\"serde_core/ser/trait.Error.html\" title=\"trait serde_core::ser::Error\">Error</a> for <a class=\"enum\" href=\"zvariant/enum.Error.html\" title=\"enum zvariant::Error\">Error</a>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[274,13,18,242,242,227,252,230]}

@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Support for websockets."><title>rouille::websocket - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rouille" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../rouille/index.html">rouille</a><span class="version">3.6.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module websocket</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#subprotocols" title="Subprotocols">Subprotocols</a></li><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate rouille</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">rouille</a></div><h1>Module <span>websocket</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/rouille/websocket/mod.rs.html#10-250">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Support for websockets.</p>
+<p>Using websockets is done with the following steps:</p>
+<ul>
+<li>The websocket client (usually the browser through some Javascript) must send a request to the
+server to initiate the process. Examples for how to do this in Javascript are out of scope
+of this documentation but should be easy to find on the web.</li>
+<li>The server written with rouille must answer that request with the <code>start()</code> function defined
+in this module. This function returns an error if the request is not a websocket
+initialization request.</li>
+<li>The <code>start()</code> function also returns a <code>Receiver&lt;Websocket&gt;</code> object. Once that <code>Receiver</code>
+contains a value, the connection has been initiated.</li>
+<li>You can then use the <code>Websocket</code> object to communicate with the client through the <code>Read</code>
+and <code>Write</code> traits.</li>
+</ul>
+<h2 id="subprotocols"><a class="doc-anchor" href="#subprotocols">§</a>Subprotocols</h2>
+<p>The websocket connection will produce either text or binary messages. But these messages do not
+have a meaning per se, and must also be interpreted in some way. The way messages are
+interpreted during a websocket connection is called a <em>subprotocol</em>.</p>
+<p>When you call <code>start()</code> you have to indicate which subprotocol the connection is going to use.
+This subprotocol must match one of the subprotocols that were passed by the client during its
+request, otherwise <code>start()</code> will return an error. It is also possible to pass <code>None</code>, in which
+case the subprotocol is unknown to both the client and the server.</p>
+<p>There are usually three ways to handle subprotocols on the server-side:</p>
+<ul>
+<li>You don’t really care about subprotocols because you use websockets for your own needs. You
+can just pass <code>None</code> to <code>start()</code>. The connection will thus never fail unless the client
+decides to.</li>
+<li>Your route only handles one subprotocol. Just pass this subprotocol to <code>start()</code> and you will
+get an error (which you can handle for example with <code>try_or_400!</code>) if it’s not supported by
+the client.</li>
+<li>Your route supports multiple subprotocols. This is the most complex situation as you will
+have to enumerate the protocols with <code>requested_protocols()</code> and choose one.</li>
+</ul>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::sync::Mutex;
+<span class="kw">use </span>std::sync::mpsc::Receiver;
+
+<span class="kw">use </span>rouille::Request;
+<span class="kw">use </span>rouille::Response;
+<span class="kw">use </span>rouille::websocket;
+
+<span class="kw">fn </span>handle_request(request: <span class="kw-2">&amp;</span>Request, websockets: <span class="kw-2">&amp;</span>Mutex&lt;Vec&lt;Receiver&lt;websocket::Websocket&gt;&gt;&gt;)
+                  -&gt; Response
+{
+    <span class="kw">let </span>(response, websocket) = <span class="macro">try_or_400!</span>(websocket::start(request, <span class="prelude-val">Some</span>(<span class="string">"my-subprotocol"</span>)));
+    websockets.lock().unwrap().push(websocket);
+    response
+}</code></pre></div>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.RequestedProtocolsIter.html" title="struct rouille::websocket::RequestedProtocolsIter">Requested<wbr>Protocols<wbr>Iter</a></dt><dd>Iterator to the list of protocols requested by the user.</dd><dt><a class="struct" href="struct.Websocket.html" title="struct rouille::websocket::Websocket">Websocket</a></dt><dd>A successful websocket. An open channel of communication. Implements <code>Read</code> and <code>Write</code>.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Message.html" title="enum rouille::websocket::Message">Message</a></dt><dd>A message produced by a websocket connection.</dd><dt><a class="enum" href="enum.SendError.html" title="enum rouille::websocket::SendError">Send<wbr>Error</a></dt><dd>Error that can happen when sending a message to the client.</dd><dt><a class="enum" href="enum.WebsocketError.html" title="enum rouille::websocket::WebsocketError">Websocket<wbr>Error</a></dt><dd>Error that can happen when attempting to start websocket.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.requested_protocols.html" title="fn rouille::websocket::requested_protocols">requested_<wbr>protocols</a></dt><dd>Returns a list of the websocket protocols requested by the client.</dd><dt><a class="fn" href="fn.start.html" title="fn rouille::websocket::start">start</a></dt><dd>Builds a <code>Response</code> that initiates the websocket protocol.</dd></dl></section></div></main></body></html>

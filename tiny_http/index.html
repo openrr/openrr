@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Simple usage"><title>tiny_http - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="tiny_http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../tiny_http/index.html">tiny_<wbr>http</a><span class="version">0.12.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#simple-usage" title="Simple usage">Simple usage</a><ul><li><a href="#creating-the-server" title="Creating the server">Creating the server</a></li><li><a href="#receiving-requests" title="Receiving requests">Receiving requests</a></li><li><a href="#handling-requests" title="Handling requests">Handling requests</a></li></ul></li></ul><h3><a href="#structs">Crate Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>tiny_http</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/tiny_http/lib.rs.html#1-445">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="simple-usage"><a class="doc-anchor" href="#simple-usage">§</a>Simple usage</h2><h3 id="creating-the-server"><a class="doc-anchor" href="#creating-the-server">§</a>Creating the server</h3>
+<p>The easiest way to create a server is to call <code>Server::http()</code>.</p>
+<p>The <code>http()</code> function returns an <code>IoResult&lt;Server&gt;</code> which will return an error
+in the case where the server creation fails (for example if the listening port is already
+occupied).</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>server = tiny_http::Server::http(<span class="string">"0.0.0.0:0"</span>).unwrap();</code></pre></div>
+<p>A newly-created <code>Server</code> will immediately start listening for incoming connections and HTTP
+requests.</p>
+<h3 id="receiving-requests"><a class="doc-anchor" href="#receiving-requests">§</a>Receiving requests</h3>
+<p>Calling <code>server.recv()</code> will block until the next request is available.
+This function returns an <code>IoResult&lt;Request&gt;</code>, so you need to handle the possible errors.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">loop </span>{
+    <span class="comment">// blocks until the next request is received
+    </span><span class="kw">let </span>request = <span class="kw">match </span>server.recv() {
+        <span class="prelude-val">Ok</span>(rq) =&gt; rq,
+        <span class="prelude-val">Err</span>(e) =&gt; { <span class="macro">println!</span>(<span class="string">"error: {}"</span>, e); <span class="kw">break </span>}
+    };
+
+    <span class="comment">// do something with the request
+    // ...
+</span>}</code></pre></div>
+<p>In a real-case scenario, you will probably want to spawn multiple worker tasks and call
+<code>server.recv()</code> on all of them. Like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>server = Arc::new(server);
+<span class="kw">let </span><span class="kw-2">mut </span>guards = Vec::with_capacity(<span class="number">4</span>);
+
+<span class="kw">for _ in </span>(<span class="number">0 </span>.. <span class="number">4</span>) {
+    <span class="kw">let </span>server = server.clone();
+
+    <span class="kw">let </span>guard = thread::spawn(<span class="kw">move </span>|| {
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>rq = server.recv().unwrap();
+
+            <span class="comment">// ...
+        </span>}
+    });
+
+    guards.push(guard);
+}</code></pre></div>
+<p>If you don’t want to block, you can call <code>server.try_recv()</code> instead.</p>
+<h3 id="handling-requests"><a class="doc-anchor" href="#handling-requests">§</a>Handling requests</h3>
+<p>The <code>Request</code> object returned by <code>server.recv()</code> contains informations about the client’s request.
+The most useful methods are probably <code>request.method()</code> and <code>request.url()</code> which return
+the requested method (<code>GET</code>, <code>POST</code>, etc.) and url.</p>
+<p>To handle a request, you need to create a <code>Response</code> object. See the docs of this object for
+more infos. Here is an example of creating a <code>Response</code> from a file:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>response = tiny_http::Response::from_file(File::open(<span class="kw-2">&amp;</span>Path::new(<span class="string">"image.png"</span>)).unwrap());</code></pre></div>
+<p>All that remains to do is call <code>request.respond()</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let _ </span>= request.respond(response);</code></pre></div>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.HTTPVersion.html" title="struct tiny_http::HTTPVersion">HTTP<wbr>Version</a></dt><dd>HTTP version (usually 1.0 or 1.1).</dd><dt><a class="struct" href="struct.Header.html" title="struct tiny_http::Header">Header</a></dt><dd>Represents a HTTP header.</dd><dt><a class="struct" href="struct.HeaderField.html" title="struct tiny_http::HeaderField">Header<wbr>Field</a></dt><dd>Field of a header (eg. <code>Content-Type</code>, <code>Content-Length</code>, etc.)</dd><dt><a class="struct" href="struct.IncomingRequests.html" title="struct tiny_http::IncomingRequests">Incoming<wbr>Requests</a></dt><dt><a class="struct" href="struct.Request.html" title="struct tiny_http::Request">Request</a></dt><dd>Represents an HTTP request made by a client.</dd><dt><a class="struct" href="struct.Response.html" title="struct tiny_http::Response">Response</a></dt><dd>Object representing an HTTP response whose purpose is to be given to a <code>Request</code>.</dd><dt><a class="struct" href="struct.Server.html" title="struct tiny_http::Server">Server</a></dt><dd>The main class of this library.</dd><dt><a class="struct" href="struct.ServerConfig.html" title="struct tiny_http::ServerConfig">Server<wbr>Config</a></dt><dd>Represents the parameters required to create a server.</dd><dt><a class="struct" href="struct.SslConfig.html" title="struct tiny_http::SslConfig">SslConfig</a></dt><dd>Configuration of the server for SSL.</dd><dt><a class="struct" href="struct.StatusCode.html" title="struct tiny_http::StatusCode">Status<wbr>Code</a></dt><dd>Status code of a request or response.</dd><dt><a class="struct" href="struct.TestRequest.html" title="struct tiny_http::TestRequest">Test<wbr>Request</a></dt><dd>A simpler version of <a href="struct.Request.html" title="struct tiny_http::Request"><code>Request</code></a> that is useful for testing. No data actually goes anywhere.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.ConfigListenAddr.html" title="enum tiny_http::ConfigListenAddr">Config<wbr>Listen<wbr>Addr</a></dt><dt><a class="enum" href="enum.ListenAddr.html" title="enum tiny_http::ListenAddr">Listen<wbr>Addr</a></dt><dd>Unified listen socket address. Either a <a href="https://doc.rust-lang.org/1.90.0/core/net/socket_addr/enum.SocketAddr.html" title="enum core::net::socket_addr::SocketAddr"><code>SocketAddr</code></a> or <a href="https://doc.rust-lang.org/1.90.0/std/os/unix/net/addr/struct.SocketAddr.html" title="struct std::os::unix::net::addr::SocketAddr"><code>std::os::unix::net::SocketAddr</code></a>.</dd><dt><a class="enum" href="enum.Listener.html" title="enum tiny_http::Listener">Listener</a></dt><dd>Unified listener. Either a <a href="https://doc.rust-lang.org/1.90.0/std/net/tcp/struct.TcpListener.html" title="struct std::net::tcp::TcpListener"><code>TcpListener</code></a> or <a href="https://doc.rust-lang.org/1.90.0/std/os/unix/net/listener/struct.UnixListener.html" title="struct std::os::unix::net::listener::UnixListener"><code>std::os::unix::net::UnixListener</code></a></dd><dt><a class="enum" href="enum.Method.html" title="enum tiny_http::Method">Method</a></dt><dd>HTTP request methods</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.ReadWrite.html" title="trait tiny_http::ReadWrite">Read<wbr>Write</a></dt><dd>Dummy trait that regroups the <code>Read</code> and <code>Write</code> traits.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.ResponseBox.html" title="type tiny_http::ResponseBox">Response<wbr>Box</a></dt><dd>A <code>Response</code> without a template parameter.</dd></dl></section></div></main></body></html>

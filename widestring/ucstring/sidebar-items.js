@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["U16CString","U32CString"],"type":["WideCString"]};

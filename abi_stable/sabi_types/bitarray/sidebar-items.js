@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["bool_to_enum","enum_to_bool"],"struct":["BitArray64","BitArray64Iter"],"trait":["BooleanEnum"]};

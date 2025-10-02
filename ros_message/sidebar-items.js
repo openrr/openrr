@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DataType","Error","FieldCase","I8Variant","U8Variant","Value"],"struct":["Duration","FieldInfo","MessagePath","Msg","Srv","Time"],"type":["MessageValue","Result"]};

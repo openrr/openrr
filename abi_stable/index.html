@@ -1,0 +1,188 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="For Rust-to-Rust ffi, with a focus on creating libraries loaded at program startup, and with load-time type-checking."><title>abi_stable - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#features" title="Features">Features</a></li><li><a href="#examples" title="Examples">Examples</a></li><li><a href="#minimum-rust-version" title="Minimum Rust version">Minimum Rust version</a></li><li><a href="#crate-features" title="Crate Features">Crate Features</a><ul><li><a href="#manually-enabled" title="Manually enabled">Manually enabled</a></li></ul></li><li><a href="#glossary" title="Glossary">Glossary</a></li><li><a href="#rust-to-rust-ffi-types" title="Rust-to-Rust FFI types.">Rust-to-Rust FFI types.</a></li><li><a href="#extra-documentation" title="Extra documentation">Extra documentation</a></li><li><a href="#macros-derive-and-attribute" title="Macros (derive and attribute)">Macros (derive and attribute)</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#statics" title="Statics">Statics</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#attributes" title="Attribute Macros">Attribute Macros</a></li><li><a href="#derives" title="Derive Macros">Derive Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>abi_stable</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/abi_stable/lib.rs.html#1-381">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>For Rust-to-Rust ffi,
+with a focus on creating libraries loaded at program startup,
+and with load-time type-checking.</p>
+<p>This library allows defining Rust libraries that can be loaded at runtime,
+even if they were built with a different Rust version than the crate that depends on it.</p>
+<p>These are some usecases for this library:</p>
+<ul>
+<li>
+<p>Converting a Rust dependency tree from compiling statically into a single binary,
+into one binary (and potentially) many dynamic libraries,
+allowing separate re-compilation on changes.</p>
+</li>
+<li>
+<p>Creating a plugin system (without support for unloading).</p>
+</li>
+</ul>
+<h2 id="features"><a class="doc-anchor" href="#features">§</a>Features</h2>
+<p>Currently this library has these features:</p>
+<ul>
+<li>
+<p>Features the <a href="./attr.sabi_trait.html"><code>sabi_trait</code></a> attribute macro, for creating ffi-safe trait objects.</p>
+</li>
+<li>
+<p>Ffi-safe equivalent of some trait objects with <a href="./struct.DynTrait.html"><code>DynTrait</code></a>.</p>
+</li>
+<li>
+<p>Provides ffi-safe alternatives/wrappers for many standard library types,
+in the <a href="./std_types/index.html"><code>std_types</code></a> module.</p>
+</li>
+<li>
+<p>Provides ffi-safe wrappers for some types defined in external crates,
+in the <a href="./external_types/index.html"><code>external_types</code></a> module.</p>
+</li>
+<li>
+<p>Provides the <a href="./abi_stability/stable_abi_trait/trait.StableAbi.html"><code>StableAbi</code></a> trait for asserting that types are ffi-safe.</p>
+</li>
+<li>
+<p>The <a href="./docs/prefix_types/index.html">prefix types</a> feature for building extensible modules and vtables,
+without breaking ABI compatibility.</p>
+</li>
+<li>
+<p>Supports ffi-safe <a href="./docs/sabi_nonexhaustive/index.html">nonexhaustive enums</a>, wrapped in <a href="./nonexhaustive_enum/struct.NonExhaustive.html"><code>NonExhaustive</code></a>.</p>
+</li>
+<li>
+<p>Checking at load-time that the types in the dynamic library have the expected layout,
+allowing for semver compatible changes while checking the layout of types.</p>
+</li>
+<li>
+<p>Provides the <a href="./derive.StableAbi.html"><code>StableAbi</code> derive</a> macro
+to both assert that the type is ffi compatible,
+and to get the layout of the type at load-time to check that it is still compatible.</p>
+</li>
+</ul>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p>For <strong>examples</strong> of using <code>abi_stable</code> you can look at <a href="https://github.com/rodrimati1992/abi_stable_crates/blob/master/readme.md#readme_example">the readme example</a>,
+or for the crates in the examples directory in the repository for this crate.
+This crate also has examples in the docs for most features.</p>
+<p>To run the example crates you’ll generally have to build the <code>*_impl</code> crate,
+then run the <code>*_user</code> crate (all <code>*_user</code> crates should have a help message and a readme.md).</p>
+<h2 id="minimum-rust-version"><a class="doc-anchor" href="#minimum-rust-version">§</a>Minimum Rust version</h2>
+<p>This crate support Rust back to 1.61.0</p>
+<p>You can manually enable support for Rust past 1.61.0 with the <code>rust_*_*</code> cargo features.</p>
+<h2 id="crate-features"><a class="doc-anchor" href="#crate-features">§</a>Crate Features</h2>
+<p>These are default cargo features that enable optional crates :</p>
+<ul>
+<li>
+<p>“channels”:
+Depends on <code>crossbeam-channel</code>,
+wrapping channels from it for ffi in <code>abi_stable::external_types::crossbeam_channel</code> .</p>
+</li>
+<li>
+<p>“serde_json”:
+Depends on <code>serde_json</code>,
+providing ffi-safe equivalents of
+<code>&amp;serde_json::value::RawValue</code> and <code>Box&lt;serde_json::value::RawValue&gt;</code>,
+in <code>abi_stable::external_types::serde_json</code> .</p>
+</li>
+</ul>
+<p>To disable the default features use:</p>
+<div class="example-wrap"><pre class="language-text"><code>[dependencies.abi_stable]
+version = &quot;&lt;current_version&gt;&quot;
+default-features = false
+features = [  ]</code></pre></div>
+<p>enabling the features you need in the <code>features</code> array.</p>
+<h4 id="manually-enabled"><a class="doc-anchor" href="#manually-enabled">§</a>Manually enabled</h4>
+<p>These are crate features to manually enable support for newer language features:</p>
+<ul>
+<li>
+<p>“rust_1_64”: Turns many functions for converting types to slices into const fns.</p>
+</li>
+<li>
+<p>“rust_latest_stable”:
+Enables the “rust_1_*” features for all the stable releases.</p>
+</li>
+</ul>
+<h2 id="glossary"><a class="doc-anchor" href="#glossary">§</a>Glossary</h2>
+<p><code>interface crate</code>: the crate that declares the public functions, types, and traits that
+are necessary to load a library at runtime.</p>
+<p><code>ìmplementation crate</code>: A crate that implements all the functions in a interface crate.</p>
+<p><code>user crate</code>: A crate that depends on an <code>interface crate</code> and
+loads 1 or more <code>ìmplementation crate</code>s for it.</p>
+<p><code>module</code>: refers to a struct of function pointers and other static values.
+The root module of a library implements the <a href="./library/trait.RootModule.html"><code>RootModule</code></a> trait.
+These are declared in the <code>interface crate</code>,exported in the <code>implementation crate</code>,
+and loaded in the <code>user crate</code>.</p>
+<h2 id="rust-to-rust-ffi-types"><a class="doc-anchor" href="#rust-to-rust-ffi-types">§</a>Rust-to-Rust FFI types.</h2>
+<p>Types must implement <a href="./abi_stability/stable_abi_trait/trait.StableAbi.html"><code>StableAbi</code></a> to be safely passed through the FFI boundary,
+which can be done using the <a href="./derive.StableAbi.html"><code>StableAbi</code> derive</a> macro.</p>
+<p>For how to evolve dynamically loaded libraries you can look at the <a href="./docs/library_evolution/index.html">library_evolution</a> module.</p>
+<p>These are the kinds of types passed through FFI:</p>
+<ul>
+<li>
+<p>Value kind:<br>
+This is the default kind when deriving StableAbi.
+The layout of these types must not change in a minor versions.</p>
+</li>
+<li>
+<p><a href="./docs/sabi_nonexhaustive/index.html">Nonexhaustive enums</a> :<br>
+Enums wrapped inside <a href="./nonexhaustive_enum/struct.NonExhaustive.html"><code>NonExhaustive</code></a>,
+which can add variants in minor versions of the library.</p>
+</li>
+<li>
+<p><a href="./attr.sabi_trait.html">Trait objects</a> :<br>
+Trait object-like types generated using the <a href="./attr.sabi_trait.html"><code>sabi_trait</code></a> attribute macro,
+which erase the type of the value they wrap,implements the methods of the trait,
+and can only be unwrapped back to the original type in the dynamic library/binary
+that created it.</p>
+</li>
+<li>
+<p>Opaque kind:<br>
+Types wrapped in <a href="./struct.DynTrait.html"><code>DynTrait</code></a>,
+whose layout can change in any version of the library,
+and can only be unwrapped back to the original type in the dynamic library/binary
+that created it.</p>
+</li>
+<li>
+<p><a href="./docs/prefix_types/index.html">Prefix types</a> :<br>
+Types only accessible through some custom pointer types,
+most commonly vtables and modules,
+which can be extended in minor versions while staying ABI compatible,
+by adding fields at the end.</p>
+</li>
+</ul>
+<h2 id="extra-documentation"><a class="doc-anchor" href="#extra-documentation">§</a>Extra documentation</h2>
+<ul>
+<li>
+<p><a href="./docs/unsafe_code_guidelines/index.html">Unsafe code guidelines</a> :<br>
+Describes how to write unsafe code ,relating to this library.</p>
+</li>
+<li>
+<p><a href="./docs/troubleshooting/index.html">Troubleshooting</a> :<br>
+Some problems and their solutions.</p>
+</li>
+</ul>
+<h2 id="macros-derive-and-attribute"><a class="doc-anchor" href="#macros-derive-and-attribute">§</a>Macros (derive and attribute)</h2>
+<ul>
+<li>
+<p><a href="./attr.sabi_trait.html"><code>sabi_trait</code></a> attribute macro:<br>
+For generating ffi-safe trait objects.</p>
+</li>
+<li>
+<p><a href="./derive.StableAbi.html"><code>StableAbi</code> derive</a> :<br>
+For asserting abi-stability of a type,
+and obtaining the layout of the type at runtime.</p>
+</li>
+<li>
+<p><a href="./docs/sabi_nonexhaustive/index.html">Nonexhaustive enums</a> :<br>
+Details for how to declare nonexhaustive enums.</p>
+</li>
+<li>
+<p><a href="./docs/prefix_types/index.html">Prefix types</a> (using the StableAbi derive macro):<br>
+The way that <em>vtables</em> and <em>modules</em> are implemented,
+allowing extending them in minor versions of a library.</p>
+</li>
+</ul>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.RMut"><code>pub use abi_stable::sabi_types::<a class="struct" href="sabi_types/struct.RMut.html" title="struct abi_stable::sabi_types::RMut">RMut</a>;</code></dt><dt id="reexport.RRef"><code>pub use abi_stable::sabi_types::<a class="struct" href="sabi_types/struct.RRef.html" title="struct abi_stable::sabi_types::RRef">RRef</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="abi_stability/index.html" title="mod abi_stable::abi_stability">abi_<wbr>stability</a></dt><dd>types and traits related to abi stability.</dd><dt><a class="mod" href="const_utils/index.html" title="mod abi_stable::const_utils">const_<wbr>utils</a></dt><dd>Utilities for const contexts.</dd><dt><a class="mod" href="docs/index.html" title="mod abi_stable::docs">docs</a></dt><dd>Additional docs for macros, and guides.</dd><dt><a class="mod" href="erased_types/index.html" title="mod abi_stable::erased_types">erased_<wbr>types</a></dt><dd>Types and traits related to type erasure.</dd><dt><a class="mod" href="external_types/index.html" title="mod abi_stable::external_types">external_<wbr>types</a></dt><dd>Ffi wrapper for types defined outside the standard library.</dd><dt><a class="mod" href="for_examples/index.html" title="mod abi_stable::for_examples">for_<wbr>examples</a></dt><dd>Types used in documentation examples.</dd><dt><a class="mod" href="inline_storage/index.html" title="mod abi_stable::inline_storage">inline_<wbr>storage</a></dt><dd>Contains the <code>InlineStorage</code> trait,and related items.</dd><dt><a class="mod" href="library/index.html" title="mod abi_stable::library">library</a></dt><dd>Traits and types related to loading an abi_stable dynamic library,
+as well as functions/modules within.</dd><dt><a class="mod" href="marker_type/index.html" title="mod abi_stable::marker_type">marker_<wbr>type</a></dt><dd>Zero-sized types .</dd><dt><a class="mod" href="nonexhaustive_enum/index.html" title="mod abi_stable::nonexhaustive_enum">nonexhaustive_<wbr>enum</a></dt><dd>Contains types and traits for nonexhaustive enums.</dd><dt><a class="mod" href="pointer_trait/index.html" title="mod abi_stable::pointer_trait">pointer_<wbr>trait</a></dt><dd>Traits for pointers.</dd><dt><a class="mod" href="prefix_type/index.html" title="mod abi_stable::prefix_type">prefix_<wbr>type</a></dt><dd>Types,traits,and functions used by prefix-types.</dd><dt><a class="mod" href="reexports/index.html" title="mod abi_stable::reexports">reexports</a></dt><dd>Miscelaneous items re-exported from core_extensions.</dd><dt><a class="mod" href="reflection/index.html" title="mod abi_stable::reflection">reflection</a></dt><dd>Types and submodules for doing runtime reflection.</dd><dt><a class="mod" href="sabi_trait/index.html" title="mod abi_stable::sabi_trait">sabi_<wbr>trait</a></dt><dd>Contains items related to the <a href="attr.sabi_trait.html" title="attr abi_stable::sabi_trait"><code>#[sabi_trait]</code></a> attribute.</dd><dt><a class="mod" href="sabi_types/index.html" title="mod abi_stable::sabi_types">sabi_<wbr>types</a></dt><dd>ffi-safe types that aren’t wrappers for other types.</dd><dt><a class="mod" href="std_types/index.html" title="mod abi_stable::std_types">std_<wbr>types</a></dt><dd>Contains many ffi-safe equivalents of standard library types.
+The vast majority of them can be converted to and from std equivalents.</dd><dt><a class="mod" href="traits/index.html" title="mod abi_stable::traits">traits</a></dt><dd>Where miscellaneous traits reside.</dd><dt><a class="mod" href="type_layout/index.html" title="mod abi_stable::type_layout">type_<wbr>layout</a></dt><dd>Types for modeling the layout of a datatype</dd><dt><a class="mod" href="type_level/index.html" title="mod abi_stable::type_level">type_<wbr>level</a></dt><dd>Types used to represent values at compile-time, eg: True/False.</dd><dt><a class="mod" href="utils/index.html" title="mod abi_stable::utils">utils</a></dt><dd>Utility functions.</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.RTuple.html" title="macro abi_stable::RTuple">RTuple</a></dt><dd>Use this macro to get the type of a <code>Tuple*</code> with the types passed to the macro.</dd><dt><a class="macro" href="macro.declare_root_module_statics.html" title="macro abi_stable::declare_root_module_statics">declare_<wbr>root_<wbr>module_<wbr>statics</a></dt><dd>Implements the <a href="./library/trait.RootModule.html#tymethod.root_module_statics"><code>RootModule::root_module_statics</code></a> associated function.</dd><dt><a class="macro" href="macro.extern_fn_panic_handling.html" title="macro abi_stable::extern_fn_panic_handling">extern_<wbr>fn_<wbr>panic_<wbr>handling</a></dt><dd>Use this to make sure that you handle panics inside <code>extern fn</code> correctly.</dd><dt><a class="macro" href="macro.make_item_info.html" title="macro abi_stable::make_item_info">make_<wbr>item_<wbr>info</a></dt><dd>Constructs an <a href="./type_layout/struct.ItemInfo.html"><code>ItemInfo</code></a>, with information about the place where it’s called.</dd><dt><a class="macro" href="macro.nulstr.html" title="macro abi_stable::nulstr">nulstr</a></dt><dd>Constructs a <a href="./sabi_types/struct.NulStr.html"><code>NulStr</code></a> from a string literal.</dd><dt><a class="macro" href="macro.nulstr_trunc.html" title="macro abi_stable::nulstr_trunc">nulstr_<wbr>trunc</a></dt><dd>Constructs a <a href="./sabi_types/struct.NulStr.html"><code>NulStr</code></a> from a string literal,
+truncating the string on internal nul bytes.</dd><dt><a class="macro" href="macro.package_version_strings.html" title="macro abi_stable::package_version_strings">package_<wbr>version_<wbr>strings</a></dt><dd>Instantiates a <a href="./sabi_types/version/struct.VersionStrings.html"><code>VersionStrings</code></a> with the
+major.minor.patch version of the library where it is invoked.</dd><dt><a class="macro" href="macro.rslice.html" title="macro abi_stable::rslice">rslice</a></dt><dd>A macro to construct <a href="./std_types/struct.RSlice.html"><code>RSlice</code></a>s.</dd><dt><a class="macro" href="macro.rstr.html" title="macro abi_stable::rstr">rstr</a></dt><dd>Constructs <a href="./std_types/struct.RStr.html"><code>RStr</code></a> constants from <code>&amp;'static str</code> constants.</dd><dt><a class="macro" href="macro.rtry.html" title="macro abi_stable::rtry">rtry</a></dt><dd>Equivalent to <code>?</code> for <a href="./std_types/enum.RResult.html"><code>RResult</code></a>.</dd><dt><a class="macro" href="macro.rtry_opt.html" title="macro abi_stable::rtry_opt">rtry_<wbr>opt</a></dt><dd>Equivalent to <code>?</code> for <a href="./std_types/enum.ROption.html"><code>ROption</code></a>.</dd><dt><a class="macro" href="macro.rtuple.html" title="macro abi_stable::rtuple">rtuple</a></dt><dd>Use this macro to construct a <code>abi_stable::std_types::Tuple*</code>
+with the values passed to the macro.</dd><dt><a class="macro" href="macro.rvec.html" title="macro abi_stable::rvec">rvec</a></dt><dd>Constructs an <a href="./std_types/struct.RVec.html"><code>RVec</code></a> using the same syntax that the <a href="https://doc.rust-lang.org/std/macro.vec.html"><code>std::vec</code></a> macro uses.</dd><dt><a class="macro" href="macro.staticref.html" title="macro abi_stable::staticref">staticref</a></dt><dd>Allows declaring a <a href="./sabi_types/struct.StaticRef.html"><code>StaticRef</code></a> inherent associated <code>const</code>ant
+from possibly non-<code>'static</code> references.</dd><dt><a class="macro" href="macro.tag.html" title="macro abi_stable::tag">tag</a></dt><dd>Constructs a <a href="./type_layout/tagging/struct.Tag.html"><code>Tag</code></a>,
+a dynamically typed value for users to check extra properties about their types
+when doing runtime type checking.</dd><dt><a class="macro" href="macro.tl_genparams.html" title="macro abi_stable::tl_genparams">tl_<wbr>genparams</a></dt><dd>Can be used to construct <a href="./type_layout/struct.CompGenericParams.html"><code>CompGenericParams</code></a>,
+when manually implementing <a href="./trait.StableAbi.html"><code>StableAbi</code></a>.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.DynTrait.html" title="struct abi_stable::DynTrait">DynTrait</a></dt><dd>DynTrait implements ffi-safe trait objects, for a selection of traits.</dd></dl><h2 id="statics" class="section-header">Statics<a href="#statics" class="anchor">§</a></h2><dl class="item-table"><dt><a class="static" href="static.LIB_HEADER.html" title="static abi_stable::LIB_HEADER">LIB_<wbr>HEADER</a></dt><dd>The header used to identify the version number of abi_stable
+that a dynamic libraries uses.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.InterfaceType.html" title="trait abi_stable::InterfaceType">Interface<wbr>Type</a></dt><dd>Defines the usable/required traits when creating a
+<a href="struct.DynTrait.html" title="struct abi_stable::DynTrait"><code>DynTrait&lt;Pointer&lt;()&gt;, ThisInterfaceType&gt;</code></a>.</dd><dt><a class="trait" href="trait.StableAbi.html" title="trait abi_stable::StableAbi">Stable<wbr>Abi</a></dt><dd>Represents a type whose layout is stable.</dd></dl><h2 id="attributes" class="section-header">Attribute Macros<a href="#attributes" class="anchor">§</a></h2><dl class="item-table"><dt><a class="attr" href="attr.export_root_module.html" title="attr abi_stable::export_root_module">export_<wbr>root_<wbr>module</a></dt><dd>This attribute is used for functions which export a module in an <code>implementation crate</code>.</dd><dt><a class="attr" href="attr.sabi_extern_fn.html" title="attr abi_stable::sabi_extern_fn">sabi_<wbr>extern_<wbr>fn</a></dt><dd>The <code>sabi_extern_fn</code> attribute macro allows defining <code>extern "C"</code> function that
+abort on unwind instead of causing undefined behavior.</dd><dt><a class="attr" href="attr.sabi_trait.html" title="attr abi_stable::sabi_trait">sabi_<wbr>trait</a></dt><dd>This attribute generates an ffi-safe trait object on the trait it’s applied to.</dd></dl><h2 id="derives" class="section-header">Derive Macros<a href="#derives" class="anchor">§</a></h2><dl class="item-table"><dt><a class="derive" href="derive.GetStaticEquivalent.html" title="derive abi_stable::GetStaticEquivalent">GetStatic<wbr>Equivalent</a></dt><dd>The <code>GetStaticEquivalent</code> macro derives the <a href="abi_stability/get_static_equivalent/trait.GetStaticEquivalent_.html" title="trait abi_stable::abi_stability::get_static_equivalent::GetStaticEquivalent_"><code>GetStaticEquivalent_</code></a> trait.</dd><dt><a class="derive" href="derive.StableAbi.html" title="derive abi_stable::StableAbi">Stable<wbr>Abi</a></dt><dd>The StableAbi derive macro allows one to implement the <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi trait</code></a> to :</dd></dl><script type="text/json" id="notable-traits-data">{"BitArray64Iter<E>":"<h3>Notable traits for <code><a class=\"struct\" href=\"sabi_types/bitarray/struct.BitArray64Iter.html\" title=\"struct abi_stable::sabi_types::bitarray::BitArray64Iter\">BitArray64Iter</a>&lt;E&gt;</code></h3><pre><code><div class=\"where\">impl&lt;E&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"sabi_types/bitarray/struct.BitArray64Iter.html\" title=\"struct abi_stable::sabi_types::bitarray::BitArray64Iter\">BitArray64Iter</a>&lt;E&gt;<div class=\"where\">where\n    E: <a class=\"trait\" href=\"sabi_types/bitarray/trait.BooleanEnum.html\" title=\"trait abi_stable::sabi_types::bitarray::BooleanEnum\">BooleanEnum</a>,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = E;</div>","DynTrait<'borr, P, I, EV>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'borr, P, I, Item, EV&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"pointer_trait/trait.AsMutPtr.html\" title=\"trait abi_stable::pointer_trait::AsMutPtr\">AsMutPtr</a>,\n    I: <a class=\"trait\" href=\"erased_types/trait.IteratorItemOrDefault.html\" title=\"trait abi_stable::erased_types::IteratorItemOrDefault\">IteratorItemOrDefault</a>&lt;'borr, Item = Item&gt; + <a class=\"trait\" href=\"trait.InterfaceType.html\" title=\"trait abi_stable::InterfaceType\">InterfaceType</a>&lt;Iterator = <a class=\"struct\" href=\"type_level/impl_enum/struct.Implemented.html\" title=\"struct abi_stable::type_level::impl_enum::Implemented\">Implemented</a>&lt;<a class=\"struct\" href=\"type_level/trait_marker/struct.Iterator.html\" title=\"struct abi_stable::type_level::trait_marker::Iterator\">Iterator</a>&gt;&gt;,\n    Item: 'borr,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = Item;</div><div class=\"where\">impl&lt;'borr, P, I, EV&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/std/io/trait.Write.html\" title=\"trait std::io::Write\">Write</a> for <a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"pointer_trait/trait.AsMutPtr.html\" title=\"trait abi_stable::pointer_trait::AsMutPtr\">AsMutPtr</a>,\n    I: <a class=\"trait\" href=\"trait.InterfaceType.html\" title=\"trait abi_stable::InterfaceType\">InterfaceType</a>&lt;IoWrite = <a class=\"struct\" href=\"type_level/impl_enum/struct.Implemented.html\" title=\"struct abi_stable::type_level::impl_enum::Implemented\">Implemented</a>&lt;<a class=\"struct\" href=\"type_level/trait_marker/struct.IoWrite.html\" title=\"struct abi_stable::type_level::trait_marker::IoWrite\">IoWrite</a>&gt;&gt;,</div></div><div class=\"where\">impl&lt;'borr, P, I, EV&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for <a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"pointer_trait/trait.AsMutPtr.html\" title=\"trait abi_stable::pointer_trait::AsMutPtr\">AsMutPtr</a>,\n    I: <a class=\"trait\" href=\"trait.InterfaceType.html\" title=\"trait abi_stable::InterfaceType\">InterfaceType</a>&lt;IoRead = <a class=\"struct\" href=\"type_level/impl_enum/struct.Implemented.html\" title=\"struct abi_stable::type_level::impl_enum::Implemented\">Implemented</a>&lt;<a class=\"struct\" href=\"type_level/trait_marker/struct.IoRead.html\" title=\"struct abi_stable::type_level::trait_marker::IoRead\">IoRead</a>&gt;&gt;,</div></div>","DynTrait<'borr, RMut<'re, ()>, I, EV>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'borr, P, I, Item, EV&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"pointer_trait/trait.AsMutPtr.html\" title=\"trait abi_stable::pointer_trait::AsMutPtr\">AsMutPtr</a>,\n    I: <a class=\"trait\" href=\"erased_types/trait.IteratorItemOrDefault.html\" title=\"trait abi_stable::erased_types::IteratorItemOrDefault\">IteratorItemOrDefault</a>&lt;'borr, Item = Item&gt; + <a class=\"trait\" href=\"trait.InterfaceType.html\" title=\"trait abi_stable::InterfaceType\">InterfaceType</a>&lt;Iterator = <a class=\"struct\" href=\"type_level/impl_enum/struct.Implemented.html\" title=\"struct abi_stable::type_level::impl_enum::Implemented\">Implemented</a>&lt;<a class=\"struct\" href=\"type_level/trait_marker/struct.Iterator.html\" title=\"struct abi_stable::type_level::trait_marker::Iterator\">Iterator</a>&gt;&gt;,\n    Item: 'borr,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = Item;</div><div class=\"where\">impl&lt;'borr, P, I, EV&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/std/io/trait.Write.html\" title=\"trait std::io::Write\">Write</a> for <a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"pointer_trait/trait.AsMutPtr.html\" title=\"trait abi_stable::pointer_trait::AsMutPtr\">AsMutPtr</a>,\n    I: <a class=\"trait\" href=\"trait.InterfaceType.html\" title=\"trait abi_stable::InterfaceType\">InterfaceType</a>&lt;IoWrite = <a class=\"struct\" href=\"type_level/impl_enum/struct.Implemented.html\" title=\"struct abi_stable::type_level::impl_enum::Implemented\">Implemented</a>&lt;<a class=\"struct\" href=\"type_level/trait_marker/struct.IoWrite.html\" title=\"struct abi_stable::type_level::trait_marker::IoWrite\">IoWrite</a>&gt;&gt;,</div></div><div class=\"where\">impl&lt;'borr, P, I, EV&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for <a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"pointer_trait/trait.AsMutPtr.html\" title=\"trait abi_stable::pointer_trait::AsMutPtr\">AsMutPtr</a>,\n    I: <a class=\"trait\" href=\"trait.InterfaceType.html\" title=\"trait abi_stable::InterfaceType\">InterfaceType</a>&lt;IoRead = <a class=\"struct\" href=\"type_level/impl_enum/struct.Implemented.html\" title=\"struct abi_stable::type_level::impl_enum::Implemented\">Implemented</a>&lt;<a class=\"struct\" href=\"type_level/trait_marker/struct.IoRead.html\" title=\"struct abi_stable::type_level::trait_marker::IoRead\">IoRead</a>&gt;&gt;,</div></div>","DynTrait<'borr, RRef<'re, ()>, I, EV>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'borr, P, I, Item, EV&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"pointer_trait/trait.AsMutPtr.html\" title=\"trait abi_stable::pointer_trait::AsMutPtr\">AsMutPtr</a>,\n    I: <a class=\"trait\" href=\"erased_types/trait.IteratorItemOrDefault.html\" title=\"trait abi_stable::erased_types::IteratorItemOrDefault\">IteratorItemOrDefault</a>&lt;'borr, Item = Item&gt; + <a class=\"trait\" href=\"trait.InterfaceType.html\" title=\"trait abi_stable::InterfaceType\">InterfaceType</a>&lt;Iterator = <a class=\"struct\" href=\"type_level/impl_enum/struct.Implemented.html\" title=\"struct abi_stable::type_level::impl_enum::Implemented\">Implemented</a>&lt;<a class=\"struct\" href=\"type_level/trait_marker/struct.Iterator.html\" title=\"struct abi_stable::type_level::trait_marker::Iterator\">Iterator</a>&gt;&gt;,\n    Item: 'borr,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = Item;</div><div class=\"where\">impl&lt;'borr, P, I, EV&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/std/io/trait.Write.html\" title=\"trait std::io::Write\">Write</a> for <a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"pointer_trait/trait.AsMutPtr.html\" title=\"trait abi_stable::pointer_trait::AsMutPtr\">AsMutPtr</a>,\n    I: <a class=\"trait\" href=\"trait.InterfaceType.html\" title=\"trait abi_stable::InterfaceType\">InterfaceType</a>&lt;IoWrite = <a class=\"struct\" href=\"type_level/impl_enum/struct.Implemented.html\" title=\"struct abi_stable::type_level::impl_enum::Implemented\">Implemented</a>&lt;<a class=\"struct\" href=\"type_level/trait_marker/struct.IoWrite.html\" title=\"struct abi_stable::type_level::trait_marker::IoWrite\">IoWrite</a>&gt;&gt;,</div></div><div class=\"where\">impl&lt;'borr, P, I, EV&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for <a class=\"struct\" href=\"struct.DynTrait.html\" title=\"struct abi_stable::DynTrait\">DynTrait</a>&lt;'borr, P, I, EV&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"pointer_trait/trait.AsMutPtr.html\" title=\"trait abi_stable::pointer_trait::AsMutPtr\">AsMutPtr</a>,\n    I: <a class=\"trait\" href=\"trait.InterfaceType.html\" title=\"trait abi_stable::InterfaceType\">InterfaceType</a>&lt;IoRead = <a class=\"struct\" href=\"type_level/impl_enum/struct.Implemented.html\" title=\"struct abi_stable::type_level::impl_enum::Implemented\">Implemented</a>&lt;<a class=\"struct\" href=\"type_level/trait_marker/struct.IoRead.html\" title=\"struct abi_stable::type_level::trait_marker::IoRead\">IoRead</a>&gt;&gt;,</div></div>"}</script></section></div></main></body></html>

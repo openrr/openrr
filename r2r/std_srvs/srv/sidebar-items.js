@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["Empty","SetBool","Trigger"]};

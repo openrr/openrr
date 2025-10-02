@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["GetMap","GetPlan","LoadMap","SetMap"]};

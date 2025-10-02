@@ -1,0 +1,74 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="For getting a mutable raw pointer to the value that this points to."><title>AsMutPtr in abi_stable::pointer_trait - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">AsMut<wbr>Ptr</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#safety" title="Safety">Safety</a></li><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.as_mut_ptr" title="as_mut_ptr">as_mut_ptr</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.as_rmut" title="as_rmut">as_rmut</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In abi_<wbr>stable::<wbr>pointer_<wbr>trait</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">abi_stable</a>::<wbr><a href="index.html">pointer_trait</a></div><h1>Trait <span class="trait">AsMutPtr</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/abi_stable/pointer_trait.rs.html#498-507">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe trait AsMutPtr: <a class="trait" href="trait.AsPtr.html" title="trait abi_stable::pointer_trait::AsPtr">AsPtr</a> {
+    // Required method
+    fn <a href="#tymethod.as_mut_ptr" class="fn">as_mut_ptr</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.pointer.html">*mut </a>Self::<a class="associatedtype" href="trait.GetPointerKind.html#associatedtype.PtrTarget" title="type abi_stable::pointer_trait::GetPointerKind::PtrTarget">PtrTarget</a>;
+
+    // Provided method
+    fn <a href="#method.as_rmut" class="fn">as_rmut</a>(&amp;mut self) -&gt; <a class="struct" href="../sabi_types/struct.RMut.html" title="struct abi_stable::sabi_types::RMut">RMut</a>&lt;'_, Self::<a class="associatedtype" href="trait.GetPointerKind.html#associatedtype.PtrTarget" title="type abi_stable::pointer_trait::GetPointerKind::PtrTarget">PtrTarget</a>&gt; { ... }
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>For getting a mutable raw pointer to the value that this points to.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<p>The implementor of this trait must return a pointer to the same data as
+<code>DerefMut::deref_mut</code>,
+without constructing a <code>&amp;mut Self::Target</code> in <code>as_mut_ptr</code>
+(or any function it calls).</p>
+<p>The implementor of this trait must not override the defaulted methods.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    erased_types::interfaces::DEIteratorInterface,
+    pointer_trait::{
+        PK_MutReference,
+        AsPtr, AsMutPtr, CanTransmuteElement, GetPointerKind, TransmuteElement,
+    },
+    sabi_types::RMut,
+    DynTrait,
+};
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span><span class="kw-2">mut </span>iter = <span class="number">0</span>..=<span class="number">5</span>;
+    <span class="kw">let </span>reff: DynTrait&lt;QuxMut&lt;()&gt;, DEIteratorInterface&lt;<span class="kw">_</span>&gt;&gt; =
+        DynTrait::from_ptr(QuxMut::new(<span class="kw-2">&amp;mut </span>iter)).interface(DEIteratorInterface::NEW);
+     
+    <span class="macro">assert_eq!</span>(reff.collect::&lt;Vec&lt;u32&gt;&gt;(), [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);
+
+    <span class="macro">assert_eq!</span>(iter.next(), <span class="prelude-val">None</span>);
+}
+
+
+<span class="attr">#[derive(Debug)]
+#[repr(transparent)]
+</span><span class="kw">struct </span>QuxMut&lt;<span class="lifetime">'a</span>, T&gt;(RMut&lt;<span class="lifetime">'a</span>, T&gt;);
+
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; QuxMut&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">pub fn </span>new(reff: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(RMut::new(reff))
+    }
+}
+
+<span class="kw">unsafe impl</span>&lt;T&gt; GetPointerKind <span class="kw">for </span>QuxMut&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">type </span>PtrTarget = T;
+    <span class="kw">type </span>Kind = PK_MutReference;
+}
+
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, U: <span class="lifetime">'a</span>&gt; CanTransmuteElement&lt;U&gt; <span class="kw">for </span>QuxMut&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">type </span>TransmutedPtr = QuxMut&lt;<span class="lifetime">'a</span>, U&gt;;
+     
+    <span class="kw">unsafe fn </span>transmute_element_(<span class="self">self</span>) -&gt; <span class="self">Self</span>::TransmutedPtr {
+        QuxMut(<span class="self">self</span>.<span class="number">0</span>.transmute_element_())
+    }
+}
+
+<span class="kw">unsafe impl</span>&lt;T&gt; AsPtr <span class="kw">for </span>QuxMut&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>T {
+        <span class="self">self</span>.<span class="number">0</span>.as_ptr()
+    }
+}
+
+<span class="kw">unsafe impl</span>&lt;T&gt; AsMutPtr <span class="kw">for </span>QuxMut&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>as_mut_ptr(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>T {
+        <span class="self">self</span>.<span class="number">0</span>.as_mut_ptr()
+    }
+}
+
+</code></pre></div>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.as_mut_ptr" class="method"><a class="src rightside" href="../../src/abi_stable/pointer_trait.rs.html#500">Source</a><h4 class="code-header">fn <a href="#tymethod.as_mut_ptr" class="fn">as_mut_ptr</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.pointer.html">*mut </a>Self::<a class="associatedtype" href="trait.GetPointerKind.html#associatedtype.PtrTarget" title="type abi_stable::pointer_trait::GetPointerKind::PtrTarget">PtrTarget</a></h4></section></summary><div class="docblock"><p>Gets a mutable raw pointer to the value that this points to.</p>
+</div></details></div><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.as_rmut" class="method"><a class="src rightside" href="../../src/abi_stable/pointer_trait.rs.html#504-506">Source</a><h4 class="code-header">fn <a href="#method.as_rmut" class="fn">as_rmut</a>(&amp;mut self) -&gt; <a class="struct" href="../sabi_types/struct.RMut.html" title="struct abi_stable::sabi_types::RMut">RMut</a>&lt;'_, Self::<a class="associatedtype" href="trait.GetPointerKind.html#associatedtype.PtrTarget" title="type abi_stable::pointer_trait::GetPointerKind::PtrTarget">PtrTarget</a>&gt;</h4></section></summary><div class="docblock"><p>Converts this pointer to an <code>RRef</code>.</p>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-AsMutPtr-for-RMut%3C'a,+T%3E" class="impl"><a class="src rightside" href="../../src/abi_stable/sabi_types/rmut.rs.html#637-647">Source</a><a href="#impl-AsMutPtr-for-RMut%3C'a,+T%3E" class="anchor">§</a><h3 class="code-header">impl&lt;'a, T&gt; <a class="trait" href="trait.AsMutPtr.html" title="trait abi_stable::pointer_trait::AsMutPtr">AsMutPtr</a> for <a class="struct" href="../sabi_types/struct.RMut.html" title="struct abi_stable::sabi_types::RMut">RMut</a>&lt;'a, T&gt;</h3></section><section id="impl-AsMutPtr-for-RBox%3CT%3E" class="impl"><a class="src rightside" href="../../src/abi_stable/std_types/boxed.rs.html#174-179">Source</a><a href="#impl-AsMutPtr-for-RBox%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="trait.AsMutPtr.html" title="trait abi_stable::pointer_trait::AsMutPtr">AsMutPtr</a> for <a class="struct" href="../std_types/struct.RBox.html" title="struct abi_stable::std_types::RBox">RBox</a>&lt;T&gt;</h3></section><section id="impl-AsMutPtr-for-RSmallBox%3CT,+Inline%3E" class="impl"><a class="src rightside" href="../../src/abi_stable/sabi_types/rsmallbox.rs.html#421-425">Source</a><a href="#impl-AsMutPtr-for-RSmallBox%3CT,+Inline%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T, Inline&gt; <a class="trait" href="trait.AsMutPtr.html" title="trait abi_stable::pointer_trait::AsMutPtr">AsMutPtr</a> for <a class="struct" href="../sabi_types/rsmallbox/struct.RSmallBox.html" title="struct abi_stable::sabi_types::rsmallbox::RSmallBox">RSmallBox</a>&lt;T, Inline&gt;</h3></section></div><script src="../../trait.impl/abi_stable/pointer_trait/trait.AsMutPtr.js" async></script></section></div></main></body></html>

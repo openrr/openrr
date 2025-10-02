@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BuiltinClient","BuiltinGamepad","ClientKind","Error","GamepadKind","PluginInstanceKind","SpeakConfig"],"mod":["utils"],"struct":["OpenrrTracingConfig","PluginConfig","PluginInstance","PluginMap","RobotConfig","RobotTeleopConfig","TeleopPluginConfig"]};

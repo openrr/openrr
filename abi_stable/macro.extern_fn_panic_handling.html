@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Use this to make sure that you handle panics inside `extern fn` correctly."><title>extern_fn_panic_handling in abi_stable - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">extern_<wbr>fn_<wbr>panic_<wbr>handling</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#early-returns" title="Early returns">Early returns</a></li><li><a href="#example" title="Example">Example</a></li><li><a href="#example-no_early_return" title="Example, no_early_return">Example, no_early_return</a></li><li><a href="#returing-in-no_early_return" title="Returing in `no_early_return`">Returing in <code>no_early_return</code></a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate abi_<wbr>stable</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">abi_stable</a></div><h1>Macro <span class="macro">extern_fn_panic_handling</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/abi_stable/macros.rs.html#263-297">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! extern_fn_panic_handling {
+    (no_early_return; $($fn_contents:tt)* ) =&gt; { ... };
+    ( $($fn_contents:tt)* ) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Use this to make sure that you handle panics inside <code>extern fn</code> correctly.</p>
+<p>This macro causes an abort if a panic reaches this point.</p>
+<p>It does not prevent functions inside from using <code>::std::panic::catch_unwind</code>
+to catch the panic.</p>
+<h2 id="early-returns"><a class="doc-anchor" href="#early-returns">§</a>Early returns</h2>
+<p>This macro by default wraps the passed code in a closure so that any
+early returns that happen inside don’t interfere with the macro generated code.</p>
+<p>If you don’t have an early return (a <code>return</code>/<code>continue</code>/<code>break</code>/<code>?</code>/etc.)
+in the code passed to this macro you can use
+<code>extern_fn_panic_handling!{no_early_return; &lt;code here&gt; }</code>,
+which <em>might</em> be cheaper(this has not been tested yet).</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::fmt;
+
+<span class="kw">use </span>abi_stable::{
+    extern_fn_panic_handling,
+    std_types::RString,
+};
+
+
+<span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>print_debug&lt;T&gt;(this: <span class="kw-2">&amp;</span>T, buf: <span class="kw-2">&amp;mut </span>RString)
+<span class="kw">where
+    </span>T: fmt::Debug,
+{
+    <span class="macro">extern_fn_panic_handling!</span> {
+        <span class="kw">use </span>std::fmt::Write;
+
+        <span class="macro">println!</span>(<span class="string">"{:?}"</span>, this);
+    }
+}</code></pre></div>
+<h2 id="example-no_early_return"><a class="doc-anchor" href="#example-no_early_return">§</a>Example, no_early_return</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::fmt;
+
+<span class="kw">use </span>abi_stable::{
+    extern_fn_panic_handling,
+    std_types::RString,
+};
+
+
+<span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>print_debug&lt;T&gt;(this: <span class="kw-2">&amp;</span>T, buf: <span class="kw-2">&amp;mut </span>RString)
+<span class="kw">where
+    </span>T: fmt::Debug,
+{
+    <span class="macro">extern_fn_panic_handling!</span>{no_early_return;
+        <span class="kw">use </span>std::fmt::Write;
+
+        <span class="macro">println!</span>(<span class="string">"{:?}"</span>, this);
+    }
+}
+</code></pre></div>
+<h2 id="returing-in-no_early_return"><a class="doc-anchor" href="#returing-in-no_early_return">§</a>Returing in <code>no_early_return</code></h2>
+<p>Attempting to do any kind of returning from inside of
+<code>extern_fn_panic_handling!{no_early_return}</code>
+will cause an abort:</p>
+
+<div class="example-wrap should_panic"><a href="#" class="tooltip" title="This example panics">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::extern_fn_panic_handling;
+
+<span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>function() {
+    <span class="macro">extern_fn_panic_handling!</span>{no_early_return;
+        <span class="kw">return</span>;
+    }
+}
+
+function();
+</code></pre></div>
+</div></details></section></div></main></body></html>

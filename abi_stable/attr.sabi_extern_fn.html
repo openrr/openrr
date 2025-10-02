@@ -1,0 +1,75 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The `sabi_extern_fn` attribute macro allows defining `extern &#34;C&#34;` function that abort on unwind instead of causing undefined behavior."><title>sabi_extern_fn in abi_stable - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">sabi_<wbr>extern_<wbr>fn</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#basic-examples" title="Basic examples">Basic examples</a></li><li><a href="#no_early_return" title="no_early_return">no_early_return</a><ul><li><a href="#example" title="Example">Example</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate abi_<wbr>stable</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">abi_stable</a></div><h1>Attribute Macro <span class="attr">sabi_extern_fn</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/abi_stable_derive/lib.rs.html#30">Source</a> </span></div><pre class="rust item-decl"><code>#[sabi_extern_fn]</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The <code>sabi_extern_fn</code> attribute macro allows defining <code>extern "C"</code> function that
+abort on unwind instead of causing undefined behavior.</p>
+<p>This macro is syntactic sugar to transform  this:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code>&lt;visibility&gt; <span class="kw">fn </span>function_name( &lt;params&gt; ) -&gt; &lt;<span class="kw">return type</span>&gt; {
+    &lt;code here&gt;
+}</code></pre></div>
+<p>into this:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code>&lt;visibility&gt; <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>function_name( &lt;params&gt; ) -&gt; &lt;<span class="kw">return type</span>&gt; {
+    <span class="macro">::abi_stable::extern_fn_panic_handling!</span>{
+        &lt;code here&gt;
+    }
+}</code></pre></div>
+<p>What this attribute does is to give the function abort on unwind semantics
+(only when the unwinds doesn’t stop inside the function).
+A user can still use <a href="https://doc.rust-lang.org/1.90.0/std/panic/fn.catch_unwind.html" title="fn std::panic::catch_unwind"><code>std::panic::catch_unwind</code></a> inside the function to
+catch panics and handle them appropriately.</p>
+<h4 id="basic-examples"><a class="doc-anchor" href="#basic-examples">§</a>Basic examples</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{sabi_extern_fn, std_types::RArc, traits::IntoReprC};
+
+<span class="attr">#[sabi_extern_fn]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>hello() -&gt; RArc&lt;u32&gt; {
+    RArc::new(<span class="number">100</span>)
+}
+
+<span class="macro">assert_eq!</span>(hello(), RArc::new(<span class="number">100</span>));
+
+</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    sabi_extern_fn,
+    std_types::{RStr, RVec},
+    traits::IntoReprC,
+};
+
+<span class="attr">#[sabi_extern_fn]
+</span><span class="kw">fn </span>collect_into_lines(text: <span class="kw-2">&amp;</span>str) -&gt; RVec&lt;RStr&lt;<span class="lifetime">'_</span>&gt;&gt; {
+    text.lines()
+        .filter(|x| !x.is_empty())
+        .map(RStr::from)
+        .collect()
+}
+
+<span class="macro">assert_eq!</span>(
+    collect_into_lines(<span class="string">"what\nis\nthat"</span>),
+    <span class="macro">vec!</span>[<span class="string">"what"</span>.into_c(), <span class="string">"is"</span>.into(), <span class="string">"that"</span>.into()].into_c(),
+);
+
+
+</code></pre></div>
+<h2 id="no_early_return"><a class="doc-anchor" href="#no_early_return">§</a>no_early_return</h2>
+<p>You can use <code>#[sabi_extern_fn(no_early_return)]</code> to potentially
+improve the runtime performance of the annotated function (this has not been tested).</p>
+<p>This variant of the attribute removes an intermediate closure that is
+used to intercept early returns (<code>?</code>, <code>return</code>, etc),</p>
+<p>If this version of the attribute is used on a function which does have an
+early return, it will (incorrectly) abort the process when it attempts to return early.</p>
+<h4 id="example"><a class="doc-anchor" href="#example">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    sabi_extern_fn,
+    std_types::{RStr, RVec},
+    traits::IntoReprC,
+};
+
+<span class="attr">#[sabi_extern_fn(no_early_return)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>hello() -&gt; RVec&lt;RStr&lt;<span class="lifetime">'static</span>&gt;&gt; {
+    <span class="macro">vec!</span>[<span class="string">"hello"</span>.into(), <span class="string">"world"</span>.into()].into()
+}
+
+<span class="macro">assert_eq!</span>(hello(), <span class="macro">vec!</span>[<span class="string">"hello"</span>.into_c(), <span class="string">"world"</span>.into()].into_c(),);
+
+
+</code></pre></div>
+</div></details></section></div></main></body></html>

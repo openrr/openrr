@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Installs a set of image loaders."><title>install_image_loaders in egui_extras - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="egui_extras" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../egui_extras/index.html">egui_<wbr>extras</a><span class="version">0.30.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">install_<wbr>image_<wbr>loaders</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#loader-specific-information" title="Loader-specific information">Loader-specific information</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate egui_<wbr>extras</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">egui_extras</a></div><h1>Function <span class="fn">install_image_loaders</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/egui_extras/loaders.rs.html#58-102">Source</a> </span></div><pre class="rust item-decl"><code>pub fn install_image_loaders(ctx: &amp;<a class="struct" href="../egui/context/struct.Context.html" title="struct egui::context::Context">Context</a>)</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Installs a set of image loaders.</p>
+<p>Calling this enables the use of <a href="../egui/widgets/image/struct.Image.html" title="struct egui::widgets::image::Image"><code>egui::Image</code></a> and <a href="../egui/ui/struct.Ui.html#method.image" title="method egui::ui::Ui::image"><code>egui::Ui::image</code></a>.</p>
+<p>⚠ This will do nothing and you won’t see any images unless you also enable some feature flags on <code>egui_extras</code>:</p>
+<ul>
+<li><code>file</code> feature: <code>file://</code> loader on non-Wasm targets</li>
+<li><code>http</code> feature: <code>http(s)://</code> loader</li>
+<li><code>image</code> feature: Loader of png, jpeg etc using the <a href="../image/index.html" title="mod image"><code>image</code></a> crate</li>
+<li><code>svg</code> feature: <code>.svg</code> loader</li>
+</ul>
+<p>Calling this multiple times on the same <a href="../egui/context/struct.Context.html" title="struct egui::context::Context"><code>egui::Context</code></a> is safe.
+It will never install duplicate loaders.</p>
+<ul>
+<li>If you just want to be able to load <code>file://</code> and <code>http://</code> URIs, enable the <code>all_loaders</code> feature.</li>
+<li>The supported set of image formats is configured by adding the <a href="https://crates.io/crates/image"><code>image</code></a>
+crate as your direct dependency, and enabling features on it:</li>
+</ul>
+<div class="example-wrap"><pre class="language-toml"><code>egui_extras = { version = &quot;*&quot;, features = [&quot;all_loaders&quot;] }
+image = { version = &quot;0.25&quot;, features = [&quot;jpeg&quot;, &quot;png&quot;] } # Add the types you want support for</code></pre></div>
+<p>⚠ You have to configure both the supported loaders in <code>egui_extras</code> <em>and</em> the supported image formats
+in <code>image</code> to get any output!</p>
+<h3 id="loader-specific-information"><a class="doc-anchor" href="#loader-specific-information">§</a>Loader-specific information</h3>
+<p>⚠ The exact way bytes, images, and textures are loaded is subject to change,
+but the supported protocols and file extensions are not.</p>
+<p>The <code>file</code> loader is a <a href="../egui/load/trait.BytesLoader.html" title="trait egui::load::BytesLoader"><code>BytesLoader</code></a>.
+It will attempt to load <code>file://</code> URIs, and infer the content type from the extension.
+The path will be passed to <a href="https://doc.rust-lang.org/1.90.0/std/fs/fn.read.html" title="fn std::fs::read"><code>std::fs::read</code></a> after trimming the <code>file://</code> prefix,
+and is resolved the same way as with <code>std::fs::read(path)</code>:</p>
+<ul>
+<li>Relative paths are relative to the current working directory</li>
+<li>Absolute paths are left as is.</li>
+</ul>
+<p>The <code>http</code> loader is a <a href="../egui/load/trait.BytesLoader.html" title="trait egui::load::BytesLoader"><code>BytesLoader</code></a>.
+It will attempt to load <code>http://</code> and <code>https://</code> URIs, and infer the content type from the <code>Content-Type</code> header.</p>
+<p>The <code>image</code> loader is an <a href="../egui/load/trait.ImageLoader.html" title="trait egui::load::ImageLoader"><code>ImageLoader</code></a>.
+It will attempt to load any URI with any extension other than <code>svg</code>.
+It will also try to load any URI without an extension.
+The content type specified by <a href="../egui/load/enum.BytesPoll.html#variant.Ready.field.mime" title="field egui::load::BytesPoll::mime"><code>BytesPoll::Ready::mime</code></a> always takes precedence.
+This means that even if the URI has a <code>png</code> extension, and the <code>png</code> image format is enabled, if the content type is
+not one of the supported and enabled image formats, the loader will return <a href="../egui/load/enum.LoadError.html#variant.NotSupported" title="variant egui::load::LoadError::NotSupported"><code>LoadError::NotSupported</code></a>,
+allowing a different loader to attempt to load the image.</p>
+<p>The <code>svg</code> loader is an <a href="../egui/load/trait.ImageLoader.html" title="trait egui::load::ImageLoader"><code>ImageLoader</code></a>.
+It will attempt to load any URI with an <code>svg</code> extension. It will <em>not</em> attempt to load a URI without an extension.
+The content type specified by <a href="../egui/load/enum.BytesPoll.html#variant.Ready.field.mime" title="field egui::load::BytesPoll::mime"><code>BytesPoll::Ready::mime</code></a> always takes precedence,
+and must include <code>svg</code> for it to be considered supported. For example, <code>image/svg+xml</code> would be loaded by the <code>svg</code> loader.</p>
+<p>See <a href="../egui/load/index.html" title="mod egui::load"><code>egui::load</code></a> for more information about how loaders work.</p>
+</div></details></section></div></main></body></html>

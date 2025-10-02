@@ -1,0 +1,1 @@
+searchState.loadedDescShard("openrr_gui", 0, "OpenRR GUI\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nLaunches GUI that send joint positions from GUI to the …\nLaunches GUI that send base velocity from GUI to the given …")

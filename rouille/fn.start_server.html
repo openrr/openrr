@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Starts a server and uses the given requests handler."><title>start_server in rouille - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="rouille" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../rouille/index.html">rouille</a><span class="version">3.6.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">start_<wbr>server</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#common-mistakes" title="Common mistakes">Common mistakes</a></li><li><a href="#panic-handling-in-the-handler" title="Panic handling in the handler">Panic handling in the handler</a></li><li><a href="#panic" title="Panic">Panic</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate rouille</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">rouille</a></div><h1>Function <span class="fn">start_server</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/rouille/lib.rs.html#226-235">Source</a> </span></div><pre class="rust item-decl"><code>pub fn start_server&lt;A, F&gt;(addr: A, handler: F) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.never.html">!</a><div class="where">where
+    A: <a class="trait" href="https://doc.rust-lang.org/1.90.0/std/net/socket_addr/trait.ToSocketAddrs.html" title="trait std::net::socket_addr::ToSocketAddrs">ToSocketAddrs</a>,
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> + 'static + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.Fn.html" title="trait core::ops::function::Fn">Fn</a>(&amp;<a class="struct" href="struct.Request.html" title="struct rouille::Request">Request</a>) -&gt; <a class="struct" href="struct.Response.html" title="struct rouille::Response">Response</a>,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Starts a server and uses the given requests handler.</p>
+<p>The request handler takes a <code>&amp;Request</code> and must return a <code>Response</code> to send to the user.</p>
+<blockquote>
+<p><strong>Note</strong>: <code>start_server</code> is meant to be an easy-to-use function. If you want more control,
+see <a href="struct.Server.html">the <code>Server</code> struct</a>.</p>
+</blockquote>
+<h2 id="common-mistakes"><a class="doc-anchor" href="#common-mistakes">§</a>Common mistakes</h2>
+<p>The handler must capture its environment by value and not by reference (<code>'static</code>). If you
+use closure, don’t forget to put <code>move</code> in front of the closure.</p>
+<p>The handler must also be thread-safe (<code>Send</code> and <code>Sync</code>).
+For example this handler isn’t thread-safe:</p>
+<div class="example-wrap"><pre class="language-should_fail"><code>let mut requests_counter = 0;
+
+rouille::start_server(&quot;localhost:80&quot;, move |request| {
+    requests_counter += 1;
+
+    // ... rest of the handler ...
+# panic!()
+})</code></pre></div>
+<p>Multiple requests can be processed simultaneously, therefore you can’t mutably access
+variables from the outside.</p>
+<p>Instead you must use a <code>Mutex</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::sync::Mutex;
+<span class="kw">let </span>requests_counter = Mutex::new(<span class="number">0</span>);
+
+rouille::start_server(<span class="string">"localhost:80"</span>, <span class="kw">move </span>|request| {
+    <span class="kw-2">*</span>requests_counter.lock().unwrap() += <span class="number">1</span>;
+
+    <span class="comment">// rest of the handler
+</span>})</code></pre></div>
+<h2 id="panic-handling-in-the-handler"><a class="doc-anchor" href="#panic-handling-in-the-handler">§</a>Panic handling in the handler</h2>
+<p>If your request handler panics, a 500 error will automatically be sent to the client.</p>
+<h2 id="panic"><a class="doc-anchor" href="#panic">§</a>Panic</h2>
+<p>This function will panic if the server starts to fail (for example if you use a port that is
+already occupied) or if the socket is force-closed by the operating system.</p>
+<p>If you need to handle these situations, please see <code>Server</code>.</p>
+</div></details></section></div></main></body></html>

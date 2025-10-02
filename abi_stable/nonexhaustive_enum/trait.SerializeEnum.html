@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Describes how some enum is serialized."><title>SerializeEnum in abi_stable::nonexhaustive_enum - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Serialize<wbr>Enum</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#required-associated-types">Required Associated Types</a></h3><ul class="block"><li><a href="#associatedtype.Proxy" title="Proxy">Proxy</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.serialize_enum" title="serialize_enum">serialize_enum</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In abi_<wbr>stable::<wbr>nonexhaustive_<wbr>enum</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">abi_stable</a>::<wbr><a href="index.html">nonexhaustive_enum</a></div><h1>Trait <span class="trait">SerializeEnum</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/abi_stable/nonexhaustive_enum/traits.rs.html#223-229">Source</a> </span></div><pre class="rust item-decl"><code>pub trait SerializeEnum&lt;Enum&gt;: <a class="trait" href="../trait.InterfaceType.html" title="trait abi_stable::InterfaceType">InterfaceType</a> {
+    type <a href="#associatedtype.Proxy" class="associatedtype">Proxy</a>;
+
+    // Required method
+    fn <a href="#tymethod.serialize_enum" class="fn">serialize_enum</a>(this: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.reference.html">&amp;Enum</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self::<a class="associatedtype" href="trait.SerializeEnum.html#associatedtype.Proxy" title="type abi_stable::nonexhaustive_enum::SerializeEnum::Proxy">Proxy</a>, <a class="type" href="../std_types/type.RBoxError.html" title="type abi_stable::std_types::RBoxError">RBoxError</a>&gt;;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Describes how some enum is serialized.</p>
+<p>This is generally implemented by the interface of an enum
+(<code>Enum_Interface</code> for <code>Enum</code>),which also implements <a href="../trait.InterfaceType.html"><code>InterfaceType</code></a>).</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    external_types::RawValueBox,
+    nonexhaustive_enum::{NonExhaustive, SerializeEnum},
+    std_types::{RBoxError, RString},
+    StableAbi,
+};
+
+<span class="kw">let </span>ne = NonExhaustive::new(Foo::C{name: <span class="string">"world"</span>.into()});
+<span class="macro">assert_eq!</span>(serde_json::to_string(<span class="kw-2">&amp;</span>ne).unwrap(), <span class="string">r#"{"C":{"name":"world"}}"#</span>);
+
+
+<span class="attr">#[repr(u8)]
+#[derive(StableAbi, Debug, PartialEq, Eq, serde::Serialize)]
+#[sabi(kind(WithNonExhaustive(
+    size = <span class="number">64</span>,
+    traits(Debug, PartialEq, Eq, Serialize)
+)))]
+</span><span class="kw">pub enum </span>Foo {
+    A,
+    B(i8),
+    C {
+        name: RString
+    },
+}
+
+<span class="kw">impl </span>SerializeEnum&lt;Foo&gt; <span class="kw">for </span>Foo_Interface {
+    <span class="doccomment">/// A type that `Foo` is converted into to be serialized.
+    </span><span class="kw">type </span>Proxy = RawValueBox;
+
+    <span class="kw">fn </span>serialize_enum(this: <span class="kw-2">&amp;</span>Foo) -&gt; <span class="prelude-ty">Result</span>&lt;RawValueBox, RBoxError&gt; {
+        <span class="kw">match </span>serde_json::value::to_raw_value(<span class="kw-2">&amp;</span>this) {
+            <span class="prelude-val">Ok</span>(v) =&gt; <span class="prelude-val">Ok</span>(v.into()),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(RBoxError::new(e)),
+        }
+    }
+}</code></pre></div>
+</div></details><h2 id="required-associated-types" class="section-header">Required Associated Types<a href="#required-associated-types" class="anchor">§</a></h2><div class="methods"><details class="toggle" open><summary><section id="associatedtype.Proxy" class="method"><a class="src rightside" href="../../src/abi_stable/nonexhaustive_enum/traits.rs.html#225">Source</a><h4 class="code-header">type <a href="#associatedtype.Proxy" class="associatedtype">Proxy</a></h4></section></summary><div class="docblock"><p>The intermediate type the <code>Enum</code> is converted into,to serialize it.</p>
+</div></details></div><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.serialize_enum" class="method"><a class="src rightside" href="../../src/abi_stable/nonexhaustive_enum/traits.rs.html#228">Source</a><h4 class="code-header">fn <a href="#tymethod.serialize_enum" class="fn">serialize_enum</a>(this: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.reference.html">&amp;Enum</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self::<a class="associatedtype" href="trait.SerializeEnum.html#associatedtype.Proxy" title="type abi_stable::nonexhaustive_enum::SerializeEnum::Proxy">Proxy</a>, <a class="type" href="../std_types/type.RBoxError.html" title="type abi_stable::std_types::RBoxError">RBoxError</a>&gt;</h4></section></summary><div class="docblock"><p>Serializes an enum into its proxy type.</p>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"></div><script src="../../trait.impl/abi_stable/nonexhaustive_enum/traits/trait.SerializeEnum.js" async></script></section></div></main></body></html>

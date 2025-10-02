@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Animation","AnimationIter","Bone","BoneIter","Camera","CameraIter","Face","FaceIter","Light","LightIter","Material","MaterialIter","Mesh","MeshIter","Node","NodeAnim","NodeAnimIter","NodeIter","QuatKey","QuatKeyIter","Scene","Texture","TextureIter","VectorKey","VectorKeyIter","VertexWeight","VertexWeightIter"]};

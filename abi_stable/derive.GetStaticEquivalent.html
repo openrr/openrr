@@ -1,0 +1,113 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The `GetStaticEquivalent` macro derives the `GetStaticEquivalent_` trait."><title>GetStaticEquivalent in abi_stable - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc derive"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">GetStatic<wbr>Equivalent</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#container-attributes" title="Container Attributes">Container Attributes</a><ul><li><a href="#sabiimpl_interfacetype" title="`#[sabi(impl_InterfaceType(...))]`"><code>#[sabi(impl_InterfaceType(...))]</code></a></li></ul></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#using-an-associated-constant" title="Using an associated constant">Using an associated constant</a></li><li><a href="#using-an-associated-type" title="Using an associated type">Using an associated type</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate abi_<wbr>stable</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">abi_stable</a></div><h1>Derive Macro <span class="derive">GetStaticEquivalent</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/abi_stable_derive/lib.rs.html#46">Source</a> </span></div><pre class="rust item-decl"><code>#[derive(GetStaticEquivalent)]
+{
+    <span class="comment">// Attributes available to this derive:</span>
+    #[sabi]
+}
+</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The <code>GetStaticEquivalent</code> macro derives the <a href="abi_stability/get_static_equivalent/trait.GetStaticEquivalent_.html" title="trait abi_stable::abi_stability::get_static_equivalent::GetStaticEquivalent_"><code>GetStaticEquivalent_</code></a> trait.</p>
+<p>Implementing <a href="abi_stability/get_static_equivalent/trait.GetStaticEquivalent_.html" title="trait abi_stable::abi_stability::get_static_equivalent::GetStaticEquivalent_"><code>GetStaticEquivalent_</code></a> allows the type to be passed as a
+type argument of a type deriving <code>StableAbi</code>,
+that used the
+<a href="derive.StableAbi.html#sabinot_stableabitypeparameter" title="derive abi_stable::StableAbi"><code>#[sabi(not_stableabi(TypeParameter))]</code></a>
+helper attribute.</p>
+<h2 id="container-attributes"><a class="doc-anchor" href="#container-attributes">§</a>Container Attributes</h2>
+<p>These helper attributes are applied on the type declaration.</p>
+<p><span id = "impl_InterfaceType"></span></p>
+<h4 id="sabiimpl_interfacetype"><a class="doc-anchor" href="#sabiimpl_interfacetype">§</a><code>#[sabi(impl_InterfaceType(...))]</code></h4>
+<p>Implements the <code>InterfaceType</code> trait for a type,
+defining the usable/required traits when creating a
+<code>DynTrait&lt;_, ThisType&gt;</code>/<code>NonExhaustive&lt;_, _, ThisType&gt;</code>.</p>
+<p>Syntax: <code>#[sabi(impl_InterfaceType(Trait0, Trait1, ..., TraitN))]</code></p>
+<p>If a trait is not specified,
+it will not be required when constructing DynTrait/NonExhaustive,
+and won’t be usable afterwards.</p>
+<a href = "./derive.StableAbi.html#InterfaceType_traits">
+    The list of valid traits is here 
+</a>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="using-an-associated-constant"><a class="doc-anchor" href="#using-an-associated-constant">§</a>Using an associated constant</h4>
+<p>This example demonstrates how one can have a type parameter,
+and use the value of an associated constant as the identity of the type.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::marker::PhantomData;
+
+<span class="kw">use </span>abi_stable::{
+    abi_stability::check_layout_compatibility, marker_type::UnsafeIgnoredType, tag,
+    GetStaticEquivalent, StableAbi,
+};
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(
+    not_stableabi(T),
+    bound(T: WithName),
+    tag = <span class="macro">tag!</span>( &lt;T <span class="kw">as </span>WithName&gt;::NAME )
+)]
+</span><span class="kw">struct </span>WithMarker&lt;T&gt;(UnsafeIgnoredType&lt;T&gt;);
+
+<span class="kw">impl</span>&lt;T&gt; WithMarker&lt;T&gt; {
+    <span class="kw">const </span>NEW: <span class="self">Self </span>= WithMarker(UnsafeIgnoredType::NEW);
+}
+
+<span class="kw">trait </span>WithName {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
+}
+
+<span class="attr">#[derive(GetStaticEquivalent)]
+</span><span class="kw">struct </span>Mark;
+<span class="kw">impl </span>WithName <span class="kw">for </span>Mark {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"Mark"</span>;
+}
+
+<span class="attr">#[derive(GetStaticEquivalent)]
+</span><span class="kw">struct </span>John;
+<span class="kw">impl </span>WithName <span class="kw">for </span>John {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"John"</span>;
+}
+
+<span class="attr">#[derive(GetStaticEquivalent)]
+</span><span class="kw">struct </span>JessiJames;
+<span class="kw">impl </span>WithName <span class="kw">for </span>JessiJames {
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"JessiJames"</span>;
+}
+
+
+<span class="comment">// This checks that the two types aren't considered compatible.
+</span><span class="macro">assert!</span>(check_layout_compatibility(
+    &lt;WithMarker&lt;Mark&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT,
+    &lt;WithMarker&lt;John&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT,
+)
+.is_err());
+
+<span class="comment">// This checks that the two types aren't considered compatible.
+</span><span class="macro">assert!</span>(check_layout_compatibility(
+    &lt;WithMarker&lt;John&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT,
+    &lt;WithMarker&lt;JessiJames&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT,
+)
+.is_err());
+
+<span class="comment">// This checks that the two types aren't considered compatible.
+</span><span class="macro">assert!</span>(check_layout_compatibility(
+    &lt;WithMarker&lt;JessiJames&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT,
+    &lt;WithMarker&lt;Mark&gt; <span class="kw">as </span>StableAbi&gt;::LAYOUT,
+)
+.is_err());
+
+
+</code></pre></div>
+<h4 id="using-an-associated-type"><a class="doc-anchor" href="#using-an-associated-type">§</a>Using an associated type</h4>
+<p>This example demonstrates how one can have a type parameter,
+and use its associated type as a field.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{std_types::RVec, StableAbi};
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(not_stableabi(I), bound(&lt;I <span class="kw">as </span>IntoIterator&gt;::Item : StableAbi))]
+</span><span class="kw">pub struct </span>CollectedIterator&lt;I&gt;
+<span class="kw">where
+    </span>I: IntoIterator,
+{
+    vec: RVec&lt;I::Item&gt;,
+}
+
+</code></pre></div>
+</div></details></section></div></main></body></html>

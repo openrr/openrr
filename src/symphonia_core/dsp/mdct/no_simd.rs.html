@@ -1,0 +1,146 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/symphonia-core-0.5.4/src/dsp/mdct/no_simd.rs`."><title>no_simd.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="symphonia_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">symphonia_core/dsp/mdct/</div>no_simd.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Symphonia
+<a href=#2 id=2 data-nosnippet>2</a>// Copyright (c) 2019-2023 The Project Symphonia Developers.
+<a href=#3 id=3 data-nosnippet>3</a>//
+<a href=#4 id=4 data-nosnippet>4</a>// This Source Code Form is subject to the terms of the Mozilla Public
+<a href=#5 id=5 data-nosnippet>5</a>// License, v. 2.0. If a copy of the MPL was not distributed with this
+<a href=#6 id=6 data-nosnippet>6</a>// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+<a href=#7 id=7 data-nosnippet>7</a>
+<a href=#8 id=8 data-nosnippet>8</a></span><span class="doccomment">//! The Modified Discrete Cosine Transform (MDCT) implemented without SIMD optimizations.
+<a href=#9 id=9 data-nosnippet>9</a>
+<a href=#10 id=10 data-nosnippet>10</a></span><span class="kw">use </span><span class="kw">crate</span>::dsp::complex::Complex;
+<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span><span class="kw">crate</span>::dsp::fft::<span class="kw-2">*</span>;
+<a href=#12 id=12 data-nosnippet>12</a>
+<a href=#13 id=13 data-nosnippet>13</a><span class="doccomment">/// The Inverse Modified Discrete Transform (IMDCT).
+<a href=#14 id=14 data-nosnippet>14</a></span><span class="kw">pub struct </span>Imdct {
+<a href=#15 id=15 data-nosnippet>15</a>    fft: Fft,
+<a href=#16 id=16 data-nosnippet>16</a>    fft_in: Box&lt;[Complex]&gt;,
+<a href=#17 id=17 data-nosnippet>17</a>    fft_out: Box&lt;[Complex]&gt;,
+<a href=#18 id=18 data-nosnippet>18</a>    twiddle: Box&lt;[Complex]&gt;,
+<a href=#19 id=19 data-nosnippet>19</a>}
+<a href=#20 id=20 data-nosnippet>20</a>
+<a href=#21 id=21 data-nosnippet>21</a><span class="kw">impl </span>Imdct {
+<a href=#22 id=22 data-nosnippet>22</a>    <span class="doccomment">/// Instantiate a N-point IMDCT with no scaling.
+<a href=#23 id=23 data-nosnippet>23</a>    ///
+<a href=#24 id=24 data-nosnippet>24</a>    /// The value of `n` is the number of spectral samples and must be a power-of-2 and less-than or
+<a href=#25 id=25 data-nosnippet>25</a>    /// equal to `2 * Fft::MAX_SIZE`.
+<a href=#26 id=26 data-nosnippet>26</a>    </span><span class="kw">pub fn </span>new(n: usize) -&gt; <span class="self">Self </span>{
+<a href=#27 id=27 data-nosnippet>27</a>        Imdct::new_scaled(n, <span class="number">1.0</span>)
+<a href=#28 id=28 data-nosnippet>28</a>    }
+<a href=#29 id=29 data-nosnippet>29</a>
+<a href=#30 id=30 data-nosnippet>30</a>    <span class="doccomment">/// Instantiate a N-point IMDCT with scaling.
+<a href=#31 id=31 data-nosnippet>31</a>    ///
+<a href=#32 id=32 data-nosnippet>32</a>    /// The value of `n` is the number of spectral samples and must be a power-of-2 and less-than or
+<a href=#33 id=33 data-nosnippet>33</a>    /// equal to `2 * Fft::MAX_SIZE`.
+<a href=#34 id=34 data-nosnippet>34</a>    </span><span class="kw">pub fn </span>new_scaled(n: usize, scale: f64) -&gt; <span class="self">Self </span>{
+<a href=#35 id=35 data-nosnippet>35</a>        <span class="comment">// The FFT requires a power-of-two N.
+<a href=#36 id=36 data-nosnippet>36</a>        </span><span class="macro">assert!</span>(n.is_power_of_two(), <span class="string">"n must be a power of two"</span>);
+<a href=#37 id=37 data-nosnippet>37</a>        <span class="comment">// A complex FFT of size N/2 is used to compute the IMDCT. Therefore, the maximum value of N
+<a href=#38 id=38 data-nosnippet>38</a>        // is 2 * Fft::MAX_SIZE.
+<a href=#39 id=39 data-nosnippet>39</a>        </span><span class="macro">assert!</span>(n &lt;= <span class="number">2 </span>* Fft::MAX_SIZE, <span class="string">"maximum size exceeded"</span>);
+<a href=#40 id=40 data-nosnippet>40</a>
+<a href=#41 id=41 data-nosnippet>41</a>        <span class="kw">let </span>n2 = n / <span class="number">2</span>;
+<a href=#42 id=42 data-nosnippet>42</a>        <span class="kw">let </span><span class="kw-2">mut </span>twiddle = Vec::with_capacity(n2);
+<a href=#43 id=43 data-nosnippet>43</a>
+<a href=#44 id=44 data-nosnippet>44</a>        <span class="kw">let </span>alpha = <span class="number">1.0 </span>/ <span class="number">8.0 </span>+ <span class="kw">if </span>scale.is_sign_positive() { <span class="number">0.0 </span>} <span class="kw">else </span>{ n2 <span class="kw">as </span>f64 };
+<a href=#45 id=45 data-nosnippet>45</a>        <span class="kw">let </span>pi_n = std::f64::consts::PI / n <span class="kw">as </span>f64;
+<a href=#46 id=46 data-nosnippet>46</a>        <span class="kw">let </span>sqrt_scale = scale.abs().sqrt();
+<a href=#47 id=47 data-nosnippet>47</a>
+<a href=#48 id=48 data-nosnippet>48</a>        <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..n2 {
+<a href=#49 id=49 data-nosnippet>49</a>            <span class="kw">let </span>theta = pi_n * (alpha + k <span class="kw">as </span>f64);
+<a href=#50 id=50 data-nosnippet>50</a>            <span class="kw">let </span>re = sqrt_scale * theta.cos();
+<a href=#51 id=51 data-nosnippet>51</a>            <span class="kw">let </span>im = sqrt_scale * theta.sin();
+<a href=#52 id=52 data-nosnippet>52</a>            twiddle.push(Complex::new(re <span class="kw">as </span>f32, im <span class="kw">as </span>f32));
+<a href=#53 id=53 data-nosnippet>53</a>        }
+<a href=#54 id=54 data-nosnippet>54</a>
+<a href=#55 id=55 data-nosnippet>55</a>        <span class="kw">let </span>fft_in = <span class="macro">vec!</span>[Default::default(); n2].into_boxed_slice();
+<a href=#56 id=56 data-nosnippet>56</a>        <span class="kw">let </span>fft_out = <span class="macro">vec!</span>[Default::default(); n2].into_boxed_slice();
+<a href=#57 id=57 data-nosnippet>57</a>
+<a href=#58 id=58 data-nosnippet>58</a>        Imdct { fft: Fft::new(n2), fft_in, fft_out, twiddle: twiddle.into_boxed_slice() }
+<a href=#59 id=59 data-nosnippet>59</a>    }
+<a href=#60 id=60 data-nosnippet>60</a>
+<a href=#61 id=61 data-nosnippet>61</a>    <span class="doccomment">/// Performs the the N-point Inverse Modified Discrete Cosine Transform.
+<a href=#62 id=62 data-nosnippet>62</a>    ///
+<a href=#63 id=63 data-nosnippet>63</a>    /// The number of input spectral samples provided by the slice `spec` must equal the value of N
+<a href=#64 id=64 data-nosnippet>64</a>    /// that the IMDCT was instantiated with. The length of the output slice, `out`, must be of
+<a href=#65 id=65 data-nosnippet>65</a>    /// length 2N. Failing to meet these requirements will throw an assertion.
+<a href=#66 id=66 data-nosnippet>66</a>    </span><span class="kw">pub fn </span>imdct(<span class="kw-2">&amp;mut </span><span class="self">self</span>, spec: <span class="kw-2">&amp;</span>[f32], out: <span class="kw-2">&amp;mut </span>[f32]) {
+<a href=#67 id=67 data-nosnippet>67</a>        <span class="comment">// Spectral length: 2x FFT size, 0.5x output length.
+<a href=#68 id=68 data-nosnippet>68</a>        </span><span class="kw">let </span>n = <span class="self">self</span>.fft.size() &lt;&lt; <span class="number">1</span>;
+<a href=#69 id=69 data-nosnippet>69</a>        <span class="comment">// 1x FFT size, 0.25x output length.
+<a href=#70 id=70 data-nosnippet>70</a>        </span><span class="kw">let </span>n2 = n &gt;&gt; <span class="number">1</span>;
+<a href=#71 id=71 data-nosnippet>71</a>        <span class="comment">// 0.5x FFT size.
+<a href=#72 id=72 data-nosnippet>72</a>        </span><span class="kw">let </span>n4 = n &gt;&gt; <span class="number">2</span>;
+<a href=#73 id=73 data-nosnippet>73</a>
+<a href=#74 id=74 data-nosnippet>74</a>        <span class="comment">// The spectrum length must be the same as N.
+<a href=#75 id=75 data-nosnippet>75</a>        </span><span class="macro">assert_eq!</span>(spec.len(), n);
+<a href=#76 id=76 data-nosnippet>76</a>        <span class="comment">// The output length must be 2x the spectrum length.
+<a href=#77 id=77 data-nosnippet>77</a>        </span><span class="macro">assert_eq!</span>(out.len(), <span class="number">2 </span>* n);
+<a href=#78 id=78 data-nosnippet>78</a>
+<a href=#79 id=79 data-nosnippet>79</a>        <span class="comment">// Pre-FFT twiddling and packing of the real input signal values into complex signal values.
+<a href=#80 id=80 data-nosnippet>80</a>        </span><span class="kw">for </span>(i, (<span class="kw-2">&amp;</span>w, t)) <span class="kw">in </span><span class="self">self</span>.twiddle.iter().zip(<span class="self">self</span>.fft_in.iter_mut()).enumerate() {
+<a href=#81 id=81 data-nosnippet>81</a>            <span class="kw">let </span>even = spec[i * <span class="number">2</span>];
+<a href=#82 id=82 data-nosnippet>82</a>            <span class="kw">let </span>odd = -spec[n - <span class="number">1 </span>- i * <span class="number">2</span>];
+<a href=#83 id=83 data-nosnippet>83</a>
+<a href=#84 id=84 data-nosnippet>84</a>            <span class="kw">let </span>re = odd * w.im - even * w.re;
+<a href=#85 id=85 data-nosnippet>85</a>            <span class="kw">let </span>im = odd * w.re + even * w.im;
+<a href=#86 id=86 data-nosnippet>86</a>            <span class="kw-2">*</span>t = Complex::new(re, im);
+<a href=#87 id=87 data-nosnippet>87</a>        }
+<a href=#88 id=88 data-nosnippet>88</a>
+<a href=#89 id=89 data-nosnippet>89</a>        <span class="comment">// Do the FFT.
+<a href=#90 id=90 data-nosnippet>90</a>        </span><span class="self">self</span>.fft.fft(<span class="kw-2">&amp;</span><span class="self">self</span>.fft_in, <span class="kw-2">&amp;mut </span><span class="self">self</span>.fft_out);
+<a href=#91 id=91 data-nosnippet>91</a>
+<a href=#92 id=92 data-nosnippet>92</a>        <span class="comment">// Split the output vector (2N samples) into 4 vectors (N/2 samples each).
+<a href=#93 id=93 data-nosnippet>93</a>        </span><span class="kw">let </span>(vec0, vec1) = out.split_at_mut(n2);
+<a href=#94 id=94 data-nosnippet>94</a>        <span class="kw">let </span>(vec1, vec2) = vec1.split_at_mut(n2);
+<a href=#95 id=95 data-nosnippet>95</a>        <span class="kw">let </span>(vec2, vec3) = vec2.split_at_mut(n2);
+<a href=#96 id=96 data-nosnippet>96</a>
+<a href=#97 id=97 data-nosnippet>97</a>        <span class="comment">// Post-FFT twiddling and processing to expand the N/2 complex output values into 2N real
+<a href=#98 id=98 data-nosnippet>98</a>        // output samples.
+<a href=#99 id=99 data-nosnippet>99</a>        </span><span class="kw">for </span>(i, (x, <span class="kw-2">&amp;</span>w)) <span class="kw">in </span><span class="self">self</span>.fft_out[..n4].iter().zip(<span class="self">self</span>.twiddle[..n4].iter()).enumerate() {
+<a href=#100 id=100 data-nosnippet>100</a>            <span class="comment">// The real and imaginary components of the post-twiddled FFT samples are used to
+<a href=#101 id=101 data-nosnippet>101</a>            // generate 4 reak output samples. Using the first half of the complex FFT output,
+<a href=#102 id=102 data-nosnippet>102</a>            // populate each of the 4 output vectors.
+<a href=#103 id=103 data-nosnippet>103</a>            </span><span class="kw">let </span>val = w * x.conj();
+<a href=#104 id=104 data-nosnippet>104</a>
+<a href=#105 id=105 data-nosnippet>105</a>            <span class="comment">// Forward and reverse order indicies that will be populated.
+<a href=#106 id=106 data-nosnippet>106</a>            </span><span class="kw">let </span>fi = <span class="number">2 </span>* i;
+<a href=#107 id=107 data-nosnippet>107</a>            <span class="kw">let </span>ri = n2 - <span class="number">1 </span>- <span class="number">2 </span>* i;
+<a href=#108 id=108 data-nosnippet>108</a>
+<a href=#109 id=109 data-nosnippet>109</a>            <span class="comment">// The odd indicies in vec0 are populated reverse order.
+<a href=#110 id=110 data-nosnippet>110</a>            </span>vec0[ri] = -val.im;
+<a href=#111 id=111 data-nosnippet>111</a>            <span class="comment">// The even indicies in vec1 are populated forward order.
+<a href=#112 id=112 data-nosnippet>112</a>            </span>vec1[fi] = val.im;
+<a href=#113 id=113 data-nosnippet>113</a>            <span class="comment">// The odd indicies in vec2 are populated reverse order.
+<a href=#114 id=114 data-nosnippet>114</a>            </span>vec2[ri] = val.re;
+<a href=#115 id=115 data-nosnippet>115</a>            <span class="comment">// The even indicies in vec3 are populated forward order.
+<a href=#116 id=116 data-nosnippet>116</a>            </span>vec3[fi] = val.re;
+<a href=#117 id=117 data-nosnippet>117</a>        }
+<a href=#118 id=118 data-nosnippet>118</a>
+<a href=#119 id=119 data-nosnippet>119</a>        <span class="kw">for </span>(i, (x, <span class="kw-2">&amp;</span>w)) <span class="kw">in </span><span class="self">self</span>.fft_out[n4..].iter().zip(<span class="self">self</span>.twiddle[n4..].iter()).enumerate() {
+<a href=#120 id=120 data-nosnippet>120</a>            <span class="comment">// Using the second half of the FFT output samples, finish populating each of the 4
+<a href=#121 id=121 data-nosnippet>121</a>            // output vectors.
+<a href=#122 id=122 data-nosnippet>122</a>            </span><span class="kw">let </span>val = w * x.conj();
+<a href=#123 id=123 data-nosnippet>123</a>
+<a href=#124 id=124 data-nosnippet>124</a>            <span class="comment">// Forward and reverse order indicies that will be populated.
+<a href=#125 id=125 data-nosnippet>125</a>            </span><span class="kw">let </span>fi = <span class="number">2 </span>* i;
+<a href=#126 id=126 data-nosnippet>126</a>            <span class="kw">let </span>ri = n2 - <span class="number">1 </span>- <span class="number">2 </span>* i;
+<a href=#127 id=127 data-nosnippet>127</a>
+<a href=#128 id=128 data-nosnippet>128</a>            <span class="comment">// The even indicies in vec0 are populated in forward order.
+<a href=#129 id=129 data-nosnippet>129</a>            </span>vec0[fi] = -val.re;
+<a href=#130 id=130 data-nosnippet>130</a>            <span class="comment">// The odd indicies in vec1 are populated in reverse order.
+<a href=#131 id=131 data-nosnippet>131</a>            </span>vec1[ri] = val.re;
+<a href=#132 id=132 data-nosnippet>132</a>            <span class="comment">// The even indicies in vec2 are populated in forward order.
+<a href=#133 id=133 data-nosnippet>133</a>            </span>vec2[fi] = val.im;
+<a href=#134 id=134 data-nosnippet>134</a>            <span class="comment">// The odd indicies in vec3 are populated in reverse order.
+<a href=#135 id=135 data-nosnippet>135</a>            </span>vec3[ri] = val.im;
+<a href=#136 id=136 data-nosnippet>136</a>        }
+<a href=#137 id=137 data-nosnippet>137</a>
+<a href=#138 id=138 data-nosnippet>138</a>        <span class="comment">// Note: As of Rust 1.58, there doesn't appear to be any measurable difference between using
+<a href=#139 id=139 data-nosnippet>139</a>        // iterators or indexing like above. Either the bounds checks are elided above, or they are
+<a href=#140 id=140 data-nosnippet>140</a>        // not elided using iterators. Therefore, for clarity, the indexing method is used.
+<a href=#141 id=141 data-nosnippet>141</a>        //
+<a href=#142 id=142 data-nosnippet>142</a>        // Additionally, note that vectors 0 and 3 are reversed copies (+ negation for vector 0) of
+<a href=#143 id=143 data-nosnippet>143</a>        // vectors 1 and 2, respectively. Pulling these copies out into a separate loop using
+<a href=#144 id=144 data-nosnippet>144</a>        // iterators yielded no measureable difference either.
+<a href=#145 id=145 data-nosnippet>145</a>    </span>}
+<a href=#146 id=146 data-nosnippet>146</a>}</code></pre></div></section></main></body></html>

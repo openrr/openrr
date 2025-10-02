@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension trait for raw pointers to access fields generically, where the field is determined by a `FieldOffset` parameter."><title>ROExtRawAcc in repr_offset::ext - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../repr_offset/index.html">repr_<wbr>offset</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">ROExt<wbr>RawAcc</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#safety" title="Safety">Safety</a></li><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.f_raw_get" title="f_raw_get">f_raw_get</a></li></ul><h3><a href="#foreign-impls">Implementations on Foreign Types</a></h3><ul class="block"><li><a href="#impl-ROExtRawAcc-for-*const+S" title="*const S">*const S</a></li><li><a href="#impl-ROExtRawAcc-for-*mut+S" title="*mut S">*mut S</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In repr_<wbr>offset::<wbr>ext</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">repr_offset</a>::<wbr><a href="index.html">ext</a></div><h1>Trait <span class="trait">ROExtRawAcc</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/repr_offset/ext.rs.html#464-527">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe trait ROExtRawAcc: <a class="trait" href="../utils/trait.PointerTarget.html" title="trait repr_offset::utils::PointerTarget">PointerTarget</a> {
+    // Required method
+    unsafe fn <a href="#tymethod.f_raw_get" class="fn">f_raw_get</a>&lt;F, A&gt;(
+        self,
+        offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+    ) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const F</a>;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension trait for raw pointers to access fields generically,
+where the field is determined by a <a href="../struct.FieldOffset.html"><code>FieldOffset</code></a> parameter.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<p>This trait must not to be implemented outside the <code>repr_offset</code> crate.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>This example shows how you can get references to known aligned fields from a raw pointer
+to a partially initialized value..</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprC,
+    off,
+    ROExtRawAcc, ROExtRawMutOps,
+};
+
+<span class="kw">use </span>std::mem::MaybeUninit;
+
+<span class="kw">type </span>This = ReprC&lt;u8, <span class="prelude-ty">Option</span>&lt;usize&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u16], <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;;
+
+<span class="kw">let </span><span class="kw-2">mut </span>uninit = MaybeUninit::&lt;This&gt;::uninit();
+
+<span class="kw">unsafe </span>{
+    <span class="kw">let </span>ptr = uninit.as_mut_ptr();
+    ptr.f_write(<span class="macro">off!</span>(a), <span class="number">3</span>);
+    ptr.f_write(<span class="macro">off!</span>(b), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+
+    <span class="kw">let </span>(a, b) = get_init_refs(<span class="kw-2">&amp;</span>uninit);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>a, <span class="number">3</span>);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>b, <span class="prelude-val">Some</span>(<span class="number">5</span>));
+}
+
+<span class="doccomment">/// # Safety
+///
+/// The fields up to and including `b` must be initialized.
+</span><span class="kw">unsafe fn </span>get_init_refs(this: <span class="kw-2">&amp;</span>MaybeUninit&lt;This&gt;) -&gt; (<span class="kw-2">&amp;</span>u8, <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;usize&gt;) {
+    <span class="kw">let </span>this = this.as_ptr();
+
+    (
+        <span class="kw-2">&amp;*</span>this.f_raw_get(<span class="macro">off!</span>(a)),
+        <span class="kw-2">&amp;*</span>this.f_raw_get(<span class="macro">off!</span>(b)),
+    )
+}
+</code></pre></div>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.f_raw_get" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#526">Source</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_raw_get" class="fn">f_raw_get</a>&lt;F, A&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const F</a></h4></section></summary><div class="docblock"><p>Gets a raw pointer to a field (determined by <code>offset</code>) from this raw pointer.</p>
+<h5 id="safety-1"><a class="doc-anchor" href="#safety-1">§</a>Safety</h5>
+<p><code>self</code> must point to some allocated object,
+allocated at least up to the field (inclusive).</p>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::{ReprC, ReprPacked},
+    tstr::TS,
+    GetPubFieldOffset, FieldType,
+    ROExtRawAcc,
+    pub_off,
+};
+
+<span class="kw">use </span>std::cmp::Ordering;
+
+<span class="kw">let </span>value = ReprPacked {
+    a: <span class="number">3</span>,
+    b: <span class="prelude-val">Some</span>(<span class="number">5</span>),
+    c: Ordering::Less,
+    d: ReprC {
+        a: <span class="number">8</span>,
+        b: <span class="string">"bar"</span>,
+        c: <span class="number">13</span>,
+        d: <span class="number">21</span>,
+    },
+};
+
+<span class="kw">unsafe </span>{
+    <span class="macro">assert_eq!</span>(copy_fields(<span class="kw-2">&amp;</span>value), (<span class="number">3</span>, <span class="number">13</span>));
+}
+
+
+<span class="doccomment">/// Copies the `a` and `d.c` fields in this.
+///
+/// # Safety
+///
+/// The `a` and `d.c` fields in this must be initialized
+</span><span class="kw">unsafe fn </span>copy_fields&lt;T, O, U&gt;(
+    this: <span class="kw-2">*const </span>T,
+) -&gt; (O, U)
+<span class="kw">where
+    </span>T: GetPubFieldOffset&lt;<span class="macro">TS!</span>(a), Type = O&gt;,
+    T: GetPubFieldOffset&lt;<span class="macro">TS!</span>(d,c), Type = U&gt;,
+    O: Copy,
+    U: Copy,
+{
+    (
+        this.f_raw_get(<span class="macro">pub_off!</span>(a)).read_unaligned(),
+        this.f_raw_get(<span class="macro">pub_off!</span>(d.c)).read_unaligned(),
+    )
+}
+
+</code></pre></div>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="foreign-impls" class="section-header">Implementations on Foreign Types<a href="#foreign-impls" class="anchor">§</a></h2><details class="toggle implementors-toggle"><summary><section id="impl-ROExtRawAcc-for-*const+S" class="impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#164">Source</a><a href="#impl-ROExtRawAcc-for-*const+S" class="anchor">§</a><h3 class="code-header">impl&lt;S&gt; <a class="trait" href="trait.ROExtRawAcc.html" title="trait repr_offset::ext::ROExtRawAcc">ROExtRawAcc</a> for <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a></h3></section></summary><div class="impl-items"><section id="method.f_raw_get" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#164">Source</a><a href="#method.f_raw_get" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_raw_get" class="fn">f_raw_get</a>&lt;F, A&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const F</a></h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-ROExtRawAcc-for-*mut+S" class="impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#165">Source</a><a href="#impl-ROExtRawAcc-for-*mut+S" class="anchor">§</a><h3 class="code-header">impl&lt;S&gt; <a class="trait" href="trait.ROExtRawAcc.html" title="trait repr_offset::ext::ROExtRawAcc">ROExtRawAcc</a> for <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a></h3></section></summary><div class="impl-items"><section id="method.f_raw_get-1" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#165">Source</a><a href="#method.f_raw_get-1" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_raw_get" class="fn">f_raw_get</a>&lt;F, A&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const F</a></h4></section></div></details><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"></div><script src="../../trait.impl/repr_offset/ext/trait.ROExtRawAcc.js" data-ignore-extern-crates="core" async></script></section></div></main></body></html>

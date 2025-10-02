@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["DescribeParameters","GetParameterTypes","GetParameters","ListParameters","SetParameters","SetParametersAtomically"]};

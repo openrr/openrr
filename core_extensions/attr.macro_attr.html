@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="For using function-like macros as attributes."><title>macro_attr in core_extensions - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="core_extensions" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../core_extensions/index.html">core_<wbr>extensions</a><span class="version">1.5.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">macro_<wbr>attr</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#module" title="Module">Module</a></li><li><a href="#item-count" title="Item count">Item count</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate core_<wbr>extensions</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">core_extensions</a></div><h1>Attribute Macro <span class="attr">macro_attr</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/core_extensions_proc_macros/lib.rs.html#80-83">Source</a> </span></div><pre class="rust item-decl"><code>#[macro_attr]</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>For using function-like macros as attributes.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="module"><a class="doc-anchor" href="#module">§</a>Module</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::macro_attr;
+ 
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(hello::Hello(<span class="number">3</span>, <span class="number">5</span>).sum(), <span class="number">8</span>);
+    <span class="macro">assert_eq!</span>(hello::Hello(<span class="number">13</span>, <span class="number">21</span>).sum(), <span class="number">34</span>);
+}
+ 
+<span class="attr">#[macro_attr(<span class="macro">in_mod!</span>(<span class="kw">pub mod </span>hello;))]
+#[derive(Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Hello(<span class="kw">pub </span>u32, <span class="kw">pub </span>u32);
+ 
+<span class="kw">impl </span>hello::Hello {
+    <span class="kw">const fn </span>sum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span>u64 + <span class="self">self</span>.<span class="number">1 </span><span class="kw">as </span>u64
+    }
+}
+ 
+<span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> in_mod {
+    (
+        $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>:meta]</span>)*
+        <span class="macro-nonterminal">$vis</span>:vis <span class="kw">mod </span><span class="macro-nonterminal">$module</span>:ident;
+         
+        $(<span class="macro-nonterminal">$item</span>:item)*
+    ) =&gt; {
+        $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)*
+        <span class="macro-nonterminal">$vis </span><span class="kw">mod </span><span class="macro-nonterminal">$module </span>{
+            $(<span class="macro-nonterminal">$item</span>)*
+        }
+    }
+}
+ </code></pre></div>
+<h4 id="item-count"><a class="doc-anchor" href="#item-count">§</a>Item count</h4>
+<p>This example only works from 1.46.0 onwards, not sure why.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::macro_attr;
+ 
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(items::COUNT, <span class="number">4</span>);
+
+    <span class="macro">assert_eq!</span>(items::foo(), <span class="number">3</span>);
+    <span class="macro">assert_eq!</span>(items::BAR, <span class="number">5</span>);
+}
+ 
+<span class="attr">#[macro_attr(<span class="kw">crate</span>::and_item_count)]
+</span><span class="kw">pub mod </span>items {
+    <span class="kw">pub fn </span>foo() -&gt; u32 {
+        <span class="number">3
+    </span>}
+
+    <span class="kw">pub const </span>BAR: u32 = <span class="number">5</span>;
+     
+    <span class="kw">pub struct </span>Baz;
+
+    <span class="kw">pub struct </span>Qux {
+        <span class="kw">pub </span>x: u64,
+        <span class="kw">pub </span>y: u64,
+    }
+}
+ 
+<span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> and_item_count {
+    (
+        $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>:meta]</span>)*
+        <span class="macro-nonterminal">$vis</span>:vis <span class="kw">mod </span><span class="macro-nonterminal">$module</span>:ident {
+            $(<span class="macro-nonterminal">$item</span>:item)*
+        }
+    ) =&gt; {
+        $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)*
+        <span class="macro-nonterminal">$vis </span><span class="kw">mod </span><span class="macro-nonterminal">$module </span>{
+            <span class="kw">pub const </span>COUNT: usize = <span class="macro-nonterminal">$</span><span class="macro">crate::__::count_tts!</span>(($(<span class="macro-nonterminal">$item</span>)<span class="kw-2">*</span>));
+             
+            $(<span class="macro-nonterminal">$item</span>)*
+        }
+    }
+}
+ 
+<span class="attr">#[doc(hidden)]
+</span><span class="kw">mod </span>__ {
+    <span class="kw">pub use </span>core_extensions::count_tts;
+}</code></pre></div>
+</div></details></section></div></main></body></html>

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["EvalResult"],"fn":["expr","fn_macro_declaration","macro_definition"],"struct":["IdentifierParser"],"type":["CResult"]};

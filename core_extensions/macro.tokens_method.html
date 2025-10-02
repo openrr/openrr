@@ -1,0 +1,1075 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Does slice and iterator operations on tokens, passing the result to a callback macro."><title>tokens_method in core_extensions - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="core_extensions" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../core_extensions/index.html">core_<wbr>extensions</a><span class="version">1.5.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">tokens_<wbr>method</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#elements" title="Elements">Elements</a></li><li><a href="#methods" title="Methods">Methods</a></li><li><a href="#iterators" title="Iterators">Iterators</a><ul><li><a href="#functions" title="Functions">Functions</a></li></ul></li><li><a href="#version-compatibility" title="Version compatibility">Version compatibility</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#macro-parameters" title="Macro parameters">Macro parameters</a></li></ul></li><li><a href="#first" title="`first`"><code>first</code></a></li><li><a href="#last" title="`last`"><code>last</code></a><ul><li><a href="#example" title="Example">Example</a></li></ul></li><li><a href="#split_first" title="`split_first`"><code>split_first</code></a><ul><li><a href="#example-1" title="Example">Example</a></li></ul></li><li><a href="#split_last" title="`split_last`"><code>split_last</code></a><ul><li><a href="#example-2" title="Example">Example</a></li></ul></li><li><a href="#split_last_n" title="`split_last_n`"><code>split_last_n</code></a><ul><li><a href="#example-3" title="Example">Example</a></li></ul></li><li><a href="#split_at" title="`split_at`"><code>split_at</code></a><ul><li><a href="#example-4" title="Example">Example</a></li></ul></li><li><a href="#get" title="`get`"><code>get</code></a><ul><li><a href="#example-5" title="Example">Example</a></li></ul></li><li><a href="#split" title="`split`"><code>split</code></a><ul><li><a href="#example-6" title="Example">Example</a></li></ul></li><li><a href="#split_terminator" title="`split_terminator`"><code>split_terminator</code></a><ul><li><a href="#example-7" title="Example">Example</a></li></ul></li><li><a href="#split_starter" title="`split_starter`"><code>split_starter</code></a><ul><li><a href="#example-8" title="Example">Example</a></li></ul></li><li><a href="#zip_shortest" title="`zip_shortest`"><code>zip_shortest</code></a><ul><li><a href="#example-9" title="Example">Example</a></li></ul></li><li><a href="#zip_longest" title="`zip_longest`"><code>zip_longest</code></a><ul><li><a href="#example-10" title="Example">Example</a></li></ul></li><li><a href="#iterate" title="`iterate`"><code>iterate</code></a><ul><li><a href="#basic-example" title="Basic example">Basic example</a></li><li><a href="#enum-example" title="Enum Example">Enum Example</a></li></ul></li><li><a href="#range-iterator-function" title="`range` iterator function"><code>range</code> iterator function</a><ul><li><a href="#example-11" title="Example">Example</a></li></ul></li><li><a href="#gen_ident_range-iterator-function" title="`gen_ident_range` iterator function"><code>gen_ident_range</code> iterator function</a><ul><li><a href="#example-12" title="Example">Example</a></li></ul></li><li><a href="#chain-iterator-function" title="`chain` iterator function"><code>chain</code> iterator function</a><ul><li><a href="#example-13" title="Example">Example</a></li></ul></li><li><a href="#take-iterator-function" title="`take` iterator function"><code>take</code> iterator function</a><ul><li><a href="#example-14" title="Example">Example</a></li></ul></li><li><a href="#skip-iterator-function" title="`skip` iterator function"><code>skip</code> iterator function</a><ul><li><a href="#example-15" title="Example">Example</a></li></ul></li><li><a href="#cycle-iterator-function" title="`cycle` iterator function"><code>cycle</code> iterator function</a><ul><li><a href="#example-16" title="Example">Example</a></li></ul></li><li><a href="#repeat-iterator-function" title="`repeat` iterator function"><code>repeat</code> iterator function</a><ul><li><a href="#example-17" title="Example">Example</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate core_<wbr>extensions</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">core_extensions</a></div><h1>Macro <span class="macro">tokens_method</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/core_extensions_proc_macros/lib.rs.html#157">Source</a> </span></div><pre class="rust item-decl"><code>tokens_method!() { <span class="comment">/* proc-macro */</span> }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Does slice and iterator operations on tokens, passing the result to a callback macro.</p>
+<h2 id="elements"><a class="doc-anchor" href="#elements">§</a>Elements</h2>
+<p>The elements that this operates on are token trees, which can be any of:</p>
+<ul>
+<li>
+<p>A macro parameter(eg: <code>$foo</code>)</p>
+</li>
+<li>
+<p>A literal</p>
+</li>
+<li>
+<p>A pair of matching <code>[]</code>/<code>()</code>/<code>{}</code> (no matter what’s contained by the matched pair)</p>
+</li>
+<li>
+<p>An identifier</p>
+</li>
+<li>
+<p>Punctuation</p>
+</li>
+</ul>
+<h2 id="methods"><a class="doc-anchor" href="#methods">§</a>Methods</h2>
+<p>These are the methods that this provides:</p>
+<ul>
+<li>
+<p><a href="#first"><code>first</code></a>: Gets the first token tree.</p>
+</li>
+<li>
+<p><a href="#last"><code>last</code></a>: Gets the last token tree.</p>
+</li>
+<li>
+<p><a href="#split_first"><code>split_first</code></a>: Gets the first token tree, and the remaining ones.</p>
+</li>
+<li>
+<p><a href="#split_last"><code>split_last</code></a>: Gets the last token tree, and the remaining ones.</p>
+</li>
+<li>
+<p><a href="#split_last_n"><code>split_last_n</code></a>: Gets the last n token trees, and the remaining ones.</p>
+</li>
+<li>
+<p><a href="#split_at"><code>split_at</code></a>: Gets the token trees before the nth one, and from it.</p>
+</li>
+<li>
+<p><a href="#get"><code>get</code></a>: Gets the token(s) at an index or range.</p>
+</li>
+<li>
+<p><a href="#split"><code>split</code></a>/<a href="#split_terminator"><code>split_terminator</code></a>/
+<a href="#split_starter"><code>split_starter</code></a>: Splits the tokens with some needle tokens.</p>
+</li>
+<li>
+<p><a href="#zip_shortest"><code>zip_shortest</code></a>/<a href="#zip_longest"><code>zip_longest</code></a>:
+Return the token trees of every list iterated over in lockstep.</p>
+</li>
+<li>
+<p><a href="#iterate"><code>iterate</code></a>:
+Nested iteration over multiple lists.</p>
+</li>
+</ul>
+<p>The methods that take integer arguments use
+<a href="./macro.gen_ident_range.html#number-syntax">the <code>&lt;number&gt;</code> syntax</a> from <a href="./macro.gen_ident_range.html"><code>gen_ident_range</code></a></p>
+<h2 id="iterators"><a class="doc-anchor" href="#iterators">§</a>Iterators</h2>
+<p>This macro can iterate over both lists of token trees (eg: <code>(foo bar baz)</code>),
+and iteration functions (eg: <code>range(0..10)</code>).</p>
+<h4 id="functions"><a class="doc-anchor" href="#functions">§</a>Functions</h4>
+<p>Iteration functions can be used to generate tokens or transform a list of tokens.</p>
+<p>These are the functions:</p>
+<ul>
+<li>
+<p><a href="#range-fn"><code>range</code></a>: Iterates over all the integers in a range, can be unbounded.</p>
+</li>
+<li>
+<p><a href="#gen_ident_range-fn"><code>gen_ident_range</code></a>:
+Generates identifiers by using the <a href="./macro.gen_ident_range.html"><code>gen_ident_range</code></a> macro.</p>
+</li>
+<li>
+<p><a href="#chain-fn"><code>chain</code></a>: Concatenates multiple iterators.</p>
+</li>
+<li>
+<p><a href="#take-fn"><code>take</code></a>: Takes some amount of elements from a possibly unbounded iterator.</p>
+</li>
+<li>
+<p><a href="#skip-fn"><code>skip</code></a>: Skips elements from a possibly unbounded iterator.</p>
+</li>
+<li>
+<p><a href="#cycle-fn"><code>cycle</code></a>: Takes a bounded iterator and repeats it infinitely.</p>
+</li>
+<li>
+<p><a href="#repeat-fn"><code>repeat</code></a>: Repeats a bounded iterator some amount of times.</p>
+</li>
+</ul>
+<p>When an iterator function generates an unbounded amount of tokens,
+they must be constrained by another iterator to be used,
+otherwise producing a compile-time error to prevent the proc macro from running forever.</p>
+<h2 id="version-compatibility"><a class="doc-anchor" href="#version-compatibility">§</a>Version compatibility</h2>
+<p>This macro requires Rust 1.45.0 to be invoked inside of a function.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p>Examples that demonstrate properties common to all methods</p>
+<h4 id="macro-parameters"><a class="doc-anchor" href="#macro-parameters">§</a>Macro parameters</h4>
+<p>This demonstrates how you can pass macro parameters to <code>tokens_method</code>.</p>
+<p>Note that because this example uses this macro in an expression,
+it requires at least Rust 1.45.0.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code> 
+<span class="kw">fn </span>main() {
+    {
+        <span class="kw">let </span>arrays = <span class="macro">split_array!</span>(<span class="number">2 </span>=&gt; <span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">5 </span>+ <span class="number">8</span>, <span class="number">3 </span>+ <span class="number">5 </span>+ <span class="number">13</span>, <span class="number">34</span>, <span class="number">55</span>);
+        <span class="macro">assert_eq!</span>(arrays, ([<span class="number">3</span>, <span class="number">5</span>], [<span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>, <span class="number">34</span>, <span class="number">55</span>]));
+    }
+    {
+        <span class="kw">let </span>arrays = <span class="macro">split_array!</span>(<span class="number">100 </span>=&gt; <span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">5 </span>+ <span class="number">8</span>, <span class="number">3 </span>+ <span class="number">5 </span>+ <span class="number">13</span>, <span class="number">34</span>, <span class="number">55</span>);
+        <span class="kw">const </span>EMPTY: [i32; <span class="number">0</span>] = [];
+        <span class="macro">assert_eq!</span>(arrays, ([<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>, <span class="number">34</span>, <span class="number">55</span>], EMPTY));
+    }
+}
+ 
+ 
+<span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> split_array {
+    (<span class="macro-nonterminal">$split_at</span>:literal =&gt; $(<span class="macro-nonterminal">$elem</span>:expr),* $(,)<span class="question-mark">?</span>) =&gt; {
+        <span class="comment">// `tokens_method` calls `__priv_split_array` with `foo bar` as the first arguments,
+        // passing the return value of `split_at` after them.
+        </span><span class="macro-nonterminal">$</span><span class="macro">crate::__::tokens_method!</span>{
+            <span class="macro">__priv_split_array!</span>{<span class="macro-nonterminal">foo </span>bar}
+            split_at(<span class="macro-nonterminal">$split_at</span>):
+            ($(<span class="macro-nonterminal">$elem</span>)<span class="kw-2">*</span>) <span class="comment">// Note the lack of `,`!
+        </span>}
+    }
+}
+
+<span class="attr">#[doc(hidden)]
+#[macro_export]
+</span><span class="macro">macro_rules!</span> __priv_split_array {
+    (foo bar ($(<span class="macro-nonterminal">$left</span>:expr)<span class="kw-2">*</span>) ($(<span class="macro-nonterminal">$right</span>:expr)<span class="kw-2">*</span>)) =&gt; {
+        ([$(<span class="macro-nonterminal">$left</span>,)<span class="kw-2">*</span>], [$(<span class="macro-nonterminal">$right</span>,)<span class="kw-2">*</span>])
+    }
+}
+ 
+<span class="attr">#[doc(hidden)]
+</span><span class="kw">mod </span>__ {
+    <span class="kw">pub use </span>core_extensions::tokens_method;
+}</code></pre></div>
+<h2 id="first"><a class="doc-anchor" href="#first">§</a><code>first</code></h2>
+<p>Gets the first token tree.</p>
+<p>If there are no elements, this produces a <code>()</code>.</p>
+<p>This can take an unbounded iterator function, since it only gets the first element.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(foo(), <span class="string">"bar"</span>);
+    <span class="macro">assert_eq!</span>(foo2(), <span class="string">"bar2"</span>);
+    <span class="macro">assert_eq!</span>(baz(), <span class="string">"qux"</span>);
+}
+
+<span class="macro">macro_rules!</span> expects_fooooo {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal  (<span class="number">1000</span>) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_fooooo` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_fooooo!</span>{ foo <span class="string">"bar" </span>}
+    first:
+    (<span class="number">1000 20 30 </span>(<span class="number">40 50</span>))
+}
+<span class="macro">tokens_method!</span>{
+    <span class="macro">expects_fooooo!</span>{ foo2 <span class="string">"bar2" </span>}
+    first:
+    range(<span class="number">1000</span>..) <span class="comment">// taking an unbounded iterator argument
+</span>}
+
+<span class="macro">macro_rules!</span> expects_baaaz {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal  ((<span class="number">1 2 3</span>)) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_baaaz` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_baaaz!</span>{ baz <span class="string">"qux" </span>}
+    first:
+    ((<span class="number">1 2 3</span>) <span class="number">20 30 </span>(<span class="number">40 50</span>))
+}
+</code></pre></div>
+<h2 id="last"><a class="doc-anchor" href="#last">§</a><code>last</code></h2>
+<p>Gets the last token tree.</p>
+<p>If there are no elements, this produces a <code>()</code>.</p>
+<h4 id="example"><a class="doc-anchor" href="#example">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(foo(), <span class="string">"bar"</span>);
+    <span class="macro">assert_eq!</span>(baz(), <span class="string">"qux"</span>);
+}
+
+<span class="macro">macro_rules!</span> expects_fooooo {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal  (<span class="number">1000</span>) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_fooooo` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_fooooo!</span>{ foo <span class="string">"bar" </span>}
+    last:
+    (<span class="number">20 30 </span>(<span class="number">40 50</span>) <span class="number">1000</span>)
+}
+
+
+<span class="macro">macro_rules!</span> expects_baaaz {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal  ((<span class="number">1 2 3</span>)) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_baaaz` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_baaaz!</span>{ baz <span class="string">"qux" </span>}
+    last:
+    (<span class="number">20 30 </span>(<span class="number">40 50</span>) (<span class="number">1 2 3</span>))
+}
+</code></pre></div>
+<h2 id="split_first"><a class="doc-anchor" href="#split_first">§</a><code>split_first</code></h2>
+<p>Gets the first token tree, and the remaining ones.</p>
+<p>If there are no elements, this produces <code>() ()</code>.
+If there is only one element, this produces <code>($first_element) ()</code>.</p>
+<h4 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(foo(), <span class="string">"bar"</span>);
+    <span class="macro">assert_eq!</span>(baz(), <span class="string">"qux"</span>);
+}
+
+<span class="macro">macro_rules!</span> expects_fooooo {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal  (<span class="number">1000</span>)  (<span class="number">20 30 </span>(<span class="number">40 50</span>)) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_fooooo` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_fooooo!</span>{ foo <span class="string">"bar" </span>}
+    split_first:
+    (<span class="number">1000 20 30 </span>(<span class="number">40 50</span>))
+}
+
+<span class="macro">macro_rules!</span> expects_baaaz {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal  ((<span class="number">1 2 3</span>))  (<span class="number">20 30 </span>(<span class="number">40 50</span>)) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_baaaz` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_baaaz!</span>{ baz <span class="string">"qux" </span>}
+    split_first:
+    ((<span class="number">1 2 3</span>) <span class="number">20 30 </span>(<span class="number">40 50</span>))
+}
+</code></pre></div>
+<h2 id="split_last"><a class="doc-anchor" href="#split_last">§</a><code>split_last</code></h2>
+<p>Gets the last token tree, and the remaining ones.</p>
+<p>If there are no elements, this produces <code>() ()</code>.
+If there is only one element, this produces <code>() ($last_elemnent)</code>.</p>
+<h4 id="example-2"><a class="doc-anchor" href="#example-2">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(foo(), <span class="string">"bar"</span>);
+    <span class="macro">assert_eq!</span>(baz(), <span class="string">"qux"</span>);
+}
+
+<span class="macro">macro_rules!</span> expects_fooooo {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal  (<span class="number">20 30 </span>(<span class="number">40 50</span>))  (<span class="number">1000</span>) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_fooooo` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_fooooo!</span>{ foo <span class="string">"bar" </span>}
+    split_last:
+    (<span class="number">20 30 </span>(<span class="number">40 50</span>) <span class="number">1000</span>)
+}
+
+<span class="macro">macro_rules!</span> expects_baaaz {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal (<span class="number">20 30 </span>(<span class="number">40 50</span>))  ((<span class="number">1 2 3</span>)) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_baaaz` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_baaaz!</span>{ baz <span class="string">"qux" </span>}
+    split_last:
+    (<span class="number">20 30 </span>(<span class="number">40 50</span>) (<span class="number">1 2 3</span>))
+}
+</code></pre></div>
+<h2 id="split_last_n"><a class="doc-anchor" href="#split_last_n">§</a><code>split_last_n</code></h2>
+<p>Gets the last n token trees, and the remaining ones.</p>
+<p>If there’s fewer than n token trees in the list,
+this simply returns the list in <code>() (here)</code>.</p>
+<h4 id="example-3"><a class="doc-anchor" href="#example-3">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(foo(), <span class="string">"bar"</span>);
+    <span class="macro">assert_eq!</span>(baz(), <span class="string">"qux"</span>);
+}
+
+<span class="macro">macro_rules!</span> expects_fooooo {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal  (<span class="number">20 30</span>)  ((<span class="number">40 50</span>) <span class="number">1000</span>) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_fooooo` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_fooooo!</span>{ foo <span class="string">"bar" </span>}
+    split_last_n(<span class="number">2</span>):
+    (<span class="number">20 30 </span>(<span class="number">40 50</span>) <span class="number">1000</span>)
+}
+
+<span class="macro">macro_rules!</span> expects_baaaz {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal (<span class="number">10 20</span>)  (<span class="number">30 </span>(<span class="number">40 50</span>) (<span class="number">1 2 3</span>)) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_baaaz` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_baaaz!</span>{ baz <span class="string">"qux" </span>}
+    <span class="comment">// Equivalent to `split_last_n(3)`
+    </span>split_last_n(count(<span class="kw">_ </span><span class="number">1 </span>(<span class="number">2 2 2</span>))):
+    (<span class="number">10 20 30 </span>(<span class="number">40 50</span>) (<span class="number">1 2 3</span>))
+}
+</code></pre></div>
+<h2 id="split_at"><a class="doc-anchor" href="#split_at">§</a><code>split_at</code></h2>
+<p>Gets the token trees before the nth one, and from it.</p>
+<p>If there’s fewer than n token trees in the list,
+this simply returns the list in <code>(here) ()</code>.</p>
+<h4 id="example-4"><a class="doc-anchor" href="#example-4">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(foo(), <span class="string">"bar"</span>);
+    <span class="macro">assert_eq!</span>(baz(), <span class="string">"qux"</span>);
+}
+
+<span class="macro">macro_rules!</span> expects_fooooo {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal  (<span class="number">20</span>)  (<span class="number">30 </span>(<span class="number">40 50</span>) <span class="number">1000 2345</span>) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_fooooo` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_fooooo!</span>{ foo <span class="string">"bar" </span>}
+    split_at(<span class="number">1</span>):
+    (<span class="number">20 30 </span>(<span class="number">40 50</span>) <span class="number">1000 2345</span>)
+}
+
+<span class="macro">macro_rules!</span> expects_baaaz {
+    (<span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$lit</span>:literal (<span class="number">20 30 </span>(<span class="number">40 50</span>))  (<span class="number">1000 2345</span>) ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$lit
+        </span>}
+    }
+}
+<span class="comment">// `tokens_method` calls `expects_baaaz` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expects_baaaz!</span>{ baz <span class="string">"qux" </span>}
+    <span class="comment">// Equivalent to `split_at(3)`
+    </span>split_at(count(<span class="kw">_ </span><span class="number">1 </span>(<span class="number">2 2 2</span>))):
+    (<span class="number">20 30 </span>(<span class="number">40 50</span>) <span class="number">1000 2345</span>)
+}
+</code></pre></div>
+<h2 id="get"><a class="doc-anchor" href="#get">§</a><code>get</code></h2>
+<p>Gets the token(s) at an index (either an integer or a range).</p>
+<p>IF the integer index is out of bounds, this outputs <code>()</code>.</p>
+<p>IF the range is out of bounds,
+this outputs the elements at the in-bound indices (of the range).</p>
+<p>If the input elements come from an unbounded iterator,
+the range must have an end bound.</p>
+<h4 id="example-5"><a class="doc-anchor" href="#example-5">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+
+<span class="macro">macro_rules!</span> expects_one {
+    (foo bar (<span class="number">6</span>)) =&gt; {}
+}
+<span class="comment">// `tokens_method` invokes `expects_one` here
+</span><span class="macro">tokens_method!</span>{<span class="macro">expects_one!</span>{ foo bar } get(<span class="number">3</span>): (<span class="number">2 3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>)}
+
+<span class="comment">// taking an unbounded iterator
+</span><span class="macro">tokens_method!</span>{<span class="macro">expects_one!</span>{ foo bar } get(<span class="number">2</span>): range(<span class="number">4</span>..)}
+
+<span class="comment">// `count(_ 1 (2 2))` is equivalent to `3`
+</span><span class="macro">tokens_method!</span>{<span class="macro">expects_one!</span>{ foo bar }  get(count(<span class="kw">_ </span><span class="number">1 </span>(<span class="number">2 2</span>))): (<span class="number">2 3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>)}
+
+
+<span class="macro">macro_rules!</span> expects_two {
+    (baz qux (<span class="number">3 </span>(<span class="number">4 5</span>)) ) =&gt; {}
+}
+<span class="comment">// `tokens_method` calls `expects_two` here
+</span><span class="macro">tokens_method!</span>{<span class="macro">expects_two!</span>{ baz qux }  get(<span class="number">1</span>..<span class="number">3</span>): (<span class="number">2 3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>)}
+<span class="macro">tokens_method!</span>{<span class="macro">expects_two!</span>{ baz qux }  get(<span class="number">1</span>..=<span class="number">2</span>): (<span class="number">2 3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>)}
+
+
+<span class="macro">macro_rules!</span> expects_three {
+    (baz qux (<span class="number">2 3 </span>(<span class="number">4 5</span>)) ) =&gt; {}
+}
+<span class="comment">// `tokens_method` calls `expects_three` here
+</span><span class="macro">tokens_method!</span>{<span class="macro">expects_three!</span>{ baz qux }  get(<span class="number">0</span>..<span class="number">3</span>): (<span class="number">2 3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>)}
+<span class="macro">tokens_method!</span>{<span class="macro">expects_three!</span>{ baz qux }  get( ..<span class="number">3</span>): (<span class="number">2 3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>)}
+<span class="macro">tokens_method!</span>{<span class="macro">expects_three!</span>{ baz qux }  get(<span class="number">0</span>..=<span class="number">2</span>): (<span class="number">2 3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>)}
+<span class="macro">tokens_method!</span>{<span class="macro">expects_three!</span>{ baz qux }  get( ..=<span class="number">2</span>): (<span class="number">2 3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>)}
+
+
+<span class="macro">macro_rules!</span> expects_four {
+    (baz qux (<span class="number">3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>) ) =&gt; {}
+}
+<span class="comment">// `tokens_method` calls `expects_four` here
+</span><span class="macro">tokens_method!</span>{<span class="macro">expects_four!</span>{ baz qux }  get(<span class="number">1</span>..):  (<span class="number">2 3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>)}
+<span class="macro">tokens_method!</span>{<span class="macro">expects_four!</span>{ baz qux }  get(<span class="number">1</span>..):  (<span class="number">2 3 </span>(<span class="number">4 5</span>) <span class="number">6 7</span>)}
+<span class="macro">tokens_method!</span>{
+    <span class="macro">expects_four!</span>{ baz qux }
+    get(<span class="number">1</span>..=<span class="number">4</span>):
+    chain((<span class="number">2 3 </span>(<span class="number">4 5</span>)) range(<span class="number">6</span>..))
+}
+</code></pre></div>
+<h2 id="split"><a class="doc-anchor" href="#split">§</a><code>split</code></h2>
+<p>Splits the tokens with some needle tokens.</p>
+<p>If the needle is at the end of the tokens, this outputs a final <code>()</code>.
+Eg: <code>X</code> splits <code>foo X bar X</code> into <code>(foo) (bar) ()</code>.</p>
+<p>If the needle is not found, this outputs all the tokens.</p>
+<h4 id="example-6"><a class="doc-anchor" href="#example-6">§</a>Example</h4>
+<p>Note that because this example uses this macro in an expression,
+it requires at least Rust 1.45.0.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(
+        <span class="macro">piped!</span>(<span class="number">100 </span>|&gt; |x:u32| x + <span class="number">1 </span>|&gt; |x:u32| x.to_string() ),
+        <span class="string">"101"</span>,
+    );
+    <span class="macro">assert_eq!</span>(<span class="macro">piped!</span>(<span class="string">"foo" </span>|&gt; String::from |&gt; repeat), <span class="string">"foofoofoofoo"</span>);
+}
+ 
+<span class="kw">fn </span>repeat&lt;S: AsRef&lt;str&gt;&gt;(s: S) -&gt; String {
+    s.as_ref().repeat(<span class="number">4</span>)
+}
+ 
+<span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> piped {
+    ( $(<span class="macro-nonterminal">$tt</span>:tt)* ) =&gt; {
+        <span class="macro-nonterminal">$</span><span class="macro">crate::__::tokens_method!</span>(
+            <span class="macro-nonterminal">$</span><span class="macro">crate::__priv_piped!</span>(<span class="macro-nonterminal">hello</span>)
+            split(|&gt;):
+            ($(<span class="macro-nonterminal">$tt</span>)<span class="kw-2">*</span>) 
+        )
+    }
+}
+ 
+<span class="attr">#[doc(hidden)]
+#[macro_export]
+</span><span class="macro">macro_rules!</span> __priv_piped {
+    (hello (<span class="macro-nonterminal">$value</span>:expr) $((<span class="macro-nonterminal">$f</span>:expr))* ) =&gt; ({
+        <span class="kw">match </span><span class="macro-nonterminal">$value </span>{x =&gt; {
+            $( <span class="kw">let </span>x = <span class="macro-nonterminal">$f</span>(x); )*
+            x
+        }}
+    })
+}
+ 
+<span class="attr">#[doc(hidden)]
+</span><span class="kw">pub mod </span>__ {
+    <span class="kw">pub use </span>core_extensions::tokens_method;
+}</code></pre></div>
+<h2 id="split_terminator"><a class="doc-anchor" href="#split_terminator">§</a><code>split_terminator</code></h2>
+<p>Splits the tokens with some needle tokens.</p>
+<p>If the needle is at the end of the tokens, this does not output an additional <code>()</code>.
+Eg: <code>X</code> splits <code>foo X bar X</code> into <code>(foo) (bar)</code>.</p>
+<p>If the needle is not found, this outputs all the tokens.</p>
+<h4 id="example-7"><a class="doc-anchor" href="#example-7">§</a>Example</h4>
+<p>Note that because this example uses this macro in an expression,
+it requires at least Rust 1.45.0.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>main() {
+    <span class="kw">let </span>expected = <span class="string">"hello99_99world"</span>;
+     
+    <span class="comment">// `++` can be used between strings
+    </span><span class="macro">assert_eq!</span>(<span class="macro">concaten!</span>(<span class="string">"hello" </span>++ <span class="macro">format!</span>(<span class="string">"{0}_{0}"</span>, <span class="number">99</span>) ++ <span class="string">"world"</span>), expected);
+
+    <span class="comment">// `++` can also terminate the argument list
+    </span><span class="macro">assert_eq!</span>(<span class="macro">concaten!</span>(<span class="string">"hello" </span>++ <span class="macro">format!</span>(<span class="string">"{0}_{0}"</span>, <span class="number">99</span>) ++ <span class="string">"world" </span>++), expected);
+}
+ 
+<span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> concaten {
+    ( $(<span class="macro-nonterminal">$tt</span>:tt)* ) =&gt; {
+        <span class="macro-nonterminal">$</span><span class="macro">crate::__::tokens_method!</span>(
+            <span class="macro-nonterminal">$</span><span class="macro">crate::__priv_concaten!</span>(<span class="macro-nonterminal">hello</span>)
+            split_terminator(++):
+            ($(<span class="macro-nonterminal">$tt</span>)<span class="kw-2">*</span>) 
+        )
+    }
+}
+ 
+<span class="attr">#[doc(hidden)]
+#[macro_export]
+</span><span class="macro">macro_rules!</span> __priv_concaten {
+    (hello $((<span class="macro-nonterminal">$f</span>:expr))* ) =&gt; ({
+        <span class="kw">let </span><span class="kw-2">mut </span>buff = <span class="macro-nonterminal">$crate::__::String::new</span>();
+        $(
+            buff.push_str(<span class="macro-nonterminal">$f</span>.as_ref());
+        )*
+        buff
+    });
+    ($(<span class="macro-nonterminal">$tt</span>:tt)<span class="kw-2">*</span>) =&gt; { <span class="macro">core_extensions::compile_error_stringify!</span>{$(<span class="macro-nonterminal">$tt</span>)<span class="kw-2">*</span>} }
+}
+ 
+<span class="attr">#[doc(hidden)]
+</span><span class="kw">pub mod </span>__ {
+    <span class="kw">pub use </span>core_extensions::tokens_method;
+     
+    <span class="kw">pub use </span>std::string::String;
+}</code></pre></div>
+<h2 id="split_starter"><a class="doc-anchor" href="#split_starter">§</a><code>split_starter</code></h2>
+<p>Splits the tokens with some needle tokens.</p>
+<p>If the needle is at the start of the tokens, this does not output a <code>()</code> at the start.
+Eg: <code>X</code> splits <code>X foo X bar</code> into <code>(foo) (bar)</code>.</p>
+<p>If the needle is not found, this outputs all the tokens.</p>
+<h4 id="example-8"><a class="doc-anchor" href="#example-8">§</a>Example</h4>
+<p>Note that because this example uses this macro in an expression,
+it requires at least Rust 1.45.0.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>main() {
+    <span class="kw">let </span>expected = Flags::Foo.or(Flags::Bar).or(Flags::Baz).or(Flags::Qux);
+     
+    <span class="comment">// `|` can be used between flags
+    </span><span class="macro">assert_eq!</span>(<span class="macro">combine!</span>(Foo | Bar | Flags::Baz.or(Flags::Qux) ), expected);
+
+    <span class="comment">// `|` can also start the argument list
+    </span><span class="kw">const </span>PRE_FLAGS: Flags = <span class="macro">combine!</span>(| Foo | returns_flags() | Bar );
+    <span class="macro">assert_eq!</span>(PRE_FLAGS, expected);
+}
+ 
+<span class="kw">const fn </span>returns_flags()-&gt; Flags {
+    <span class="macro">combine!</span>(Baz | Qux)
+}
+ 
+<span class="doccomment">/// Allows using `Foo | Bar` syntax for Flags in a const context
+/// (as of Rust 1.51.0, custom types can't overload the `|` operator in const contexts).
+</span><span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> combine {
+    ( $(<span class="macro-nonterminal">$tt</span>:tt)* ) =&gt; {
+        <span class="macro-nonterminal">$</span><span class="macro">crate::__::tokens_method!</span>(
+            <span class="macro-nonterminal">$</span><span class="macro">crate::__priv_combine!</span>(<span class="macro-nonterminal">world</span>)
+            split_starter(|):
+            ($(<span class="macro-nonterminal">$tt</span>)<span class="kw-2">*</span>) 
+        )
+    }
+}
+ 
+<span class="attr">#[doc(hidden)]
+#[macro_export]
+</span><span class="macro">macro_rules!</span> __priv_combine {
+    (world $(<span class="macro-nonterminal">$param</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$crate::Flags::Empty </span>$( .or(<span class="macro-nonterminal">$</span><span class="macro">crate::__priv_combine!</span>(@<span class="macro-nonterminal">flag $param</span>)) )*
+    );
+    (@flag (<span class="macro-nonterminal">$ident</span>:ident)) =&gt; { <span class="macro-nonterminal">$crate::Flags</span>::<span class="macro-nonterminal">$ident </span>};
+    (@flag (<span class="macro-nonterminal">$expression</span>:expr)) =&gt; { <span class="macro-nonterminal">$expression </span>};
+}
+ 
+<span class="attr">#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+</span><span class="kw">pub struct </span>Flags(u32);
+ 
+<span class="kw">impl </span>Flags {
+    <span class="kw">pub const </span>Empty: <span class="self">Self </span>= <span class="self">Self</span>(<span class="number">0</span>);
+    <span class="kw">pub const </span>Foo: <span class="self">Self </span>= <span class="self">Self</span>(<span class="number">1</span>);
+    <span class="kw">pub const </span>Bar: <span class="self">Self </span>= <span class="self">Self</span>(<span class="number">2</span>);
+    <span class="kw">pub const </span>Baz: <span class="self">Self </span>= <span class="self">Self</span>(<span class="number">4</span>);
+    <span class="kw">pub const </span>Qux: <span class="self">Self </span>= <span class="self">Self</span>(<span class="number">8</span>);
+ 
+    <span class="kw">pub const fn </span>or(<span class="kw-2">mut </span><span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.<span class="number">0 </span>|= other.<span class="number">0</span>;
+        <span class="self">self
+    </span>}
+}
+ 
+<span class="attr">#[doc(hidden)]
+</span><span class="kw">pub mod </span>__ {
+    <span class="kw">pub use </span>core_extensions::tokens_method;
+}</code></pre></div>
+<h2 id="zip_shortest"><a class="doc-anchor" href="#zip_shortest">§</a><code>zip_shortest</code></h2>
+<p>Returns the token trees of every list iterated over in lockstep.</p>
+<p>This returns as many token trees as the shortest list.</p>
+<p>This is similar to <a href="#lockstep_iteration">lockstep iteration in macro_rules! macros</a>,
+except that those require the lists to be the same length.</p>
+<h4 id="example-9"><a class="doc-anchor" href="#example-9">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(foo(), <span class="string">"bar"</span>);
+    <span class="macro">assert_eq!</span>(baz(), <span class="string">"qux"</span>);
+}
+
+<span class="macro">macro_rules!</span> expected {
+    (
+        <span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$value</span>:literal
+        ((foo3) (bar3) (qux3))
+        ((foo5) (bar5) (qux5))
+        ((foo8) (bar8) (qux8))
+        ((foo13) (bar13) (qux13))
+        ((foo21) (bar21) (qux21))
+    ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$value
+        </span>}
+    }
+}
+ 
+<span class="comment">// `tokens_method` calls `expected` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expected!</span>{foo <span class="string">"bar"</span>}
+    zip_shortest:
+    (foo3 foo5 foo8 foo13 foo21)
+    (bar3 bar5 bar8 bar13 bar21)
+    (qux3 qux5 qux8 qux13 qux21)
+}
+ 
+<span class="comment">// `tokens_method` calls `expected` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expected!</span>{baz <span class="string">"qux"</span>}
+    zip_shortest:
+    (foo3 foo5 foo8 foo13 foo21)
+    (bar3 bar5 bar8 bar13 bar21)
+    <span class="comment">// this list is truncated because it's longer than the others
+    </span>(qux3 qux5 qux8 qux13 qux21 qux34 qux55)
+}
+ </code></pre></div>
+<p><span id="lockstep_iteration"></span>
+<code>macro_rules!</code> requires lockstep iteration to be over lists of the exact same length:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">macro_rules!</span> iteration {
+    ([$(<span class="macro-nonterminal">$a</span>:tt)<span class="kw-2">*</span>] [$(<span class="macro-nonterminal">$b</span>:tt)<span class="kw-2">*</span>]) =&gt; {
+        <span class="macro">bar!</span>( $((<span class="macro-nonterminal">$a $b</span>))* )
+    }
+}</code></pre></div>
+<p>while <code>zip_shortest</code> truncates to the shortest list,
+and <code>zip_longest</code> fills in <code>()</code> for the shorter lists.</p>
+<h2 id="zip_longest"><a class="doc-anchor" href="#zip_longest">§</a><code>zip_longest</code></h2>
+<p>Returns the token trees of every list iterated over in lockstep.</p>
+<p>This returns as many token trees as the longest list,
+filling in <code>()</code> for the shorter lists.</p>
+<p>This is similar to <a href="#lockstep_iteration">lockstep iteration in macro_rules! macros</a>,
+except that those require the lists to be the same length.</p>
+<h4 id="example-10"><a class="doc-anchor" href="#example-10">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(baz(), <span class="string">"qux"</span>);
+}
+
+<span class="macro">macro_rules!</span> expected {
+    (
+        <span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$value</span>:literal
+        ((<span class="number">0</span>) (bar3) (qux3))
+        ((<span class="number">1</span>) (bar5) (qux5))
+        ((<span class="number">2</span>) (bar8) (qux8))
+        ((<span class="number">3</span>) (bar13) (qux13))
+        ((<span class="number">4</span>) (bar21) (qux21))
+        ((<span class="number">5</span>) ()      (qux34))
+        ((<span class="number">6</span>) ()      (qux55))
+    ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$value
+        </span>}
+    }
+}
+ 
+<span class="comment">// `tokens_method` calls `expected` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">expected!</span>{baz <span class="string">"qux"</span>}
+    zip_longest:
+
+    <span class="comment">// Unbounded ranges only generate as many tokens as the longest finite iterator
+    </span>range(<span class="number">0</span>..) 
+    (bar3 bar5 bar8 bar13 bar21)
+    (qux3 qux5 qux8 qux13 qux21 qux34 qux55)
+}
+ </code></pre></div>
+<h2 id="iterate"><a class="doc-anchor" href="#iterate">§</a><code>iterate</code></h2>
+<p>Nested iteration over multiple lists.</p>
+<p>This can iterate over any amount of lists.</p>
+<h4 id="basic-example"><a class="doc-anchor" href="#basic-example">§</a>Basic example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+ 
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(single(), <span class="string">"111"</span>);
+    <span class="macro">assert_eq!</span>(double(), <span class="string">"222"</span>);
+    <span class="macro">assert_eq!</span>(triple(), <span class="string">"333"</span>);
+}
+ 
+<span class="macro">macro_rules!</span> assertion_single{
+    (
+        <span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$expr</span>:literal 
+        (foo bar baz)
+    ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$expr
+        </span>}
+    }
+}
+<span class="macro">tokens_method!</span>{
+    <span class="macro">assertion_single!</span>{single <span class="string">"111"</span>}
+    iterate:
+    (foo bar baz)
+}
+ 
+
+<span class="macro">macro_rules!</span> assertion_double{
+    (
+        <span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$expr</span>:literal 
+        (
+            { a } (foo bar baz)
+            { b } (foo bar baz)
+            { c } (foo bar baz)
+        )
+    ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$expr
+        </span>}
+    }
+}
+<span class="macro">tokens_method!</span>{
+    <span class="macro">assertion_double!</span>{double <span class="string">"222"</span>}
+    iterate:
+    (a b c)
+    (foo bar baz)
+}
+ 
+
+<span class="macro">macro_rules!</span> assertion_triple{
+    (
+        <span class="macro-nonterminal">$func</span>:ident <span class="macro-nonterminal">$expr</span>:literal 
+        (
+            { <span class="number">3 </span>} (
+                { a } (foo bar baz)
+                { b } (foo bar baz)
+                { c } (foo bar baz)
+            ) 
+            { <span class="number">5 </span>} (
+                { a } (foo bar baz)
+                { b } (foo bar baz)
+                { c } (foo bar baz)
+            )
+            { <span class="number">8 </span>} (
+                { a } (foo bar baz)
+                { b } (foo bar baz)
+                { c } (foo bar baz)
+            )
+        )
+    ) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$func</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+            <span class="macro-nonterminal">$expr
+        </span>}
+    }
+}
+<span class="macro">tokens_method!</span>{
+    <span class="macro">assertion_triple!</span>{triple <span class="string">"333"</span>}
+    iterate:
+    (<span class="number">3 5 8</span>)
+    (a b c)
+    (foo bar baz)
+}
+ </code></pre></div>
+<h4 id="enum-example"><a class="doc-anchor" href="#enum-example">§</a>Enum Example</h4>
+<p>This demonstrates a macro to declare an enum in which all the variants have the same fields.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code> 
+<span class="macro">homogeneous_enum!</span>{ 
+    <span class="kw">pub enum </span>Foo { Bar, Baz, Qux } 
+    fields = { a, b, c }
+    field_type = u32,
+}
+
+<span class="kw">fn </span>main() {
+   Foo::Bar{a: <span class="number">3</span>, b: <span class="number">5</span>, c: <span class="number">8</span>};
+   Foo::Baz{a: <span class="number">13</span>, b: <span class="number">21</span>, c: <span class="number">34</span>};
+   Foo::Qux{a: <span class="number">55</span>, b: <span class="number">89</span>, c: <span class="number">144</span>};
+}
+ 
+<span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> homogeneous_enum{
+    (
+        $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>:meta]</span>)*
+        <span class="macro-nonterminal">$vis</span>:vis <span class="kw">enum </span><span class="macro-nonterminal">$enum_name</span>:ident {
+            $(<span class="macro-nonterminal">$variant</span>:ident),* $(,)<span class="question-mark">?
+        </span>}
+        fields = { $(<span class="macro-nonterminal">$field</span>:ident),* $(,)<span class="question-mark">? </span>}
+        field_type = <span class="macro-nonterminal">$field_ty</span>:ty $(,)<span class="question-mark">?
+    </span>) =&gt; {
+        <span class="macro-nonterminal">$</span><span class="macro">crate::__::tokens_method!</span>{
+            <span class="macro-nonterminal">$</span><span class="macro">crate::__priv_homogeneous_enum!</span>{
+                $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)*
+                <span class="macro-nonterminal">$vis</span>,
+                <span class="macro-nonterminal">$enum_name</span>,
+                <span class="macro-nonterminal">$field_ty</span>,
+            }
+            iterate:
+            ($(<span class="macro-nonterminal">$variant</span>)<span class="kw-2">*</span>)
+            ($(<span class="macro-nonterminal">$field</span>)<span class="kw-2">*</span>)
+        }
+    }
+}
+
+
+<span class="attr">#[doc(hidden)]
+#[macro_export]
+</span><span class="macro">macro_rules!</span> __priv_homogeneous_enum{
+    (
+        $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>:meta]</span>)*
+        <span class="macro-nonterminal">$vis</span>:vis,
+        <span class="macro-nonterminal">$enum_name</span>:ident,
+        <span class="macro-nonterminal">$field_ty</span>:ty,
+        ($(
+            {<span class="macro-nonterminal">$variant</span>:ident} ($(<span class="macro-nonterminal">$field_ident</span>:ident)<span class="kw-2">*</span>)
+        )<span class="kw-2">*</span>)
+    ) =&gt; {
+        $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)*
+        <span class="macro-nonterminal">$vis </span><span class="kw">enum </span><span class="macro-nonterminal">$enum_name </span>{
+            $(
+                <span class="macro-nonterminal">$variant </span>{
+                    $( <span class="macro-nonterminal">$field_ident</span>: <span class="macro-nonterminal">$field_ty</span>, )*
+                },
+            )*
+        }
+    }
+}
+
+<span class="kw">mod </span>__ { 
+    <span class="kw">pub use </span>core_extensions::tokens_method;
+}</code></pre></div>
+<p><span id="range-fn"></span></p>
+<h2 id="range-iterator-function"><a class="doc-anchor" href="#range-iterator-function">§</a><code>range</code> iterator function</h2>
+<p>Iterates over a range, can be bounded or unbounded.</p>
+<p>If the range is unbounded, it must be constrained by some other iterator,
+otherwise causing a compile-time error.</p>
+<p>This uses
+<a href="./macro.gen_ident_range.html#number-syntax">the <code>&lt;number&gt;</code> syntax</a> from <a href="./macro.gen_ident_range.html"><code>gen_ident_range</code></a>
+for the range bounds.</p>
+<h4 id="example-11"><a class="doc-anchor" href="#example-11">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="macro">macro_rules!</span> assertion {
+    ((<span class="number">0 1 2 3 4</span>)) =&gt; {}
+}
+
+<span class="comment">// `tokens_method` calls `assertion` here
+</span><span class="macro">tokens_method!</span>{<span class="macro">assertion!</span>{} iterate: range(<span class="number">0</span>..<span class="number">5</span>)}
+<span class="macro">tokens_method!</span>{<span class="macro">assertion!</span>{} iterate: range(..<span class="number">5</span>)}
+<span class="macro">tokens_method!</span>{<span class="macro">assertion!</span>{} iterate: range(<span class="number">0</span>..=<span class="number">4</span>)}
+<span class="macro">tokens_method!</span>{<span class="macro">assertion!</span>{} iterate: range(..=<span class="number">4</span>)}
+<span class="comment">// You can use `count(....)` to count token trees, using the count as a range bound.
+</span><span class="macro">tokens_method!</span>{<span class="macro">assertion!</span>{} iterate: range(..count(<span class="kw">_ _ _ _ _</span>))}
+
+<span class="macro">macro_rules!</span> assert_zip {
+    (((<span class="number">0</span>) (a)) ((<span class="number">1</span>) (b)) ((<span class="number">2</span>) (c)) ((<span class="number">3</span>) ((d f g))) ((<span class="number">4</span>) ({h i j}))) =&gt; {}
+}
+ 
+<span class="comment">// Both of these call `assert_zip` with the same tokens
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">assert_zip!</span>{}
+    zip_shortest: 
+    range(<span class="number">0</span>..)
+    (a b c (d f g) {h i j})
+}
+<span class="macro">tokens_method!</span>{
+    <span class="macro">assert_zip!</span>{}
+    zip_longest: 
+    range(<span class="number">0</span>..)
+    (a b c (d f g) {h i j})
+}
+ 
+ </code></pre></div>
+<p><span id="gen_ident_range-fn"></span></p>
+<h2 id="gen_ident_range-iterator-function"><a class="doc-anchor" href="#gen_ident_range-iterator-function">§</a><code>gen_ident_range</code> iterator function</h2>
+<p>Generates identifiers by using the <a href="./macro.gen_ident_range.html"><code>gen_ident_range</code></a> macro.</p>
+<p>The range can be unbounded so long as it’s constrained by some other iterator,</p>
+<h4 id="example-12"><a class="doc-anchor" href="#example-12">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="macro">macro_rules!</span> assertion {
+    ((pre_1 pre_2 pre_3 pre_4 pre_5)) =&gt; {}
+}
+
+<span class="comment">// `tokens_method` calls `assertion` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">assertion!</span>{}
+    iterate: gen_ident_range(<span class="kw">for </span>pre_* <span class="kw">in </span><span class="number">1</span>..=<span class="number">5</span>) 
+}
+<span class="macro">tokens_method!</span>{
+    <span class="macro">assertion!</span>{}
+    iterate: gen_ident_range(<span class="kw">for </span>pre_* <span class="kw">in </span><span class="number">1</span>..<span class="number">6</span>) 
+}
+<span class="macro">tokens_method!</span>{
+    <span class="macro">assertion!</span>{}
+    iterate: gen_ident_range(<span class="kw">for </span>pre_* <span class="kw">in </span><span class="number">1</span>..=count(<span class="kw">_ _ _ _ _</span>)) 
+}
+ 
+ 
+<span class="comment">// One way unbounded ranges can be used
+</span><span class="macro">macro_rules!</span> assertion_zipped {
+    (((a) (foo0)) ((b) (foo1)) ((c) (foo2))) =&gt; {}
+}
+     
+<span class="comment">// `tokens_method` calls `assertion_zipped` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">assertion_zipped!</span>{}
+    zip_shortest:   
+    (a b c)
+    gen_ident_range(<span class="kw">for </span>foo* <span class="kw">in </span><span class="number">0</span>..) 
+}
+ 
+ </code></pre></div>
+<p><span id="chain-fn"></span></p>
+<h2 id="chain-iterator-function"><a class="doc-anchor" href="#chain-iterator-function">§</a><code>chain</code> iterator function</h2>
+<p>Concatenates multiple iterators.</p>
+<p>The iterators can be unbounded so long as <code>chain</code> is constrained by some other iterator,</p>
+<h4 id="example-13"><a class="doc-anchor" href="#example-13">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="macro">macro_rules!</span> assertion {
+    ((a b c <span class="number">0 1 2</span>)) =&gt; {}
+}
+
+<span class="comment">// `tokens_method` calls `assertion` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">assertion!</span>{}
+    iterate: chain((a b c) range(<span class="number">0</span>..=<span class="number">2</span>)) 
+}
+ 
+ 
+<span class="macro">macro_rules!</span> assertion_zipped {
+    (((<span class="number">0</span>) (a)) ((<span class="number">1</span>) (b)) ((<span class="number">2</span>) (<span class="number">10</span>)) ((<span class="number">3</span>) (<span class="number">11</span>))) =&gt; {};
+}
+
+<span class="comment">// One way unbounded ranges can be used.
+// `tokens_method` calls `assertion_zipped` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">assertion_zipped!</span>{}
+    zip_shortest:
+    range(<span class="number">0</span>..=<span class="number">3</span>)
+    chain((a b) range(<span class="number">10</span>..)) 
+}
+ 
+ </code></pre></div>
+<p><span id="take-fn"></span></p>
+<h2 id="take-iterator-function"><a class="doc-anchor" href="#take-iterator-function">§</a><code>take</code> iterator function</h2>
+<p>Takes some amount of elements from a possibly unbounded iterator.</p>
+<h4 id="example-14"><a class="doc-anchor" href="#example-14">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="macro">macro_rules!</span> assertion {
+    ((a b <span class="number">0 1 2</span>)) =&gt; {}
+}
+
+<span class="comment">// `tokens_method` calls `assertion` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">assertion!</span>{}
+    iterate:
+    take(<span class="number">5</span>, chain((a b) range(<span class="number">0</span>..<span class="number">10</span>)))
+}
+ 
+<span class="macro">tokens_method!</span>{
+    <span class="macro">assertion!</span>{}
+    iterate:
+    take(count(<span class="kw">_ _ _ _ _</span>), chain((a b) range(<span class="number">0</span>..)))
+}
+ 
+ </code></pre></div>
+<p><span id="skip-fn"></span></p>
+<h2 id="skip-iterator-function"><a class="doc-anchor" href="#skip-iterator-function">§</a><code>skip</code> iterator function</h2>
+<p>Skips elements from a possibly unbounded iterator.</p>
+<h4 id="example-15"><a class="doc-anchor" href="#example-15">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="macro">macro_rules!</span> assertion {
+    ((f g <span class="number">0 1 2</span>)) =&gt; {}
+}
+
+<span class="comment">// `tokens_method` calls `assertion` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">assertion!</span>{}
+    iterate:
+    skip(<span class="number">5</span>, chain((a b c d e f g) range(<span class="number">0</span>..<span class="number">3</span>)))
+}
+<span class="macro">tokens_method!</span>{
+    <span class="macro">assertion!</span>{}
+    iterate:
+    skip(count(<span class="kw">_ _ _ _ _</span>), chain((a b c d e f g) range(<span class="number">0</span>..<span class="number">3</span>)))
+}
+ 
+<span class="comment">// passing an unbounded iterator to skip
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">assertion!</span>{}
+    iterate:
+    take(<span class="number">5</span>, skip(<span class="number">4</span>, chain((b c d e f g) range(<span class="number">0</span>..))))
+}
+ 
+ </code></pre></div>
+<p><span id="cycle-fn"></span></p>
+<h2 id="cycle-iterator-function"><a class="doc-anchor" href="#cycle-iterator-function">§</a><code>cycle</code> iterator function</h2>
+<p>Takes a bounded iterator and repeats it infinitely.</p>
+<h4 id="example-16"><a class="doc-anchor" href="#example-16">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="macro">macro_rules!</span> assertion {
+    (
+        ((<span class="number">0</span>) (a)) ((<span class="number">1</span>) (b)) ((<span class="number">2</span>) (c))
+        ((<span class="number">0</span>) (d)) ((<span class="number">1</span>) (e)) ((<span class="number">2</span>) (f))
+        ((<span class="number">0</span>) (g)) ((<span class="number">1</span>) (h))
+    ) =&gt; {}
+}
+<span class="macro">tokens_method!</span>{
+    <span class="macro">assertion!</span>{}
+    zip_shortest:
+    cycle(range(<span class="number">0</span>..<span class="number">3</span>))
+    (a b c d e f g h)
+}
+ 
+ </code></pre></div>
+<p><span id="repeat-fn"></span></p>
+<h2 id="repeat-iterator-function"><a class="doc-anchor" href="#repeat-iterator-function">§</a><code>repeat</code> iterator function</h2>
+<p>Repeats a bounded iterator some amount of times.</p>
+<h4 id="example-17"><a class="doc-anchor" href="#example-17">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::tokens_method;
+ 
+<span class="macro">macro_rules!</span> assertion_four_times {
+    ((<span class="number">0 1 2 0 1 2 0 1 2 0 1 2</span>)) =&gt; {}
+}
+<span class="comment">// `tokens_method` calls `assertion_four_times` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">assertion_four_times!</span>{}
+    iterate:
+    repeat(<span class="number">4</span>, range(<span class="number">0</span>..=<span class="number">2</span>))
+}
+ 
+ 
+<span class="macro">macro_rules!</span> assertion_zero_times {
+    (()) =&gt; {}
+}
+<span class="comment">// `tokens_method` calls `assertion_zero_times` here
+</span><span class="macro">tokens_method!</span>{
+    <span class="macro">assertion_zero_times!</span>{}
+    iterate:
+    repeat(<span class="number">0</span>, range(<span class="number">0</span>..=<span class="number">2</span>))
+}
+ 
+ </code></pre></div>
+</div></details></section></div></main></body></html>

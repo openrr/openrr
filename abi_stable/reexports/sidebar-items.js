@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["transmute_ignore_size"],"struct":["False","True"],"trait":["SelfOps"]};

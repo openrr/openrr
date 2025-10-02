@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Drain","FromUtf8Error","IntoIter","RString"]};

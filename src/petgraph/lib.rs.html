@@ -1,0 +1,291 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/petgraph-0.6.5/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="petgraph" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">petgraph/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! `petgraph` is a graph data structure library.
+<a href=#2 id=2 data-nosnippet>2</a>//!
+<a href=#3 id=3 data-nosnippet>3</a>//! Graphs are collections of nodes, and edges between nodes. `petgraph`
+<a href=#4 id=4 data-nosnippet>4</a>//! provides several [graph types](index.html#graph-types) (each differing in the
+<a href=#5 id=5 data-nosnippet>5</a>//! tradeoffs taken in their internal representation),
+<a href=#6 id=6 data-nosnippet>6</a>//! [algorithms](./algo/index.html#functions) on those graphs, and functionality to
+<a href=#7 id=7 data-nosnippet>7</a>//! [output graphs](./dot/struct.Dot.html) in
+<a href=#8 id=8 data-nosnippet>8</a>//! [`graphviz`](https://www.graphviz.org/) format. Both nodes and edges
+<a href=#9 id=9 data-nosnippet>9</a>//! can have arbitrary associated data, and edges may be either directed or undirected.
+<a href=#10 id=10 data-nosnippet>10</a>//!
+<a href=#11 id=11 data-nosnippet>11</a>//! # Example
+<a href=#12 id=12 data-nosnippet>12</a>//!
+<a href=#13 id=13 data-nosnippet>13</a>//! ```rust
+<a href=#14 id=14 data-nosnippet>14</a>//! use petgraph::graph::{NodeIndex, UnGraph};
+<a href=#15 id=15 data-nosnippet>15</a>//! use petgraph::algo::{dijkstra, min_spanning_tree};
+<a href=#16 id=16 data-nosnippet>16</a>//! use petgraph::data::FromElements;
+<a href=#17 id=17 data-nosnippet>17</a>//! use petgraph::dot::{Dot, Config};
+<a href=#18 id=18 data-nosnippet>18</a>//!
+<a href=#19 id=19 data-nosnippet>19</a>//! // Create an undirected graph with `i32` nodes and edges with `()` associated data.
+<a href=#20 id=20 data-nosnippet>20</a>//! let g = UnGraph::&lt;i32, ()&gt;::from_edges(&amp;[
+<a href=#21 id=21 data-nosnippet>21</a>//!     (1, 2), (2, 3), (3, 4),
+<a href=#22 id=22 data-nosnippet>22</a>//!     (1, 4)]);
+<a href=#23 id=23 data-nosnippet>23</a>//!
+<a href=#24 id=24 data-nosnippet>24</a>//! // Find the shortest path from `1` to `4` using `1` as the cost for every edge.
+<a href=#25 id=25 data-nosnippet>25</a>//! let node_map = dijkstra(&amp;g, 1.into(), Some(4.into()), |_| 1);
+<a href=#26 id=26 data-nosnippet>26</a>//! assert_eq!(&amp;1i32, node_map.get(&amp;NodeIndex::new(4)).unwrap());
+<a href=#27 id=27 data-nosnippet>27</a>//!
+<a href=#28 id=28 data-nosnippet>28</a>//! // Get the minimum spanning tree of the graph as a new graph, and check that
+<a href=#29 id=29 data-nosnippet>29</a>//! // one edge was trimmed.
+<a href=#30 id=30 data-nosnippet>30</a>//! let mst = UnGraph::&lt;_, _&gt;::from_elements(min_spanning_tree(&amp;g));
+<a href=#31 id=31 data-nosnippet>31</a>//! assert_eq!(g.raw_edges().len() - 1, mst.raw_edges().len());
+<a href=#32 id=32 data-nosnippet>32</a>//!
+<a href=#33 id=33 data-nosnippet>33</a>//! // Output the tree to `graphviz` `DOT` format
+<a href=#34 id=34 data-nosnippet>34</a>//! println!("{:?}", Dot::with_config(&amp;mst, &amp;[Config::EdgeNoLabel]));
+<a href=#35 id=35 data-nosnippet>35</a>//! // graph {
+<a href=#36 id=36 data-nosnippet>36</a>//! //     0 [label="\"0\""]
+<a href=#37 id=37 data-nosnippet>37</a>//! //     1 [label="\"0\""]
+<a href=#38 id=38 data-nosnippet>38</a>//! //     2 [label="\"0\""]
+<a href=#39 id=39 data-nosnippet>39</a>//! //     3 [label="\"0\""]
+<a href=#40 id=40 data-nosnippet>40</a>//! //     1 -- 2
+<a href=#41 id=41 data-nosnippet>41</a>//! //     3 -- 4
+<a href=#42 id=42 data-nosnippet>42</a>//! //     2 -- 3
+<a href=#43 id=43 data-nosnippet>43</a>//! // }
+<a href=#44 id=44 data-nosnippet>44</a>//! ```
+<a href=#45 id=45 data-nosnippet>45</a>//!
+<a href=#46 id=46 data-nosnippet>46</a>//! # Graph types
+<a href=#47 id=47 data-nosnippet>47</a>//!
+<a href=#48 id=48 data-nosnippet>48</a>//! * [`Graph`](./graph/struct.Graph.html) -
+<a href=#49 id=49 data-nosnippet>49</a>//!   An adjacency list graph with arbitrary associated data.
+<a href=#50 id=50 data-nosnippet>50</a>//! * [`StableGraph`](./stable_graph/struct.StableGraph.html) -
+<a href=#51 id=51 data-nosnippet>51</a>//!   Similar to `Graph`, but it keeps indices stable across removals.
+<a href=#52 id=52 data-nosnippet>52</a>//! * [`GraphMap`](./graphmap/struct.GraphMap.html) -
+<a href=#53 id=53 data-nosnippet>53</a>//!   An adjacency list graph backed by a hash table. The node identifiers are the keys
+<a href=#54 id=54 data-nosnippet>54</a>//!   into the table.
+<a href=#55 id=55 data-nosnippet>55</a>//! * [`MatrixGraph`](./matrix_graph/struct.MatrixGraph.html) -
+<a href=#56 id=56 data-nosnippet>56</a>//!   An adjacency matrix graph.
+<a href=#57 id=57 data-nosnippet>57</a>//! * [`CSR`](./csr/struct.Csr.html) -
+<a href=#58 id=58 data-nosnippet>58</a>//!   A sparse adjacency matrix graph with arbitrary associated data.
+<a href=#59 id=59 data-nosnippet>59</a>//!
+<a href=#60 id=60 data-nosnippet>60</a>//! ### Generic parameters
+<a href=#61 id=61 data-nosnippet>61</a>//!
+<a href=#62 id=62 data-nosnippet>62</a>//! Each graph type is generic over a handful of parameters. All graphs share 3 common
+<a href=#63 id=63 data-nosnippet>63</a>//! parameters, `N`, `E`, and `Ty`. This is a broad overview of what those are. Each
+<a href=#64 id=64 data-nosnippet>64</a>//! type's documentation will have finer detail on these parameters.
+<a href=#65 id=65 data-nosnippet>65</a>//!
+<a href=#66 id=66 data-nosnippet>66</a>//! `N` &amp; `E` are called *weights* in this implementation, and are associated with
+<a href=#67 id=67 data-nosnippet>67</a>//! nodes and edges respectively. They can generally be of arbitrary type, and don't have to
+<a href=#68 id=68 data-nosnippet>68</a>//! be what you might conventionally consider weight-like. For example, using `&amp;str` for `N`
+<a href=#69 id=69 data-nosnippet>69</a>//! will work. Many algorithms that require costs let you provide a cost function that
+<a href=#70 id=70 data-nosnippet>70</a>//! translates your `N` and `E` weights into costs appropriate to the algorithm. Some graph
+<a href=#71 id=71 data-nosnippet>71</a>//! types and choices do impose bounds on `N` or `E`.
+<a href=#72 id=72 data-nosnippet>72</a>//! [`min_spanning_tree`](./algo/fn.min_spanning_tree.html) for example requires edge weights that
+<a href=#73 id=73 data-nosnippet>73</a>//! implement [`PartialOrd`](https://doc.rust-lang.org/stable/core/cmp/trait.PartialOrd.html).
+<a href=#74 id=74 data-nosnippet>74</a>//! [`GraphMap`](./graphmap/struct.GraphMap.html) requires node weights that can serve as hash
+<a href=#75 id=75 data-nosnippet>75</a>//! map keys, since that graph type does not create standalone node indices.
+<a href=#76 id=76 data-nosnippet>76</a>//!
+<a href=#77 id=77 data-nosnippet>77</a>//! `Ty` controls whether edges are [`Directed`](./enum.Directed.html) or
+<a href=#78 id=78 data-nosnippet>78</a>//! [`Undirected`](./enum.Undirected.html).
+<a href=#79 id=79 data-nosnippet>79</a>//!
+<a href=#80 id=80 data-nosnippet>80</a>//! `Ix` appears on graph types that use indices. It is exposed so you can control
+<a href=#81 id=81 data-nosnippet>81</a>//! the size of node and edge indices, and therefore the memory footprint of your graphs.
+<a href=#82 id=82 data-nosnippet>82</a>//! Allowed values are `u8`, `u16`, `u32`, and `usize`, with `u32` being the default.
+<a href=#83 id=83 data-nosnippet>83</a>//!
+<a href=#84 id=84 data-nosnippet>84</a>//! ### Shorthand types
+<a href=#85 id=85 data-nosnippet>85</a>//!
+<a href=#86 id=86 data-nosnippet>86</a>//! Each graph type vends a few shorthand type definitions that name some specific
+<a href=#87 id=87 data-nosnippet>87</a>//! generic choices. For example, [`DiGraph&lt;_, _&gt;`](./graph/type.DiGraph.html) is shorthand
+<a href=#88 id=88 data-nosnippet>88</a>//! for [`Graph&lt;_, _, Directed&gt;`](graph/struct.Graph.html).
+<a href=#89 id=89 data-nosnippet>89</a>//! [`UnMatrix&lt;_, _&gt;`](./matrix_graph/type.UnMatrix.html) is shorthand for
+<a href=#90 id=90 data-nosnippet>90</a>//! [`MatrixGraph&lt;_, _, Undirected&gt;`](./matrix_graph/struct.MatrixGraph.html). Each graph type's
+<a href=#91 id=91 data-nosnippet>91</a>//! module documentation lists the available shorthand types.
+<a href=#92 id=92 data-nosnippet>92</a>//!
+<a href=#93 id=93 data-nosnippet>93</a>//! # Crate features
+<a href=#94 id=94 data-nosnippet>94</a>//!
+<a href=#95 id=95 data-nosnippet>95</a>//! * **serde-1** -
+<a href=#96 id=96 data-nosnippet>96</a>//!   Defaults off. Enables serialization for ``Graph, StableGraph, GraphMap`` using
+<a href=#97 id=97 data-nosnippet>97</a>//!   [`serde 1.0`](https://crates.io/crates/serde). May require a more recent version
+<a href=#98 id=98 data-nosnippet>98</a>//!   of Rust than petgraph alone.
+<a href=#99 id=99 data-nosnippet>99</a>//! * **graphmap** -
+<a href=#100 id=100 data-nosnippet>100</a>//!   Defaults on. Enables [`GraphMap`](./graphmap/struct.GraphMap.html).
+<a href=#101 id=101 data-nosnippet>101</a>//! * **stable_graph** -
+<a href=#102 id=102 data-nosnippet>102</a>//!   Defaults on. Enables [`StableGraph`](./stable_graph/struct.StableGraph.html).
+<a href=#103 id=103 data-nosnippet>103</a>//! * **matrix_graph** -
+<a href=#104 id=104 data-nosnippet>104</a>//!   Defaults on. Enables [`MatrixGraph`](./matrix_graph/struct.MatrixGraph.html).
+<a href=#105 id=105 data-nosnippet>105</a>//!
+<a href=#106 id=106 data-nosnippet>106</a></span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/petgraph/0.4/"</span>)]
+<a href=#107 id=107 data-nosnippet>107</a>
+<a href=#108 id=108 data-nosnippet>108</a></span><span class="kw">extern crate </span>fixedbitset;
+<a href=#109 id=109 data-nosnippet>109</a><span class="attr">#[cfg(feature = <span class="string">"graphmap"</span>)]
+<a href=#110 id=110 data-nosnippet>110</a></span><span class="kw">extern crate </span>indexmap;
+<a href=#111 id=111 data-nosnippet>111</a>
+<a href=#112 id=112 data-nosnippet>112</a><span class="attr">#[cfg(feature = <span class="string">"serde-1"</span>)]
+<a href=#113 id=113 data-nosnippet>113</a></span><span class="kw">extern crate </span>serde;
+<a href=#114 id=114 data-nosnippet>114</a><span class="attr">#[cfg(feature = <span class="string">"serde-1"</span>)]
+<a href=#115 id=115 data-nosnippet>115</a>#[macro_use]
+<a href=#116 id=116 data-nosnippet>116</a></span><span class="kw">extern crate </span>serde_derive;
+<a href=#117 id=117 data-nosnippet>117</a>
+<a href=#118 id=118 data-nosnippet>118</a><span class="attr">#[cfg(all(feature = <span class="string">"serde-1"</span>, test))]
+<a href=#119 id=119 data-nosnippet>119</a></span><span class="kw">extern crate </span>itertools;
+<a href=#120 id=120 data-nosnippet>120</a>
+<a href=#121 id=121 data-nosnippet>121</a><span class="attr">#[doc(no_inline)]
+<a href=#122 id=122 data-nosnippet>122</a></span><span class="kw">pub use </span><span class="kw">crate</span>::graph::Graph;
+<a href=#123 id=123 data-nosnippet>123</a>
+<a href=#124 id=124 data-nosnippet>124</a><span class="kw">pub use </span><span class="kw">crate</span>::Direction::{Incoming, Outgoing};
+<a href=#125 id=125 data-nosnippet>125</a>
+<a href=#126 id=126 data-nosnippet>126</a><span class="attr">#[macro_use]
+<a href=#127 id=127 data-nosnippet>127</a></span><span class="kw">mod </span>macros;
+<a href=#128 id=128 data-nosnippet>128</a><span class="kw">mod </span>scored;
+<a href=#129 id=129 data-nosnippet>129</a>
+<a href=#130 id=130 data-nosnippet>130</a><span class="comment">// these modules define trait-implementing macros
+<a href=#131 id=131 data-nosnippet>131</a></span><span class="attr">#[macro_use]
+<a href=#132 id=132 data-nosnippet>132</a></span><span class="kw">pub mod </span>visit;
+<a href=#133 id=133 data-nosnippet>133</a><span class="attr">#[macro_use]
+<a href=#134 id=134 data-nosnippet>134</a></span><span class="kw">pub mod </span>data;
+<a href=#135 id=135 data-nosnippet>135</a>
+<a href=#136 id=136 data-nosnippet>136</a><span class="kw">pub mod </span>adj;
+<a href=#137 id=137 data-nosnippet>137</a><span class="kw">pub mod </span>algo;
+<a href=#138 id=138 data-nosnippet>138</a><span class="kw">pub mod </span>csr;
+<a href=#139 id=139 data-nosnippet>139</a><span class="kw">pub mod </span>dot;
+<a href=#140 id=140 data-nosnippet>140</a><span class="attr">#[cfg(feature = <span class="string">"generate"</span>)]
+<a href=#141 id=141 data-nosnippet>141</a></span><span class="kw">pub mod </span>generate;
+<a href=#142 id=142 data-nosnippet>142</a><span class="kw">mod </span>graph_impl;
+<a href=#143 id=143 data-nosnippet>143</a><span class="attr">#[cfg(feature = <span class="string">"graphmap"</span>)]
+<a href=#144 id=144 data-nosnippet>144</a></span><span class="kw">pub mod </span>graphmap;
+<a href=#145 id=145 data-nosnippet>145</a><span class="kw">mod </span>iter_format;
+<a href=#146 id=146 data-nosnippet>146</a><span class="kw">mod </span>iter_utils;
+<a href=#147 id=147 data-nosnippet>147</a><span class="attr">#[cfg(feature = <span class="string">"matrix_graph"</span>)]
+<a href=#148 id=148 data-nosnippet>148</a></span><span class="kw">pub mod </span>matrix_graph;
+<a href=#149 id=149 data-nosnippet>149</a><span class="attr">#[cfg(feature = <span class="string">"quickcheck"</span>)]
+<a href=#150 id=150 data-nosnippet>150</a></span><span class="kw">mod </span>quickcheck;
+<a href=#151 id=151 data-nosnippet>151</a><span class="attr">#[cfg(feature = <span class="string">"serde-1"</span>)]
+<a href=#152 id=152 data-nosnippet>152</a></span><span class="kw">mod </span>serde_utils;
+<a href=#153 id=153 data-nosnippet>153</a><span class="kw">mod </span>traits_graph;
+<a href=#154 id=154 data-nosnippet>154</a><span class="kw">pub mod </span>unionfind;
+<a href=#155 id=155 data-nosnippet>155</a><span class="kw">mod </span>util;
+<a href=#156 id=156 data-nosnippet>156</a>
+<a href=#157 id=157 data-nosnippet>157</a><span class="kw">pub mod </span>operator;
+<a href=#158 id=158 data-nosnippet>158</a><span class="kw">pub mod </span>prelude;
+<a href=#159 id=159 data-nosnippet>159</a>
+<a href=#160 id=160 data-nosnippet>160</a><span class="doccomment">/// `Graph&lt;N, E, Ty, Ix&gt;` is a graph datastructure using an adjacency list representation.
+<a href=#161 id=161 data-nosnippet>161</a></span><span class="kw">pub mod </span>graph {
+<a href=#162 id=162 data-nosnippet>162</a>    <span class="kw">pub use </span><span class="kw">crate</span>::graph_impl::{
+<a href=#163 id=163 data-nosnippet>163</a>        edge_index, node_index, DefaultIx, DiGraph, Edge, EdgeIndex, EdgeIndices, EdgeReference,
+<a href=#164 id=164 data-nosnippet>164</a>        EdgeReferences, EdgeWeightsMut, Edges, EdgesConnecting, Externals, Frozen, Graph,
+<a href=#165 id=165 data-nosnippet>165</a>        GraphIndex, IndexType, Neighbors, Node, NodeIndex, NodeIndices, NodeReferences,
+<a href=#166 id=166 data-nosnippet>166</a>        NodeWeightsMut, UnGraph, WalkNeighbors,
+<a href=#167 id=167 data-nosnippet>167</a>    };
+<a href=#168 id=168 data-nosnippet>168</a>}
+<a href=#169 id=169 data-nosnippet>169</a>
+<a href=#170 id=170 data-nosnippet>170</a><span class="attr">#[cfg(feature = <span class="string">"stable_graph"</span>)]
+<a href=#171 id=171 data-nosnippet>171</a></span><span class="kw">pub use </span><span class="kw">crate</span>::graph_impl::stable_graph;
+<a href=#172 id=172 data-nosnippet>172</a>
+<a href=#173 id=173 data-nosnippet>173</a><span class="comment">// Index into the NodeIndex and EdgeIndex arrays
+<a href=#174 id=174 data-nosnippet>174</a></span><span class="doccomment">/// Edge direction.
+<a href=#175 id=175 data-nosnippet>175</a></span><span class="attr">#[derive(Clone, Copy, Debug, PartialEq, PartialOrd, Ord, Eq, Hash)]
+<a href=#176 id=176 data-nosnippet>176</a>#[repr(usize)]
+<a href=#177 id=177 data-nosnippet>177</a></span><span class="kw">pub enum </span>Direction {
+<a href=#178 id=178 data-nosnippet>178</a>    <span class="doccomment">/// An `Outgoing` edge is an outward edge *from* the current node.
+<a href=#179 id=179 data-nosnippet>179</a>    </span>Outgoing = <span class="number">0</span>,
+<a href=#180 id=180 data-nosnippet>180</a>    <span class="doccomment">/// An `Incoming` edge is an inbound edge *to* the current node.
+<a href=#181 id=181 data-nosnippet>181</a>    </span>Incoming = <span class="number">1</span>,
+<a href=#182 id=182 data-nosnippet>182</a>}
+<a href=#183 id=183 data-nosnippet>183</a>
+<a href=#184 id=184 data-nosnippet>184</a><span class="kw">impl </span>Direction {
+<a href=#185 id=185 data-nosnippet>185</a>    <span class="doccomment">/// Return the opposite `Direction`.
+<a href=#186 id=186 data-nosnippet>186</a>    </span><span class="attr">#[inline]
+<a href=#187 id=187 data-nosnippet>187</a>    </span><span class="kw">pub fn </span>opposite(<span class="self">self</span>) -&gt; Direction {
+<a href=#188 id=188 data-nosnippet>188</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#189 id=189 data-nosnippet>189</a>            Outgoing =&gt; Incoming,
+<a href=#190 id=190 data-nosnippet>190</a>            Incoming =&gt; Outgoing,
+<a href=#191 id=191 data-nosnippet>191</a>        }
+<a href=#192 id=192 data-nosnippet>192</a>    }
+<a href=#193 id=193 data-nosnippet>193</a>
+<a href=#194 id=194 data-nosnippet>194</a>    <span class="doccomment">/// Return `0` for `Outgoing` and `1` for `Incoming`.
+<a href=#195 id=195 data-nosnippet>195</a>    </span><span class="attr">#[inline]
+<a href=#196 id=196 data-nosnippet>196</a>    </span><span class="kw">pub fn </span>index(<span class="self">self</span>) -&gt; usize {
+<a href=#197 id=197 data-nosnippet>197</a>        (<span class="self">self </span><span class="kw">as </span>usize) &amp; <span class="number">0x1
+<a href=#198 id=198 data-nosnippet>198</a>    </span>}
+<a href=#199 id=199 data-nosnippet>199</a>}
+<a href=#200 id=200 data-nosnippet>200</a>
+<a href=#201 id=201 data-nosnippet>201</a><span class="attr">#[doc(hidden)]
+<a href=#202 id=202 data-nosnippet>202</a></span><span class="kw">pub use </span><span class="kw">crate</span>::Direction <span class="kw">as </span>EdgeDirection;
+<a href=#203 id=203 data-nosnippet>203</a>
+<a href=#204 id=204 data-nosnippet>204</a><span class="doccomment">/// Marker type for a directed graph.
+<a href=#205 id=205 data-nosnippet>205</a></span><span class="attr">#[derive(Clone, Copy, Debug)]
+<a href=#206 id=206 data-nosnippet>206</a></span><span class="kw">pub enum </span>Directed {}
+<a href=#207 id=207 data-nosnippet>207</a>
+<a href=#208 id=208 data-nosnippet>208</a><span class="doccomment">/// Marker type for an undirected graph.
+<a href=#209 id=209 data-nosnippet>209</a></span><span class="attr">#[derive(Clone, Copy, Debug)]
+<a href=#210 id=210 data-nosnippet>210</a></span><span class="kw">pub enum </span>Undirected {}
+<a href=#211 id=211 data-nosnippet>211</a>
+<a href=#212 id=212 data-nosnippet>212</a><span class="doccomment">/// A graph's edge type determines whether it has directed edges or not.
+<a href=#213 id=213 data-nosnippet>213</a></span><span class="kw">pub trait </span>EdgeType {
+<a href=#214 id=214 data-nosnippet>214</a>    <span class="kw">fn </span>is_directed() -&gt; bool;
+<a href=#215 id=215 data-nosnippet>215</a>}
+<a href=#216 id=216 data-nosnippet>216</a>
+<a href=#217 id=217 data-nosnippet>217</a><span class="kw">impl </span>EdgeType <span class="kw">for </span>Directed {
+<a href=#218 id=218 data-nosnippet>218</a>    <span class="attr">#[inline]
+<a href=#219 id=219 data-nosnippet>219</a>    </span><span class="kw">fn </span>is_directed() -&gt; bool {
+<a href=#220 id=220 data-nosnippet>220</a>        <span class="bool-val">true
+<a href=#221 id=221 data-nosnippet>221</a>    </span>}
+<a href=#222 id=222 data-nosnippet>222</a>}
+<a href=#223 id=223 data-nosnippet>223</a>
+<a href=#224 id=224 data-nosnippet>224</a><span class="kw">impl </span>EdgeType <span class="kw">for </span>Undirected {
+<a href=#225 id=225 data-nosnippet>225</a>    <span class="attr">#[inline]
+<a href=#226 id=226 data-nosnippet>226</a>    </span><span class="kw">fn </span>is_directed() -&gt; bool {
+<a href=#227 id=227 data-nosnippet>227</a>        <span class="bool-val">false
+<a href=#228 id=228 data-nosnippet>228</a>    </span>}
+<a href=#229 id=229 data-nosnippet>229</a>}
+<a href=#230 id=230 data-nosnippet>230</a>
+<a href=#231 id=231 data-nosnippet>231</a><span class="doccomment">/// Convert an element like `(i, j)` or `(i, j, w)` into
+<a href=#232 id=232 data-nosnippet>232</a>/// a triple of source, target, edge weight.
+<a href=#233 id=233 data-nosnippet>233</a>///
+<a href=#234 id=234 data-nosnippet>234</a>/// For `Graph::from_edges` and `GraphMap::from_edges`.
+<a href=#235 id=235 data-nosnippet>235</a></span><span class="kw">pub trait </span>IntoWeightedEdge&lt;E&gt; {
+<a href=#236 id=236 data-nosnippet>236</a>    <span class="kw">type </span>NodeId;
+<a href=#237 id=237 data-nosnippet>237</a>    <span class="kw">fn </span>into_weighted_edge(<span class="self">self</span>) -&gt; (<span class="self">Self</span>::NodeId, <span class="self">Self</span>::NodeId, E);
+<a href=#238 id=238 data-nosnippet>238</a>}
+<a href=#239 id=239 data-nosnippet>239</a>
+<a href=#240 id=240 data-nosnippet>240</a><span class="kw">impl</span>&lt;Ix, E&gt; IntoWeightedEdge&lt;E&gt; <span class="kw">for </span>(Ix, Ix)
+<a href=#241 id=241 data-nosnippet>241</a><span class="kw">where
+<a href=#242 id=242 data-nosnippet>242</a>    </span>E: Default,
+<a href=#243 id=243 data-nosnippet>243</a>{
+<a href=#244 id=244 data-nosnippet>244</a>    <span class="kw">type </span>NodeId = Ix;
+<a href=#245 id=245 data-nosnippet>245</a>
+<a href=#246 id=246 data-nosnippet>246</a>    <span class="kw">fn </span>into_weighted_edge(<span class="self">self</span>) -&gt; (Ix, Ix, E) {
+<a href=#247 id=247 data-nosnippet>247</a>        <span class="kw">let </span>(s, t) = <span class="self">self</span>;
+<a href=#248 id=248 data-nosnippet>248</a>        (s, t, E::default())
+<a href=#249 id=249 data-nosnippet>249</a>    }
+<a href=#250 id=250 data-nosnippet>250</a>}
+<a href=#251 id=251 data-nosnippet>251</a>
+<a href=#252 id=252 data-nosnippet>252</a><span class="kw">impl</span>&lt;Ix, E&gt; IntoWeightedEdge&lt;E&gt; <span class="kw">for </span>(Ix, Ix, E) {
+<a href=#253 id=253 data-nosnippet>253</a>    <span class="kw">type </span>NodeId = Ix;
+<a href=#254 id=254 data-nosnippet>254</a>    <span class="kw">fn </span>into_weighted_edge(<span class="self">self</span>) -&gt; (Ix, Ix, E) {
+<a href=#255 id=255 data-nosnippet>255</a>        <span class="self">self
+<a href=#256 id=256 data-nosnippet>256</a>    </span>}
+<a href=#257 id=257 data-nosnippet>257</a>}
+<a href=#258 id=258 data-nosnippet>258</a>
+<a href=#259 id=259 data-nosnippet>259</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Ix, E&gt; IntoWeightedEdge&lt;E&gt; <span class="kw">for </span>(Ix, Ix, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>E)
+<a href=#260 id=260 data-nosnippet>260</a><span class="kw">where
+<a href=#261 id=261 data-nosnippet>261</a>    </span>E: Clone,
+<a href=#262 id=262 data-nosnippet>262</a>{
+<a href=#263 id=263 data-nosnippet>263</a>    <span class="kw">type </span>NodeId = Ix;
+<a href=#264 id=264 data-nosnippet>264</a>    <span class="kw">fn </span>into_weighted_edge(<span class="self">self</span>) -&gt; (Ix, Ix, E) {
+<a href=#265 id=265 data-nosnippet>265</a>        <span class="kw">let </span>(a, b, c) = <span class="self">self</span>;
+<a href=#266 id=266 data-nosnippet>266</a>        (a, b, c.clone())
+<a href=#267 id=267 data-nosnippet>267</a>    }
+<a href=#268 id=268 data-nosnippet>268</a>}
+<a href=#269 id=269 data-nosnippet>269</a>
+<a href=#270 id=270 data-nosnippet>270</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Ix, E&gt; IntoWeightedEdge&lt;E&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>(Ix, Ix)
+<a href=#271 id=271 data-nosnippet>271</a><span class="kw">where
+<a href=#272 id=272 data-nosnippet>272</a>    </span>Ix: Copy,
+<a href=#273 id=273 data-nosnippet>273</a>    E: Default,
+<a href=#274 id=274 data-nosnippet>274</a>{
+<a href=#275 id=275 data-nosnippet>275</a>    <span class="kw">type </span>NodeId = Ix;
+<a href=#276 id=276 data-nosnippet>276</a>    <span class="kw">fn </span>into_weighted_edge(<span class="self">self</span>) -&gt; (Ix, Ix, E) {
+<a href=#277 id=277 data-nosnippet>277</a>        <span class="kw">let </span>(s, t) = <span class="kw-2">*</span><span class="self">self</span>;
+<a href=#278 id=278 data-nosnippet>278</a>        (s, t, E::default())
+<a href=#279 id=279 data-nosnippet>279</a>    }
+<a href=#280 id=280 data-nosnippet>280</a>}
+<a href=#281 id=281 data-nosnippet>281</a>
+<a href=#282 id=282 data-nosnippet>282</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Ix, E&gt; IntoWeightedEdge&lt;E&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>(Ix, Ix, E)
+<a href=#283 id=283 data-nosnippet>283</a><span class="kw">where
+<a href=#284 id=284 data-nosnippet>284</a>    </span>Ix: Copy,
+<a href=#285 id=285 data-nosnippet>285</a>    E: Clone,
+<a href=#286 id=286 data-nosnippet>286</a>{
+<a href=#287 id=287 data-nosnippet>287</a>    <span class="kw">type </span>NodeId = Ix;
+<a href=#288 id=288 data-nosnippet>288</a>    <span class="kw">fn </span>into_weighted_edge(<span class="self">self</span>) -&gt; (Ix, Ix, E) {
+<a href=#289 id=289 data-nosnippet>289</a>        <span class="self">self</span>.clone()
+<a href=#290 id=290 data-nosnippet>290</a>    }
+<a href=#291 id=291 data-nosnippet>291</a>}</code></pre></div></section></main></body></html>

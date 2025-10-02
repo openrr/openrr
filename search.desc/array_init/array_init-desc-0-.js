@@ -1,0 +1,1 @@
+searchState.loadedDescShard("array_init", 0, "The <code>array-init</code> crate allows you to initialize arrays with …\nInitialize an array given an initializer expression.\nInitialize an array given an iterator\nInitialize an array in reverse given an iterator\nInitialize an array given a source array and a mapping …\nInitialize an array given an initializer expression that …")

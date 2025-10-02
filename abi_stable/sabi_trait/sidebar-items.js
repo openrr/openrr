@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["doc_examples","prelude"],"struct":["RObject","UneraseError"],"trait":["ReborrowBounds"]};
