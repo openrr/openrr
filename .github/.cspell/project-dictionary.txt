@@ -10,7 +10,6 @@ codegen
 collada
 costmap
 costmaps
-DISTRO
 dobot
 doctest
 dylib
@@ -36,7 +35,6 @@ libopenrr
 libtest
 libudev
 libxkbcommon
-nanos
 nanosec
 nomotion
 nsec
@@ -44,8 +42,6 @@ oneshot
 pathplanning
 peekable
 powerset
-protoc
-protos
 repr
 rgba
 roscore
