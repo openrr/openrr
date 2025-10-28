@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["next_field_offset"],"struct":["GetNextFieldOffset"]};

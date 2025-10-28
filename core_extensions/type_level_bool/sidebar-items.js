@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["False","True"],"trait":["Boolean"],"type":["And","Not","Or","Xor"]};

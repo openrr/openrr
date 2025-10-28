@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Constructs this type witness."><title>MakeTypeWitness in typewit - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="typewit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../typewit/index.html">typewit</a><span class="version">1.14.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Make<wbr>Type<wbr>Witness</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#required-associated-consts">Required Associated Constants</a></h3><ul class="block"><li><a href="#associatedconstant.MAKE" title="MAKE">MAKE</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate typewit</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">typewit</a></div><h1>Trait <span class="trait">MakeTypeWitness</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/typewit/type_witness_traits.rs.html#267-270">Source</a> </span></div><pre class="rust item-decl"><code>pub trait MakeTypeWitness: <a class="trait" href="trait.TypeWitnessTypeArg.html" title="trait typewit::TypeWitnessTypeArg">TypeWitnessTypeArg</a> {
+    const <a href="#associatedconstant.MAKE" class="constant">MAKE</a>: Self;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Constructs this <a href="index.html#what-are-type-witnesses" title="mod typewit">type witness</a>.</p>
+<p>A <a href="index.html#what-are-type-witnesses" title="mod typewit">type witness</a> is an enum whose variants only have <a href="struct.TypeEq.html" title="struct typewit::TypeEq"><code>TypeEq</code></a> fields.
+Each variant requires the enum’s type parameter to be a specific type.</p>
+<p>This trait can be automatically implemented for simple type witnesses
+by declaring the type witness with the <a href="macro.simple_type_witness.html" title="macro typewit::simple_type_witness"><code>simple_type_witness</code></a> macro.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>(this example requires Rust 1.61.0)</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{TypeWitnessTypeArg, MakeTypeWitness, TypeEq};
+ 
+<span class="kw">const fn </span>default&lt;<span class="lifetime">'a</span>, T, <span class="kw">const </span>L: usize&gt;() -&gt; T 
+<span class="kw">where
+    </span>Defaultable&lt;<span class="lifetime">'a</span>, L, T&gt;: MakeTypeWitness
+{
+    <span class="kw">match </span>MakeTypeWitness::MAKE {
+        <span class="comment">// `te` is a `TypeEq&lt;T, i32&gt;`, which allows coercing between `T` and `i32`.
+        // `te.to_left(...)` goes from `i32` to `T`.
+        </span>Defaultable::I32(te) =&gt; te.to_left(<span class="number">3</span>),
+
+        <span class="comment">// `te` is a `TypeEq&lt;T, bool&gt;`
+        </span>Defaultable::Bool(te) =&gt; te.to_left(<span class="bool-val">true</span>),
+
+        <span class="comment">// `te` is a `TypeEq&lt;T, &amp;'a str&gt;`
+        </span>Defaultable::Str(te) =&gt; te.to_left(<span class="string">"empty"</span>),
+
+        <span class="comment">// `te` is a `TypeEq&lt;T, [u32; L]&gt;`
+        </span>Defaultable::Array(te) =&gt; te.to_left([<span class="number">5</span>; L]),
+    }
+}
+ 
+<span class="kw">let </span>number: i32 = default();
+<span class="macro">assert_eq!</span>(number, <span class="number">3</span>);
+ 
+<span class="kw">let </span>boolean: bool = default();
+<span class="macro">assert_eq!</span>(boolean, <span class="bool-val">true</span>);
+ 
+<span class="kw">let </span>string: <span class="kw-2">&amp;</span>str = default();
+<span class="macro">assert_eq!</span>(string, <span class="string">"empty"</span>);
+
+<span class="kw">let </span>array: [u32; <span class="number">3</span>] = default();
+<span class="macro">assert_eq!</span>(array, [<span class="number">5</span>, <span class="number">5</span>, <span class="number">5</span>]);
+ 
+ 
+<span class="comment">// This enum is a type witness (documented in the root module)
+</span><span class="attr">#[non_exhaustive]
+</span><span class="kw">enum </span>Defaultable&lt;<span class="lifetime">'a</span>, <span class="kw">const </span>L: usize, T&gt; {
+    <span class="comment">// This variant requires `T == i32`
+    </span>I32(TypeEq&lt;T, i32&gt;),
+
+    <span class="comment">// This variant requires `T == bool`
+    </span>Bool(TypeEq&lt;T, bool&gt;),
+
+    <span class="comment">// This variant requires `T == &amp;'a str`
+    </span>Str(TypeEq&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;),
+
+    <span class="comment">// This variant requires `T == [u32; L]`
+    </span>Array(TypeEq&lt;T, [u32; L]&gt;),
+}
+ 
+<span class="kw">impl</span>&lt;T, <span class="kw">const </span>L: usize&gt; TypeWitnessTypeArg <span class="kw">for </span>Defaultable&lt;<span class="lifetime">'_</span>, L, T&gt; {
+    <span class="comment">// this aids type inference for what type parameter is witnessed 
+    </span><span class="kw">type </span>Arg = T;
+}
+ 
+<span class="comment">// Specifying dummy values for the generics that the `I32` variant doesn't use,
+// so that they don't have to be specified when this impl is used.
+</span><span class="kw">impl </span>MakeTypeWitness <span class="kw">for </span>Defaultable&lt;<span class="lifetime">'_</span>, <span class="number">0</span>, i32&gt; {
+    <span class="comment">// The `TypeEq&lt;T, i32&gt;` field can be constructed because `T == i32` here.
+    </span><span class="kw">const </span>MAKE: <span class="self">Self </span>= <span class="self">Self</span>::I32(TypeEq::NEW);
+}
+ 
+<span class="kw">impl </span>MakeTypeWitness <span class="kw">for </span>Defaultable&lt;<span class="lifetime">'_</span>, <span class="number">0</span>, bool&gt; {
+    <span class="kw">const </span>MAKE: <span class="self">Self </span>= <span class="self">Self</span>::Bool(TypeEq::NEW);
+}
+ 
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; MakeTypeWitness <span class="kw">for </span>Defaultable&lt;<span class="lifetime">'a</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; {
+    <span class="kw">const </span>MAKE: <span class="self">Self </span>= <span class="self">Self</span>::Str(TypeEq::NEW);
+}
+ 
+<span class="kw">impl</span>&lt;<span class="kw">const </span>L: usize&gt; MakeTypeWitness <span class="kw">for </span>Defaultable&lt;<span class="lifetime">'_</span>, L, [u32; L]&gt; {
+    <span class="kw">const </span>MAKE: <span class="self">Self </span>= <span class="self">Self</span>::Array(TypeEq::NEW);
+}
+ </code></pre></div>
+<p>The <code>Defaultable</code> type definition and its impls can also be written using
+the <a href="macro.simple_type_witness.html" title="macro typewit::simple_type_witness"><code>simple_type_witness</code></a> macro:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="macro">typewit::simple_type_witness!</span>{
+    <span class="comment">// Declares `enum Defaultable&lt;'a, const L: usize, __Wit&gt;`
+    // The `__Wit` type parameter is implicit and always the last generic parameter.
+    </span><span class="attr">#[non_exhaustive]
+    </span><span class="kw">enum </span>Defaultable&lt;<span class="lifetime">'a</span>, <span class="kw">const </span>L: usize&gt; {
+        <span class="comment">// `&lt;'a, 0&gt;` is necessary to have 
+        // `impl MakeTypeWitness for Defaultable&lt;'_, 0, i32&gt;` instead of 
+        // `impl&lt;'a, const L: u32&gt; MakeTypeWitness for Defaultable&lt;'a, L, i32&gt;`,
+        // which allows the generic arguments to be inferred.
+        </span>I32&lt;<span class="lifetime">'a</span>, <span class="number">0</span>&gt; = i32,
+
+        Bool&lt;<span class="lifetime">'a</span>, <span class="number">0</span>&gt; = bool,
+
+        Str&lt;<span class="lifetime">'a</span>, <span class="number">0</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+
+        Array = [u32; L],
+    }
+}</code></pre></div>
+<p>note that <a href="macro.simple_type_witness.html" title="macro typewit::simple_type_witness"><code>simple_type_witness</code></a> can’t replace enums whose
+witnessed type parameter is not the last,
+or have variants with anything but one <a href="struct.TypeEq.html" title="struct typewit::TypeEq"><code>TypeEq</code></a> field each.</p>
+</div></details><h2 id="required-associated-consts" class="section-header">Required Associated Constants<a href="#required-associated-consts" class="anchor">§</a></h2><div class="methods"><details class="toggle" open><summary><section id="associatedconstant.MAKE" class="method"><a class="src rightside" href="../src/typewit/type_witness_traits.rs.html#269">Source</a><h4 class="code-header">const <a href="#associatedconstant.MAKE" class="constant">MAKE</a>: Self</h4></section></summary><div class="docblock"><p>A constant with the type witness</p>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><details class="toggle implementors-toggle"><summary><section id="impl-MakeTypeWitness-for-TypeEq%3CT,+T%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#775-777">Source</a><a href="#impl-MakeTypeWitness-for-TypeEq%3CT,+T%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="trait.MakeTypeWitness.html" title="trait typewit::MakeTypeWitness">MakeTypeWitness</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;T, T&gt;</h3></section></summary><div class="impl-items"><section id="associatedconstant.MAKE-1" class="associatedconstant trait-impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#776">Source</a><a href="#associatedconstant.MAKE-1" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.MAKE" class="constant">MAKE</a>: Self = Self::NEW</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-MakeTypeWitness-for-BoolWitG%3CBool%3CB%3E%3E" class="impl"><a class="src rightside" href="../src/typewit/const_marker/boolwit.rs.html#382-392">Source</a><a href="#impl-MakeTypeWitness-for-BoolWitG%3CBool%3CB%3E%3E" class="anchor">§</a><h3 class="code-header">impl&lt;const B: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a>&gt; <a class="trait" href="trait.MakeTypeWitness.html" title="trait typewit::MakeTypeWitness">MakeTypeWitness</a> for <a class="enum" href="const_marker/enum.BoolWitG.html" title="enum typewit::const_marker::BoolWitG">BoolWitG</a>&lt;<a class="struct" href="const_marker/struct.Bool.html" title="struct typewit::const_marker::Bool">Bool</a>&lt;B&gt;&gt;</h3></section></summary><div class="impl-items"><section id="associatedconstant.MAKE-2" class="associatedconstant trait-impl"><a class="src rightside" href="../src/typewit/const_marker/boolwit.rs.html#383-391">Source</a><a href="#associatedconstant.MAKE-2" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.MAKE" class="constant">MAKE</a>: Self</h4></section></div></details></div><script src="../trait.impl/typewit/type_witness_traits/trait.MakeTypeWitness.js" async></script></section></div></main></body></html>

@@ -1,0 +1,1 @@
+searchState.loadedDescShard("arci_speak_cmd", 0, "arci-speak-cmd\nA <code>Speaker</code> implementation using a local command.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCreates a new <code>LocalCommand</code>.")

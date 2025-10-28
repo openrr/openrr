@@ -1,0 +1,1 @@
+searchState.loadedDescShard("safemem", 0, "Safe wrappers for memory-accessing functions like …\nCopy <code>len</code> elements from <code>src_idx</code> to <code>dest_idx</code>. Ranges may …\nPrepend <code>elems</code> to <code>vec</code>, resizing if necessary.\nSafe wrapper for <code>std::ptr::write_bytes()</code>/<code>memset()</code>.")

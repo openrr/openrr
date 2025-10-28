@@ -1,0 +1,88 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Gets a type witness for `Self`."><title>HasTypeWitness in typewit - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="typewit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../typewit/index.html">typewit</a><span class="version">1.14.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">HasType<wbr>Witness</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#required-associated-consts">Required Associated Constants</a></h3><ul class="block"><li><a href="#associatedconstant.WITNESS" title="WITNESS">WITNESS</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate typewit</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">typewit</a></div><h1>Trait <span class="trait">HasTypeWitness</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/typewit/type_witness_traits.rs.html#97-104">Source</a> </span></div><pre class="rust item-decl"><code>pub trait HasTypeWitness&lt;W: <a class="trait" href="trait.TypeWitnessTypeArg.html" title="trait typewit::TypeWitnessTypeArg">TypeWitnessTypeArg</a>&lt;Arg = Self&gt;&gt; {
+    const <a href="#associatedconstant.WITNESS" class="constant">WITNESS</a>: W;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Gets a <a href="index.html#what-are-type-witnesses" title="mod typewit">type witness</a> for <code>Self</code>.</p>
+<p>A <a href="index.html#what-are-type-witnesses" title="mod typewit">type witness</a> is an enum whose variants only have <a href="struct.TypeEq.html" title="struct typewit::TypeEq"><code>TypeEq</code></a> fields.
+Each variant requires the enum’s type parameter to be a specific type.</p>
+<p>This trait is a helper to write <a href="trait.MakeTypeWitness.html" title="trait typewit::MakeTypeWitness"><code>W: MakeTypeWitness&lt;Arg = T&gt;</code></a>
+with the <code>T</code> and <code>W</code> type parameters flipped,
+most useful in supertrait bounds.</p>
+<p>This trait can’t be implemented outside of <code>typewit</code>.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>This example shows how one can make a <code>const fn</code> that converts both
+<code>&amp;str</code> and <code>&amp;[u8]</code> to <code>&amp;str</code></p>
+<p>(this example requires Rust 1.64.0)</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{HasTypeWitness, TypeWitnessTypeArg, MakeTypeWitness, TypeEq};
+ 
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(str_try_from(<span class="string">"hello"</span>), <span class="prelude-val">Ok</span>(<span class="string">"hello"</span>));
+     
+    <span class="macro">assert_eq!</span>(str_try_from(<span class="kw-2">&amp;</span>[<span class="string">b'w'</span>, <span class="string">b'o'</span>, <span class="string">b'r'</span>, <span class="string">b'l'</span>, <span class="string">b'd'</span>]), <span class="prelude-val">Ok</span>(<span class="string">"world"</span>));
+     
+    <span class="macro">assert_eq!</span>(str_try_from(<span class="string">b"foo bar" </span><span class="kw">as </span><span class="kw-2">&amp;</span>[<span class="kw">_</span>]), <span class="prelude-val">Ok</span>(<span class="string">"foo bar"</span>));
+}
+ 
+<span class="kw">pub const fn </span>str_try_from&lt;<span class="lifetime">'a</span>, T, <span class="kw">const </span>L: usize&gt;(
+    input: T
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, std::str::Utf8Error&gt;
+<span class="kw">where
+    </span>T: StrTryFrom&lt;<span class="lifetime">'a</span>, L&gt;
+{
+    <span class="comment">// `T::WITNESS` expands to 
+    // `&lt;T as HasTypeWitness&lt;StrTryFromWitness&lt;'a, L, T&gt;&gt;::WITNESS`
+    </span><span class="kw">match </span>T::WITNESS {
+        StrTryFromWitness::Str(te) =&gt; {
+            <span class="comment">// `te` (a `TypeEq&lt;T, &amp;'a str&gt;`) allows coercing between `T` and `&amp;'a str`.
+            </span><span class="kw">let </span>string: <span class="kw-2">&amp;</span>str = te.to_right(input);
+            <span class="prelude-val">Ok</span>(string)
+        }
+        StrTryFromWitness::Bytes(te) =&gt; {
+            <span class="kw">let </span>bytes: <span class="kw-2">&amp;</span>[u8] = te.to_right(input);
+            std::str::from_utf8(bytes)
+        }
+        StrTryFromWitness::Array(te) =&gt; {
+            <span class="kw">let </span>slice: <span class="kw-2">&amp;</span>[u8] = te.to_right(input);
+            str_try_from(slice)
+        }
+    }
+}
+ 
+ 
+<span class="comment">// trait alias pattern
+</span><span class="kw">pub trait </span>StrTryFrom&lt;<span class="lifetime">'a</span>, <span class="kw">const </span>L: usize&gt;: 
+    Copy + HasTypeWitness&lt;StrTryFromWitness&lt;<span class="lifetime">'a</span>, L, <span class="self">Self</span>&gt;&gt; 
+{}
+ 
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, <span class="kw">const </span>L: usize&gt; StrTryFrom&lt;<span class="lifetime">'a</span>, L&gt; <span class="kw">for </span>T
+<span class="kw">where
+    </span>T: Copy + HasTypeWitness&lt;StrTryFromWitness&lt;<span class="lifetime">'a</span>, L, T&gt;&gt;
+{}
+ 
+<span class="comment">// This macro declares a type witness enum
+</span><span class="macro">typewit::simple_type_witness!</span> {
+    <span class="comment">// Declares `enum StrTryFromWitness&lt;'a, const L: usize, __Wit&gt;` 
+    // (the `__Wit` type parameter is implicitly added after all generics)
+    // `#[non_exhausitve]` allows adding more supported types.
+    </span><span class="attr">#[non_exhaustive]
+    </span><span class="kw">pub enum </span>StrTryFromWitness&lt;<span class="lifetime">'a</span>, <span class="kw">const </span>L: usize&gt; {
+        <span class="comment">// This variant requires `__Wit == &amp;'a str`
+        // 
+        // The `&lt;'a, 0&gt;` here changes this macro from generating
+        // `impl&lt;'a, const L: usize&gt; MakeTypeWitness for StrTryFromWitness&lt;'a, L, &amp;'a [u8]&gt;`
+        // to 
+        // `impl&lt;'a&gt; MakeTypeWitness for StrTryFromWitness&lt;'a, 0, &amp;'a [u8]&gt;`
+        // which allows the compiler to infer generic arguments when
+        // using the latter `MakeTypeWitness` impl`
+        </span>Str&lt;<span class="lifetime">'a</span>, <span class="number">0</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+    
+        <span class="comment">// This variant requires `__Wit == &amp;'a [u8]`
+        </span>Bytes&lt;<span class="lifetime">'a</span>, <span class="number">0</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8],
+    
+        <span class="comment">// This variant requires `__Wit == &amp;'a [u8; L]`
+        </span>Array = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8; L],
+    }
+}</code></pre></div>
+</div></details><h2 id="required-associated-consts" class="section-header">Required Associated Constants<a href="#required-associated-consts" class="anchor">§</a></h2><div class="methods"><details class="toggle" open><summary><section id="associatedconstant.WITNESS" class="method"><a class="src rightside" href="../src/typewit/type_witness_traits.rs.html#99">Source</a><h4 class="code-header">const <a href="#associatedconstant.WITNESS" class="constant">WITNESS</a>: W</h4></section></summary><div class="docblock"><p>A constant of the type witness</p>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><details class="toggle implementors-toggle"><summary><section id="impl-HasTypeWitness%3CW%3E-for-T" class="impl"><a class="src rightside" href="../src/typewit/type_witness_traits.rs.html#106-115">Source</a><a href="#impl-HasTypeWitness%3CW%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, W&gt; <a class="trait" href="trait.HasTypeWitness.html" title="trait typewit::HasTypeWitness">HasTypeWitness</a>&lt;W&gt; for T<div class="where">where
+    T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,
+    W: <a class="trait" href="trait.MakeTypeWitness.html" title="trait typewit::MakeTypeWitness">MakeTypeWitness</a>&lt;Arg = T&gt;,</div></h3></section></summary><div class="impl-items"><section id="associatedconstant.WITNESS-1" class="associatedconstant trait-impl"><a class="src rightside" href="../src/typewit/type_witness_traits.rs.html#111">Source</a><a href="#associatedconstant.WITNESS-1" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.WITNESS" class="constant">WITNESS</a>: W = W::MAKE</h4></section></div></details></div><script src="../trait.impl/typewit/type_witness_traits/trait.HasTypeWitness.js" async></script></section></div></main></body></html>

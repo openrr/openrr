@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Describes how a nonexhaustive enum is deserialized."><title>DeserializeEnum in abi_stable::nonexhaustive_enum - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Deserialize<wbr>Enum</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#required-associated-types">Required Associated Types</a></h3><ul class="block"><li><a href="#associatedtype.Proxy" title="Proxy">Proxy</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.deserialize_enum" title="deserialize_enum">deserialize_enum</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In abi_<wbr>stable::<wbr>nonexhaustive_<wbr>enum</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">abi_stable</a>::<wbr><a href="index.html">nonexhaustive_enum</a></div><h1>Trait <span class="trait">DeserializeEnum</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/abi_stable/nonexhaustive_enum/traits.rs.html#336-342">Source</a> </span></div><pre class="rust item-decl"><code>pub trait DeserializeEnum&lt;'borr, NE&gt;: <a class="trait" href="../trait.InterfaceType.html" title="trait abi_stable::InterfaceType">InterfaceType</a> {
+    type <a href="#associatedtype.Proxy" class="associatedtype">Proxy</a>;
+
+    // Required method
+    fn <a href="#tymethod.deserialize_enum" class="fn">deserialize_enum</a>(s: Self::<a class="associatedtype" href="trait.DeserializeEnum.html#associatedtype.Proxy" title="type abi_stable::nonexhaustive_enum::DeserializeEnum::Proxy">Proxy</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;NE, <a class="type" href="../std_types/type.RBoxError.html" title="type abi_stable::std_types::RBoxError">RBoxError</a>&gt;;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Describes how a nonexhaustive enum is deserialized.</p>
+<p>Generally this delegates to a library function,
+so that the implementation can be delegated
+to the <code>implementation crate</code>.</p>
+<p>This is generally implemented by the interface of an enum
+(<code>Enum_Interface</code> for <code>Enum</code>),which also implements <a href="../trait.InterfaceType.html" title="trait abi_stable::InterfaceType"><code>InterfaceType</code></a>).</p>
+<p>The <code>NE</code> type parameter is expected to be <a href="struct.NonExhaustive.html" title="struct abi_stable::nonexhaustive_enum::NonExhaustive"><code>NonExhaustive</code></a>.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    nonexhaustive_enum::{DeserializeEnum, NonExhaustive, NonExhaustiveFor},
+    external_types::RawValueRef,
+    std_types::{RBoxError, RResult, ROk, RErr, RStr, RString},
+    rstr, StableAbi,
+};
+
+<span class="kw">let </span>input = <span class="string">r#"{"C": {"name": "hello"}}"#</span>;
+<span class="kw">let </span>ne = serde_json::from_str::&lt;NonExhaustiveFor&lt;Foo&gt;&gt;(input).unwrap();
+<span class="macro">assert_eq!</span>(ne, Foo::C{name: <span class="string">"hello"</span>.into()});
+
+
+<span class="attr">#[repr(u8)]
+#[derive(StableAbi, Debug, PartialEq, Eq, serde::Deserialize)]
+#[sabi(kind(WithNonExhaustive(
+    size = <span class="number">64</span>,
+    traits(Debug, PartialEq, Eq, Deserialize)
+)))]
+</span><span class="kw">pub enum </span>Foo {
+    A,
+    B(i8),
+    C {
+        name: RString
+    },
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">'borr</span>&gt; DeserializeEnum&lt;<span class="lifetime">'borr</span>, NonExhaustiveFor&lt;Foo&gt;&gt; <span class="kw">for </span>Foo_Interface {
+    <span class="doccomment">/// The intermediate type the `NE` is converted from,to deserialize it.
+    </span><span class="kw">type </span>Proxy = RawValueRef&lt;<span class="lifetime">'borr</span>&gt;;
+
+    <span class="doccomment">/// Deserializes an enum from its proxy type.
+    </span><span class="kw">fn </span>deserialize_enum(s: <span class="self">Self</span>::Proxy) -&gt; <span class="prelude-ty">Result</span>&lt;NonExhaustiveFor&lt;Foo&gt;, RBoxError&gt; {
+        deserialize_foo(s.get_rstr()).into_result()
+    }
+}
+
+<span class="comment">/////////////
+// everything below could be defined in an implementation crate
+//
+// This allows the library that defines the enum to add variants,
+// and deserialize the variants that it added,
+// regardless of whether the dependent crates know about those variants.
+
+</span><span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>deserialize_foo(s: RStr&lt;<span class="lifetime">'_</span>&gt;) -&gt; RResult&lt;NonExhaustiveFor&lt;Foo&gt;, RBoxError&gt; {
+    <span class="macro">abi_stable::extern_fn_panic_handling!</span>{
+        <span class="kw">match </span>serde_json::from_str::&lt;Foo&gt;(s.into()) {
+            <span class="prelude-val">Ok</span>(x) =&gt; ROk(NonExhaustive::new(x)),
+            <span class="prelude-val">Err</span>(e) =&gt; RErr(RBoxError::new(e)),
+        }
+    }
+}
+</code></pre></div>
+</div></details><h2 id="required-associated-types" class="section-header">Required Associated Types<a href="#required-associated-types" class="anchor">§</a></h2><div class="methods"><details class="toggle" open><summary><section id="associatedtype.Proxy" class="method"><a class="src rightside" href="../../src/abi_stable/nonexhaustive_enum/traits.rs.html#338">Source</a><h4 class="code-header">type <a href="#associatedtype.Proxy" class="associatedtype">Proxy</a></h4></section></summary><div class="docblock"><p>The intermediate type the <code>NonExhaustive</code> is converted from,to deserialize it.</p>
+</div></details></div><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.deserialize_enum" class="method"><a class="src rightside" href="../../src/abi_stable/nonexhaustive_enum/traits.rs.html#341">Source</a><h4 class="code-header">fn <a href="#tymethod.deserialize_enum" class="fn">deserialize_enum</a>(s: Self::<a class="associatedtype" href="trait.DeserializeEnum.html#associatedtype.Proxy" title="type abi_stable::nonexhaustive_enum::DeserializeEnum::Proxy">Proxy</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;NE, <a class="type" href="../std_types/type.RBoxError.html" title="type abi_stable::std_types::RBoxError">RBoxError</a>&gt;</h4></section></summary><div class="docblock"><p>Deserializes an enum from its proxy type.</p>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"></div><script src="../../trait.impl/abi_stable/nonexhaustive_enum/traits/trait.DeserializeEnum.js" async></script></section></div></main></body></html>

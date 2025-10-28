@@ -1,0 +1,154 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Serde XML"><title>serde_xml_rs - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="serde_xml_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../serde_xml_rs/index.html">serde_<wbr>xml_<wbr>rs</a><span class="version">0.6.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#serde-xml" title="Serde XML">Serde XML</a><ul><li><a href="#caveats" title="Caveats">Caveats</a></li><li><a href="#basic-example" title="Basic example">Basic example</a></li><li><a href="#tag-contents" title="Tag contents">Tag contents</a></li><li><a href="#repeated-tags" title="Repeated tags">Repeated tags</a></li><li><a href="#custom-eventreader" title="Custom EventReader">Custom EventReader</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>serde_xml_rs</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/serde_xml_rs/lib.rs.html#1-194">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="serde-xml"><a class="doc-anchor" href="#serde-xml">§</a>Serde XML</h2>
+<p>XML is a flexible markup language that is still used for sharing data between applications or
+for writing configuration files.</p>
+<p>Serde XML provides a way to convert between text and strongly-typed Rust data structures.</p>
+<h3 id="caveats"><a class="doc-anchor" href="#caveats">§</a>Caveats</h3>
+<p>The Serde framework was mainly designed with formats such as JSON or YAML in mind.
+As opposed to XML, these formats have the advantage of a stricter syntax which makes it
+possible to know what type a field is without relying on an accompanying schema,
+and disallows repeating the same tag multiple times in the same object.</p>
+<p>For example, encoding the following document in YAML is not trivial.</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;document&gt;
+  &lt;header&gt;A header&lt;/header&gt;
+  &lt;section&gt;First section&lt;/section&gt;
+  &lt;section&gt;Second section&lt;/section&gt;
+  &lt;sidenote&gt;A sidenote&lt;/sidenote&gt;
+  &lt;section&gt;Third section&lt;/section&gt;
+  &lt;sidenote&gt;Another sidenote&lt;/sidenote&gt;
+  &lt;section&gt;Fourth section&lt;/section&gt;
+  &lt;footer&gt;The footer&lt;/footer&gt;
+&lt;/document&gt;</code></pre></div>
+<p>One possibility is the following YAML document.</p>
+<div class="example-wrap"><pre class="language-yaml"><code>- header: A header
+- section: First section
+- section: Second section
+- sidenote: A sidenote
+- section: Third section
+- sidenote: Another sidenote
+- section: Fourth section
+- footer: The footer</code></pre></div>
+<p>Other notable differences:</p>
+<ul>
+<li>XML requires a named root node.</li>
+<li>XML has a namespace system.</li>
+<li>XML distinguishes between attributes, child tags and contents.</li>
+<li>In XML, the order of nodes is sometimes important.</li>
+</ul>
+<h3 id="basic-example"><a class="doc-anchor" href="#basic-example">§</a>Basic example</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>serde_xml_rs::{from_str, to_string};
+
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">struct </span>Item {
+    name: String,
+    source: String,
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>src = <span class="string">r#"&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;Item&gt;&lt;name&gt;Banana&lt;/name&gt;&lt;source&gt;Store&lt;/source&gt;&lt;/Item&gt;"#</span>;
+    <span class="kw">let </span>should_be = Item {
+        name: <span class="string">"Banana"</span>.to_string(),
+        source: <span class="string">"Store"</span>.to_string(),
+    };
+
+    <span class="kw">let </span>item: Item = from_str(src).unwrap();
+    <span class="macro">assert_eq!</span>(item, should_be);
+
+    <span class="kw">let </span>reserialized_item = to_string(<span class="kw-2">&amp;</span>item).unwrap();
+    <span class="macro">assert_eq!</span>(src, reserialized_item);
+}</code></pre></div>
+<h3 id="tag-contents"><a class="doc-anchor" href="#tag-contents">§</a>Tag contents</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">struct </span>Document {
+    content: Content
+}
+
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">struct </span>Content {
+    <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+    </span>value: String
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>src = <span class="string">r#"&lt;document&gt;&lt;content&gt;Lorem ipsum&lt;/content&gt;&lt;/document&gt;"#</span>;
+    <span class="kw">let </span>document: Document = from_str(src).unwrap();
+    <span class="macro">assert_eq!</span>(document.content.value, <span class="string">"Lorem ipsum"</span>);
+}</code></pre></div>
+<h3 id="repeated-tags"><a class="doc-anchor" href="#repeated-tags">§</a>Repeated tags</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">struct </span>PlateAppearance {
+    <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+    </span>events: Vec&lt;Event&gt;
+}
+
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = <span class="string">"kebab-case"</span>)]
+</span><span class="kw">enum </span>Event {
+    Pitch(Pitch),
+    Runner(Runner),
+}
+
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">struct </span>Pitch {
+    speed: u32,
+    r#type: PitchType,
+    outcome: PitchOutcome,
+}
+
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">enum </span>PitchType { FourSeam, TwoSeam, Changeup, Cutter, Curve, Slider, Knuckle, Pitchout }
+
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">enum </span>PitchOutcome { Ball, Strike, Hit }
+
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">struct </span>Runner {
+    from: Base, to: <span class="prelude-ty">Option</span>&lt;Base&gt;, outcome: RunnerOutcome,
+}
+
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">enum </span>Base { First, Second, Third, Home }
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">enum </span>RunnerOutcome { Steal, Caught, PickOff }
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>document = <span class="string">r#"
+        &lt;plate-appearance&gt;
+          &lt;pitch speed="95" type="FourSeam" outcome="Ball" /&gt;
+          &lt;pitch speed="91" type="FourSeam" outcome="Strike" /&gt;
+          &lt;pitch speed="85" type="Changeup" outcome="Ball" /&gt;
+          &lt;runner from="First" to="Second" outcome="Steal" /&gt;
+          &lt;pitch speed="89" type="Slider" outcome="Strike" /&gt;
+          &lt;pitch speed="88" type="Curve" outcome="Hit" /&gt;
+        &lt;/plate-appearance&gt;"#</span>;
+    <span class="kw">let </span>plate_appearance: PlateAppearance = from_str(document).unwrap();
+    <span class="macro">assert_eq!</span>(plate_appearance.events[<span class="number">0</span>], Event::Pitch(Pitch { speed: <span class="number">95</span>, r#type: PitchType::FourSeam, outcome: PitchOutcome::Ball }));
+}</code></pre></div>
+<h3 id="custom-eventreader"><a class="doc-anchor" href="#custom-eventreader">§</a>Custom EventReader</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>serde_xml_rs::{from_str, to_string, de::Deserializer};
+<span class="kw">use </span>xml::reader::{EventReader, ParserConfig};
+
+<span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq)]
+</span><span class="kw">struct </span>Item {
+    name: String,
+    source: String,
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>src = <span class="string">r#"&lt;Item&gt;&lt;name&gt;  Banana  &lt;/name&gt;&lt;source&gt;Store&lt;/source&gt;&lt;/Item&gt;"#</span>;
+    <span class="kw">let </span>should_be = Item {
+        name: <span class="string">"  Banana  "</span>.to_string(),
+        source: <span class="string">"Store"</span>.to_string(),
+    };
+
+    <span class="kw">let </span>config = ParserConfig::new()
+        .trim_whitespace(<span class="bool-val">false</span>)
+        .whitespace_to_characters(<span class="bool-val">true</span>);
+    <span class="kw">let </span>event_reader = EventReader::new_with_config(src.as_bytes(), config);
+    <span class="kw">let </span>item = Item::deserialize(<span class="kw-2">&amp;mut </span>Deserializer::new(event_reader)).unwrap();
+    <span class="macro">assert_eq!</span>(item, should_be);
+}</code></pre></div>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.from_reader"><code>pub use crate::de::<a class="fn" href="de/fn.from_reader.html" title="fn serde_xml_rs::de::from_reader">from_reader</a>;</code></dt><dt id="reexport.from_str"><code>pub use crate::de::<a class="fn" href="de/fn.from_str.html" title="fn serde_xml_rs::de::from_str">from_str</a>;</code></dt><dt id="reexport.Deserializer"><code>pub use crate::de::<a class="struct" href="de/struct.Deserializer.html" title="struct serde_xml_rs::de::Deserializer">Deserializer</a>;</code></dt><dt id="reexport.to_string"><code>pub use crate::ser::<a class="fn" href="ser/fn.to_string.html" title="fn serde_xml_rs::ser::to_string">to_string</a>;</code></dt><dt id="reexport.to_writer"><code>pub use crate::ser::<a class="fn" href="ser/fn.to_writer.html" title="fn serde_xml_rs::ser::to_writer">to_writer</a>;</code></dt><dt id="reexport.Serializer"><code>pub use crate::ser::<a class="struct" href="ser/struct.Serializer.html" title="struct serde_xml_rs::ser::Serializer">Serializer</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="de/index.html" title="mod serde_xml_rs::de">de</a></dt><dt><a class="mod" href="ser/index.html" title="mod serde_xml_rs::ser">ser</a></dt></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.debug_expect.html" title="macro serde_xml_rs::debug_expect">debug_<wbr>expect</a></dt><dt><a class="macro" href="macro.expect.html" title="macro serde_xml_rs::expect">expect</a></dt></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.EventReader.html" title="struct serde_xml_rs::EventReader">Event<wbr>Reader</a></dt><dd>A wrapper around an <code>std::io::Read</code> instance which provides pull-based XML parsing.</dd><dt><a class="struct" href="struct.ParserConfig.html" title="struct serde_xml_rs::ParserConfig">Parser<wbr>Config</a></dt><dd>Parser configuration structure. <strong>There are more config methods than public fileds — see methods below</strong>.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Error.html" title="enum serde_xml_rs::Error">Error</a></dt></dl></section></div></main></body></html>

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["f32","f64","i16","i24","i32","i48","i64","i8","u16","u24","u32","u48","u64","u8"],"trait":["Duplex","FromSample","ToSample"]};

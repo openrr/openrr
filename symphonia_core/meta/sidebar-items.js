@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ColorMode","Limit","StandardTagKey","StandardVisualKey","Value"],"struct":["Metadata","MetadataBuilder","MetadataLog","MetadataOptions","MetadataRevision","Size","Tag","VendorData","Visual"],"trait":["MetadataReader"]};

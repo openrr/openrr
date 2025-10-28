@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["RCow"],"fn":["deserialize_borrowed_bytes","deserialize_borrowed_str"],"struct":["BorrowingRCowStr","BorrowingRCowU8Slice"],"trait":["RCowCompatibleRef"],"type":["RCowSlice","RCowStr","RCowVal"]};

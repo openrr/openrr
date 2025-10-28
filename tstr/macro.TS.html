@@ -1,0 +1,102 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The type of a type-level string, always a `TStr`."><title>TS in tstr - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="tstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../tstr/index.html">tstr</a><span class="version">0.2.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">TS</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#arguments" title="Arguments">Arguments</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#tovariant" title="ToVariant">ToVariant</a></li><li><a href="#equivalences" title="Equivalences">Equivalences</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate tstr</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">tstr</a></div><h1>Macro <span class="macro">TS</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/tstr/macros.rs.html#110-114">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! TS {
+    ($($expr:expr),* $(,)* ) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The type of a type-level string, always a <a href="./struct.TStr.html"><code>TStr</code></a>.</p>
+<h2 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h2>
+<p>You can use any of these as arguments:</p>
+<ul>
+<li>
+<p>String literals (eg: <code>TS!("hello")</code>, <code>TS!(r#"world"#)</code>)</p>
+</li>
+<li>
+<p>Integers (eg: <code>TS!(0)</code>, <code>TS!(100)</code>):
+converting the integer to decimal, then stringifying it.</p>
+</li>
+<li>
+<p>Single identifiers (eg: <code>TS!(foo)</code>, <code>TS!(bar)</code>): stringifying the identifier.</p>
+</li>
+<li>
+<p>A comma separated list of the other valid arguments to this macro
+(eg: <code>TS!(foo, "bar", 0)</code>), this evaluates to a tuple of <code>TStr</code>s.</p>
+</li>
+<li>
+<p><code>concat!(...)</code>-like syntax: concatenates its arguments,
+accepting the same arguments as this macro.</p>
+</li>
+<li>
+<p><code>stringify!(...)</code>-like syntax: stringifies its arguments.</p>
+</li>
+</ul>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="tovariant"><a class="doc-anchor" href="#tovariant">§</a>ToVariant</h4>
+<p>This example demonstrates how you can use type-level strings to create a
+<code>GetVariant</code> trait which gets the data in a variant if the enum is that variant.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tstr::TS;
+
+<span class="kw">fn </span>main(){
+    <span class="kw">let </span>foo = Enum::Foo(<span class="number">3</span>, <span class="number">5</span>);
+    <span class="kw">let </span>bar = Enum::Bar(<span class="string">"hello"</span>.to_string());
+     
+    <span class="macro">assert_eq!</span>(foo.to_variant(Foo::NEW), <span class="prelude-val">Some</span>((<span class="number">3</span>, <span class="number">5</span>)));
+    <span class="macro">assert_eq!</span>(foo.to_variant(Bar::NEW), <span class="prelude-val">None</span>);
+     
+    <span class="macro">assert_eq!</span>(bar.to_variant(Foo::NEW), <span class="prelude-val">None</span>);
+    <span class="macro">assert_eq!</span>(bar.to_variant(Bar::NEW), <span class="prelude-val">Some</span>(<span class="string">"hello"</span>.to_string()));
+}
+
+<span class="kw">type </span>Foo = <span class="macro">TS!</span>(Foo);
+
+<span class="kw">type </span>Bar = <span class="macro">TS!</span>(Bar);
+
+<span class="kw">trait </span>ToVariant&lt;V&gt; {
+    <span class="kw">type </span>Output;
+     
+    <span class="kw">fn </span>to_variant(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: V) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Output&gt;;
+}
+
+<span class="kw">enum </span>Enum {
+    Foo(u32, u64),
+    Bar(String),
+}
+
+<span class="kw">impl </span>ToVariant&lt;<span class="macro">TS!</span>(Foo)&gt; <span class="kw">for </span>Enum {
+    <span class="kw">type </span>Output = (u32, u64);
+     
+    <span class="kw">fn </span>to_variant(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: <span class="macro">TS!</span>(Foo)) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Foo(l, r) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>l, <span class="kw-2">*</span>r)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+<span class="kw">impl </span>ToVariant&lt;<span class="macro">TS!</span>(Bar)&gt; <span class="kw">for </span>Enum {
+    <span class="kw">type </span>Output = String;
+     
+    <span class="kw">fn </span>to_variant(<span class="kw-2">&amp;</span><span class="self">self</span>, variant: <span class="macro">TS!</span>(Bar)) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Bar(s) =&gt; <span class="prelude-val">Some</span>(s.clone()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+</code></pre></div>
+<h4 id="equivalences"><a class="doc-anchor" href="#equivalences">§</a>Equivalences</h4>
+<p>This example demonstrates which invocations of <code>TS</code> produce the same type.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tstr::TS;
+
+<span class="kw">type </span>Hello1 = <span class="macro">TS!</span>(<span class="string">"hello"</span>);
+<span class="kw">type </span>Hello2 = <span class="macro">TS!</span>(hello); <span class="comment">// This is equivalent to `TS!("hello")`
+
+</span><span class="kw">type </span>HundredA = <span class="macro">TS!</span>(<span class="string">"100"</span>);
+<span class="kw">type </span>HundredB = <span class="macro">TS!</span>(<span class="number">100</span>);   <span class="comment">// equivalent to `TS!("100")`
+</span><span class="kw">type </span>HundredC = <span class="macro">TS!</span>(<span class="number">0x64</span>);  <span class="comment">// equivalent to `TS!("100")`
+</span><span class="kw">type </span>HundredD = <span class="macro">TS!</span>(<span class="number">0b1100100</span>);  <span class="comment">// equivalent to `TS!("100")`
+
+</span><span class="kw">type </span>Tup = <span class="macro">TS!</span>(foo, <span class="number">1</span>, <span class="string">"bar"</span>); <span class="comment">// equivalent to `(TS!(foo), TS!(1), TS!(bar))`
+
+// Equivalent to TS!("foo4bar200")
+</span><span class="kw">type </span>Conc = <span class="macro">TS!</span>(<span class="macro">concat!</span>(foo, <span class="number">0b100</span>, <span class="string">"bar"</span>, <span class="number">200</span>));
+</code></pre></div>
+</div></details></section></div></main></body></html>

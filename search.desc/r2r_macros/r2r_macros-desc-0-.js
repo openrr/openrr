@@ -1,0 +1,1 @@
+searchState.loadedDescShard("r2r_macros", 0, "Derives RosParams trait for a structure to use it with …")

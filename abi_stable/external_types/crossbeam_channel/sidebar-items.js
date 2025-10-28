@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["bounded","never","unbounded"],"struct":["RIntoIter","RIter","RReceiver","RSender"]};

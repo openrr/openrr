@@ -1,0 +1,819 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/glutin-0.32.3/src/api/egl/display.rs`."><title>display.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="glutin" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">glutin/api/egl/</div>display.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Everything related to `EGLDisplay`.
+<a href=#2 id=2 data-nosnippet>2</a>
+<a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>std::collections::HashSet;
+<a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>std::ffi::{<span class="self">self</span>, CStr};
+<a href=#5 id=5 data-nosnippet>5</a><span class="kw">use </span>std::fmt;
+<a href=#6 id=6 data-nosnippet>6</a><span class="kw">use </span>std::mem::MaybeUninit;
+<a href=#7 id=7 data-nosnippet>7</a><span class="kw">use </span>std::ops::Deref;
+<a href=#8 id=8 data-nosnippet>8</a><span class="kw">use </span>std::os::raw::c_char;
+<a href=#9 id=9 data-nosnippet>9</a><span class="kw">use </span>std::sync::Arc;
+<a href=#10 id=10 data-nosnippet>10</a>
+<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span>glutin_egl_sys::egl;
+<a href=#12 id=12 data-nosnippet>12</a><span class="kw">use </span>glutin_egl_sys::egl::types::{EGLAttrib, EGLDisplay, EGLint};
+<a href=#13 id=13 data-nosnippet>13</a>
+<a href=#14 id=14 data-nosnippet>14</a><span class="kw">use </span>once_cell::sync::OnceCell;
+<a href=#15 id=15 data-nosnippet>15</a>
+<a href=#16 id=16 data-nosnippet>16</a><span class="kw">use </span>raw_window_handle::{RawDisplayHandle, XlibDisplayHandle};
+<a href=#17 id=17 data-nosnippet>17</a>
+<a href=#18 id=18 data-nosnippet>18</a><span class="kw">use </span><span class="kw">crate</span>::config::ConfigTemplate;
+<a href=#19 id=19 data-nosnippet>19</a><span class="kw">use </span><span class="kw">crate</span>::context::Version;
+<a href=#20 id=20 data-nosnippet>20</a><span class="kw">use </span><span class="kw">crate</span>::display::{AsRawDisplay, DisplayFeatures, GetDisplayExtensions, RawDisplay};
+<a href=#21 id=21 data-nosnippet>21</a><span class="kw">use </span><span class="kw">crate</span>::error::{ErrorKind, <span class="prelude-ty">Result</span>};
+<a href=#22 id=22 data-nosnippet>22</a><span class="kw">use </span><span class="kw">crate</span>::prelude::<span class="kw-2">*</span>;
+<a href=#23 id=23 data-nosnippet>23</a><span class="kw">use </span><span class="kw">crate</span>::private::Sealed;
+<a href=#24 id=24 data-nosnippet>24</a><span class="kw">use </span><span class="kw">crate</span>::surface::{PbufferSurface, PixmapSurface, SurfaceAttributes, WindowSurface};
+<a href=#25 id=25 data-nosnippet>25</a>
+<a href=#26 id=26 data-nosnippet>26</a><span class="kw">use </span><span class="kw">super</span>::config::Config;
+<a href=#27 id=27 data-nosnippet>27</a><span class="kw">use </span><span class="kw">super</span>::context::NotCurrentContext;
+<a href=#28 id=28 data-nosnippet>28</a><span class="kw">use </span><span class="kw">super</span>::device::Device;
+<a href=#29 id=29 data-nosnippet>29</a><span class="kw">use </span><span class="kw">super</span>::surface::Surface;
+<a href=#30 id=30 data-nosnippet>30</a>
+<a href=#31 id=31 data-nosnippet>31</a><span class="kw">use super</span>::{Egl, EGL};
+<a href=#32 id=32 data-nosnippet>32</a>
+<a href=#33 id=33 data-nosnippet>33</a><span class="doccomment">/// Extensions that don't require any display.
+<a href=#34 id=34 data-nosnippet>34</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CLIENT_EXTENSIONS: OnceCell&lt;HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;&gt; = OnceCell::new();
+<a href=#35 id=35 data-nosnippet>35</a>
+<a href=#36 id=36 data-nosnippet>36</a><span class="doccomment">/// A wrapper for the `EGLDisplay` and its supported extensions.
+<a href=#37 id=37 data-nosnippet>37</a></span><span class="attr">#[derive(Debug, Clone)]
+<a href=#38 id=38 data-nosnippet>38</a></span><span class="kw">pub struct </span>Display {
+<a href=#39 id=39 data-nosnippet>39</a>    <span class="comment">// Inner display to simplify passing it around.
+<a href=#40 id=40 data-nosnippet>40</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) inner: Arc&lt;DisplayInner&gt;,
+<a href=#41 id=41 data-nosnippet>41</a>}
+<a href=#42 id=42 data-nosnippet>42</a>
+<a href=#43 id=43 data-nosnippet>43</a><span class="kw">impl </span>Display {
+<a href=#44 id=44 data-nosnippet>44</a>    <span class="doccomment">/// Create EGL display with the native display.
+<a href=#45 id=45 data-nosnippet>45</a>    ///
+<a href=#46 id=46 data-nosnippet>46</a>    /// # Safety
+<a href=#47 id=47 data-nosnippet>47</a>    ///
+<a href=#48 id=48 data-nosnippet>48</a>    /// `raw_display` must point to a valid system display. Using zero or
+<a href=#49 id=49 data-nosnippet>49</a>    /// [`std::ptr::null()`] for the display will result in using
+<a href=#50 id=50 data-nosnippet>50</a>    /// `EGL_DEFAULT_DISPLAY`, which is not recommended or will
+<a href=#51 id=51 data-nosnippet>51</a>    /// work on a platform with a concept of native display, like Wayland.
+<a href=#52 id=52 data-nosnippet>52</a>    </span><span class="kw">pub unsafe fn </span>new(raw_display: RawDisplayHandle) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+<a href=#53 id=53 data-nosnippet>53</a>        <span class="kw">let </span>egl = <span class="kw">match </span>EGL.as_ref() {
+<a href=#54 id=54 data-nosnippet>54</a>            <span class="prelude-val">Some</span>(egl) =&gt; egl,
+<a href=#55 id=55 data-nosnippet>55</a>            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotFound.into()),
+<a href=#56 id=56 data-nosnippet>56</a>        };
+<a href=#57 id=57 data-nosnippet>57</a>
+<a href=#58 id=58 data-nosnippet>58</a>        CLIENT_EXTENSIONS.get_or_init(|| get_extensions(egl, egl::NO_DISPLAY));
+<a href=#59 id=59 data-nosnippet>59</a>
+<a href=#60 id=60 data-nosnippet>60</a>        <span class="comment">// Create a EGL display by chaining all display creation functions aborting on
+<a href=#61 id=61 data-nosnippet>61</a>        // `EGL_BAD_ATTRIBUTE`.
+<a href=#62 id=62 data-nosnippet>62</a>        </span><span class="kw">let </span>display = <span class="self">Self</span>::get_platform_display(egl, raw_display)
+<a href=#63 id=63 data-nosnippet>63</a>            .or_else(|err| {
+<a href=#64 id=64 data-nosnippet>64</a>                <span class="kw">if </span>err.error_kind() == ErrorKind::BadAttribute {
+<a href=#65 id=65 data-nosnippet>65</a>                    <span class="prelude-val">Err</span>(err)
+<a href=#66 id=66 data-nosnippet>66</a>                } <span class="kw">else </span>{
+<a href=#67 id=67 data-nosnippet>67</a>                    <span class="self">Self</span>::get_platform_display_ext(egl, raw_display)
+<a href=#68 id=68 data-nosnippet>68</a>                }
+<a href=#69 id=69 data-nosnippet>69</a>            })
+<a href=#70 id=70 data-nosnippet>70</a>            .or_else(|err| {
+<a href=#71 id=71 data-nosnippet>71</a>                <span class="kw">if </span>err.error_kind() == ErrorKind::BadAttribute {
+<a href=#72 id=72 data-nosnippet>72</a>                    <span class="prelude-val">Err</span>(err)
+<a href=#73 id=73 data-nosnippet>73</a>                } <span class="kw">else </span>{
+<a href=#74 id=74 data-nosnippet>74</a>                    <span class="self">Self</span>::get_display(egl, raw_display)
+<a href=#75 id=75 data-nosnippet>75</a>                }
+<a href=#76 id=76 data-nosnippet>76</a>            })<span class="question-mark">?</span>;
+<a href=#77 id=77 data-nosnippet>77</a>
+<a href=#78 id=78 data-nosnippet>78</a>        <span class="self">Self</span>::initialize_display(egl, display, <span class="prelude-val">Some</span>(raw_display))
+<a href=#79 id=79 data-nosnippet>79</a>    }
+<a href=#80 id=80 data-nosnippet>80</a>
+<a href=#81 id=81 data-nosnippet>81</a>    <span class="doccomment">/// Create an EGL display using the specified device.
+<a href=#82 id=82 data-nosnippet>82</a>    ///
+<a href=#83 id=83 data-nosnippet>83</a>    /// In most cases, prefer [`Display::new()`] unless you need to render
+<a href=#84 id=84 data-nosnippet>84</a>    /// off screen or use other extensions like EGLStreams.
+<a href=#85 id=85 data-nosnippet>85</a>    ///
+<a href=#86 id=86 data-nosnippet>86</a>    /// This function may take an optional [`RawDisplayHandle`] argument. At the
+<a href=#87 id=87 data-nosnippet>87</a>    /// moment the `raw_display` argument is ignored and this function will
+<a href=#88 id=88 data-nosnippet>88</a>    /// return [`Err`]. This may change in the future.
+<a href=#89 id=89 data-nosnippet>89</a>    ///
+<a href=#90 id=90 data-nosnippet>90</a>    /// # Safety
+<a href=#91 id=91 data-nosnippet>91</a>    ///
+<a href=#92 id=92 data-nosnippet>92</a>    /// If `raw_display` is [`Some`], `raw_display` must point to a valid
+<a href=#93 id=93 data-nosnippet>93</a>    /// [`RawDisplayHandle::Drm`]. The provided
+<a href=#94 id=94 data-nosnippet>94</a>    /// [`raw_display_handle::DrmDisplayHandle.fd`] may be closed after calling
+<a href=#95 id=95 data-nosnippet>95</a>    /// this function.
+<a href=#96 id=96 data-nosnippet>96</a>    </span><span class="kw">pub unsafe fn </span>with_device(
+<a href=#97 id=97 data-nosnippet>97</a>        device: <span class="kw-2">&amp;</span>Device,
+<a href=#98 id=98 data-nosnippet>98</a>        raw_display: <span class="prelude-ty">Option</span>&lt;RawDisplayHandle&gt;,
+<a href=#99 id=99 data-nosnippet>99</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+<a href=#100 id=100 data-nosnippet>100</a>        <span class="kw">let </span>egl = <span class="kw">match </span>EGL.as_ref() {
+<a href=#101 id=101 data-nosnippet>101</a>            <span class="prelude-val">Some</span>(egl) =&gt; egl,
+<a href=#102 id=102 data-nosnippet>102</a>            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotFound.into()),
+<a href=#103 id=103 data-nosnippet>103</a>        };
+<a href=#104 id=104 data-nosnippet>104</a>
+<a href=#105 id=105 data-nosnippet>105</a>        <span class="kw">if </span>!egl.GetPlatformDisplayEXT.is_loaded() {
+<a href=#106 id=106 data-nosnippet>106</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotSupported(<span class="string">"eglGetPlatformDisplayEXT is not supported"</span>).into());
+<a href=#107 id=107 data-nosnippet>107</a>        }
+<a href=#108 id=108 data-nosnippet>108</a>
+<a href=#109 id=109 data-nosnippet>109</a>        <span class="comment">// Okay to unwrap here because the client extensions must have been enumerated
+<a href=#110 id=110 data-nosnippet>110</a>        // while querying the available devices or the device was gotten from an
+<a href=#111 id=111 data-nosnippet>111</a>        // existing display.
+<a href=#112 id=112 data-nosnippet>112</a>        </span><span class="kw">let </span>extensions = CLIENT_EXTENSIONS.get().unwrap();
+<a href=#113 id=113 data-nosnippet>113</a>
+<a href=#114 id=114 data-nosnippet>114</a>        <span class="kw">if </span>!extensions.contains(<span class="string">"EGL_EXT_platform_base"</span>)
+<a href=#115 id=115 data-nosnippet>115</a>            &amp;&amp; !extensions.contains(<span class="string">"EGL_EXT_platform_device"</span>)
+<a href=#116 id=116 data-nosnippet>116</a>        {
+<a href=#117 id=117 data-nosnippet>117</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotSupported(
+<a href=#118 id=118 data-nosnippet>118</a>                <span class="string">"Creating a display from a device is not supported"</span>,
+<a href=#119 id=119 data-nosnippet>119</a>            )
+<a href=#120 id=120 data-nosnippet>120</a>            .into());
+<a href=#121 id=121 data-nosnippet>121</a>        }
+<a href=#122 id=122 data-nosnippet>122</a>
+<a href=#123 id=123 data-nosnippet>123</a>        <span class="kw">let </span><span class="kw-2">mut </span>attrs = Vec::&lt;EGLint&gt;::with_capacity(<span class="number">3</span>);
+<a href=#124 id=124 data-nosnippet>124</a>
+<a href=#125 id=125 data-nosnippet>125</a>        <span class="kw">match </span>raw_display {
+<a href=#126 id=126 data-nosnippet>126</a>            <span class="prelude-val">Some</span>(RawDisplayHandle::Drm(handle))
+<a href=#127 id=127 data-nosnippet>127</a>                <span class="kw">if </span>device.extensions().contains(<span class="string">"EGL_EXT_device_drm"</span>) =&gt;
+<a href=#128 id=128 data-nosnippet>128</a>            {
+<a href=#129 id=129 data-nosnippet>129</a>                attrs.push(egl::DRM_MASTER_FD_EXT <span class="kw">as </span>EGLint);
+<a href=#130 id=130 data-nosnippet>130</a>                attrs.push(handle.fd <span class="kw">as </span>EGLint);
+<a href=#131 id=131 data-nosnippet>131</a>            },
+<a href=#132 id=132 data-nosnippet>132</a>            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
+<a href=#133 id=133 data-nosnippet>133</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotSupported(
+<a href=#134 id=134 data-nosnippet>134</a>                    <span class="string">"`egl::display::Display::with_device()` does not support \
+<a href=#135 id=135 data-nosnippet>135</a>                     non-`DrmDisplayHandle` `RawDisplayHandle`s"</span>,
+<a href=#136 id=136 data-nosnippet>136</a>                )
+<a href=#137 id=137 data-nosnippet>137</a>                .into())
+<a href=#138 id=138 data-nosnippet>138</a>            },
+<a href=#139 id=139 data-nosnippet>139</a>            <span class="prelude-val">None </span>=&gt; {},
+<a href=#140 id=140 data-nosnippet>140</a>        };
+<a href=#141 id=141 data-nosnippet>141</a>
+<a href=#142 id=142 data-nosnippet>142</a>        <span class="comment">// Push at the end so we can pop it on failure
+<a href=#143 id=143 data-nosnippet>143</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>has_display_reference = extensions.contains(<span class="string">"EGL_KHR_display_reference"</span>);
+<a href=#144 id=144 data-nosnippet>144</a>        <span class="kw">if </span>has_display_reference {
+<a href=#145 id=145 data-nosnippet>145</a>            attrs.push(egl::TRACK_REFERENCES_KHR <span class="kw">as _</span>);
+<a href=#146 id=146 data-nosnippet>146</a>            attrs.push(egl::TRUE <span class="kw">as _</span>);
+<a href=#147 id=147 data-nosnippet>147</a>        }
+<a href=#148 id=148 data-nosnippet>148</a>
+<a href=#149 id=149 data-nosnippet>149</a>        <span class="comment">// Push `egl::NONE` to terminate the list.
+<a href=#150 id=150 data-nosnippet>150</a>        </span>attrs.push(egl::NONE <span class="kw">as </span>EGLint);
+<a href=#151 id=151 data-nosnippet>151</a>
+<a href=#152 id=152 data-nosnippet>152</a>        <span class="comment">// NOTE: This fallback is needed because libglvnd advertises client extensions
+<a href=#153 id=153 data-nosnippet>153</a>        // if at least one vendor library supports them. This leads to creation
+<a href=#154 id=154 data-nosnippet>154</a>        // failures for the vendor libraries not supporting
+<a href=#155 id=155 data-nosnippet>155</a>        // EGL_KHR_display_reference. Also according to the spec creation is allowed
+<a href=#156 id=156 data-nosnippet>156</a>        // to fail with EGL_KHR_display_reference set to EGL_TRUE even if
+<a href=#157 id=157 data-nosnippet>157</a>        // EGL_KHR_display_reference is advertised in the client extension
+<a href=#158 id=158 data-nosnippet>158</a>        // string, so just always try creation without EGL_KHR_display_reference
+<a href=#159 id=159 data-nosnippet>159</a>        // if it failed using it.
+<a href=#160 id=160 data-nosnippet>160</a>        </span><span class="kw">let </span>platform_display = <span class="kw">loop </span>{
+<a href=#161 id=161 data-nosnippet>161</a>            <span class="kw">match </span><span class="self">Self</span>::check_display_error(<span class="kw">unsafe </span>{
+<a href=#162 id=162 data-nosnippet>162</a>                egl.GetPlatformDisplayEXT(
+<a href=#163 id=163 data-nosnippet>163</a>                    egl::PLATFORM_DEVICE_EXT,
+<a href=#164 id=164 data-nosnippet>164</a>                    device.raw_device() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+<a href=#165 id=165 data-nosnippet>165</a>                    attrs.as_ptr(),
+<a href=#166 id=166 data-nosnippet>166</a>                )
+<a href=#167 id=167 data-nosnippet>167</a>            }) {
+<a href=#168 id=168 data-nosnippet>168</a>                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="kw">if </span>has_display_reference =&gt; {
+<a href=#169 id=169 data-nosnippet>169</a>                    attrs.pop();
+<a href=#170 id=170 data-nosnippet>170</a>                    attrs.pop();
+<a href=#171 id=171 data-nosnippet>171</a>                    attrs.pop();
+<a href=#172 id=172 data-nosnippet>172</a>                    attrs.push(egl::NONE <span class="kw">as </span>EGLint);
+<a href=#173 id=173 data-nosnippet>173</a>                    has_display_reference = <span class="bool-val">false</span>;
+<a href=#174 id=174 data-nosnippet>174</a>                },
+<a href=#175 id=175 data-nosnippet>175</a>                platform_display =&gt; <span class="kw">break </span>platform_display,
+<a href=#176 id=176 data-nosnippet>176</a>            }
+<a href=#177 id=177 data-nosnippet>177</a>        }
+<a href=#178 id=178 data-nosnippet>178</a>        .map(EglDisplay::Ext)<span class="question-mark">?</span>;
+<a href=#179 id=179 data-nosnippet>179</a>
+<a href=#180 id=180 data-nosnippet>180</a>        <span class="self">Self</span>::initialize_display(egl, platform_display, <span class="prelude-val">None</span>)
+<a href=#181 id=181 data-nosnippet>181</a>    }
+<a href=#182 id=182 data-nosnippet>182</a>
+<a href=#183 id=183 data-nosnippet>183</a>    <span class="doccomment">/// Get the [`Device`] the display is using.
+<a href=#184 id=184 data-nosnippet>184</a>    ///
+<a href=#185 id=185 data-nosnippet>185</a>    /// This function returns [`Err`] if the `EGL_EXT_device_query` or
+<a href=#186 id=186 data-nosnippet>186</a>    /// `EGL_EXT_device_base` extensions are not available.
+<a href=#187 id=187 data-nosnippet>187</a>    </span><span class="kw">pub fn </span>device(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Device&gt; {
+<a href=#188 id=188 data-nosnippet>188</a>        <span class="kw">let </span>no_display_extensions = CLIENT_EXTENSIONS.get().unwrap();
+<a href=#189 id=189 data-nosnippet>189</a>
+<a href=#190 id=190 data-nosnippet>190</a>        <span class="comment">// Querying the device of a display only requires EGL_EXT_device_query, but we
+<a href=#191 id=191 data-nosnippet>191</a>        // also check if EGL_EXT_device_base is available since
+<a href=#192 id=192 data-nosnippet>192</a>        // EGL_EXT_device_base also provides EGL_EXT_device_query.
+<a href=#193 id=193 data-nosnippet>193</a>        </span><span class="kw">if </span>!no_display_extensions.contains(<span class="string">"EGL_EXT_device_query"</span>)
+<a href=#194 id=194 data-nosnippet>194</a>            || !no_display_extensions.contains(<span class="string">"EGL_EXT_device_base"</span>)
+<a href=#195 id=195 data-nosnippet>195</a>        {
+<a href=#196 id=196 data-nosnippet>196</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotSupported(
+<a href=#197 id=197 data-nosnippet>197</a>                <span class="string">"Querying the device from a display is not supported"</span>,
+<a href=#198 id=198 data-nosnippet>198</a>            )
+<a href=#199 id=199 data-nosnippet>199</a>            .into());
+<a href=#200 id=200 data-nosnippet>200</a>        }
+<a href=#201 id=201 data-nosnippet>201</a>
+<a href=#202 id=202 data-nosnippet>202</a>        <span class="kw">let </span><span class="kw-2">mut </span>device = MaybeUninit::uninit();
+<a href=#203 id=203 data-nosnippet>203</a>        <span class="kw">if unsafe </span>{
+<a href=#204 id=204 data-nosnippet>204</a>            <span class="self">self</span>.inner.egl.QueryDisplayAttribEXT(
+<a href=#205 id=205 data-nosnippet>205</a>                <span class="kw-2">*</span><span class="self">self</span>.inner.raw,
+<a href=#206 id=206 data-nosnippet>206</a>                egl::DEVICE_EXT <span class="kw">as </span>EGLint,
+<a href=#207 id=207 data-nosnippet>207</a>                device.as_mut_ptr(),
+<a href=#208 id=208 data-nosnippet>208</a>            )
+<a href=#209 id=209 data-nosnippet>209</a>        } == egl::FALSE
+<a href=#210 id=210 data-nosnippet>210</a>        {
+<a href=#211 id=211 data-nosnippet>211</a>            <span class="comment">// Check for EGL_NOT_INITIALIZED in case the display was externally terminated.
+<a href=#212 id=212 data-nosnippet>212</a>            //
+<a href=#213 id=213 data-nosnippet>213</a>            // EGL_BAD_ATTRIBUTE shouldn't be returned since EGL_DEVICE_EXT should be a
+<a href=#214 id=214 data-nosnippet>214</a>            // valid display attribute.
+<a href=#215 id=215 data-nosnippet>215</a>            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">super</span>::check_error().err().unwrap_or_else(|| {
+<a href=#216 id=216 data-nosnippet>216</a>                ErrorKind::NotSupported(<span class="string">"failed to query device from display"</span>).into()
+<a href=#217 id=217 data-nosnippet>217</a>            }));
+<a href=#218 id=218 data-nosnippet>218</a>        }
+<a href=#219 id=219 data-nosnippet>219</a>
+<a href=#220 id=220 data-nosnippet>220</a>        <span class="kw">let </span>device = <span class="kw">unsafe </span>{ device.assume_init() } <span class="kw">as </span>egl::types::EGLDeviceEXT;
+<a href=#221 id=221 data-nosnippet>221</a>        <span class="macro">debug_assert_ne!</span>(
+<a href=#222 id=222 data-nosnippet>222</a>            device,
+<a href=#223 id=223 data-nosnippet>223</a>            egl::NO_DEVICE_EXT,
+<a href=#224 id=224 data-nosnippet>224</a>            <span class="string">"eglQueryDisplayAttribEXT(EGL_DEVICE_EXT) should never return EGL_NO_DEVICE_EXT on \
+<a href=#225 id=225 data-nosnippet>225</a>             success"
+<a href=#226 id=226 data-nosnippet>226</a>        </span>);
+<a href=#227 id=227 data-nosnippet>227</a>        Device::from_ptr(<span class="self">self</span>.inner.egl, device)
+<a href=#228 id=228 data-nosnippet>228</a>    }
+<a href=#229 id=229 data-nosnippet>229</a>
+<a href=#230 id=230 data-nosnippet>230</a>    <span class="doccomment">/// Get a reference to the initialized EGL API.
+<a href=#231 id=231 data-nosnippet>231</a>    </span><span class="kw">pub fn </span>egl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Egl {
+<a href=#232 id=232 data-nosnippet>232</a>        <span class="self">self</span>.inner.egl
+<a href=#233 id=233 data-nosnippet>233</a>    }
+<a href=#234 id=234 data-nosnippet>234</a>
+<a href=#235 id=235 data-nosnippet>235</a>    <span class="doccomment">/// Terminate the EGL display.
+<a href=#236 id=236 data-nosnippet>236</a>    ///
+<a href=#237 id=237 data-nosnippet>237</a>    /// When the display is managed by glutin with the
+<a href=#238 id=238 data-nosnippet>238</a>    /// `EGL_KHR_display_reference` this function does nothing and
+<a href=#239 id=239 data-nosnippet>239</a>    /// `eglTerminate` will be automatically invoked during display destruction.
+<a href=#240 id=240 data-nosnippet>240</a>    ///
+<a href=#241 id=241 data-nosnippet>241</a>    /// # Safety
+<a href=#242 id=242 data-nosnippet>242</a>    ///
+<a href=#243 id=243 data-nosnippet>243</a>    /// This function will destroy the global EGL state, even the one created
+<a href=#244 id=244 data-nosnippet>244</a>    /// and managed by other libraries. Use this function only when you're
+<a href=#245 id=245 data-nosnippet>245</a>    /// bringing everything down.
+<a href=#246 id=246 data-nosnippet>246</a>    </span><span class="kw">pub unsafe fn </span>terminate(<span class="self">self</span>) {
+<a href=#247 id=247 data-nosnippet>247</a>        <span class="kw">if </span>!<span class="self">self</span>.inner.uses_display_reference() {
+<a href=#248 id=248 data-nosnippet>248</a>            <span class="kw">unsafe </span>{
+<a href=#249 id=249 data-nosnippet>249</a>                <span class="self">self</span>.inner.egl.Terminate(<span class="kw-2">*</span><span class="self">self</span>.inner.raw);
+<a href=#250 id=250 data-nosnippet>250</a>            }
+<a href=#251 id=251 data-nosnippet>251</a>        }
+<a href=#252 id=252 data-nosnippet>252</a>    }
+<a href=#253 id=253 data-nosnippet>253</a>
+<a href=#254 id=254 data-nosnippet>254</a>    <span class="kw">fn </span>get_platform_display(egl: <span class="kw-2">&amp;</span>Egl, display: RawDisplayHandle) -&gt; <span class="prelude-ty">Result</span>&lt;EglDisplay&gt; {
+<a href=#255 id=255 data-nosnippet>255</a>        <span class="kw">if </span>!egl.GetPlatformDisplay.is_loaded() {
+<a href=#256 id=256 data-nosnippet>256</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotSupported(<span class="string">"eglGetPlatformDisplay is not supported"</span>).into());
+<a href=#257 id=257 data-nosnippet>257</a>        }
+<a href=#258 id=258 data-nosnippet>258</a>
+<a href=#259 id=259 data-nosnippet>259</a>        <span class="kw">let </span>extensions = CLIENT_EXTENSIONS.get().unwrap();
+<a href=#260 id=260 data-nosnippet>260</a>
+<a href=#261 id=261 data-nosnippet>261</a>        <span class="kw">let </span><span class="kw-2">mut </span>attrs = Vec::&lt;EGLAttrib&gt;::with_capacity(<span class="number">5</span>);
+<a href=#262 id=262 data-nosnippet>262</a>        <span class="kw">let </span>(platform, display) = <span class="kw">match </span>display {
+<a href=#263 id=263 data-nosnippet>263</a>            RawDisplayHandle::Wayland(handle)
+<a href=#264 id=264 data-nosnippet>264</a>                <span class="kw">if </span>extensions.contains(<span class="string">"EGL_KHR_platform_wayland"</span>) =&gt;
+<a href=#265 id=265 data-nosnippet>265</a>            {
+<a href=#266 id=266 data-nosnippet>266</a>                (egl::PLATFORM_WAYLAND_KHR, handle.display.as_ptr())
+<a href=#267 id=267 data-nosnippet>267</a>            },
+<a href=#268 id=268 data-nosnippet>268</a>            RawDisplayHandle::Xlib(handle) <span class="kw">if </span>extensions.contains(<span class="string">"EGL_KHR_platform_x11"</span>) =&gt; {
+<a href=#269 id=269 data-nosnippet>269</a>                attrs.push(egl::PLATFORM_X11_SCREEN_KHR <span class="kw">as </span>EGLAttrib);
+<a href=#270 id=270 data-nosnippet>270</a>                attrs.push(handle.screen <span class="kw">as </span>EGLAttrib);
+<a href=#271 id=271 data-nosnippet>271</a>                (
+<a href=#272 id=272 data-nosnippet>272</a>                    egl::PLATFORM_X11_KHR,
+<a href=#273 id=273 data-nosnippet>273</a>                    handle.display.map_or(egl::DEFAULT_DISPLAY <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, |d| d.as_ptr()),
+<a href=#274 id=274 data-nosnippet>274</a>                )
+<a href=#275 id=275 data-nosnippet>275</a>            },
+<a href=#276 id=276 data-nosnippet>276</a>            RawDisplayHandle::Gbm(handle) <span class="kw">if </span>extensions.contains(<span class="string">"EGL_KHR_platform_gbm"</span>) =&gt; {
+<a href=#277 id=277 data-nosnippet>277</a>                (egl::PLATFORM_GBM_KHR, handle.gbm_device.as_ptr())
+<a href=#278 id=278 data-nosnippet>278</a>            },
+<a href=#279 id=279 data-nosnippet>279</a>            RawDisplayHandle::Drm(<span class="kw">_</span>) =&gt; {
+<a href=#280 id=280 data-nosnippet>280</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotSupported(
+<a href=#281 id=281 data-nosnippet>281</a>                    <span class="string">"`DrmDisplayHandle` must be used with `egl::display::Display::with_device()`"</span>,
+<a href=#282 id=282 data-nosnippet>282</a>                )
+<a href=#283 id=283 data-nosnippet>283</a>                .into())
+<a href=#284 id=284 data-nosnippet>284</a>            },
+<a href=#285 id=285 data-nosnippet>285</a>            RawDisplayHandle::Android(<span class="kw">_</span>) <span class="kw">if </span>extensions.contains(<span class="string">"EGL_KHR_platform_android"</span>) =&gt; {
+<a href=#286 id=286 data-nosnippet>286</a>                (egl::PLATFORM_ANDROID_KHR, egl::DEFAULT_DISPLAY <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+<a href=#287 id=287 data-nosnippet>287</a>            },
+<a href=#288 id=288 data-nosnippet>288</a>            <span class="kw">_ </span>=&gt; {
+<a href=#289 id=289 data-nosnippet>289</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(
+<a href=#290 id=290 data-nosnippet>290</a>                    ErrorKind::NotSupported(<span class="string">"provided display handle is not supported"</span>).into()
+<a href=#291 id=291 data-nosnippet>291</a>                )
+<a href=#292 id=292 data-nosnippet>292</a>            },
+<a href=#293 id=293 data-nosnippet>293</a>        };
+<a href=#294 id=294 data-nosnippet>294</a>
+<a href=#295 id=295 data-nosnippet>295</a>        <span class="comment">// Push at the end so we can pop it on failure
+<a href=#296 id=296 data-nosnippet>296</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>has_display_reference = extensions.contains(<span class="string">"EGL_KHR_display_reference"</span>);
+<a href=#297 id=297 data-nosnippet>297</a>        <span class="kw">if </span>has_display_reference {
+<a href=#298 id=298 data-nosnippet>298</a>            attrs.push(egl::TRACK_REFERENCES_KHR <span class="kw">as _</span>);
+<a href=#299 id=299 data-nosnippet>299</a>            attrs.push(egl::TRUE <span class="kw">as _</span>);
+<a href=#300 id=300 data-nosnippet>300</a>        }
+<a href=#301 id=301 data-nosnippet>301</a>
+<a href=#302 id=302 data-nosnippet>302</a>        <span class="comment">// Push `egl::NONE` to terminate the list.
+<a href=#303 id=303 data-nosnippet>303</a>        </span>attrs.push(egl::NONE <span class="kw">as </span>EGLAttrib);
+<a href=#304 id=304 data-nosnippet>304</a>
+<a href=#305 id=305 data-nosnippet>305</a>        <span class="comment">// NOTE: This fallback is needed because libglvnd advertises client extensions
+<a href=#306 id=306 data-nosnippet>306</a>        // if at least one vendor library supports them. This leads to creation
+<a href=#307 id=307 data-nosnippet>307</a>        // failures for the vendor libraries not supporting
+<a href=#308 id=308 data-nosnippet>308</a>        // EGL_KHR_display_reference. Also according to the spec creation is allowed
+<a href=#309 id=309 data-nosnippet>309</a>        // to fail with EGL_KHR_display_reference set to EGL_TRUE even if
+<a href=#310 id=310 data-nosnippet>310</a>        // EGL_KHR_display_reference is advertised in the client extension
+<a href=#311 id=311 data-nosnippet>311</a>        // string, so just always try creation without EGL_KHR_display_reference
+<a href=#312 id=312 data-nosnippet>312</a>        // if it failed using it.
+<a href=#313 id=313 data-nosnippet>313</a>        </span><span class="kw">let </span>platform_display = <span class="kw">loop </span>{
+<a href=#314 id=314 data-nosnippet>314</a>            <span class="kw">match </span><span class="self">Self</span>::check_display_error(<span class="kw">unsafe </span>{
+<a href=#315 id=315 data-nosnippet>315</a>                egl.GetPlatformDisplay(platform, display <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, attrs.as_ptr())
+<a href=#316 id=316 data-nosnippet>316</a>            }) {
+<a href=#317 id=317 data-nosnippet>317</a>                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="kw">if </span>has_display_reference =&gt; {
+<a href=#318 id=318 data-nosnippet>318</a>                    attrs.pop();
+<a href=#319 id=319 data-nosnippet>319</a>                    attrs.pop();
+<a href=#320 id=320 data-nosnippet>320</a>                    attrs.pop();
+<a href=#321 id=321 data-nosnippet>321</a>                    attrs.push(egl::NONE <span class="kw">as </span>EGLAttrib);
+<a href=#322 id=322 data-nosnippet>322</a>                    has_display_reference = <span class="bool-val">false</span>;
+<a href=#323 id=323 data-nosnippet>323</a>                },
+<a href=#324 id=324 data-nosnippet>324</a>                platform_display =&gt; <span class="kw">break </span>platform_display,
+<a href=#325 id=325 data-nosnippet>325</a>            }
+<a href=#326 id=326 data-nosnippet>326</a>        };
+<a href=#327 id=327 data-nosnippet>327</a>
+<a href=#328 id=328 data-nosnippet>328</a>        platform_display.map(EglDisplay::Khr)
+<a href=#329 id=329 data-nosnippet>329</a>    }
+<a href=#330 id=330 data-nosnippet>330</a>
+<a href=#331 id=331 data-nosnippet>331</a>    <span class="kw">fn </span>get_platform_display_ext(egl: <span class="kw-2">&amp;</span>Egl, display: RawDisplayHandle) -&gt; <span class="prelude-ty">Result</span>&lt;EglDisplay&gt; {
+<a href=#332 id=332 data-nosnippet>332</a>        <span class="kw">if </span>!egl.GetPlatformDisplayEXT.is_loaded() {
+<a href=#333 id=333 data-nosnippet>333</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotSupported(<span class="string">"eglGetPlatformDisplayEXT is not supported"</span>).into());
+<a href=#334 id=334 data-nosnippet>334</a>        }
+<a href=#335 id=335 data-nosnippet>335</a>
+<a href=#336 id=336 data-nosnippet>336</a>        <span class="kw">let </span>extensions = CLIENT_EXTENSIONS.get().unwrap();
+<a href=#337 id=337 data-nosnippet>337</a>
+<a href=#338 id=338 data-nosnippet>338</a>        <span class="kw">let </span><span class="kw-2">mut </span>attrs = Vec::&lt;EGLint&gt;::with_capacity(<span class="number">5</span>);
+<a href=#339 id=339 data-nosnippet>339</a>        <span class="kw">let </span><span class="kw-2">mut </span>legacy = <span class="bool-val">false</span>;
+<a href=#340 id=340 data-nosnippet>340</a>        <span class="kw">let </span>(platform, display) = <span class="kw">match </span>display {
+<a href=#341 id=341 data-nosnippet>341</a>            RawDisplayHandle::Wayland(handle)
+<a href=#342 id=342 data-nosnippet>342</a>                <span class="kw">if </span>extensions.contains(<span class="string">"EGL_EXT_platform_wayland"</span>) =&gt;
+<a href=#343 id=343 data-nosnippet>343</a>            {
+<a href=#344 id=344 data-nosnippet>344</a>                (egl::PLATFORM_WAYLAND_EXT, handle.display.as_ptr())
+<a href=#345 id=345 data-nosnippet>345</a>            },
+<a href=#346 id=346 data-nosnippet>346</a>            RawDisplayHandle::Xlib(handle) <span class="kw">if </span>extensions.contains(<span class="string">"EGL_EXT_platform_x11"</span>) =&gt; {
+<a href=#347 id=347 data-nosnippet>347</a>                attrs.push(egl::PLATFORM_X11_SCREEN_EXT <span class="kw">as </span>EGLint);
+<a href=#348 id=348 data-nosnippet>348</a>                attrs.push(handle.screen <span class="kw">as </span>EGLint);
+<a href=#349 id=349 data-nosnippet>349</a>                (
+<a href=#350 id=350 data-nosnippet>350</a>                    egl::PLATFORM_X11_EXT,
+<a href=#351 id=351 data-nosnippet>351</a>                    handle.display.map_or(egl::DEFAULT_DISPLAY <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, |d| d.as_ptr()),
+<a href=#352 id=352 data-nosnippet>352</a>                )
+<a href=#353 id=353 data-nosnippet>353</a>            },
+<a href=#354 id=354 data-nosnippet>354</a>            RawDisplayHandle::Xcb(handle)
+<a href=#355 id=355 data-nosnippet>355</a>                <span class="kw">if </span>extensions.contains(<span class="string">"EGL_MESA_platform_xcb"</span>)
+<a href=#356 id=356 data-nosnippet>356</a>                    || extensions.contains(<span class="string">"EGL_EXT_platform_xcb"</span>) =&gt;
+<a href=#357 id=357 data-nosnippet>357</a>            {
+<a href=#358 id=358 data-nosnippet>358</a>                attrs.push(egl::PLATFORM_XCB_SCREEN_EXT <span class="kw">as </span>EGLint);
+<a href=#359 id=359 data-nosnippet>359</a>                attrs.push(handle.screen <span class="kw">as </span>EGLint);
+<a href=#360 id=360 data-nosnippet>360</a>                (
+<a href=#361 id=361 data-nosnippet>361</a>                    egl::PLATFORM_XCB_EXT,
+<a href=#362 id=362 data-nosnippet>362</a>                    handle.connection.map_or(egl::DEFAULT_DISPLAY <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, |c| c.as_ptr()),
+<a href=#363 id=363 data-nosnippet>363</a>                )
+<a href=#364 id=364 data-nosnippet>364</a>            },
+<a href=#365 id=365 data-nosnippet>365</a>            RawDisplayHandle::Gbm(handle)
+<a href=#366 id=366 data-nosnippet>366</a>                <span class="comment">// NOTE: Some drivers report that they support the KHR GBM extension without EGL
+<a href=#367 id=367 data-nosnippet>367</a>                // 1.5 client, so work around that here by checking the KHR GBM extension as well.
+<a href=#368 id=368 data-nosnippet>368</a>                // The MESA and KHR extensions have the same constant values, thus it'll work
+<a href=#369 id=369 data-nosnippet>369</a>                // regardless.
+<a href=#370 id=370 data-nosnippet>370</a>                //
+<a href=#371 id=371 data-nosnippet>371</a>                // See https://github.com/rust-windowing/glutin/issues/1708.
+<a href=#372 id=372 data-nosnippet>372</a>                </span><span class="kw">if </span>extensions.contains(<span class="string">"EGL_MESA_platform_gbm"</span>)
+<a href=#373 id=373 data-nosnippet>373</a>                    || extensions.contains(<span class="string">"EGL_KHR_platform_gbm"</span>) =&gt;
+<a href=#374 id=374 data-nosnippet>374</a>            {
+<a href=#375 id=375 data-nosnippet>375</a>                (egl::PLATFORM_GBM_MESA, handle.gbm_device.as_ptr())
+<a href=#376 id=376 data-nosnippet>376</a>            },
+<a href=#377 id=377 data-nosnippet>377</a>            RawDisplayHandle::Drm(<span class="kw">_</span>) =&gt; {
+<a href=#378 id=378 data-nosnippet>378</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotSupported(
+<a href=#379 id=379 data-nosnippet>379</a>                    <span class="string">"`DrmDisplayHandle` must be used with `egl::display::Display::with_device()`"</span>,
+<a href=#380 id=380 data-nosnippet>380</a>                )
+<a href=#381 id=381 data-nosnippet>381</a>                .into())
+<a href=#382 id=382 data-nosnippet>382</a>            },
+<a href=#383 id=383 data-nosnippet>383</a>            RawDisplayHandle::Windows(..) <span class="kw">if </span>extensions.contains(<span class="string">"EGL_ANGLE_platform_angle"</span>) =&gt; {
+<a href=#384 id=384 data-nosnippet>384</a>                <span class="comment">// Only CreateWindowSurface appears to work with Angle.
+<a href=#385 id=385 data-nosnippet>385</a>                </span>legacy = <span class="bool-val">true</span>;
+<a href=#386 id=386 data-nosnippet>386</a>                (egl::PLATFORM_ANGLE_ANGLE, egl::DEFAULT_DISPLAY <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
+<a href=#387 id=387 data-nosnippet>387</a>            },
+<a href=#388 id=388 data-nosnippet>388</a>            <span class="kw">_ </span>=&gt; {
+<a href=#389 id=389 data-nosnippet>389</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(
+<a href=#390 id=390 data-nosnippet>390</a>                    ErrorKind::NotSupported(<span class="string">"provided display handle is not supported"</span>).into()
+<a href=#391 id=391 data-nosnippet>391</a>                )
+<a href=#392 id=392 data-nosnippet>392</a>            },
+<a href=#393 id=393 data-nosnippet>393</a>        };
+<a href=#394 id=394 data-nosnippet>394</a>
+<a href=#395 id=395 data-nosnippet>395</a>        <span class="comment">// Push at the end so we can pop it on failure
+<a href=#396 id=396 data-nosnippet>396</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>has_display_reference = extensions.contains(<span class="string">"EGL_KHR_display_reference"</span>);
+<a href=#397 id=397 data-nosnippet>397</a>        <span class="kw">if </span>has_display_reference {
+<a href=#398 id=398 data-nosnippet>398</a>            attrs.push(egl::TRACK_REFERENCES_KHR <span class="kw">as _</span>);
+<a href=#399 id=399 data-nosnippet>399</a>            attrs.push(egl::TRUE <span class="kw">as _</span>);
+<a href=#400 id=400 data-nosnippet>400</a>        }
+<a href=#401 id=401 data-nosnippet>401</a>
+<a href=#402 id=402 data-nosnippet>402</a>        <span class="comment">// Push `egl::NONE` to terminate the list.
+<a href=#403 id=403 data-nosnippet>403</a>        </span>attrs.push(egl::NONE <span class="kw">as </span>EGLint);
+<a href=#404 id=404 data-nosnippet>404</a>
+<a href=#405 id=405 data-nosnippet>405</a>        <span class="comment">// NOTE: This fallback is needed because libglvnd advertises client extensions
+<a href=#406 id=406 data-nosnippet>406</a>        // if at least one vendor library supports them. This leads to creation
+<a href=#407 id=407 data-nosnippet>407</a>        // failures for the vendor libraries not supporting
+<a href=#408 id=408 data-nosnippet>408</a>        // EGL_KHR_display_reference. Also according to the spec creation is allowed
+<a href=#409 id=409 data-nosnippet>409</a>        // to fail with EGL_KHR_display_reference set to EGL_TRUE even if
+<a href=#410 id=410 data-nosnippet>410</a>        // EGL_KHR_display_reference is advertised in the client extension
+<a href=#411 id=411 data-nosnippet>411</a>        // string, so just always try creation without EGL_KHR_display_reference
+<a href=#412 id=412 data-nosnippet>412</a>        // if it failed using it.
+<a href=#413 id=413 data-nosnippet>413</a>        </span><span class="kw">let </span>platform_display = <span class="kw">loop </span>{
+<a href=#414 id=414 data-nosnippet>414</a>            <span class="kw">match </span><span class="self">Self</span>::check_display_error(<span class="kw">unsafe </span>{
+<a href=#415 id=415 data-nosnippet>415</a>                egl.GetPlatformDisplayEXT(platform, display <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, attrs.as_ptr())
+<a href=#416 id=416 data-nosnippet>416</a>            }) {
+<a href=#417 id=417 data-nosnippet>417</a>                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="kw">if </span>has_display_reference =&gt; {
+<a href=#418 id=418 data-nosnippet>418</a>                    attrs.pop();
+<a href=#419 id=419 data-nosnippet>419</a>                    attrs.pop();
+<a href=#420 id=420 data-nosnippet>420</a>                    attrs.pop();
+<a href=#421 id=421 data-nosnippet>421</a>                    attrs.push(egl::NONE <span class="kw">as </span>EGLint);
+<a href=#422 id=422 data-nosnippet>422</a>                    has_display_reference = <span class="bool-val">false</span>;
+<a href=#423 id=423 data-nosnippet>423</a>                },
+<a href=#424 id=424 data-nosnippet>424</a>                platform_display =&gt; <span class="kw">break </span>platform_display,
+<a href=#425 id=425 data-nosnippet>425</a>            }
+<a href=#426 id=426 data-nosnippet>426</a>        };
+<a href=#427 id=427 data-nosnippet>427</a>
+<a href=#428 id=428 data-nosnippet>428</a>        platform_display.map(|display| {
+<a href=#429 id=429 data-nosnippet>429</a>            <span class="kw">if </span>legacy {
+<a href=#430 id=430 data-nosnippet>430</a>                <span class="comment">// NOTE: For angle we use the Legacy code path, as that uses CreateWindowSurface
+<a href=#431 id=431 data-nosnippet>431</a>                // instead of CreatePlatformWindowSurface*. The latter somehow
+<a href=#432 id=432 data-nosnippet>432</a>                // doesn't work, only the former does. But Angle's own example also use the
+<a href=#433 id=433 data-nosnippet>433</a>                // former: https://github.com/google/angle/blob/main/util/EGLWindow.cpp#L424
+<a href=#434 id=434 data-nosnippet>434</a>                </span>EglDisplay::Legacy(display)
+<a href=#435 id=435 data-nosnippet>435</a>            } <span class="kw">else </span>{
+<a href=#436 id=436 data-nosnippet>436</a>                EglDisplay::Ext(display)
+<a href=#437 id=437 data-nosnippet>437</a>            }
+<a href=#438 id=438 data-nosnippet>438</a>        })
+<a href=#439 id=439 data-nosnippet>439</a>    }
+<a href=#440 id=440 data-nosnippet>440</a>
+<a href=#441 id=441 data-nosnippet>441</a>    <span class="kw">fn </span>get_display(egl: <span class="kw-2">&amp;</span>Egl, display: RawDisplayHandle) -&gt; <span class="prelude-ty">Result</span>&lt;EglDisplay&gt; {
+<a href=#442 id=442 data-nosnippet>442</a>        <span class="kw">let </span>display = <span class="kw">match </span>display {
+<a href=#443 id=443 data-nosnippet>443</a>            RawDisplayHandle::Gbm(handle) =&gt; handle.gbm_device.as_ptr(),
+<a href=#444 id=444 data-nosnippet>444</a>            RawDisplayHandle::Drm(<span class="kw">_</span>) =&gt; {
+<a href=#445 id=445 data-nosnippet>445</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(ErrorKind::NotSupported(
+<a href=#446 id=446 data-nosnippet>446</a>                    <span class="string">"`DrmDisplayHandle` must be used with `egl::display::Display::with_device()`"</span>,
+<a href=#447 id=447 data-nosnippet>447</a>                )
+<a href=#448 id=448 data-nosnippet>448</a>                .into())
+<a href=#449 id=449 data-nosnippet>449</a>            },
+<a href=#450 id=450 data-nosnippet>450</a>            RawDisplayHandle::Xlib(XlibDisplayHandle { display, .. }) =&gt; {
+<a href=#451 id=451 data-nosnippet>451</a>                display.map_or(egl::DEFAULT_DISPLAY <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, |d| d.as_ptr())
+<a href=#452 id=452 data-nosnippet>452</a>            },
+<a href=#453 id=453 data-nosnippet>453</a>            RawDisplayHandle::Android(<span class="kw">_</span>) | RawDisplayHandle::Ohos(<span class="kw">_</span>) =&gt; {
+<a href=#454 id=454 data-nosnippet>454</a>                egl::DEFAULT_DISPLAY <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_
+<a href=#455 id=455 data-nosnippet>455</a>            </span>},
+<a href=#456 id=456 data-nosnippet>456</a>            <span class="kw">_ </span>=&gt; {
+<a href=#457 id=457 data-nosnippet>457</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(
+<a href=#458 id=458 data-nosnippet>458</a>                    ErrorKind::NotSupported(<span class="string">"provided display handle is not supported"</span>).into()
+<a href=#459 id=459 data-nosnippet>459</a>                )
+<a href=#460 id=460 data-nosnippet>460</a>            },
+<a href=#461 id=461 data-nosnippet>461</a>        };
+<a href=#462 id=462 data-nosnippet>462</a>
+<a href=#463 id=463 data-nosnippet>463</a>        <span class="kw">let </span>display = <span class="kw">unsafe </span>{ egl.GetDisplay(display) };
+<a href=#464 id=464 data-nosnippet>464</a>        <span class="self">Self</span>::check_display_error(display).map(EglDisplay::Legacy)
+<a href=#465 id=465 data-nosnippet>465</a>    }
+<a href=#466 id=466 data-nosnippet>466</a>
+<a href=#467 id=467 data-nosnippet>467</a>    <span class="kw">fn </span>extract_display_features(
+<a href=#468 id=468 data-nosnippet>468</a>        extensions: <span class="kw-2">&amp;</span>HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
+<a href=#469 id=469 data-nosnippet>469</a>        version: Version,
+<a href=#470 id=470 data-nosnippet>470</a>    ) -&gt; DisplayFeatures {
+<a href=#471 id=471 data-nosnippet>471</a>        <span class="comment">// Extract features.
+<a href=#472 id=472 data-nosnippet>472</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>supported_features = DisplayFeatures::CREATE_ES_CONTEXT
+<a href=#473 id=473 data-nosnippet>473</a>            | DisplayFeatures::MULTISAMPLING_PIXEL_FORMATS
+<a href=#474 id=474 data-nosnippet>474</a>            | DisplayFeatures::SWAP_CONTROL;
+<a href=#475 id=475 data-nosnippet>475</a>
+<a href=#476 id=476 data-nosnippet>476</a>        supported_features.set(
+<a href=#477 id=477 data-nosnippet>477</a>            DisplayFeatures::FLOAT_PIXEL_FORMAT,
+<a href=#478 id=478 data-nosnippet>478</a>            extensions.contains(<span class="string">"EGL_EXT_pixel_format_float"</span>),
+<a href=#479 id=479 data-nosnippet>479</a>        );
+<a href=#480 id=480 data-nosnippet>480</a>
+<a href=#481 id=481 data-nosnippet>481</a>        supported_features
+<a href=#482 id=482 data-nosnippet>482</a>            .set(DisplayFeatures::SRGB_FRAMEBUFFERS, extensions.contains(<span class="string">"EGL_KHR_gl_colorspace"</span>));
+<a href=#483 id=483 data-nosnippet>483</a>
+<a href=#484 id=484 data-nosnippet>484</a>        supported_features.set(
+<a href=#485 id=485 data-nosnippet>485</a>            DisplayFeatures::CONTEXT_ROBUSTNESS,
+<a href=#486 id=486 data-nosnippet>486</a>            version &gt; Version::new(<span class="number">1</span>, <span class="number">5</span>)
+<a href=#487 id=487 data-nosnippet>487</a>                || extensions.contains(<span class="string">"EGL_EXT_create_context_robustness"</span>),
+<a href=#488 id=488 data-nosnippet>488</a>        );
+<a href=#489 id=489 data-nosnippet>489</a>
+<a href=#490 id=490 data-nosnippet>490</a>        supported_features.set(
+<a href=#491 id=491 data-nosnippet>491</a>            DisplayFeatures::CONTEXT_NO_ERROR,
+<a href=#492 id=492 data-nosnippet>492</a>            extensions.contains(<span class="string">"EGL_KHR_create_context_no_error"</span>),
+<a href=#493 id=493 data-nosnippet>493</a>        );
+<a href=#494 id=494 data-nosnippet>494</a>
+<a href=#495 id=495 data-nosnippet>495</a>        supported_features
+<a href=#496 id=496 data-nosnippet>496</a>    }
+<a href=#497 id=497 data-nosnippet>497</a>
+<a href=#498 id=498 data-nosnippet>498</a>    <span class="kw">fn </span>check_display_error(display: EGLDisplay) -&gt; <span class="prelude-ty">Result</span>&lt;EGLDisplay&gt; {
+<a href=#499 id=499 data-nosnippet>499</a>        <span class="kw">if </span>display == egl::NO_DISPLAY {
+<a href=#500 id=500 data-nosnippet>500</a>            <span class="comment">// XXX the specification is a bit vague here, so fallback instead of hard
+<a href=#501 id=501 data-nosnippet>501</a>            // assert.
+<a href=#502 id=502 data-nosnippet>502</a>            </span><span class="prelude-val">Err</span>(<span class="kw">super</span>::check_error().err().unwrap_or_else(|| {
+<a href=#503 id=503 data-nosnippet>503</a>                ErrorKind::NotSupported(<span class="string">"failed to create EGLDisplay without a reason"</span>).into()
+<a href=#504 id=504 data-nosnippet>504</a>            }))
+<a href=#505 id=505 data-nosnippet>505</a>        } <span class="kw">else </span>{
+<a href=#506 id=506 data-nosnippet>506</a>            <span class="prelude-val">Ok</span>(display)
+<a href=#507 id=507 data-nosnippet>507</a>        }
+<a href=#508 id=508 data-nosnippet>508</a>    }
+<a href=#509 id=509 data-nosnippet>509</a>
+<a href=#510 id=510 data-nosnippet>510</a>    <span class="kw">fn </span>initialize_display(
+<a href=#511 id=511 data-nosnippet>511</a>        egl: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Egl,
+<a href=#512 id=512 data-nosnippet>512</a>        display: EglDisplay,
+<a href=#513 id=513 data-nosnippet>513</a>        raw_display_handle: <span class="prelude-ty">Option</span>&lt;RawDisplayHandle&gt;,
+<a href=#514 id=514 data-nosnippet>514</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+<a href=#515 id=515 data-nosnippet>515</a>        <span class="kw">let </span>version = <span class="kw">unsafe </span>{
+<a href=#516 id=516 data-nosnippet>516</a>            <span class="kw">let </span>(<span class="kw-2">mut </span>major, <span class="kw-2">mut </span>minor) = (<span class="number">0</span>, <span class="number">0</span>);
+<a href=#517 id=517 data-nosnippet>517</a>            <span class="kw">if </span>egl.Initialize(<span class="kw-2">*</span>display, <span class="kw-2">&amp;mut </span>major, <span class="kw-2">&amp;mut </span>minor) == egl::FALSE {
+<a href=#518 id=518 data-nosnippet>518</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">super</span>::check_error().expect_err(<span class="string">"eglInit failed without a reason"</span>));
+<a href=#519 id=519 data-nosnippet>519</a>            }
+<a href=#520 id=520 data-nosnippet>520</a>
+<a href=#521 id=521 data-nosnippet>521</a>            Version::new(major <span class="kw">as </span>u8, minor <span class="kw">as </span>u8)
+<a href=#522 id=522 data-nosnippet>522</a>        };
+<a href=#523 id=523 data-nosnippet>523</a>
+<a href=#524 id=524 data-nosnippet>524</a>        <span class="kw">let </span>display = <span class="kw">match </span>display {
+<a href=#525 id=525 data-nosnippet>525</a>            <span class="comment">// `eglGetPlatformDisplay` and `GetPlatformDisplayEXT` aren't really differentiated,
+<a href=#526 id=526 data-nosnippet>526</a>            // we must check if the version of the initialized display is not sensible for the
+<a href=#527 id=527 data-nosnippet>527</a>            // EglDisplay type and downgrade it if so.
+<a href=#528 id=528 data-nosnippet>528</a>            </span>EglDisplay::Khr(display) <span class="kw">if </span>version &lt;= Version { major: <span class="number">1</span>, minor: <span class="number">4 </span>} =&gt; {
+<a href=#529 id=529 data-nosnippet>529</a>                <span class="kw">let </span>client_extensions = CLIENT_EXTENSIONS.get().unwrap();
+<a href=#530 id=530 data-nosnippet>530</a>                <span class="kw">if </span>client_extensions.contains(<span class="string">"EGL_EXT_platform_base"</span>)
+<a href=#531 id=531 data-nosnippet>531</a>                    &amp;&amp; (version == Version { major: <span class="number">1</span>, minor: <span class="number">4 </span>})
+<a href=#532 id=532 data-nosnippet>532</a>                {
+<a href=#533 id=533 data-nosnippet>533</a>                    <span class="comment">// `EGL_EXT_platform_base` requires EGL 1.4 per specification; we cannot safely
+<a href=#534 id=534 data-nosnippet>534</a>                    // presume that an `Ext` display would be valid for older versions.
+<a href=#535 id=535 data-nosnippet>535</a>                    </span>EglDisplay::Ext(display)
+<a href=#536 id=536 data-nosnippet>536</a>                } <span class="kw">else </span>{
+<a href=#537 id=537 data-nosnippet>537</a>                    EglDisplay::Legacy(display)
+<a href=#538 id=538 data-nosnippet>538</a>                }
+<a href=#539 id=539 data-nosnippet>539</a>            },
+<a href=#540 id=540 data-nosnippet>540</a>            <span class="comment">// We do not do anything otherwise.
+<a href=#541 id=541 data-nosnippet>541</a>            </span>display =&gt; display,
+<a href=#542 id=542 data-nosnippet>542</a>        };
+<a href=#543 id=543 data-nosnippet>543</a>
+<a href=#544 id=544 data-nosnippet>544</a>        <span class="comment">// Load extensions.
+<a href=#545 id=545 data-nosnippet>545</a>        </span><span class="kw">let </span>display_extensions = get_extensions(egl, <span class="kw-2">*</span>display);
+<a href=#546 id=546 data-nosnippet>546</a>        <span class="kw">let </span>features = <span class="self">Self</span>::extract_display_features(<span class="kw-2">&amp;</span>display_extensions, version);
+<a href=#547 id=547 data-nosnippet>547</a>
+<a href=#548 id=548 data-nosnippet>548</a>        <span class="kw">let </span>inner = Arc::new(DisplayInner {
+<a href=#549 id=549 data-nosnippet>549</a>            egl,
+<a href=#550 id=550 data-nosnippet>550</a>            raw: display,
+<a href=#551 id=551 data-nosnippet>551</a>            _native_display: raw_display_handle.map(NativeDisplay),
+<a href=#552 id=552 data-nosnippet>552</a>            version,
+<a href=#553 id=553 data-nosnippet>553</a>            display_extensions,
+<a href=#554 id=554 data-nosnippet>554</a>            features,
+<a href=#555 id=555 data-nosnippet>555</a>        });
+<a href=#556 id=556 data-nosnippet>556</a>        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner })
+<a href=#557 id=557 data-nosnippet>557</a>    }
+<a href=#558 id=558 data-nosnippet>558</a>}
+<a href=#559 id=559 data-nosnippet>559</a>
+<a href=#560 id=560 data-nosnippet>560</a><span class="kw">impl </span>GlDisplay <span class="kw">for </span>Display {
+<a href=#561 id=561 data-nosnippet>561</a>    <span class="kw">type </span>Config = Config;
+<a href=#562 id=562 data-nosnippet>562</a>    <span class="kw">type </span>NotCurrentContext = NotCurrentContext;
+<a href=#563 id=563 data-nosnippet>563</a>    <span class="kw">type </span>PbufferSurface = Surface&lt;PbufferSurface&gt;;
+<a href=#564 id=564 data-nosnippet>564</a>    <span class="kw">type </span>PixmapSurface = Surface&lt;PixmapSurface&gt;;
+<a href=#565 id=565 data-nosnippet>565</a>    <span class="kw">type </span>WindowSurface = Surface&lt;WindowSurface&gt;;
+<a href=#566 id=566 data-nosnippet>566</a>
+<a href=#567 id=567 data-nosnippet>567</a>    <span class="kw">unsafe fn </span>find_configs(
+<a href=#568 id=568 data-nosnippet>568</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#569 id=569 data-nosnippet>569</a>        template: ConfigTemplate,
+<a href=#570 id=570 data-nosnippet>570</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="self">Self</span>::Config&gt; + <span class="lifetime">'_</span>&gt;&gt; {
+<a href=#571 id=571 data-nosnippet>571</a>        <span class="kw">unsafe </span>{ <span class="self">Self</span>::find_configs(<span class="self">self</span>, template) }
+<a href=#572 id=572 data-nosnippet>572</a>    }
+<a href=#573 id=573 data-nosnippet>573</a>
+<a href=#574 id=574 data-nosnippet>574</a>    <span class="kw">unsafe fn </span>create_window_surface(
+<a href=#575 id=575 data-nosnippet>575</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#576 id=576 data-nosnippet>576</a>        config: <span class="kw-2">&amp;</span><span class="self">Self</span>::Config,
+<a href=#577 id=577 data-nosnippet>577</a>        surface_attributes: <span class="kw-2">&amp;</span>SurfaceAttributes&lt;WindowSurface&gt;,
+<a href=#578 id=578 data-nosnippet>578</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::WindowSurface&gt; {
+<a href=#579 id=579 data-nosnippet>579</a>        <span class="kw">unsafe </span>{ <span class="self">Self</span>::create_window_surface(<span class="self">self</span>, config, surface_attributes) }
+<a href=#580 id=580 data-nosnippet>580</a>    }
+<a href=#581 id=581 data-nosnippet>581</a>
+<a href=#582 id=582 data-nosnippet>582</a>    <span class="kw">unsafe fn </span>create_pbuffer_surface(
+<a href=#583 id=583 data-nosnippet>583</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#584 id=584 data-nosnippet>584</a>        config: <span class="kw-2">&amp;</span><span class="self">Self</span>::Config,
+<a href=#585 id=585 data-nosnippet>585</a>        surface_attributes: <span class="kw-2">&amp;</span>SurfaceAttributes&lt;PbufferSurface&gt;,
+<a href=#586 id=586 data-nosnippet>586</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::PbufferSurface&gt; {
+<a href=#587 id=587 data-nosnippet>587</a>        <span class="kw">unsafe </span>{ <span class="self">Self</span>::create_pbuffer_surface(<span class="self">self</span>, config, surface_attributes) }
+<a href=#588 id=588 data-nosnippet>588</a>    }
+<a href=#589 id=589 data-nosnippet>589</a>
+<a href=#590 id=590 data-nosnippet>590</a>    <span class="kw">unsafe fn </span>create_context(
+<a href=#591 id=591 data-nosnippet>591</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#592 id=592 data-nosnippet>592</a>        config: <span class="kw-2">&amp;</span><span class="self">Self</span>::Config,
+<a href=#593 id=593 data-nosnippet>593</a>        context_attributes: <span class="kw-2">&amp;</span><span class="kw">crate</span>::context::ContextAttributes,
+<a href=#594 id=594 data-nosnippet>594</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::NotCurrentContext&gt; {
+<a href=#595 id=595 data-nosnippet>595</a>        <span class="kw">unsafe </span>{ <span class="self">Self</span>::create_context(<span class="self">self</span>, config, context_attributes) }
+<a href=#596 id=596 data-nosnippet>596</a>    }
+<a href=#597 id=597 data-nosnippet>597</a>
+<a href=#598 id=598 data-nosnippet>598</a>    <span class="kw">unsafe fn </span>create_pixmap_surface(
+<a href=#599 id=599 data-nosnippet>599</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#600 id=600 data-nosnippet>600</a>        config: <span class="kw-2">&amp;</span><span class="self">Self</span>::Config,
+<a href=#601 id=601 data-nosnippet>601</a>        surface_attributes: <span class="kw-2">&amp;</span>SurfaceAttributes&lt;PixmapSurface&gt;,
+<a href=#602 id=602 data-nosnippet>602</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::PixmapSurface&gt; {
+<a href=#603 id=603 data-nosnippet>603</a>        <span class="kw">unsafe </span>{ <span class="self">Self</span>::create_pixmap_surface(<span class="self">self</span>, config, surface_attributes) }
+<a href=#604 id=604 data-nosnippet>604</a>    }
+<a href=#605 id=605 data-nosnippet>605</a>
+<a href=#606 id=606 data-nosnippet>606</a>    <span class="kw">fn </span>get_proc_address(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>CStr) -&gt; <span class="kw-2">*const </span>ffi::c_void {
+<a href=#607 id=607 data-nosnippet>607</a>        <span class="kw">unsafe </span>{ <span class="self">self</span>.inner.egl.GetProcAddress(addr.as_ptr()) <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ </span>}
+<a href=#608 id=608 data-nosnippet>608</a>    }
+<a href=#609 id=609 data-nosnippet>609</a>
+<a href=#610 id=610 data-nosnippet>610</a>    <span class="kw">fn </span>version_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+<a href=#611 id=611 data-nosnippet>611</a>        <span class="macro">format!</span>(<span class="string">"EGL {}.{}"</span>, <span class="self">self</span>.inner.version.major, <span class="self">self</span>.inner.version.minor)
+<a href=#612 id=612 data-nosnippet>612</a>    }
+<a href=#613 id=613 data-nosnippet>613</a>
+<a href=#614 id=614 data-nosnippet>614</a>    <span class="kw">fn </span>supported_features(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DisplayFeatures {
+<a href=#615 id=615 data-nosnippet>615</a>        <span class="self">self</span>.inner.features
+<a href=#616 id=616 data-nosnippet>616</a>    }
+<a href=#617 id=617 data-nosnippet>617</a>}
+<a href=#618 id=618 data-nosnippet>618</a>
+<a href=#619 id=619 data-nosnippet>619</a><span class="kw">impl </span>GetDisplayExtensions <span class="kw">for </span>Display {
+<a href=#620 id=620 data-nosnippet>620</a>    <span class="kw">fn </span>extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+<a href=#621 id=621 data-nosnippet>621</a>        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.display_extensions
+<a href=#622 id=622 data-nosnippet>622</a>    }
+<a href=#623 id=623 data-nosnippet>623</a>}
+<a href=#624 id=624 data-nosnippet>624</a>
+<a href=#625 id=625 data-nosnippet>625</a><span class="kw">impl </span>AsRawDisplay <span class="kw">for </span>Display {
+<a href=#626 id=626 data-nosnippet>626</a>    <span class="kw">fn </span>raw_display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawDisplay {
+<a href=#627 id=627 data-nosnippet>627</a>        RawDisplay::Egl(<span class="kw-2">*</span><span class="self">self</span>.inner.raw)
+<a href=#628 id=628 data-nosnippet>628</a>    }
+<a href=#629 id=629 data-nosnippet>629</a>}
+<a href=#630 id=630 data-nosnippet>630</a>
+<a href=#631 id=631 data-nosnippet>631</a><span class="kw">impl </span>Sealed <span class="kw">for </span>Display {}
+<a href=#632 id=632 data-nosnippet>632</a>
+<a href=#633 id=633 data-nosnippet>633</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DisplayInner {
+<a href=#634 id=634 data-nosnippet>634</a>    <span class="doccomment">/// Pointer to the EGL handler to simplify API calls.
+<a href=#635 id=635 data-nosnippet>635</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) egl: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Egl,
+<a href=#636 id=636 data-nosnippet>636</a>
+<a href=#637 id=637 data-nosnippet>637</a>    <span class="doccomment">/// Pointer to the egl display.
+<a href=#638 id=638 data-nosnippet>638</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) raw: EglDisplay,
+<a href=#639 id=639 data-nosnippet>639</a>
+<a href=#640 id=640 data-nosnippet>640</a>    <span class="doccomment">/// The version of the egl library.
+<a href=#641 id=641 data-nosnippet>641</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) version: Version,
+<a href=#642 id=642 data-nosnippet>642</a>
+<a href=#643 id=643 data-nosnippet>643</a>    <span class="doccomment">/// Display EGL extensions.
+<a href=#644 id=644 data-nosnippet>644</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) display_extensions: HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
+<a href=#645 id=645 data-nosnippet>645</a>
+<a href=#646 id=646 data-nosnippet>646</a>    <span class="doccomment">/// The features supported by the display.
+<a href=#647 id=647 data-nosnippet>647</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) features: DisplayFeatures,
+<a href=#648 id=648 data-nosnippet>648</a>
+<a href=#649 id=649 data-nosnippet>649</a>    <span class="doccomment">/// The raw display used to create EGL display.
+<a href=#650 id=650 data-nosnippet>650</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) _native_display: <span class="prelude-ty">Option</span>&lt;NativeDisplay&gt;,
+<a href=#651 id=651 data-nosnippet>651</a>}
+<a href=#652 id=652 data-nosnippet>652</a>
+<a href=#653 id=653 data-nosnippet>653</a><span class="kw">impl </span>DisplayInner {
+<a href=#654 id=654 data-nosnippet>654</a>    <span class="kw">fn </span>uses_display_reference(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+<a href=#655 id=655 data-nosnippet>655</a>        <span class="kw">if </span>!CLIENT_EXTENSIONS.get().unwrap().contains(<span class="string">"EGL_KHR_display_reference"</span>) {
+<a href=#656 id=656 data-nosnippet>656</a>            <span class="kw">return </span><span class="bool-val">false</span>;
+<a href=#657 id=657 data-nosnippet>657</a>        }
+<a href=#658 id=658 data-nosnippet>658</a>
+<a href=#659 id=659 data-nosnippet>659</a>        <span class="comment">// If the EGL_TRACK_REFERENCES_KHR attribute is true, then EGL will internally
+<a href=#660 id=660 data-nosnippet>660</a>        // reference count the display. If that is the case, glutin can
+<a href=#661 id=661 data-nosnippet>661</a>        // terminate the display without worry for the instance being
+<a href=#662 id=662 data-nosnippet>662</a>        // reused elsewhere.
+<a href=#663 id=663 data-nosnippet>663</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>track_references = MaybeUninit::&lt;EGLAttrib&gt;::uninit();
+<a href=#664 id=664 data-nosnippet>664</a>        (<span class="kw">match </span><span class="self">self</span>.raw {
+<a href=#665 id=665 data-nosnippet>665</a>            EglDisplay::Khr(khr) =&gt; <span class="kw">unsafe </span>{
+<a href=#666 id=666 data-nosnippet>666</a>                <span class="self">self</span>.egl.QueryDisplayAttribKHR(
+<a href=#667 id=667 data-nosnippet>667</a>                    khr,
+<a href=#668 id=668 data-nosnippet>668</a>                    egl::TRACK_REFERENCES_KHR <span class="kw">as _</span>,
+<a href=#669 id=669 data-nosnippet>669</a>                    track_references.as_mut_ptr(),
+<a href=#670 id=670 data-nosnippet>670</a>                )
+<a href=#671 id=671 data-nosnippet>671</a>            },
+<a href=#672 id=672 data-nosnippet>672</a>            EglDisplay::Ext(ext) =&gt; <span class="kw">unsafe </span>{
+<a href=#673 id=673 data-nosnippet>673</a>                <span class="self">self</span>.egl.QueryDisplayAttribEXT(
+<a href=#674 id=674 data-nosnippet>674</a>                    ext,
+<a href=#675 id=675 data-nosnippet>675</a>                    egl::TRACK_REFERENCES_KHR <span class="kw">as _</span>,
+<a href=#676 id=676 data-nosnippet>676</a>                    track_references.as_mut_ptr(),
+<a href=#677 id=677 data-nosnippet>677</a>                )
+<a href=#678 id=678 data-nosnippet>678</a>            },
+<a href=#679 id=679 data-nosnippet>679</a>            EglDisplay::Legacy(<span class="kw">_</span>) =&gt; egl::FALSE,
+<a href=#680 id=680 data-nosnippet>680</a>        } == egl::TRUE)
+<a href=#681 id=681 data-nosnippet>681</a>    }
+<a href=#682 id=682 data-nosnippet>682</a>}
+<a href=#683 id=683 data-nosnippet>683</a>
+<a href=#684 id=684 data-nosnippet>684</a><span class="kw">impl </span>fmt::Debug <span class="kw">for </span>DisplayInner {
+<a href=#685 id=685 data-nosnippet>685</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#686 id=686 data-nosnippet>686</a>        f.debug_struct(<span class="string">"Display"</span>)
+<a href=#687 id=687 data-nosnippet>687</a>            .field(<span class="string">"raw"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.raw)
+<a href=#688 id=688 data-nosnippet>688</a>            .field(<span class="string">"version"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.version)
+<a href=#689 id=689 data-nosnippet>689</a>            .field(<span class="string">"features"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.features)
+<a href=#690 id=690 data-nosnippet>690</a>            .field(<span class="string">"extensions"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.display_extensions)
+<a href=#691 id=691 data-nosnippet>691</a>            .finish()
+<a href=#692 id=692 data-nosnippet>692</a>    }
+<a href=#693 id=693 data-nosnippet>693</a>}
+<a href=#694 id=694 data-nosnippet>694</a>
+<a href=#695 id=695 data-nosnippet>695</a><span class="kw">impl </span>Drop <span class="kw">for </span>DisplayInner {
+<a href=#696 id=696 data-nosnippet>696</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#697 id=697 data-nosnippet>697</a>        <span class="kw">if </span><span class="self">self</span>.uses_display_reference() {
+<a href=#698 id=698 data-nosnippet>698</a>            <span class="kw">unsafe </span>{
+<a href=#699 id=699 data-nosnippet>699</a>                <span class="self">self</span>.egl.Terminate(<span class="kw-2">*</span><span class="self">self</span>.raw);
+<a href=#700 id=700 data-nosnippet>700</a>            }
+<a href=#701 id=701 data-nosnippet>701</a>        }
+<a href=#702 id=702 data-nosnippet>702</a>
+<a href=#703 id=703 data-nosnippet>703</a>        <span class="comment">// We cannot call safely call `eglTerminate`.
+<a href=#704 id=704 data-nosnippet>704</a>        //
+<a href=#705 id=705 data-nosnippet>705</a>        // This may sound confusing, but this is a result of how EGL works:
+<a href=#706 id=706 data-nosnippet>706</a>        //
+<a href=#707 id=707 data-nosnippet>707</a>        // From the documentation of `eglGetDisplay`:
+<a href=#708 id=708 data-nosnippet>708</a>        // &gt; Multiple calls made to eglGetDisplay with the same display_id will
+<a href=#709 id=709 data-nosnippet>709</a>        // &gt; return the same EGLDisplay handle.
+<a href=#710 id=710 data-nosnippet>710</a>        //
+<a href=#711 id=711 data-nosnippet>711</a>        // And from the documentation of `eglGetPlatformDisplay`:
+<a href=#712 id=712 data-nosnippet>712</a>        // &gt; Multiple calls made to eglGetPlatformDisplay with the same
+<a href=#713 id=713 data-nosnippet>713</a>        // &gt; parameters will return the same
+<a href=#714 id=714 data-nosnippet>714</a>        // &gt; EGLDisplay handle.
+<a href=#715 id=715 data-nosnippet>715</a>        //
+<a href=#716 id=716 data-nosnippet>716</a>        // Furthermore the following is done when a display is initialized:
+<a href=#717 id=717 data-nosnippet>717</a>        // &gt; Initializing an already initialized EGL display connection has no
+<a href=#718 id=718 data-nosnippet>718</a>        // &gt; effect besides returning the
+<a href=#719 id=719 data-nosnippet>719</a>        // &gt; version numbers.
+<a href=#720 id=720 data-nosnippet>720</a>        //
+<a href=#721 id=721 data-nosnippet>721</a>        // Terminating a display connection and then creating a new display
+<a href=#722 id=722 data-nosnippet>722</a>        // connection will reference the same display. This effectively
+<a href=#723 id=723 data-nosnippet>723</a>        // makes an EGLDisplay a singleton for the specified display_id or
+<a href=#724 id=724 data-nosnippet>724</a>        // platform and native display.
+<a href=#725 id=725 data-nosnippet>725</a>        //
+<a href=#726 id=726 data-nosnippet>726</a>        // Because EGLDisplay is a singleton, this makes the following sequence
+<a href=#727 id=727 data-nosnippet>727</a>        // problematic:
+<a href=#728 id=728 data-nosnippet>728</a>        //
+<a href=#729 id=729 data-nosnippet>729</a>        // 1. A display is created for a platform
+<a href=#730 id=730 data-nosnippet>730</a>        // 2. A second display is created for the same platform
+<a href=#731 id=731 data-nosnippet>731</a>        // 3. The first display is dropped, resulting in eglTerminate being
+<a href=#732 id=732 data-nosnippet>732</a>        // called.
+<a href=#733 id=733 data-nosnippet>733</a>        // 4. A context created from the second display is made
+<a href=#734 id=734 data-nosnippet>734</a>        // current, but it has been terminated and returns an EGL_BAD_DISPLAY
+<a href=#735 id=735 data-nosnippet>735</a>        // error.
+<a href=#736 id=736 data-nosnippet>736</a>        //
+<a href=#737 id=737 data-nosnippet>737</a>        // But wait? This causes a memory leak!
+<a href=#738 id=738 data-nosnippet>738</a>        //
+<a href=#739 id=739 data-nosnippet>739</a>        // Yes it does indeed result in a memory leak since we do not terminate
+<a href=#740 id=740 data-nosnippet>740</a>        // displays on drop. For most applications there is only ever a
+<a href=#741 id=741 data-nosnippet>741</a>        // single EGLDisplay for the lifetime of the application. The cost
+<a href=#742 id=742 data-nosnippet>742</a>        // of not dropping the display is negligible because the display will
+<a href=#743 id=743 data-nosnippet>743</a>        // probably be destroyed on app termination and we can let the
+<a href=#744 id=744 data-nosnippet>744</a>        // operating system deal with tearing down EGL instead.
+<a href=#745 id=745 data-nosnippet>745</a>    </span>}
+<a href=#746 id=746 data-nosnippet>746</a>}
+<a href=#747 id=747 data-nosnippet>747</a>
+<a href=#748 id=748 data-nosnippet>748</a><span class="attr">#[derive(Debug, Clone, Copy)]
+<a href=#749 id=749 data-nosnippet>749</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>NativeDisplay(RawDisplayHandle);
+<a href=#750 id=750 data-nosnippet>750</a>
+<a href=#751 id=751 data-nosnippet>751</a><span class="kw">unsafe impl </span>Send <span class="kw">for </span>NativeDisplay {}
+<a href=#752 id=752 data-nosnippet>752</a><span class="kw">unsafe impl </span>Sync <span class="kw">for </span>NativeDisplay {}
+<a href=#753 id=753 data-nosnippet>753</a>
+<a href=#754 id=754 data-nosnippet>754</a><span class="kw">impl </span>Deref <span class="kw">for </span>NativeDisplay {
+<a href=#755 id=755 data-nosnippet>755</a>    <span class="kw">type </span>Target = RawDisplayHandle;
+<a href=#756 id=756 data-nosnippet>756</a>
+<a href=#757 id=757 data-nosnippet>757</a>    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+<a href=#758 id=758 data-nosnippet>758</a>        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
+<a href=#759 id=759 data-nosnippet>759</a>    </span>}
+<a href=#760 id=760 data-nosnippet>760</a>}
+<a href=#761 id=761 data-nosnippet>761</a>
+<a href=#762 id=762 data-nosnippet>762</a><span class="attr">#[derive(Debug, Clone)]
+<a href=#763 id=763 data-nosnippet>763</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>EglDisplay {
+<a href=#764 id=764 data-nosnippet>764</a>    <span class="doccomment">/// The display was created with the KHR extension.
+<a href=#765 id=765 data-nosnippet>765</a>    </span>Khr(EGLDisplay),
+<a href=#766 id=766 data-nosnippet>766</a>
+<a href=#767 id=767 data-nosnippet>767</a>    <span class="doccomment">/// The display was created with the EXT extension.
+<a href=#768 id=768 data-nosnippet>768</a>    </span>Ext(EGLDisplay),
+<a href=#769 id=769 data-nosnippet>769</a>
+<a href=#770 id=770 data-nosnippet>770</a>    <span class="doccomment">/// The display in use is a legacy variant.
+<a href=#771 id=771 data-nosnippet>771</a>    </span>Legacy(EGLDisplay),
+<a href=#772 id=772 data-nosnippet>772</a>}
+<a href=#773 id=773 data-nosnippet>773</a>
+<a href=#774 id=774 data-nosnippet>774</a><span class="comment">// The EGL display could be shared between threads.
+<a href=#775 id=775 data-nosnippet>775</a></span><span class="kw">unsafe impl </span>Send <span class="kw">for </span>EglDisplay {}
+<a href=#776 id=776 data-nosnippet>776</a><span class="kw">unsafe impl </span>Sync <span class="kw">for </span>EglDisplay {}
+<a href=#777 id=777 data-nosnippet>777</a>
+<a href=#778 id=778 data-nosnippet>778</a><span class="kw">impl </span>Deref <span class="kw">for </span>EglDisplay {
+<a href=#779 id=779 data-nosnippet>779</a>    <span class="kw">type </span>Target = EGLDisplay;
+<a href=#780 id=780 data-nosnippet>780</a>
+<a href=#781 id=781 data-nosnippet>781</a>    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+<a href=#782 id=782 data-nosnippet>782</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#783 id=783 data-nosnippet>783</a>            EglDisplay::Khr(display) =&gt; display,
+<a href=#784 id=784 data-nosnippet>784</a>            EglDisplay::Ext(display) =&gt; display,
+<a href=#785 id=785 data-nosnippet>785</a>            EglDisplay::Legacy(display) =&gt; display,
+<a href=#786 id=786 data-nosnippet>786</a>        }
+<a href=#787 id=787 data-nosnippet>787</a>    }
+<a href=#788 id=788 data-nosnippet>788</a>}
+<a href=#789 id=789 data-nosnippet>789</a>
+<a href=#790 id=790 data-nosnippet>790</a><span class="doccomment">/// Collect EGL extensions for the given `display`.
+<a href=#791 id=791 data-nosnippet>791</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_extensions(egl: <span class="kw-2">&amp;</span>Egl, display: EGLDisplay) -&gt; HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+<a href=#792 id=792 data-nosnippet>792</a>    <span class="kw">unsafe </span>{
+<a href=#793 id=793 data-nosnippet>793</a>        <span class="kw">let </span>extensions = egl.QueryString(display, egl::EXTENSIONS <span class="kw">as </span>i32);
+<a href=#794 id=794 data-nosnippet>794</a>        <span class="comment">// SAFETY: The EGL specification guarantees the returned string is
+<a href=#795 id=795 data-nosnippet>795</a>        // static and null terminated:
+<a href=#796 id=796 data-nosnippet>796</a>        //
+<a href=#797 id=797 data-nosnippet>797</a>        // &gt; eglQueryString returns a pointer to a static, zero-terminated
+<a href=#798 id=798 data-nosnippet>798</a>        // &gt; string describing properties of the EGL client or of an EGL
+<a href=#799 id=799 data-nosnippet>799</a>        // &gt; display connection.
+<a href=#800 id=800 data-nosnippet>800</a>        </span>extensions_from_ptr(extensions)
+<a href=#801 id=801 data-nosnippet>801</a>    }
+<a href=#802 id=802 data-nosnippet>802</a>}
+<a href=#803 id=803 data-nosnippet>803</a>
+<a href=#804 id=804 data-nosnippet>804</a><span class="doccomment">/// # Safety
+<a href=#805 id=805 data-nosnippet>805</a>///
+<a href=#806 id=806 data-nosnippet>806</a>/// - The `extensions` pointer must be NULL (representing no extensions) or it
+<a href=#807 id=807 data-nosnippet>807</a>///   must be non-null and contain a static, null terminated C string.
+<a href=#808 id=808 data-nosnippet>808</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>extensions_from_ptr(extensions: <span class="kw-2">*const </span>c_char) -&gt; HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+<a href=#809 id=809 data-nosnippet>809</a>    <span class="kw">if </span>extensions.is_null() {
+<a href=#810 id=810 data-nosnippet>810</a>        <span class="kw">return </span>HashSet::new();
+<a href=#811 id=811 data-nosnippet>811</a>    }
+<a href=#812 id=812 data-nosnippet>812</a>
+<a href=#813 id=813 data-nosnippet>813</a>    <span class="comment">// SAFETY: The caller has ensured the string pointer is null terminated.
+<a href=#814 id=814 data-nosnippet>814</a>    </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(extensions) = <span class="kw">unsafe </span>{ CStr::from_ptr(extensions) }.to_str() {
+<a href=#815 id=815 data-nosnippet>815</a>        extensions.split(<span class="string">' '</span>).collect::&lt;HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;&gt;()
+<a href=#816 id=816 data-nosnippet>816</a>    } <span class="kw">else </span>{
+<a href=#817 id=817 data-nosnippet>817</a>        HashSet::new()
+<a href=#818 id=818 data-nosnippet>818</a>    }
+<a href=#819 id=819 data-nosnippet>819</a>}</code></pre></div></section></main></body></html>

@@ -1,0 +1,1 @@
+searchState.loadedDescShard("nalgebra_macros", 0, "Macros for <code>nalgebra</code>.\nConstruct a dynamic matrix directly from data.\nConstruct a dynamic column vector directly from data.\nConstruct a fixed-size matrix directly from data.\nConstruct a fixed-size point directly from data.\nConstruct a fixed-size column vector directly from data.")

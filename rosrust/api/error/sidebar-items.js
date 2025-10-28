@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ErrorKind","ResponseError"],"mod":["api","naming","rosxmlrpc","tcpros"],"struct":["Error"],"trait":["ResultExt"],"type":["Result"]};

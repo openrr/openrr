@@ -1,0 +1,185 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`repr_offset` allows computing and safely using field offsets from types with a defined layout."><title>repr_offset - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../repr_offset/index.html">repr_<wbr>offset</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#features" title="Features">Features</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#derivation" title="Derivation">Derivation</a></li><li><a href="#initialization" title="Initialization">Initialization</a></li></ul></li><li><a href="#dependencies" title="Dependencies">Dependencies</a></li><li><a href="#cargo-features" title="Cargo features">Cargo features</a></li><li><a href="#no-std-support" title="no-std support">no-std support</a></li><li><a href="#minimum-rust-version" title="Minimum Rust version">Minimum Rust version</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>repr_offset</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/repr_offset/lib.rs.html#1-284">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>repr_offset</code> allows computing and safely using field offsets from types
+with a defined layout.</p>
+<p>Currently only <code>#[repr(C)]</code>/<code>#[repr(C,packed)]</code>/<code>#[repr(C,align)]</code> structs are supported.</p>
+<h2 id="features"><a class="doc-anchor" href="#features">§</a>Features</h2>
+<p>These are some of the features this library provides:</p>
+<ul>
+<li>
+<p>The <a href="./derive.ReprOffset.html"><code>ReprOffset</code></a> derive macro, which outputs associated constants with the
+offsets of fields, and implements the <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a> trait for each field.<br></p>
+</li>
+<li>
+<p>The <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> type (how offsets are represented),
+with methods for operating on a field through a pointer to the struct,
+including getting a reference(or pointer) to the field.</p>
+</li>
+<li>
+<p>The <a href="./macro.unsafe_struct_field_offsets.html"><code>unsafe_struct_field_offsets</code></a> macro as an alternative to the
+<a href="./derive.ReprOffset.html"><code>ReprOffset</code></a> derive macro, most useful when the “derive” feature is disabled.</p>
+</li>
+<li>
+<p>The <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a> trait, for getting the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> for a field,
+and the <a href="./macro.OFF.html"><code>OFF!</code></a>, <a href="./macro.off.html"><code>off</code></a>, <a href="./macro.PUB_OFF.html"><code>PUB_OFF!</code></a>, and <a href="./macro.pub_off.html"><code>pub_off</code></a> macros for
+getting the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> for a field with a convenient syntax.</p>
+</li>
+<li>
+<p>The extension traits from the <a href="./ext/index.html"><code>ext</code></a> module,
+which define methods for operating on a field, given a <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a>.</p>
+</li>
+</ul>
+<p><span id="root-mod-examples"></span></p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="derivation"><a class="doc-anchor" href="#derivation">§</a>Derivation</h4>
+<p>This example demonstrates:</p>
+<ul>
+<li>
+<p>Deriving the field offset constants and <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a> trait
+with the <a href="./derive.ReprOffset.html"><code>ReprOffset</code></a> derive macro.</p>
+</li>
+<li>
+<p>Moving out <em>unaligned</em> fields through a raw pointer.</p>
+</li>
+<li>
+<p>The <a href="./macro.off.html"><code>off</code></a> macro, and an extension trait from the <a href="./ext/index.html"><code>ext</code></a> module.</p>
+</li>
+</ul>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset_derive::ReprOffset;
+
+<span class="kw">use </span>repr_offset::{ROExtRawOps, off};
+
+<span class="kw">use </span>std::mem::ManuallyDrop;
+
+<span class="attr">#[repr(C, packed)]
+#[derive(ReprOffset)]
+</span><span class="kw">struct </span>Packed{
+    x: u8,
+    y: u64,
+    z: String,
+}
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ManuallyDrop::new(Packed{
+    x: <span class="number">5</span>,
+    y: <span class="number">8</span>,
+    z: <span class="string">"oh,hi"</span>.to_string(),
+});
+
+<span class="kw">let </span>ptr: <span class="kw-2">*mut </span>Packed = <span class="kw-2">&amp;mut *</span>this;
+
+<span class="kw">unsafe</span>{
+    <span class="macro">assert_eq!</span>( Packed::OFFSET_X.read(ptr), <span class="number">5 </span>);
+    <span class="macro">assert_eq!</span>( Packed::OFFSET_Y.read(ptr), <span class="number">8 </span>);
+    <span class="macro">assert_eq!</span>( Packed::OFFSET_Z.read(ptr), <span class="string">"oh,hi"</span>.to_string() );
+
+    <span class="comment">// Another way to do the same, using extension traits, and macros.
+    </span><span class="macro">assert_eq!</span>( ptr.f_read(<span class="macro">off!</span>(x)), <span class="number">5 </span>);
+    <span class="macro">assert_eq!</span>( ptr.f_read(<span class="macro">off!</span>(y)), <span class="number">8 </span>);
+}
+</code></pre></div>
+<h4 id="initialization"><a class="doc-anchor" href="#initialization">§</a>Initialization</h4>
+<p>This example demonstrates how you can:</p>
+<ul>
+<li>
+<p>Use the <a href="./macro.unsafe_struct_field_offsets.html"><code>unsafe_struct_field_offsets</code></a> macro to declare associated constants with
+the field offsets, and implement the <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a> trait.</p>
+</li>
+<li>
+<p>The <a href="./macro.off.html"><code>off</code></a> macro, and an extension trait from the <a href="./ext/index.html"><code>ext</code></a> module.</p>
+</li>
+<li>
+<p>Initialize an uninitialized struct with a functino that takes a raw pointer.</p>
+</li>
+</ul>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>std::mem::MaybeUninit;
+
+<span class="kw">use </span>repr_offset::{
+    unsafe_struct_field_offsets,
+    off,
+    Aligned, ROExtRawMutOps,
+};
+
+<span class="kw">fn </span>main(){
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>foo = MaybeUninit::&lt;Foo&gt;::uninit();
+        initialize_foo(foo.as_mut_ptr());
+        <span class="macro">assert_eq!</span>(
+            foo.assume_init(),
+            Foo{ name: <span class="string">"foo"</span>.to_string(), x: <span class="number">13</span>, y: <span class="number">21 </span>}
+        );
+    }
+}
+
+<span class="doccomment">/// Initializes a `Foo` through a raw pointer.
+///
+/// # Safety
+///
+/// Callers must pass a pointer to uninitialized memory with the
+/// size and alignment of `Foo`
+</span><span class="kw">unsafe fn </span>initialize_foo(this: <span class="kw-2">*mut </span>Foo){
+    <span class="comment">// How it's done with the inherent associated constants declared in
+    // the `unsafe_struct_field_offsets` macro
+    //
+    </span>Foo::OFFSET_NAME.write(this, <span class="string">"foo"</span>.into());
+    Foo::OFFSET_X.write(this, <span class="number">13</span>);
+    Foo::OFFSET_Y.write(this, <span class="number">21</span>);
+
+    <span class="comment">// How it's done with the extension traits from the ext module,
+    // the `off` macro, and the `GetFieldOffset` trait:
+    //
+    //     this.f_write(off!(name), "foo".into());
+    //     this.f_write(off!(x), 13);
+    //     this.f_write(off!(y), 21);
+</span>}
+
+<span class="attr">#[repr(C)]
+#[derive(Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Foo{
+    <span class="kw">pub </span>name: String,
+    <span class="kw">pub </span>x: u32,
+    <span class="kw">pub </span>y: u32,
+}
+
+<span class="comment">// This macro is unsafe to invoke because you have to ensure that:
+// - All field types are listed,in declaration order.
+// - The `alignment` parameter is `Unaligned` if the struct is `#[repr(C,packed)]`,
+//   and `Aligned` if it's not.
+</span><span class="macro">unsafe_struct_field_offsets!</span>{
+    alignment =  Aligned,
+
+    <span class="kw">impl</span>[] Foo {
+        <span class="kw">pub const </span>OFFSET_NAME, name: String;
+        <span class="kw">pub const </span>OFFSET_X, x: u32;
+        <span class="kw">pub const </span>OFFSET_Y, y: u32;
+    }
+}
+
+
+</code></pre></div>
+<h2 id="dependencies"><a class="doc-anchor" href="#dependencies">§</a>Dependencies</h2>
+<p>This library re-exports the <a href="./derive.ReprOffset.html"><code>ReprOffset</code></a> derive macro from the
+<code>repr_offset_derive</code> crate when the “derive” feature is enabled,
+this is disabled by default.</p>
+<p>It also reexports the <code>tstr</code> crate unconditionally, to use its <code>TS</code> macro
+as the type parameter of the <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a> trait.</p>
+<h2 id="cargo-features"><a class="doc-anchor" href="#cargo-features">§</a>Cargo features</h2>
+<p>These are the cargo features in <code>repr_offset</code>:</p>
+<ul>
+<li>
+<p><code>derive</code> (disabled by default):
+Enables the <a href="./derive.ReprOffset.html"><code>ReprOffset</code></a> derive macro.
+This requires the same Rust versions as <code>syn</code>, which is currently <code>&gt;= 1.56.0</code>.</p>
+</li>
+<li>
+<p><code>"for_examples"</code> (disabled by default):
+Enables the <code>for_examples</code> module, with types used in documentation examples.</p>
+</li>
+</ul>
+<p>Example of using the “derive” feature::</p>
+<div class="example-wrap"><pre class="language-toml"><code>repr_offset = { version = &quot;0.2&quot;, features = [&quot;derive&quot;] }</code></pre></div><h2 id="no-std-support"><a class="doc-anchor" href="#no-std-support">§</a>no-std support</h2>
+<p>This library is unconditionally <code>#![no_std]</code>, and that is unlikely to change in the future.</p>
+<h2 id="minimum-rust-version"><a class="doc-anchor" href="#minimum-rust-version">§</a>Minimum Rust version</h2>
+<p>This crate support Rust back to 1.41.0.</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.Aligned"><code>pub use self::alignment::<a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>;</code></dt><dt id="reexport.Unaligned"><code>pub use self::alignment::<a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>;</code></dt><dt id="reexport.ROExtAcc"><code>pub use self::ext::<a class="trait" href="ext/trait.ROExtAcc.html" title="trait repr_offset::ext::ROExtAcc">ROExtAcc</a>;</code></dt><dt id="reexport.ROExtOps"><code>pub use self::ext::<a class="trait" href="ext/trait.ROExtOps.html" title="trait repr_offset::ext::ROExtOps">ROExtOps</a>;</code></dt><dt id="reexport.ROExtRawAcc"><code>pub use self::ext::<a class="trait" href="ext/trait.ROExtRawAcc.html" title="trait repr_offset::ext::ROExtRawAcc">ROExtRawAcc</a>;</code></dt><dt id="reexport.ROExtRawMutAcc"><code>pub use self::ext::<a class="trait" href="ext/trait.ROExtRawMutAcc.html" title="trait repr_offset::ext::ROExtRawMutAcc">ROExtRawMutAcc</a>;</code></dt><dt id="reexport.ROExtRawMutOps"><code>pub use self::ext::<a class="trait" href="ext/trait.ROExtRawMutOps.html" title="trait repr_offset::ext::ROExtRawMutOps">ROExtRawMutOps</a>;</code></dt><dt id="reexport.ROExtRawOps"><code>pub use self::ext::<a class="trait" href="ext/trait.ROExtRawOps.html" title="trait repr_offset::ext::ROExtRawOps">ROExtRawOps</a>;</code></dt><dt id="reexport.FieldType"><code>pub use self::get_field_offset::<a class="type" href="get_field_offset/type.FieldType.html" title="type repr_offset::get_field_offset::FieldType">FieldType</a>;</code></dt><dt id="reexport.GetPubFieldOffset"><code>pub use self::get_field_offset::<a class="trait" href="get_field_offset/trait.GetPubFieldOffset.html" title="trait repr_offset::get_field_offset::GetPubFieldOffset">GetPubFieldOffset</a>;</code></dt><dt id="reexport.tstr"><code>pub use <a class="mod" href="../tstr/index.html" title="mod tstr">tstr</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="alignment/index.html" title="mod repr_offset::alignment">alignment</a></dt><dd>Type-level encoding of <code>enum Alignment { Aligned, Unaligned }</code></dd><dt><a class="mod" href="ext/index.html" title="mod repr_offset::ext">ext</a></dt><dd>Extension traits that use <code>FieldOffset</code> parameters to operate on fields.</dd><dt><a class="mod" href="for_examples/index.html" title="mod repr_offset::for_examples">for_<wbr>examples</a></dt><dd>Types used for examples,</dd><dt><a class="mod" href="get_field_offset/index.html" title="mod repr_offset::get_field_offset">get_<wbr>field_<wbr>offset</a></dt><dd>Trait for getting the <code>FieldOffset</code> of a field, and related items.</dd><dt><a class="mod" href="offset_calc/index.html" title="mod repr_offset::offset_calc">offset_<wbr>calc</a></dt><dd>Functions for calculating field offsets.</dd><dt><a class="mod" href="privacy/index.html" title="mod repr_offset::privacy">privacy</a></dt><dd>Type-level encoding of <code>enum Privacy { IsPublic, IsPrivate }</code></dd><dt><a class="mod" href="utils/index.html" title="mod repr_offset::utils">utils</a></dt><dd>Miscelaneous functions.</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.OFF.html" title="macro repr_offset::OFF">OFF</a></dt><dd>Gets the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> for the passed in type and (possibly nested) field.</dd><dt><a class="macro" href="macro.PUB_OFF.html" title="macro repr_offset::PUB_OFF">PUB_OFF</a></dt><dd>Gets the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> for the passed in type and (possibly nested) public field.</dd><dt><a class="macro" href="macro.off.html" title="macro repr_offset::off">off</a></dt><dd>Gets the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> for a (possibly nested) field, and an optionally passed in value.</dd><dt><a class="macro" href="macro.pub_off.html" title="macro repr_offset::pub_off">pub_off</a></dt><dd>Gets the <a href="./struct.FieldOffset.html"><code>FieldOffset</code></a> for a (possibly nested) public field,
+and an optionally passed in value.</dd><dt><a class="macro" href="macro.unsafe_struct_field_offsets.html" title="macro repr_offset::unsafe_struct_field_offsets">unsafe_<wbr>struct_<wbr>field_<wbr>offsets</a></dt><dd>Declares a sequence of associated constants with the offsets of the listed fields,
+and implements the <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a> trait.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">Field<wbr>Offset</a></dt><dd>Represents the offset of a (potentially nested) field inside a type.</dd></dl></section></div></main></body></html>

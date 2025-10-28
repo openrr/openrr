@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension trait for mutable raw pointers to access fields generically, where the field is determined by a `FieldOffset` parameter."><title>ROExtRawMutAcc in repr_offset::ext - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../repr_offset/index.html">repr_<wbr>offset</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">ROExt<wbr>RawMut<wbr>Acc</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#safety" title="Safety">Safety</a></li><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.f_raw_get_mut" title="f_raw_get_mut">f_raw_get_mut</a></li></ul><h3><a href="#foreign-impls">Implementations on Foreign Types</a></h3><ul class="block"><li><a href="#impl-ROExtRawMutAcc-for-*mut+S" title="*mut S">*mut S</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In repr_<wbr>offset::<wbr>ext</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">repr_offset</a>::<wbr><a href="index.html">ext</a></div><h1>Trait <span class="trait">ROExtRawMutAcc</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/repr_offset/ext.rs.html#597-653">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe trait ROExtRawMutAcc: <a class="trait" href="trait.ROExtRawAcc.html" title="trait repr_offset::ext::ROExtRawAcc">ROExtRawAcc</a> {
+    // Required method
+    unsafe fn <a href="#tymethod.f_raw_get_mut" class="fn">f_raw_get_mut</a>&lt;F, A&gt;(
+        self,
+        offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+    ) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut F</a>;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension trait for mutable raw pointers to access fields generically,
+where the field is determined by a <a href="../struct.FieldOffset.html"><code>FieldOffset</code></a> parameter.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<p>This trait must not to be implemented outside the <code>repr_offset</code> crate.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>This example demonstrates how you can get mutable references to the known initialized
+parts of a struct.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprC,
+    tstr::TS,
+    off,
+    ROExtRawOps, ROExtRawMutAcc, ROExtRawMutOps,
+};
+
+<span class="kw">use </span>std::mem::MaybeUninit;
+
+<span class="kw">type </span>This = ReprC&lt;u8, <span class="prelude-ty">Option</span>&lt;usize&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u16], <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;;
+
+<span class="kw">let </span><span class="kw-2">mut </span>uninit = MaybeUninit::&lt;This&gt;::uninit();
+
+<span class="kw">unsafe </span>{
+    <span class="kw">let </span>ptr = uninit.as_mut_ptr();
+    ptr.f_write(<span class="macro">off!</span>(a), <span class="number">3</span>);
+    ptr.f_write(<span class="macro">off!</span>(b), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+}
+{
+    <span class="comment">// Safety: We know that the a and b fields were initialized above.
+    </span><span class="kw">let </span>(a, b) = <span class="kw">unsafe</span>{ get_mut_refs(<span class="kw-2">&amp;mut </span>uninit) };
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>a, <span class="number">3</span>);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>b, <span class="prelude-val">Some</span>(<span class="number">5</span>));
+    <span class="kw-2">*</span>a += <span class="number">100</span>;
+    <span class="kw-2">*</span>b.as_mut().unwrap() += <span class="number">200</span>;
+}
+<span class="kw">unsafe </span>{
+    <span class="kw">let </span>ptr = uninit.as_ptr();
+    <span class="macro">assert_eq!</span>(ptr.f_read_copy(<span class="macro">off!</span>(a)), <span class="number">103</span>);
+    <span class="macro">assert_eq!</span>(ptr.f_read_copy(<span class="macro">off!</span>(b)), <span class="prelude-val">Some</span>(<span class="number">205</span>));
+}
+
+<span class="doccomment">/// Gets mutable references to the `a` and `b` fields in `this`
+///
+/// # Safety
+///
+/// The fields up to and including `b` must be initialized.
+</span><span class="kw">unsafe fn </span>get_mut_refs(this: <span class="kw-2">&amp;mut </span>MaybeUninit&lt;This&gt;) -&gt; (<span class="kw-2">&amp;mut </span>u8, <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;usize&gt;) {
+    <span class="kw">let </span>this = this.as_mut_ptr();
+
+    <span class="kw">let </span>ptrs = (
+        this.f_raw_get_mut(<span class="macro">off!</span>(a)),
+        this.f_raw_get_mut(<span class="macro">off!</span>(b)),
+    );
+
+    (<span class="kw-2">&amp;mut *</span>ptrs.<span class="number">0</span>, <span class="kw-2">&amp;mut *</span>ptrs.<span class="number">1</span>)
+}
+</code></pre></div>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.f_raw_get_mut" class="method"><a class="src rightside" href="../../src/repr_offset/ext.rs.html#652">Source</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_raw_get_mut" class="fn">f_raw_get_mut</a>&lt;F, A&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut F</a></h4></section></summary><div class="docblock"><p>Gets a muatble pointer to a field (determined by <code>offset</code>) from this mutable pointer.</p>
+<h5 id="safety-1"><a class="doc-anchor" href="#safety-1">§</a>Safety</h5>
+<p><code>self</code> must point to some allocated object,
+allocated at least up to the field (inclusive).</p>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::{ReprC, ReprPacked},
+    utils::moved,
+    tstr::TS,
+    GetPubFieldOffset, FieldType,
+    ROExtRawMutAcc,
+    off,
+};
+
+<span class="kw">use </span>std::mem::MaybeUninit;
+
+<span class="kw">type </span>This = ReprPacked&lt;<span class="prelude-ty">Option</span>&lt;char&gt;, ReprC&lt;u32, u64, String, Vec&lt;u32&gt;&gt;, bool&gt;;
+
+<span class="kw">let </span><span class="kw-2">mut </span>uninit = MaybeUninit::&lt;This&gt;::uninit();
+
+<span class="doccomment">/// Initializes a `This` through a pointer
+///
+/// # Safety
+///
+/// You must pass a pointer to allocated (and writable) memory for `This`.
+</span><span class="kw">unsafe fn </span>initialize(this: <span class="kw-2">*mut </span>This) {
+    this.f_raw_get_mut(<span class="macro">off!</span>(a)).write_unaligned(<span class="prelude-val">None</span>);
+    this.f_raw_get_mut(<span class="macro">off!</span>(b.a)).write_unaligned(<span class="number">3</span>);
+    this.f_raw_get_mut(<span class="macro">off!</span>(b.b)).write_unaligned(<span class="number">5</span>);
+    this.f_raw_get_mut(<span class="macro">off!</span>(b.c)).write_unaligned(<span class="string">"8"</span>.to_string());
+    this.f_raw_get_mut(<span class="macro">off!</span>(b.d)).write_unaligned(<span class="macro">vec!</span>[<span class="number">13</span>, <span class="number">21</span>]);
+    this.f_raw_get_mut(<span class="macro">off!</span>(c)).write_unaligned(<span class="bool-val">false</span>);
+}
+
+<span class="kw">let </span>value = <span class="kw">unsafe</span>{
+    initialize(uninit.as_mut_ptr());
+    uninit.assume_init()
+};
+
+<span class="macro">assert_eq!</span>(moved(value.a), <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(moved(value.b.a), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(moved(value.b.b), <span class="number">5</span>);
+<span class="macro">assert_eq!</span>(moved(value.b.c), <span class="string">"8"</span>.to_string());
+<span class="macro">assert_eq!</span>(moved(value.b.d), <span class="macro">vec!</span>[<span class="number">13</span>, <span class="number">21</span>]);
+<span class="macro">assert_eq!</span>(moved(value.c), <span class="bool-val">false</span>);
+</code></pre></div>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="foreign-impls" class="section-header">Implementations on Foreign Types<a href="#foreign-impls" class="anchor">§</a></h2><details class="toggle implementors-toggle"><summary><section id="impl-ROExtRawMutAcc-for-*mut+S" class="impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#impl-ROExtRawMutAcc-for-*mut+S" class="anchor">§</a><h3 class="code-header">impl&lt;S&gt; <a class="trait" href="trait.ROExtRawMutAcc.html" title="trait repr_offset::ext::ROExtRawMutAcc">ROExtRawMutAcc</a> for <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a></h3></section></summary><div class="impl-items"><section id="method.f_raw_get_mut" class="method trait-impl"><a class="src rightside" href="../../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#167">Source</a><a href="#method.f_raw_get_mut" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="#tymethod.f_raw_get_mut" class="fn">f_raw_get_mut</a>&lt;F, A&gt;(
+    self,
+    offset: <a class="struct" href="../struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;Self::<a class="associatedtype" href="../utils/trait.PointerTarget.html#associatedtype.Target" title="type repr_offset::utils::PointerTarget::Target">Target</a>, F, A&gt;,
+) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut F</a></h4></section></div></details><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"></div><script src="../../trait.impl/repr_offset/ext/trait.ROExtRawMutAcc.js" data-ignore-extern-crates="core" async></script></section></div></main></body></html>

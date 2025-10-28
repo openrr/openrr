@@ -1,0 +1,651 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Value-level proof that `L` is the same type as `R`"><title>TypeEq in typewit - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="typewit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc struct"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../typewit/index.html">typewit</a><span class="version">1.14.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">TypeEq</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#soundness" title="Soundness">Soundness</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#polymorphic-branching" title="Polymorphic branching">Polymorphic branching</a></li></ul></li></ul><h3><a href="#implementations">Associated Constants</a></h3><ul class="block associatedconstant"><li><a href="#associatedconstant.NEW" title="NEW">NEW</a></li></ul><h3><a href="#implementations">Methods</a></h3><ul class="block method"><li><a href="#method.flip" title="flip">flip</a></li><li><a href="#method.in_array" title="in_array">in_array</a></li><li><a href="#method.in_mut" title="in_mut">in_mut</a></li><li><a href="#method.in_ref" title="in_ref">in_ref</a></li><li><a href="#method.join" title="join">join</a></li><li><a href="#method.map" title="map">map</a></li><li><a href="#method.new" title="new">new</a></li><li><a href="#method.new_unchecked" title="new_unchecked">new_unchecked</a></li><li><a href="#method.project" title="project">project</a></li><li><a href="#method.reachability_hint" title="reachability_hint">reachability_hint</a></li><li><a href="#method.to_cmp" title="to_cmp">to_cmp</a></li><li><a href="#method.to_left" title="to_left">to_left</a></li><li><a href="#method.to_right" title="to_right">to_right</a></li><li><a href="#method.unmap" title="unmap">unmap</a></li><li><a href="#method.unproject" title="unproject">unproject</a></li><li><a href="#method.with_any" title="with_any">with_any</a></li><li><a href="#method.zip" title="zip">zip</a></li><li><a href="#method.zip3" title="zip3">zip3</a></li><li><a href="#method.zip4" title="zip4">zip4</a></li></ul><h3><a href="#trait-implementations">Trait Implementations</a></h3><ul class="block trait-implementation"><li><a href="#impl-Clone-for-TypeEq%3CL,+R%3E" title="Clone">Clone</a></li><li><a href="#impl-Copy-for-TypeEq%3CL,+R%3E" title="Copy">Copy</a></li><li><a href="#impl-Debug-for-TypeEq%3CL,+R%3E" title="Debug">Debug</a></li><li><a href="#impl-Default-for-TypeEq%3CT,+T%3E" title="Default">Default</a></li><li><a href="#impl-Eq-for-TypeEq%3CL,+R%3E" title="Eq">Eq</a></li><li><a href="#impl-Hash-for-TypeEq%3CL,+R%3E" title="Hash">Hash</a></li><li><a href="#impl-MakeTypeWitness-for-TypeEq%3CT,+T%3E" title="MakeTypeWitness">MakeTypeWitness</a></li><li><a href="#impl-Ord-for-TypeEq%3CL,+R%3E" title="Ord">Ord</a></li><li><a href="#impl-PartialEq-for-TypeEq%3CL,+R%3E" title="PartialEq">PartialEq</a></li><li><a href="#impl-PartialOrd-for-TypeEq%3CL,+R%3E" title="PartialOrd">PartialOrd</a></li><li><a href="#impl-TypeWitnessTypeArg-for-TypeEq%3CL,+R%3E" title="TypeWitnessTypeArg">TypeWitnessTypeArg</a></li></ul><h3><a href="#synthetic-implementations">Auto Trait Implementations</a></h3><ul class="block synthetic-implementation"><li><a href="#impl-Freeze-for-TypeEq%3CL,+R%3E" title="Freeze">Freeze</a></li><li><a href="#impl-RefUnwindSafe-for-TypeEq%3CL,+R%3E" title="RefUnwindSafe">RefUnwindSafe</a></li><li><a href="#impl-Send-for-TypeEq%3CL,+R%3E" title="Send">Send</a></li><li><a href="#impl-Sync-for-TypeEq%3CL,+R%3E" title="Sync">Sync</a></li><li><a href="#impl-Unpin-for-TypeEq%3CL,+R%3E" title="Unpin">Unpin</a></li><li><a href="#impl-UnwindSafe-for-TypeEq%3CL,+R%3E" title="UnwindSafe">UnwindSafe</a></li></ul><h3><a href="#blanket-implementations">Blanket Implementations</a></h3><ul class="block blanket-implementation"><li><a href="#impl-Any-for-T" title="Any">Any</a></li><li><a href="#impl-Borrow%3CT%3E-for-T" title="Borrow&#60;T&#62;">Borrow&#60;T&#62;</a></li><li><a href="#impl-BorrowMut%3CT%3E-for-T" title="BorrowMut&#60;T&#62;">BorrowMut&#60;T&#62;</a></li><li><a href="#impl-CloneToUninit-for-T" title="CloneToUninit">CloneToUninit</a></li><li><a href="#impl-From%3CT%3E-for-T" title="From&#60;T&#62;">From&#60;T&#62;</a></li><li><a href="#impl-HasTypeWitness%3CW%3E-for-T" title="HasTypeWitness&#60;W&#62;">HasTypeWitness&#60;W&#62;</a></li><li><a href="#impl-Identity-for-T" title="Identity">Identity</a></li><li><a href="#impl-Into%3CU%3E-for-T" title="Into&#60;U&#62;">Into&#60;U&#62;</a></li><li><a href="#impl-TryFrom%3CU%3E-for-T" title="TryFrom&#60;U&#62;">TryFrom&#60;U&#62;</a></li><li><a href="#impl-TryInto%3CU%3E-for-T" title="TryInto&#60;U&#62;">TryInto&#60;U&#62;</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate typewit</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">typewit</a></div><h1>Struct <span class="struct">TypeEq</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/typewit/type_eq.rs.html#295">Source</a> </span></div><pre class="rust item-decl"><code>pub struct TypeEq&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(<span class="comment">/* private fields */</span>);</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Value-level proof that <code>L</code> is the same type as <code>R</code></p>
+<p>This type can be used to prove that <code>L</code> and <code>R</code> are the same type,
+because it can only be safely constructed with
+<a href="#associatedconstant.NEW"><code>TypeEq::&lt;L, L&gt;::NEW</code></a>(or <a href="#method.new"><code>new</code></a>),
+where both type arguments are the same type.</p>
+<p>This type is not too useful by itself, it becomes useful
+<a href="#polymorphic-branching">when put inside of an enum</a>.</p>
+<p><code>TypeEq&lt;L, R&gt;</code> uses the <code>L</code> type parameter as the more generic type by convention
+(e.g: <code>TypeEq&lt;T, char&gt;</code>).
+This only matters if you’re using the type witness traits
+(<a href="trait.HasTypeWitness.html" title="trait typewit::HasTypeWitness"><code>HasTypeWitness</code></a>,
+<a href="trait.MakeTypeWitness.html" title="trait typewit::MakeTypeWitness"><code>MakeTypeWitness</code></a>,
+<a href="trait.TypeWitnessTypeArg.html" title="trait typewit::TypeWitnessTypeArg"><code>TypeWitnessTypeArg</code></a>) with <code>TypeEq</code>.</p>
+<h2 id="soundness"><a class="doc-anchor" href="#soundness">§</a>Soundness</h2>
+<p><code>TypeEq&lt;L, R&gt;</code> requires both type arguments to be the same type so that
+<a href="struct.TypeEq.html#method.project" title="method typewit::TypeEq::project">projecting</a> the type arguments results in the same type for
+both arguments.</p>
+<p>Unsafely creating a <code>TypeEq&lt;L, R&gt;</code> where <code>L != R</code> allows
+<a href="#arbitrary-transmute">transmuting between any two types</a>
+(that is bad).</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="polymorphic-branching"><a class="doc-anchor" href="#polymorphic-branching">§</a>Polymorphic branching</h4>
+<p>This example demonstrates how type witnesses can be used to
+choose between expressions of different types with a constant.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::TypeEq;
+ 
+<span class="kw">const fn </span>main() {
+    <span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="macro">choose!</span>(<span class="number">0</span>; <span class="string">b"a string"</span>, <span class="number">2</span>, <span class="macro">panic!</span>()), <span class="string">b"a string"</span>));
+ 
+    <span class="kw">const </span>UNO: u64 = <span class="number">1</span>;
+    <span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="macro">choose!</span>(UNO; <span class="kw">loop</span>{}, [<span class="number">3</span>, <span class="number">5</span>], <span class="bool-val">true</span>), [<span class="number">3</span>, <span class="number">5</span>]));
+ 
+    <span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="macro">choose!</span>(<span class="number">2 </span>+ <span class="number">3</span>; (), <span class="macro">unreachable!</span>(), [<span class="string">'5'</span>, <span class="string">'3'</span>]), [<span class="string">'5'</span>, <span class="string">'3'</span>]));
+}
+ 
+<span class="doccomment">/// Evaluates the argument at position `$chosen % 3`, other arguments aren't evaluated.
+/// 
+/// The arguments can all be different types.
+/// 
+/// `$chosen` must be a `u64` constant.
+</span><span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> choose {
+    (<span class="macro-nonterminal">$chosen</span>:expr; <span class="macro-nonterminal">$arg_0</span>: expr, <span class="macro-nonterminal">$arg_1</span>: expr, <span class="macro-nonterminal">$arg_2</span>: expr) =&gt; {
+        <span class="kw">match </span>Choice::&lt;{<span class="macro-nonterminal">$chosen </span>% <span class="number">3</span>}&gt;::VAL {
+            <span class="comment">// `te` (a `TypeEq&lt;T, X&gt;`) allows us to safely go between 
+            // the type that the match returns (its `T` type argument)
+            // and the type of `$arg_0` (its `X` type argument).
+            </span>Branch3::A(te) =&gt; {
+                <span class="comment">// `to_left` goes from `X` to `T`
+                </span>te.to_left(<span class="macro-nonterminal">$arg_0</span>)
+            }
+            <span class="comment">// same as the `A` branch, with a different type for the argument
+            </span>Branch3::B(te) =&gt; te.to_left(<span class="macro-nonterminal">$arg_1</span>),
+            <span class="comment">// same as the `A` branch, with a different type for the argument
+            </span>Branch3::C(te) =&gt; te.to_left(<span class="macro-nonterminal">$arg_2</span>),
+        }
+    }
+}
+ 
+<span class="comment">// This is a type witness
+</span><span class="kw">pub enum </span>Branch3&lt;T, X, Y, Z&gt; {
+    <span class="comment">// This variant requires `T == X`
+    </span>A(TypeEq&lt;T, X&gt;),
+ 
+    <span class="comment">// This variant requires `T == Y`
+    </span>B(TypeEq&lt;T, Y&gt;),
+ 
+    <span class="comment">// This variant requires `T == Z`
+    </span>C(TypeEq&lt;T, Z&gt;),
+}
+ 
+<span class="comment">// Used to get different values of `Branch3` depending on `N`
+</span><span class="kw">pub trait </span>Choice&lt;<span class="kw">const </span>N: u64&gt; {
+    <span class="kw">const </span>VAL: <span class="self">Self</span>;
+}
+ 
+<span class="kw">impl</span>&lt;X, Y, Z&gt; Choice&lt;<span class="number">0</span>&gt; <span class="kw">for </span>Branch3&lt;X, X, Y, Z&gt; {
+    <span class="comment">// Because the first two type arguments of `Branch3` are `X`
+    // (as required by the `TypeEq&lt;T, X&gt;` field in Branch3's type definition),
+    // we can use `TypeEq::NEW` here.
+    </span><span class="kw">const </span>VAL: <span class="self">Self </span>= <span class="self">Self</span>::A(TypeEq::NEW);
+}
+ 
+<span class="kw">impl</span>&lt;X, Y, Z&gt; Choice&lt;<span class="number">1</span>&gt; <span class="kw">for </span>Branch3&lt;Y, X, Y, Z&gt; {
+    <span class="kw">const </span>VAL: <span class="self">Self </span>= <span class="self">Self</span>::B(TypeEq::NEW);
+}
+ 
+<span class="kw">impl</span>&lt;X, Y, Z&gt; Choice&lt;<span class="number">2</span>&gt; <span class="kw">for </span>Branch3&lt;Z, X, Y, Z&gt; {
+    <span class="kw">const </span>VAL: <span class="self">Self </span>= <span class="self">Self</span>::C(TypeEq::NEW);
+}
+ </code></pre></div>
+</div></details><h2 id="implementations" class="section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-TypeEq%3CT,+T%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#307-336">Source</a><a href="#impl-TypeEq%3CT,+T%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;T, T&gt;</h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedconstant.NEW" class="associatedconstant"><a class="src rightside" href="../src/typewit/type_eq.rs.html#335">Source</a><h4 class="code-header">pub const <a href="#associatedconstant.NEW" class="constant">NEW</a>: Self</h4></section></summary><div class="docblock"><p>Constructs a <code>TypeEq&lt;T, T&gt;</code>.</p>
+<h5 id="example"><a class="doc-anchor" href="#example">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::TypeEq;
+ 
+<span class="macro">assert_eq!</span>(mutate(<span class="number">5</span>, Wit::U32(TypeEq::NEW)), <span class="number">25</span>);
+ 
+<span class="macro">assert_eq!</span>(mutate(<span class="number">5</span>, Wit::Other(TypeEq::NEW)), <span class="number">5</span>);
+<span class="macro">assert_eq!</span>(mutate(<span class="string">"hello"</span>, Wit::Other(TypeEq::NEW)), <span class="string">"hello"</span>);
+ 
+<span class="kw">const fn </span>mutate&lt;W&gt;(val: W, wit: Wit&lt;W&gt;) -&gt; W {
+    <span class="kw">match </span>wit {
+        Wit::U32(te) =&gt; te.to_left(te.to_right(val) + <span class="number">20</span>),
+        Wit::Other(<span class="kw">_</span>) =&gt; val,
+    }
+}
+ 
+<span class="comment">// This can't be written using the `simple_type_witness` macro because the 
+// type in the `Other` variant overlaps with the other ones.
+</span><span class="kw">enum </span>Wit&lt;W&gt; {
+    U32(TypeEq&lt;W, u32&gt;),
+    Other(TypeEq&lt;W, W&gt;),
+}</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-TypeEq%3C(),+()%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#338-344">Source</a><a href="#impl-TypeEq%3C(),+()%3E" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.unit.html">()</a>, <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.unit.html">()</a>&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.new" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#341-343">Source</a><h4 class="code-header">pub const fn <a href="#method.new" class="fn">new</a>&lt;T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;() -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;T, T&gt;</h4></section></summary><div class="docblock"><p>Constructs a <code>TypeEq&lt;T, T&gt;</code>.</p>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-TypeEq%3CL,+R%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#346-429">Source</a><a href="#impl-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.with_any" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#378-389">Source</a><h4 class="code-header">pub fn <a href="#method.with_any" class="fn">with_any</a>() -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Self&gt;<div class="where">where
+    L: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/any/trait.Any.html" title="trait core::any::Any">Any</a>,
+    R: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/any/trait.Any.html" title="trait core::any::Any">Any</a>,</div></h4></section></summary><div class="docblock"><p>Constructs <code>TypeEq&lt;L, R&gt;</code> if <code>L == R</code>, otherwise returns None.</p>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::TypeEq;
+ 
+<span class="kw">use </span>std::any::Any;
+ 
+<span class="macro">assert_eq!</span>(sum_u32s(<span class="kw-2">&amp;</span>[<span class="number">3u32</span>, <span class="number">5</span>, <span class="number">8</span>]), <span class="prelude-val">Some</span>(<span class="number">16</span>));
+<span class="macro">assert_eq!</span>(sum_u32s(<span class="kw-2">&amp;</span>[<span class="number">3i32</span>, <span class="number">5</span>, <span class="number">8</span>]), <span class="prelude-val">None</span>);
+ 
+ 
+<span class="kw">fn </span>sum_u32s&lt;T: Clone + Any&gt;(foo: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+    typecast_slice::&lt;T, u32&gt;(foo)
+        .map(|foo: <span class="kw-2">&amp;</span>[u32]| foo.iter().copied().sum())
+}
+ 
+<span class="kw">fn </span>typecast_slice&lt;T: Any, U: Any&gt;(foo: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[U]&gt; {
+    <span class="kw">struct </span>SliceFn;
+    <span class="kw">impl</span>&lt;T&gt; typewit::TypeFn&lt;T&gt; <span class="kw">for </span>SliceFn {
+        <span class="kw">type </span>Output = [T];
+    }
+ 
+    TypeEq::&lt;T, U&gt;::with_any().map(|te: TypeEq&lt;T, U&gt;|{
+        te.map(SliceFn) <span class="comment">// TypeEq&lt;[T], [U]&gt;
+          </span>.in_ref()   <span class="comment">// TypeEq&lt;&amp;[T]&gt;, &amp;[U]&gt;
+          </span>.to_right(foo) <span class="comment">// identity cast from `&amp;[T]` to `&amp;[U]`
+    </span>})
+}</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.new_unchecked" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#426-428">Source</a><h4 class="code-header">pub const unsafe fn <a href="#method.new_unchecked" class="fn">new_unchecked</a>() -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h4></section></summary><div class="docblock"><p>Constructs a <code>TypeEq&lt;L, R&gt;</code>.</p>
+<h5 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h5>
+<p>You must ensure that <code>L</code> is the same type as <code>R</code>.</p>
+<h5 id="examples-1"><a class="doc-anchor" href="#examples-1">§</a>Examples</h5><h6 id="unsound-usage"><a class="doc-anchor" href="#unsound-usage">§</a>Unsound usage</h6>
+<p><span id="arbitrary-transmute"></span></p>
+<p>This example demonstrates why <code>L == R</code> is a strict requirement.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{TypeEq, TypeFn};
+
+<span class="comment">// SAFETY: WRONG! UNSOUND!
+</span><span class="kw">let </span>te: TypeEq&lt;u8, i8&gt; = <span class="kw">unsafe</span>{ TypeEq::new_unchecked() };
+ 
+<span class="comment">// Because `TypeEq&lt;u8, i8&gt;` is incorrect,
+// we get this absurd `TypeEq` from the `project` method.
+</span><span class="kw">let </span>absurd: TypeEq&lt;(), Vec&lt;usize&gt;&gt; = te.project::&lt;Func&gt;();
+ 
+<span class="comment">// This casts from `()` to `Vec&lt;usize&gt;` (which is UB).
+// Last time I tried uncommenting this, it killed the test runner.
+// absurd.to_right(()); 
+ 
+</span><span class="kw">struct </span>Func;
+<span class="kw">impl </span>TypeFn&lt;u8&gt; <span class="kw">for </span>Func { <span class="kw">type </span>Output = (); }
+<span class="kw">impl </span>TypeFn&lt;i8&gt; <span class="kw">for </span>Func { <span class="kw">type </span>Output = Vec&lt;usize&gt;; }
+
+</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-TypeEq%3CL,+R%3E-1" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#441-511">Source</a><a href="#impl-TypeEq%3CL,+R%3E-1" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.to_cmp" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#454-456">Source</a><h4 class="code-header">pub const fn <a href="#method.to_cmp" class="fn">to_cmp</a>(self) -&gt; <a class="enum" href="enum.TypeCmp.html" title="enum typewit::TypeCmp">TypeCmp</a>&lt;L, R&gt;</h4></section></summary><div class="docblock"><p>Converts this <code>TypeEq</code> into a <a href="enum.TypeCmp.html" title="enum typewit::TypeCmp"><code>TypeCmp</code></a></p>
+<h5 id="example-2"><a class="doc-anchor" href="#example-2">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{TypeCmp, TypeEq};
+ 
+<span class="kw">const </span>TC: TypeCmp&lt;bool, bool&gt; = TypeEq::NEW.to_cmp();
+ 
+<span class="macro">assert!</span>(<span class="macro">matches!</span>(TC, TypeCmp::Eq(<span class="kw">_</span>)));</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.flip" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#477-480">Source</a><h4 class="code-header">pub const fn <a href="#method.flip" class="fn">flip</a>(self: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;R, L&gt;</h4></section></summary><div class="docblock"><p>Swaps the type parameters of this <code>TypeEq</code></p>
+<h5 id="example-3"><a class="doc-anchor" href="#example-3">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::TypeEq;
+ 
+<span class="macro">assert_eq!</span>(flip_bytes([<span class="number">3</span>, <span class="number">5</span>], TypeEq::NEW), [<span class="number">5</span>, <span class="number">3</span>]);
+ 
+<span class="kw">const fn </span>flip_bytes&lt;T&gt;(val: T, te: TypeEq&lt;T, [u8; <span class="number">2</span>]&gt;) -&gt; T {
+    bar(val, te.flip())
+}
+<span class="kw">const fn </span>bar&lt;T&gt;(val: T, te: TypeEq&lt;[u8; <span class="number">2</span>], T&gt;) -&gt; T {
+    <span class="kw">let </span>[l, r] = te.to_left(val);
+    te.to_right([r, l])
+}</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.join" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#507-510">Source</a><h4 class="code-header">pub const fn <a href="#method.join" class="fn">join</a>&lt;O: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(
+    self: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;,
+    _other: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;R, O&gt;,
+) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, O&gt;</h4></section></summary><div class="docblock"><p>Joins this <code>TypeEq&lt;L, R&gt;</code> with a <code>TypeEq&lt;R, O&gt;</code>, producing a <code>TypeEq&lt;L, O&gt;</code>.</p>
+<p>The returned <code>TypeEq</code> can then be used to coerce between <code>L</code> and <code>O</code>.</p>
+<h5 id="example-4"><a class="doc-anchor" href="#example-4">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::TypeEq;
+ 
+<span class="macro">assert_eq!</span>(foo(TypeEq::NEW, TypeEq::NEW, <span class="prelude-val">Some</span>(<span class="number">3</span>)), <span class="prelude-val">Some</span>(<span class="number">3</span>));
+<span class="macro">assert_eq!</span>(foo(TypeEq::NEW, TypeEq::NEW, <span class="prelude-val">None</span>), <span class="prelude-val">None</span>);
+ 
+ 
+<span class="kw">fn </span>foo&lt;L, X&gt;(
+    this: TypeEq&lt;L, <span class="prelude-ty">Option</span>&lt;X&gt;&gt;,
+    that: TypeEq&lt;<span class="prelude-ty">Option</span>&lt;X&gt;, <span class="prelude-ty">Option</span>&lt;u32&gt;&gt;,
+    value: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+) -&gt; L {
+    <span class="kw">let </span>te: TypeEq&lt;L, <span class="prelude-ty">Option</span>&lt;u32&gt;&gt; = this.join(that);
+    te.to_left(value)
+}
+ </code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-TypeEq%3CL0,+R0%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#513-654">Source</a><a href="#impl-TypeEq%3CL0,+R0%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L0, R0&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L0, R0&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.zip" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#559-564">Source</a><h4 class="code-header">pub const fn <a href="#method.zip" class="fn">zip</a>&lt;L1: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R1: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(
+    self: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L0, R0&gt;,
+    other: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L1, R1&gt;,
+) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.tuple.html">(L0, L1)</a>, <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.tuple.html">(R0, R1)</a>&gt;</h4></section></summary><div class="docblock"><p>Combines this <code>TypeEq&lt;L0, R0&gt;</code> with a <code>TypeEq&lt;L1, R1&gt;</code>,
+producing a <code>TypeEq&lt;(L0, L1), (R0, R1)&gt;</code>.</p>
+<h5 id="alternative"><a class="doc-anchor" href="#alternative">§</a>Alternative</h5>
+<p>For an alternative which allows zipping <code>TypeEq</code> with any
+<a href="crate::BaseTypeWitness"><code>BaseTypeWitness</code></a>,
+you can use <a href="crate::methods::zip2"><code>methods::zip2</code></a>
+(requires the <code>"rust_1_65"</code> feature)</p>
+<h5 id="example-5"><a class="doc-anchor" href="#example-5">§</a>Example</h5>
+<p>This example demonstrates how one can combine two <code>TypeEq</code>s to use
+with a multi-parameter type.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{const_marker::Usize, TypeEq, TypeFn};
+ 
+<span class="macro">assert_eq!</span>(make_foo(TypeEq::NEW, TypeEq::NEW), Foo(<span class="string">"hello"</span>, [<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]));
+ 
+<span class="kw">const fn </span>make_foo&lt;T, <span class="kw">const </span>N: usize&gt;(
+    te_ty: TypeEq&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
+    te_len: TypeEq&lt;Usize&lt;N&gt;, Usize&lt;<span class="number">3</span>&gt;&gt;,
+) -&gt; Foo&lt;T, N&gt; {
+    <span class="comment">// the type annotations are just for the reader, they can be inferred.
+    </span><span class="kw">let </span>te_pair: TypeEq&lt;(T, Usize&lt;N&gt;), (<span class="kw-2">&amp;</span>str, Usize&lt;<span class="number">3</span>&gt;)&gt; = te_ty.zip(te_len);
+ 
+    <span class="kw">let </span>te: TypeEq&lt;Foo&lt;T, N&gt;, Foo&lt;<span class="kw-2">&amp;</span>str, <span class="number">3</span>&gt;&gt; = te_pair.project::&lt;GFoo&gt;();
+ 
+    <span class="comment">// `te.to_left(...)` here goes from `Foo&lt;&amp;str, 3&gt;` to `Foo&lt;T, N&gt;`
+    </span>te.to_left(Foo(<span class="string">"hello"</span>, [<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]))
+}
+ 
+<span class="attr">#[derive(Debug, PartialEq)]
+</span><span class="kw">struct </span>Foo&lt;T, <span class="kw">const </span>N: usize&gt;(T, [u8; N]);
+ 
+<span class="macro">typewit::type_fn!</span>{
+    <span class="comment">// Type-level function from `(T, Usize&lt;N&gt;)` to `Foo&lt;T, N&gt;`
+    </span><span class="kw">struct </span>GFoo;
+
+    <span class="kw">impl</span>&lt;T, <span class="kw">const </span>N: usize&gt; (T, Usize&lt;N&gt;) =&gt; Foo&lt;T, N&gt;
+}</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.zip3" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#595-605">Source</a><h4 class="code-header">pub const fn <a href="#method.zip3" class="fn">zip3</a>&lt;L1, R1, L2: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R2: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(
+    self: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L0, R0&gt;,
+    other1: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L1, R1&gt;,
+    other2: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L2, R2&gt;,
+) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.tuple.html">(L0, L1, L2)</a>, <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.tuple.html">(R0, R1, R2)</a>&gt;</h4></section></summary><div class="docblock"><p>Combines three <code>TypeEq&lt;L*, R*&gt;</code> to produce a
+<code>TypeEq&lt;(L0, L1, L2), (R0, R1, R2)&gt;</code>.</p>
+<h5 id="alternative-1"><a class="doc-anchor" href="#alternative-1">§</a>Alternative</h5>
+<p>For an alternative which allows zipping <code>TypeEq</code> with two of any
+<a href="crate::BaseTypeWitness"><code>BaseTypeWitness</code></a>,
+you can use <a href="crate::methods::zip3"><code>methods::zip3</code></a>
+(requires the <code>"rust_1_65"</code> feature)</p>
+<h5 id="example-6"><a class="doc-anchor" href="#example-6">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{TypeEq, type_eq};
+ 
+<span class="kw">use </span>std::cmp::Ordering::{<span class="self">self</span>, Less};
+ 
+<span class="macro">assert_eq!</span>(make_tuple(type_eq(), type_eq(), type_eq()), (<span class="number">3</span>, <span class="string">"foo"</span>, Less));
+ 
+<span class="kw">fn </span>make_tuple&lt;A, B, C&gt;(
+    te0: TypeEq&lt;A, u8&gt;,
+    te1: TypeEq&lt;B, <span class="kw-2">&amp;</span>str&gt;,
+    te2: TypeEq&lt;C, Ordering&gt;,
+) -&gt; (A, B, C) {
+    te0.zip3(te1, te2) <span class="comment">// returns `TypeEq&lt;(A, B, C), (u8, &amp;str, Ordering)&gt;`
+        </span>.to_left((<span class="number">3</span>, <span class="string">"foo"</span>, Less))
+}
+ </code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.zip4" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#640-652">Source</a><h4 class="code-header">pub const fn <a href="#method.zip4" class="fn">zip4</a>&lt;L1, R1, L2, R2, L3: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R3: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(
+    self: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L0, R0&gt;,
+    other1: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L1, R1&gt;,
+    other2: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L2, R2&gt;,
+    other3: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L3, R3&gt;,
+) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.tuple.html">(L0, L1, L2, L3)</a>, <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.tuple.html">(R0, R1, R2, R3)</a>&gt;</h4></section></summary><div class="docblock"><p>Combines four <code>TypeEq&lt;L*, R*&gt;</code> to produce a
+<code>TypeEq&lt;(L0, L1, L2, L3), (R0, R1, R2, L3)&gt;</code>.</p>
+<h5 id="alternative-2"><a class="doc-anchor" href="#alternative-2">§</a>Alternative</h5>
+<p>For an alternative which allows zipping <code>TypeEq</code> with three of any
+<a href="crate::BaseTypeWitness"><code>BaseTypeWitness</code></a>,
+you can use <a href="crate::methods::zip4"><code>methods::zip4</code></a>
+(requires the <code>"rust_1_65"</code> feature)</p>
+<h5 id="example-7"><a class="doc-anchor" href="#example-7">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{TypeEq, type_eq};
+ 
+<span class="kw">use </span>std::cmp::Ordering::{<span class="self">self</span>, Less};
+ 
+<span class="macro">assert_eq!</span>(
+    make_tuple(type_eq(), type_eq(), type_eq(), type_eq()), 
+    (<span class="number">3</span>, <span class="string">"foo"</span>, Less, <span class="bool-val">true</span>),
+);
+ 
+<span class="kw">fn </span>make_tuple&lt;A, B, C, D&gt;(
+    te0: TypeEq&lt;A, u8&gt;,
+    te1: TypeEq&lt;B, <span class="kw-2">&amp;</span>str&gt;,
+    te2: TypeEq&lt;C, Ordering&gt;,
+    te3: TypeEq&lt;D, bool&gt;,
+) -&gt; (A, B, C, D) {
+    <span class="kw">let </span>te: TypeEq&lt;(A, B, C, D), (u8, <span class="kw-2">&amp;</span>str, Ordering, bool)&gt; = te0.zip4(te1, te2, te3);
+    te.to_left((<span class="number">3</span>, <span class="string">"foo"</span>, Less, <span class="bool-val">true</span>))
+}
+ </code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-TypeEq%3CL,+R%3E-2" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#656-768">Source</a><a href="#impl-TypeEq%3CL,+R%3E-2" class="anchor">§</a><h3 class="code-header">impl&lt;L, R&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.reachability_hint" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#687-694">Source</a><h4 class="code-header">pub const fn <a href="#method.reachability_hint" class="fn">reachability_hint</a>&lt;T&gt;(self, val: T) -&gt; T</h4></section></summary><div class="docblock"><p>Hints to the compiler that a <code>TypeEq&lt;L, R&gt;</code>
+can only be constructed if <code>L == R</code>.</p>
+<p>This function takes and returns <code>val</code> unmodified.
+This allows returning some value from an expression
+while hinting that <code>L == R</code>.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_right" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#729-734">Source</a><h4 class="code-header">pub const fn <a href="#method.to_right" class="fn">to_right</a>(self, from: L) -&gt; R</h4></section></summary><div class="docblock"><p>A no-op cast from <code>L</code> to <code>R</code>.</p>
+<p>This cast is a no-op because having a <code>TypeEq&lt;L, R&gt;</code> value
+proves that <code>L</code> and <code>R</code> are the same type.</p>
+<h5 id="example-8"><a class="doc-anchor" href="#example-8">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{TypeEq, type_eq};
+ 
+<span class="kw">use </span>std::cmp::Ordering::{<span class="self">self</span>, <span class="kw-2">*</span>};
+ 
+<span class="macro">assert_eq!</span>(mutated(Less, Wit::Ord(type_eq())), Greater);
+<span class="macro">assert_eq!</span>(mutated(Equal, Wit::Ord(type_eq())), Equal);
+<span class="macro">assert_eq!</span>(mutated(Greater, Wit::Ord(type_eq())), Less);
+ 
+<span class="macro">assert_eq!</span>(mutated(<span class="bool-val">false</span>, Wit::Bool(type_eq())), <span class="bool-val">true</span>);
+<span class="macro">assert_eq!</span>(mutated(<span class="bool-val">true</span>, Wit::Bool(type_eq())), <span class="bool-val">false</span>);
+ 
+<span class="kw">const fn </span>mutated&lt;R&gt;(arg: R, w: Wit&lt;R&gt;) -&gt; R {
+    <span class="kw">match </span>w {
+        Wit::Ord(te) =&gt; te.to_left(te.to_right(arg).reverse()),
+        Wit::Bool(te) =&gt; te.to_left(!te.to_right(arg)),
+    }
+}
+ 
+<span class="kw">enum </span>Wit&lt;R&gt; {
+    Ord(TypeEq&lt;R, Ordering&gt;),
+    Bool(TypeEq&lt;R, bool&gt;),
+}</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_left" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#762-767">Source</a><h4 class="code-header">pub const fn <a href="#method.to_left" class="fn">to_left</a>(self, from: R) -&gt; L</h4></section></summary><div class="docblock"><p>A no-op cast from <code>R</code> to <code>L</code>.</p>
+<p>This cast is a no-op because having a <code>TypeEq&lt;L, R&gt;</code> value
+proves that <code>L</code> and <code>R</code> are the same type.</p>
+<h5 id="example-9"><a class="doc-anchor" href="#example-9">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{TypeEq, type_eq};
+ 
+<span class="macro">assert_eq!</span>(stuff(Wit::OptSlice(type_eq())), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>][..]));
+<span class="macro">assert_eq!</span>(stuff(Wit::Bool(type_eq())), <span class="bool-val">true</span>);
+ 
+<span class="kw">const fn </span>stuff&lt;R&gt;(te: Wit&lt;R&gt;) -&gt; R {
+    <span class="kw">match </span>te {
+        Wit::OptSlice(te) =&gt; te.to_left(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>])),
+        Wit::Bool(te) =&gt; te.to_left(<span class="bool-val">true</span>),
+    }
+}
+ 
+<span class="kw">enum </span>Wit&lt;R&gt; {
+    OptSlice(TypeEq&lt;R, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u16]&gt;&gt;),
+    Bool(TypeEq&lt;R, bool&gt;),
+}</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-TypeEq%3CL,+R%3E-3" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#780-859">Source</a><a href="#impl-TypeEq%3CL,+R%3E-3" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.map" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#815-824">Source</a><h4 class="code-header">pub const fn <a href="#method.map" class="fn">map</a>&lt;F&gt;(
+    self,
+    func: F,
+) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="type" href="type_fn/type.CallFn.html" title="type typewit::type_fn::CallFn">CallFn</a>&lt;<a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;, L&gt;, <a class="type" href="type_fn/type.CallFn.html" title="type typewit::type_fn::CallFn">CallFn</a>&lt;<a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;, R&gt;&gt;<div class="where">where
+    <a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;: <a class="trait" href="type_fn/trait.TypeFn.html" title="trait typewit::type_fn::TypeFn">TypeFn</a>&lt;L&gt; + <a class="trait" href="type_fn/trait.TypeFn.html" title="trait typewit::type_fn::TypeFn">TypeFn</a>&lt;R&gt;,</div></h4></section></summary><div class="docblock"><p>Maps the type arguments of this <code>TypeEq</code>
+by using the <code>F</code> <a href="type_fn/trait.TypeFn.html" title="trait typewit::type_fn::TypeFn">type-level function</a>.</p>
+<p>Use this function over <a href="struct.TypeEq.html#method.project" title="method typewit::TypeEq::project"><code>project</code></a>
+if you want the type of the passed in function to be inferred.</p>
+<h5 id="example-10"><a class="doc-anchor" href="#example-10">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{TypeEq, TypeFn};
+ 
+<span class="macro">assert_eq!</span>(foo(TypeEq::NEW), (<span class="bool-val">false</span>, <span class="number">5</span>));
+ 
+<span class="kw">const fn </span>foo&lt;<span class="lifetime">'a</span>, T&gt;(te: TypeEq&lt;u32, T&gt;) -&gt; (bool, T) {
+    <span class="comment">// `GPair&lt;bool&gt;` maps `u32` to `(bool, u32)`
+    //           and maps `T`   to `(bool, T)`
+    </span><span class="kw">let </span>map_te: TypeEq&lt;(bool, u32), (bool, T)&gt; = te.map(GPair::&lt;bool&gt;::NEW); 
+ 
+    <span class="comment">// same as the above, but inferring `GPair`'s generic arguments.
+    </span><span class="kw">let _</span>: TypeEq&lt;(bool, u32), (bool, T)&gt; = te.map(GPair::NEW); 
+ 
+    map_te.to_right((<span class="bool-val">false</span>, <span class="number">5u32</span>))
+}
+ 
+<span class="comment">// Declares `struct GPair&lt;A&gt;`, a type-level function from `B` to `(A, B)` 
+</span><span class="macro">typewit::type_fn!</span> {
+     <span class="kw">struct </span>GPair&lt;A&gt;;
+ 
+     <span class="kw">impl</span>&lt;B&gt; B =&gt; (A, B)
+} </code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.project" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#853-858">Source</a><h4 class="code-header">pub const fn <a href="#method.project" class="fn">project</a>&lt;F&gt;(
+    self,
+) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="type" href="type_fn/type.CallFn.html" title="type typewit::type_fn::CallFn">CallFn</a>&lt;<a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;, L&gt;, <a class="type" href="type_fn/type.CallFn.html" title="type typewit::type_fn::CallFn">CallFn</a>&lt;<a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;, R&gt;&gt;<div class="where">where
+    <a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;: <a class="trait" href="type_fn/trait.TypeFn.html" title="trait typewit::type_fn::TypeFn">TypeFn</a>&lt;L&gt; + <a class="trait" href="type_fn/trait.TypeFn.html" title="trait typewit::type_fn::TypeFn">TypeFn</a>&lt;R&gt;,</div></h4></section></summary><div class="docblock"><p>Maps the type arguments of this <code>TypeEq</code>
+by using the <code>F</code> <a href="type_fn/trait.TypeFn.html" title="trait typewit::type_fn::TypeFn">type-level function</a>.</p>
+<p>Use this function over <a href="struct.TypeEq.html#method.map" title="method typewit::TypeEq::map"><code>map</code></a>
+if you want to specify the type of the passed in function explicitly.</p>
+<h5 id="example-11"><a class="doc-anchor" href="#example-11">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{TypeEq, TypeFn};
+ 
+<span class="macro">assert_eq!</span>(foo(TypeEq::NEW), <span class="macro">vec!</span>[<span class="number">3u32</span>, <span class="number">5</span>, <span class="number">8</span>]);
+ 
+<span class="kw">fn </span>foo&lt;T&gt;(te: TypeEq&lt;u32, T&gt;) -&gt; Vec&lt;T&gt; {
+    <span class="kw">let </span>vec_te: TypeEq&lt;Vec&lt;u32&gt;, Vec&lt;T&gt;&gt; = te.project::&lt;GVec&gt;();
+    vec_te.to_right(<span class="macro">vec!</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>])
+}
+ 
+<span class="comment">// Declares `GVec`, a type-level function from `T` to `Vec&lt;T&gt;`
+</span><span class="macro">typewit::type_fn!</span>{
+    <span class="kw">struct </span>GVec;
+ 
+    <span class="kw">impl</span>&lt;T&gt; T =&gt; Vec&lt;T&gt;
+}
+ </code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-TypeEq%3CL,+R%3E-4" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#861-952">Source</a><a href="#impl-TypeEq%3CL,+R%3E-4" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.unmap" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#893-903">Source</a><h4 class="code-header">pub const fn <a href="#method.unmap" class="fn">unmap</a>&lt;F&gt;(
+    self,
+    func: F,
+) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="type" href="type_fn/type.UncallFn.html" title="type typewit::type_fn::UncallFn">UncallFn</a>&lt;<a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;, L&gt;, <a class="type" href="type_fn/type.UncallFn.html" title="type typewit::type_fn::UncallFn">UncallFn</a>&lt;<a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;, R&gt;&gt;<div class="where">where
+    <a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;: <a class="trait" href="type_fn/trait.RevTypeFn.html" title="trait typewit::type_fn::RevTypeFn">RevTypeFn</a>&lt;L&gt; + <a class="trait" href="type_fn/trait.RevTypeFn.html" title="trait typewit::type_fn::RevTypeFn">RevTypeFn</a>&lt;R&gt;,</div></h4></section></summary><div class="docblock"><p>Maps the type arguments of this <code>TypeEq</code>
+by using the <a href="type_fn/trait.RevTypeFn.html" title="trait typewit::type_fn::RevTypeFn">reversed</a>
+version of the <code>F</code> type-level function.</p>
+<p>Use this function over <a href="struct.TypeEq.html#method.unproject" title="method typewit::TypeEq::unproject"><code>unproject</code></a>
+if you want the type of the passed in function to be inferred.</p>
+<h5 id="example-12"><a class="doc-anchor" href="#example-12">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{TypeEq, UncallFn};
+ 
+<span class="macro">assert_eq!</span>(first_int(<span class="kw-2">&amp;</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">13</span>], TypeEq::NEW), <span class="number">3</span>);
+ 
+<span class="kw">const fn </span>first_int&lt;T, <span class="kw">const </span>N: usize&gt;(
+    array: <span class="kw-2">&amp;</span>[T; N],
+    te_slice: TypeEq&lt;[T], [u8]&gt;,
+) -&gt; u8 {
+    <span class="kw">let </span>te: TypeEq&lt;T, u8&gt; = te_slice.unmap(SliceFn);
+
+    <span class="kw">let </span>te_ref: TypeEq&lt;<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>u8&gt; = te.in_ref();
+
+    <span class="kw-2">*</span>te_ref.to_right(<span class="kw-2">&amp;</span>array[<span class="number">0</span>])
+}
+
+<span class="macro">typewit::inj_type_fn!</span> {
+    <span class="kw">struct </span>SliceFn;
+ 
+    <span class="kw">impl</span>&lt;T&gt; T =&gt; [T]
+}</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.unproject" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#944-951">Source</a><h4 class="code-header">pub const fn <a href="#method.unproject" class="fn">unproject</a>&lt;F&gt;(
+    self,
+) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="type" href="type_fn/type.UncallFn.html" title="type typewit::type_fn::UncallFn">UncallFn</a>&lt;<a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;, L&gt;, <a class="type" href="type_fn/type.UncallFn.html" title="type typewit::type_fn::UncallFn">UncallFn</a>&lt;<a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;, R&gt;&gt;<div class="where">where
+    <a class="struct" href="type_fn/struct.Invoke.html" title="struct typewit::type_fn::Invoke">Invoke</a>&lt;F&gt;: <a class="trait" href="type_fn/trait.RevTypeFn.html" title="trait typewit::type_fn::RevTypeFn">RevTypeFn</a>&lt;L&gt; + <a class="trait" href="type_fn/trait.RevTypeFn.html" title="trait typewit::type_fn::RevTypeFn">RevTypeFn</a>&lt;R&gt;,</div></h4></section></summary><div class="docblock"><p>Maps the type arguments of this <code>TypeEq</code>
+by using the <a href="type_fn/trait.RevTypeFn.html" title="trait typewit::type_fn::RevTypeFn">reversed</a>
+version of the <code>F</code> type-level function.</p>
+<p>Use this function over <a href="struct.TypeEq.html#method.unmap" title="method typewit::TypeEq::unmap"><code>unmap</code></a>
+if you want to specify the type of the passed in function explicitly.</p>
+<h5 id="example-13"><a class="doc-anchor" href="#example-13">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::TypeEq;
+<span class="kw">use </span>std::ops::{Range, RangeInclusive <span class="kw">as </span>RangeInc};
+ 
+<span class="macro">assert_eq!</span>(usize_bounds(<span class="number">3</span>..=<span class="number">5</span>, TypeEq::NEW), (<span class="number">3</span>, <span class="number">5</span>));
+ 
+<span class="kw">const fn </span>usize_bounds&lt;T&gt;(
+    range: RangeInc&lt;T&gt;,
+    te_range: TypeEq&lt;Range&lt;T&gt;, Range&lt;usize&gt;&gt;,
+) -&gt; (usize, usize) {
+    <span class="kw">let </span>te: TypeEq&lt;T, usize&gt; = te_range.unproject::&lt;RangeFn&gt;();
+     
+    <span class="kw">let </span>te_range_inc: TypeEq&lt;RangeInc&lt;T&gt;, RangeInc&lt;usize&gt;&gt; = te.project::&lt;RangeIncFn&gt;();
+     
+    <span class="kw">let </span>range: RangeInc&lt;usize&gt; = te_range_inc.to_right(range);
+     
+    (<span class="kw-2">*</span>range.start(), <span class="kw-2">*</span>range.end())
+}
+ 
+<span class="macro">typewit::inj_type_fn!</span> {
+    <span class="kw">struct </span>RangeFn;
+ 
+    <span class="kw">impl</span>&lt;T&gt; T =&gt; Range&lt;T&gt;
+}
+<span class="macro">typewit::inj_type_fn!</span> {
+    <span class="kw">struct </span>RangeIncFn;
+ 
+    <span class="kw">impl</span>&lt;T&gt; T =&gt; RangeInc&lt;T&gt;
+}</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-TypeEq%3CL,+R%3E-5" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#954-1086">Source</a><a href="#impl-TypeEq%3CL,+R%3E-5" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.in_ref" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#990-992">Source</a><h4 class="code-header">pub const fn <a href="#method.in_ref" class="fn">in_ref</a>&lt;'a&gt;(self) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;'a L</a>, <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;'a R</a>&gt;</h4></section></summary><div class="docblock"><p>Converts a <code>TypeEq&lt;L, R&gt;</code> to <code>TypeEq&lt;&amp;L, &amp;R&gt;</code></p>
+<h5 id="example-14"><a class="doc-anchor" href="#example-14">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{MakeTypeWitness, TypeEq};
+ 
+<span class="macro">assert_eq!</span>(get::&lt;u8&gt;(), <span class="kw-2">&amp;</span><span class="number">3</span>);
+<span class="macro">assert_eq!</span>(get::&lt;str&gt;(), <span class="string">"hello"</span>);
+ 
+ 
+<span class="kw">const fn </span>get&lt;R: <span class="question-mark">?</span>Sized&gt;() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>R 
+<span class="kw">where
+    </span>Returned&lt;R&gt;: MakeTypeWitness
+{
+    <span class="kw">match </span>MakeTypeWitness::MAKE {
+        <span class="comment">// `te` is a `TypeEq&lt;R, u8&gt;`
+        </span>Returned::U8(te) =&gt; te.in_ref().to_left(<span class="kw-2">&amp;</span><span class="number">3</span>),
+
+        <span class="comment">// `te` is a `TypeEq&lt;R, str&gt;`
+        </span>Returned::Str(te) =&gt; te.in_ref().to_left(<span class="string">"hello"</span>),
+    }
+}
+ 
+<span class="macro">typewit::simple_type_witness!</span> {
+    <span class="comment">// declares the `enum Returned&lt;R&gt; {` type witness
+    </span><span class="kw">enum </span>Returned {
+        <span class="comment">// this variant requires `R == u8`
+        </span>U8 = u8,
+        <span class="comment">// this variant requires `R == str`
+        </span>Str = str,
+    }
+}</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.in_mut" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#994-1041">Source</a><h4 class="code-header">pub fn <a href="#method.in_mut" class="fn">in_mut</a>&lt;'a&gt;(self) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;'a mut L</a>, <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;'a mut R</a>&gt;</h4></section></summary><div class="docblock"><p>Converts a <code>TypeEq&lt;L, R&gt;</code> to <code>TypeEq&lt;&amp;mut L, &amp;mut R&gt;</code></p>
+<h5 id="constness"><a class="doc-anchor" href="#constness">§</a>Constness</h5>
+<p>This requires the <code>"rust_1_83"</code> feature to be a <code>const fn</code>.</p>
+<h5 id="example-15"><a class="doc-anchor" href="#example-15">§</a>Example</h5>
+<p>Because this example calls <code>in_mut</code> inside a <code>const fn</code>,
+it requires the <code>"rust_1_83"</code> crate feature.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code> 
+ <span class="kw">use </span>typewit::{TypeEq, type_eq};
+ 
+ <span class="kw">let </span>foo = <span class="kw-2">&amp;mut </span>Foo { bar: <span class="number">10</span>, baz: [<span class="string">'W'</span>, <span class="string">'H'</span>, <span class="string">'O'</span>] };
+ 
+ <span class="kw-2">*</span>get_mut(foo, Field::Bar(type_eq())) <span class="kw-2">*</span>= <span class="number">2</span>;
+ <span class="macro">assert_eq!</span>(foo.bar, <span class="number">20</span>);
+ 
+ <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>get_mut(foo, Field::Baz(type_eq())), [<span class="string">'W'</span>, <span class="string">'H'</span>, <span class="string">'O'</span>]);
+ 
+ 
+ <span class="kw">const fn </span>get_mut&lt;R&gt;(foo: <span class="kw-2">&amp;mut </span>Foo, te: Field&lt;R&gt;) -&gt; <span class="kw-2">&amp;mut </span>R {
+     <span class="kw">match </span>te {
+         Field::Bar(te) =&gt; te.in_mut().to_left(<span class="kw-2">&amp;mut </span>foo.bar),
+         Field::Baz(te) =&gt; te.in_mut().to_left(<span class="kw-2">&amp;mut </span>foo.baz),
+     }
+ }
+ 
+ <span class="kw">struct </span>Foo {
+     bar: u8,
+     baz: [char; <span class="number">3</span>],
+ }
+ 
+ <span class="kw">enum </span>Field&lt;R: <span class="question-mark">?</span>Sized&gt; {
+     Bar(TypeEq&lt;R, u8&gt;),
+     Baz(TypeEq&lt;R, [char; <span class="number">3</span>]&gt;),
+ }</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-TypeEq%3CL,+R%3E-6" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1088-1183">Source</a><a href="#impl-TypeEq%3CL,+R%3E-6" class="anchor">§</a><h3 class="code-header">impl&lt;L: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.in_array" class="method"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1171-1182">Source</a><h4 class="code-header">pub const fn <a href="#method.in_array" class="fn">in_array</a>&lt;const UL: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.usize.html">usize</a>, const UR: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.usize.html">usize</a>&gt;(
+    self,
+    other: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="struct" href="const_marker/struct.Usize.html" title="struct typewit::const_marker::Usize">Usize</a>&lt;UL&gt;, <a class="struct" href="const_marker/struct.Usize.html" title="struct typewit::const_marker::Usize">Usize</a>&lt;UR&gt;&gt;,
+) -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.array.html">[L; UL]</a>, <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.array.html">[R; UR]</a>&gt;</h4></section></summary><div class="docblock"><p>Combines <code>TypeEq&lt;L, R&gt;</code> and <code>TypeEq&lt;Usize&lt;UL&gt;, Usize&lt;UR&gt;&gt;</code>
+into <code>TypeEq&lt;[L; UL], [R; UR]&gt;</code></p>
+<h5 id="alternative-3"><a class="doc-anchor" href="#alternative-3">§</a>Alternative</h5>
+<p>For an alternative which allows passing any
+<a href="crate::BaseTypeWitness"><code>BaseTypeWitness</code></a> for the length,
+you can use <a href="crate::methods::in_array"><code>methods::in_array</code></a>
+(requires the <code>"rust_1_65"</code> feature)</p>
+<h5 id="example-16"><a class="doc-anchor" href="#example-16">§</a>Example</h5><details>
+<summary><b>motivation</b></summary>
+<p>
+The safe way to map an array in const fns(on stable Rust in 2023)
+is to create an array of the returned type with some dummy value,
+and then fill it in with the desired values.
+<p>Because the function in this example takes a <code>[T; LEN]</code> where the <code>T</code> is generic,
+it copies the first element of the input array to initialize the returned array,
+so we must handle empty arrays,
+but trying to return an empty array the naive way</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code>    <span class="kw">if </span>LEN == <span class="number">0 </span>{
+        <span class="kw">return </span>[];
+    }</code></pre></div>
+<p>does not work</p>
+<div class="example-wrap"><pre class="language-text"><code>error[E0308]: mismatched types
+ --&gt; src/type_eq.rs:827:16
+  |
+4 | const fn map_wrapping&lt;T: Copy, const LEN: usize&gt;(arr: [T; LEN]) -&gt; [Wrapping&lt;T&gt;; LEN] {
+  |                                                                    ------------------ expected `[Wrapping&lt;T&gt;; LEN]` because of return type
+5 |     if LEN == 0 {
+6 |         return [];
+  |                ^^ expected `LEN`, found `0`
+  |
+  = note: expected array `[Wrapping&lt;T&gt;; LEN]`
+             found array `[_; 0]`
+ </code></pre></div></p>
+</details>
+<p>This example demonstrates how <code>in_array</code> allows one to return an empty array:
+(this example requires Rust 1.61.0, because it uses trait bounds in const fns)</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{const_marker::Usize, TypeCmp, TypeEq};
+ 
+<span class="kw">use </span>std::num::Wrapping;
+ 
+<span class="macro">assert_eq!</span>(map_wrapping([<span class="string">""</span>; <span class="number">0</span>]), []);
+<span class="macro">assert_eq!</span>(map_wrapping([<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]), [Wrapping(<span class="number">3</span>), Wrapping(<span class="number">5</span>), Wrapping(<span class="number">8</span>)]);
+ 
+<span class="kw">const fn </span>map_wrapping&lt;T: Copy, <span class="kw">const </span>LEN: usize&gt;(arr: [T; LEN]) -&gt; [Wrapping&lt;T&gt;; LEN] {
+    <span class="comment">// `teq` is a `TypeEq&lt;Usize&lt;LEN&gt;, Usize&lt;0&gt;&gt;`
+    </span><span class="kw">if let </span>TypeCmp::Eq(teq) = Usize::&lt;LEN&gt;.equals(Usize::&lt;<span class="number">0</span>&gt;) {
+        <span class="kw">return </span>TypeEq::new::&lt;Wrapping&lt;T&gt;&gt;()
+            .in_array(teq) <span class="comment">// `TypeEq&lt;[Wrapping&lt;T&gt;; LEN], [Wrapping&lt;T&gt;; 0]&gt;`
+            </span>.to_left([]);
+    }
+     
+    <span class="kw">let </span><span class="kw-2">mut </span>ret = [Wrapping(arr[<span class="number">0</span>]); LEN];
+    <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">1</span>;
+     
+    <span class="kw">while </span>i &lt; LEN {
+        ret[i] = Wrapping(arr[i]);
+        i += <span class="number">1</span>;
+    }
+     
+    ret
+}</code></pre></div>
+</div></details></div></details></div><h2 id="trait-implementations" class="section-header">Trait Implementations<a href="#trait-implementations" class="anchor">§</a></h2><div id="trait-implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-Clone-for-TypeEq%3CL,+R%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#435-439">Source</a><a href="#impl-Clone-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.clone" class="method trait-impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#436-438">Source</a><a href="#method.clone" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html#tymethod.clone" class="fn">clone</a>(&amp;self) -&gt; Self</h4></section></summary><div class='docblock'>Returns a duplicate of the value. <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html#tymethod.clone">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.clone_from" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/clone.rs.html#213-215">Source</a></span><a href="#method.clone_from" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html#method.clone_from" class="fn">clone_from</a>(&amp;mut self, source: &amp;Self)</h4></section></summary><div class='docblock'>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html#method.clone_from">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Debug-for-TypeEq%3CL,+R%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1200-1204">Source</a><a href="#impl-Debug-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.fmt" class="method trait-impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1201-1203">Source</a><a href="#method.fmt" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html#tymethod.fmt" class="fn">fmt</a>(&amp;self, f: &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>&lt;'_&gt;) -&gt; <a class="type" href="https://doc.rust-lang.org/1.90.0/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></h4></section></summary><div class='docblock'>Formats the value using the given formatter. <a href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html#tymethod.fmt">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Default-for-TypeEq%3CT,+T%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1194-1198">Source</a><a href="#impl-Default-for-TypeEq%3CT,+T%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/default/trait.Default.html" title="trait core::default::Default">Default</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;T, T&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.default" class="method trait-impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1195-1197">Source</a><a href="#method.default" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/default/trait.Default.html#tymethod.default" class="fn">default</a>() -&gt; Self</h4></section></summary><div class='docblock'>Returns the “default value” for a type. <a href="https://doc.rust-lang.org/1.90.0/core/default/trait.Default.html#tymethod.default">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Hash-for-TypeEq%3CL,+R%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1227-1231">Source</a><a href="#impl-Hash-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/hash/trait.Hash.html" title="trait core::hash::Hash">Hash</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.hash" class="method trait-impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1228-1230">Source</a><a href="#method.hash" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/hash/trait.Hash.html#tymethod.hash" class="fn">hash</a>&lt;H&gt;(&amp;self, _state: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut H</a>)<div class="where">where
+    H: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/hash/trait.Hasher.html" title="trait core::hash::Hasher">Hasher</a>,</div></h4></section></summary><div class='docblock'>Feeds this value into the given <a href="https://doc.rust-lang.org/1.90.0/core/hash/trait.Hasher.html" title="trait core::hash::Hasher"><code>Hasher</code></a>. <a href="https://doc.rust-lang.org/1.90.0/core/hash/trait.Hash.html#tymethod.hash">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.hash_slice" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.3.0">1.3.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/hash/mod.rs.html#235-237">Source</a></span><a href="#method.hash_slice" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/hash/trait.Hash.html#method.hash_slice" class="fn">hash_slice</a>&lt;H&gt;(data: &amp;[Self], state: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut H</a>)<div class="where">where
+    H: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/hash/trait.Hasher.html" title="trait core::hash::Hasher">Hasher</a>,
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class='docblock'>Feeds a slice of this type into the given <a href="https://doc.rust-lang.org/1.90.0/core/hash/trait.Hasher.html" title="trait core::hash::Hasher"><code>Hasher</code></a>. <a href="https://doc.rust-lang.org/1.90.0/core/hash/trait.Hash.html#method.hash_slice">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-MakeTypeWitness-for-TypeEq%3CT,+T%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#775-777">Source</a><a href="#impl-MakeTypeWitness-for-TypeEq%3CT,+T%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="trait.MakeTypeWitness.html" title="trait typewit::MakeTypeWitness">MakeTypeWitness</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;T, T&gt;</h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedconstant.MAKE" class="associatedconstant trait-impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#776">Source</a><a href="#associatedconstant.MAKE" class="anchor">§</a><h4 class="code-header">const <a href="trait.MakeTypeWitness.html#associatedconstant.MAKE" class="constant">MAKE</a>: Self = Self::NEW</h4></section></summary><div class='docblock'>A constant with the type witness</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Ord-for-TypeEq%3CL,+R%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1218-1222">Source</a><a href="#impl-Ord-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html" title="trait core::cmp::Ord">Ord</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.cmp" class="method trait-impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1219-1221">Source</a><a href="#method.cmp" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#tymethod.cmp" class="fn">cmp</a>(&amp;self, _: &amp;Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/cmp/enum.Ordering.html" title="enum core::cmp::Ordering">Ordering</a></h4></section></summary><div class='docblock'>This method returns an <a href="https://doc.rust-lang.org/1.90.0/core/cmp/enum.Ordering.html" title="enum core::cmp::Ordering"><code>Ordering</code></a> between <code>self</code> and <code>other</code>. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#tymethod.cmp">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.max" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.21.0">1.21.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1013-1015">Source</a></span><a href="#method.max" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.max" class="fn">max</a>(self, other: Self) -&gt; Self<div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class='docblock'>Compares and returns the maximum of two values. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.max">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.min" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.21.0">1.21.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1052-1054">Source</a></span><a href="#method.min" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.min" class="fn">min</a>(self, other: Self) -&gt; Self<div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class='docblock'>Compares and returns the minimum of two values. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.min">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.clamp" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.50.0">1.50.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1078-1080">Source</a></span><a href="#method.clamp" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.clamp" class="fn">clamp</a>(self, min: Self, max: Self) -&gt; Self<div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class='docblock'>Restrict a value to a certain interval. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.clamp">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-PartialEq-for-TypeEq%3CL,+R%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1206-1210">Source</a><a href="#impl-PartialEq-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialEq.html" title="trait core::cmp::PartialEq">PartialEq</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.eq" class="method trait-impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1207-1209">Source</a><a href="#method.eq" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialEq.html#tymethod.eq" class="fn">eq</a>(&amp;self, _: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests for <code>self</code> and <code>other</code> values to be equal, and is used by <code>==</code>.</div></details><details class="toggle method-toggle" open><summary><section id="method.ne" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#265">Source</a></span><a href="#method.ne" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialEq.html#method.ne" class="fn">ne</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;Rhs</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests for <code>!=</code>. The default implementation is almost always sufficient,
+and should not be overridden without very good reason.</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-PartialOrd-for-TypeEq%3CL,+R%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1212-1216">Source</a><a href="#impl-PartialOrd-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html" title="trait core::cmp::PartialOrd">PartialOrd</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.partial_cmp" class="method trait-impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1213-1215">Source</a><a href="#method.partial_cmp" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#tymethod.partial_cmp" class="fn">partial_cmp</a>(&amp;self, _: &amp;Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.90.0/core/cmp/enum.Ordering.html" title="enum core::cmp::Ordering">Ordering</a>&gt;</h4></section></summary><div class='docblock'>This method returns an ordering between <code>self</code> and <code>other</code> values if one exists. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#tymethod.partial_cmp">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.lt" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1387">Source</a></span><a href="#method.lt" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.lt" class="fn">lt</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;Rhs</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests less than (for <code>self</code> and <code>other</code>) and is used by the <code>&lt;</code> operator. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.lt">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.le" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1405">Source</a></span><a href="#method.le" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.le" class="fn">le</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;Rhs</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests less than or equal to (for <code>self</code> and <code>other</code>) and is used by the
+<code>&lt;=</code> operator. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.le">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.gt" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1423">Source</a></span><a href="#method.gt" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.gt" class="fn">gt</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;Rhs</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests greater than (for <code>self</code> and <code>other</code>) and is used by the <code>&gt;</code>
+operator. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.gt">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.ge" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1441">Source</a></span><a href="#method.ge" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.ge" class="fn">ge</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;Rhs</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests greater than or equal to (for <code>self</code> and <code>other</code>) and is used by
+the <code>&gt;=</code> operator. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.ge">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-TypeWitnessTypeArg-for-TypeEq%3CL,+R%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#771-773">Source</a><a href="#impl-TypeWitnessTypeArg-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="trait.TypeWitnessTypeArg.html" title="trait typewit::TypeWitnessTypeArg">TypeWitnessTypeArg</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Arg" class="associatedtype trait-impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#772">Source</a><a href="#associatedtype.Arg" class="anchor">§</a><h4 class="code-header">type <a href="trait.TypeWitnessTypeArg.html#associatedtype.Arg" class="associatedtype">Arg</a> = L</h4></section></summary><div class='docblock'>The type parameter used for type witnesses. <a href="trait.TypeWitnessTypeArg.html#associatedtype.Arg">Read more</a></div></details></div></details><section id="impl-Copy-for-TypeEq%3CL,+R%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#433">Source</a><a href="#impl-Copy-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section><section id="impl-Eq-for-TypeEq%3CL,+R%3E" class="impl"><a class="src rightside" href="../src/typewit/type_eq.rs.html#1224">Source</a><a href="#impl-Eq-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>, R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;</h3></section></div><h2 id="synthetic-implementations" class="section-header">Auto Trait Implementations<a href="#synthetic-implementations" class="anchor">§</a></h2><div id="synthetic-implementations-list"><section id="impl-Freeze-for-TypeEq%3CL,+R%3E" class="impl"><a href="#impl-Freeze-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L, R&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;<div class="where">where
+    L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,
+    R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section><section id="impl-RefUnwindSafe-for-TypeEq%3CL,+R%3E" class="impl"><a href="#impl-RefUnwindSafe-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L, R&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/panic/unwind_safe/trait.RefUnwindSafe.html" title="trait core::panic::unwind_safe::RefUnwindSafe">RefUnwindSafe</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;<div class="where">where
+    L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,
+    R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section><section id="impl-Send-for-TypeEq%3CL,+R%3E" class="impl"><a href="#impl-Send-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L, R&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;<div class="where">where
+    L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,
+    R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section><section id="impl-Sync-for-TypeEq%3CL,+R%3E" class="impl"><a href="#impl-Sync-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L, R&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;<div class="where">where
+    L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,
+    R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section><section id="impl-Unpin-for-TypeEq%3CL,+R%3E" class="impl"><a href="#impl-Unpin-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L, R&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Unpin.html" title="trait core::marker::Unpin">Unpin</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;<div class="where">where
+    L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,
+    R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section><section id="impl-UnwindSafe-for-TypeEq%3CL,+R%3E" class="impl"><a href="#impl-UnwindSafe-for-TypeEq%3CL,+R%3E" class="anchor">§</a><h3 class="code-header">impl&lt;L, R&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/panic/unwind_safe/trait.UnwindSafe.html" title="trait core::panic::unwind_safe::UnwindSafe">UnwindSafe</a> for <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;L, R&gt;<div class="where">where
+    L: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,
+    R: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></div><h2 id="blanket-implementations" class="section-header">Blanket Implementations<a href="#blanket-implementations" class="anchor">§</a></h2><div id="blanket-implementations-list"><details class="toggle implementors-toggle"><summary><section id="impl-Any-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/any.rs.html#138">Source</a><a href="#impl-Any-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/any/trait.Any.html" title="trait core::any::Any">Any</a> for T<div class="where">where
+    T: 'static + ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.type_id" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/any.rs.html#139">Source</a><a href="#method.type_id" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/any/trait.Any.html#tymethod.type_id" class="fn">type_id</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/any/struct.TypeId.html" title="struct core::any::TypeId">TypeId</a></h4></section></summary><div class='docblock'>Gets the <code>TypeId</code> of <code>self</code>. <a href="https://doc.rust-lang.org/1.90.0/core/any/trait.Any.html#tymethod.type_id">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-Borrow%3CT%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/borrow.rs.html#209">Source</a><a href="#impl-Borrow%3CT%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.Borrow.html" title="trait core::borrow::Borrow">Borrow</a>&lt;T&gt; for T<div class="where">where
+    T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.borrow" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/borrow.rs.html#211">Source</a><a href="#method.borrow" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.Borrow.html#tymethod.borrow" class="fn">borrow</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;T</a></h4></section></summary><div class='docblock'>Immutably borrows from an owned value. <a href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.Borrow.html#tymethod.borrow">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-BorrowMut%3CT%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/borrow.rs.html#217">Source</a><a href="#impl-BorrowMut%3CT%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.BorrowMut.html" title="trait core::borrow::BorrowMut">BorrowMut</a>&lt;T&gt; for T<div class="where">where
+    T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.borrow_mut" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/borrow.rs.html#218">Source</a><a href="#method.borrow_mut" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.BorrowMut.html#tymethod.borrow_mut" class="fn">borrow_mut</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut T</a></h4></section></summary><div class='docblock'>Mutably borrows from an owned value. <a href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.BorrowMut.html#tymethod.borrow_mut">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-CloneToUninit-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/clone.rs.html#483">Source</a><a href="#impl-CloneToUninit-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.CloneToUninit.html" title="trait core::clone::CloneToUninit">CloneToUninit</a> for T<div class="where">where
+    T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.clone_to_uninit" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/clone.rs.html#485">Source</a><a href="#method.clone_to_uninit" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.CloneToUninit.html#tymethod.clone_to_uninit" class="fn">clone_to_uninit</a>(&amp;self, dest: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut </a><a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.u8.html">u8</a>)</h4></section></summary><span class="item-info"><div class="stab unstable"><span class="emoji">🔬</span><span>This is a nightly-only experimental API. (<code>clone_to_uninit</code>)</span></div></span><div class='docblock'>Performs copy-assignment from <code>self</code> to <code>dest</code>. <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.CloneToUninit.html#tymethod.clone_to_uninit">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-From%3CT%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#791">Source</a><a href="#impl-From%3CT%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;T&gt; for T</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.from" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#794">Source</a><a href="#method.from" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.From.html#tymethod.from" class="fn">from</a>(t: T) -&gt; T</h4></section></summary><div class="docblock"><p>Returns the argument unchanged.</p>
+</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-HasTypeWitness%3CW%3E-for-T" class="impl"><a class="src rightside" href="../src/typewit/type_witness_traits.rs.html#106-115">Source</a><a href="#impl-HasTypeWitness%3CW%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, W&gt; <a class="trait" href="trait.HasTypeWitness.html" title="trait typewit::HasTypeWitness">HasTypeWitness</a>&lt;W&gt; for T<div class="where">where
+    W: <a class="trait" href="trait.MakeTypeWitness.html" title="trait typewit::MakeTypeWitness">MakeTypeWitness</a>&lt;Arg = T&gt;,
+    T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedconstant.WITNESS" class="associatedconstant trait-impl"><a class="src rightside" href="../src/typewit/type_witness_traits.rs.html#111">Source</a><a href="#associatedconstant.WITNESS" class="anchor">§</a><h4 class="code-header">const <a href="trait.HasTypeWitness.html#associatedconstant.WITNESS" class="constant">WITNESS</a>: W = const WITNESS: W = W::MAKE;</h4></section></summary><div class='docblock'>A constant of the type witness</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-Identity-for-T" class="impl"><a class="src rightside" href="../src/typewit/type_identity.rs.html#77-81">Source</a><a href="#impl-Identity-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="trait.Identity.html" title="trait typewit::Identity">Identity</a> for T<div class="where">where
+    T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedconstant.TYPE_EQ" class="associatedconstant trait-impl"><a class="src rightside" href="../src/typewit/type_identity.rs.html#80">Source</a><a href="#associatedconstant.TYPE_EQ" class="anchor">§</a><h4 class="code-header">const <a href="trait.Identity.html#associatedconstant.TYPE_EQ" class="constant">TYPE_EQ</a>: <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;T, &lt;T as <a class="trait" href="trait.Identity.html" title="trait typewit::Identity">Identity</a>&gt;::<a class="associatedtype" href="trait.Identity.html#associatedtype.Type" title="type typewit::Identity::Type">Type</a>&gt; = const TYPE_EQ: TypeEq&lt;Self, Self::Type&gt; = TypeEq::NEW;</h4></section></summary><div class='docblock'>Proof that <code>Self</code> is the same type as <code>Self::Type</code>,
+provides methods for casting between <code>Self</code> and <code>Self::Type</code>.</div></details><details class="toggle" open><summary><section id="associatedtype.Type" class="associatedtype trait-impl"><a class="src rightside" href="../src/typewit/type_identity.rs.html#78">Source</a><a href="#associatedtype.Type" class="anchor">§</a><h4 class="code-header">type <a href="trait.Identity.html#associatedtype.Type" class="associatedtype">Type</a> = T</h4></section></summary><div class='docblock'>The same type as <code>Self</code>,
+used to emulate type equality bounds (<code>T == U</code>)
+with associated type equality constraints
+(<code>T: Identity&lt;Type = U&gt;</code>).</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-Into%3CU%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#773-775">Source</a><a href="#impl-Into%3CU%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, U&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;U&gt; for T<div class="where">where
+    U: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;T&gt;,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.into" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#783">Source</a><a href="#method.into" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html#tymethod.into" class="fn">into</a>(self) -&gt; U</h4></section></summary><div class="docblock"><p>Calls <code>U::from(self)</code>.</p>
+<p>That is, this conversion is whatever the implementation of
+<code><a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;T&gt; for U</code> chooses to do.</p>
+</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TryFrom%3CU%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#833-835">Source</a><a href="#impl-TryFrom%3CU%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, U&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;U&gt; for T<div class="where">where
+    U: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;T&gt;,</div></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Error-1" class="associatedtype trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#837">Source</a><a href="#associatedtype.Error-1" class="anchor">§</a><h4 class="code-header">type <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html#associatedtype.Error" class="associatedtype">Error</a> = <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/convert/enum.Infallible.html" title="enum core::convert::Infallible">Infallible</a></h4></section></summary><div class='docblock'>The type returned in the event of a conversion error.</div></details><details class="toggle method-toggle" open><summary><section id="method.try_from" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#840">Source</a><a href="#method.try_from" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html#tymethod.try_from" class="fn">try_from</a>(value: U) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;T, &lt;T as <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;U&gt;&gt;::<a class="associatedtype" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html#associatedtype.Error" title="type core::convert::TryFrom::Error">Error</a>&gt;</h4></section></summary><div class='docblock'>Performs the conversion.</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TryInto%3CU%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#817-819">Source</a><a href="#impl-TryInto%3CU%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, U&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryInto.html" title="trait core::convert::TryInto">TryInto</a>&lt;U&gt; for T<div class="where">where
+    U: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;T&gt;,</div></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Error" class="associatedtype trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#821">Source</a><a href="#associatedtype.Error" class="anchor">§</a><h4 class="code-header">type <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryInto.html#associatedtype.Error" class="associatedtype">Error</a> = &lt;U as <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;T&gt;&gt;::<a class="associatedtype" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html#associatedtype.Error" title="type core::convert::TryFrom::Error">Error</a></h4></section></summary><div class='docblock'>The type returned in the event of a conversion error.</div></details><details class="toggle method-toggle" open><summary><section id="method.try_into" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#824">Source</a><a href="#method.try_into" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryInto.html#tymethod.try_into" class="fn">try_into</a>(self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;U, &lt;U as <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;T&gt;&gt;::<a class="associatedtype" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html#associatedtype.Error" title="type core::convert::TryFrom::Error">Error</a>&gt;</h4></section></summary><div class='docblock'>Performs the conversion.</div></details></div></details></div></section></div></main></body></html>

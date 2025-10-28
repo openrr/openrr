@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ABI_VERSION"],"enum":["FfiPoll"],"struct":["BorrowingFfiFuture","FfiContext","LocalBorrowingFfiFuture","PollPanicked"],"trait":["ContextExt","FutureExt"],"type":["FfiFuture","LocalFfiFuture"]};

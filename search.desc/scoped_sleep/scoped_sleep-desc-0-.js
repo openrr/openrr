@@ -1,0 +1,1 @@
+searchState.loadedDescShard("scoped_sleep", 0, "scoped-sleep\nRAII sleep\nReturns the argument unchanged.\nCreate sleep from float secs value\nCalls <code>U::from(self)</code>.\nCreate sleep")

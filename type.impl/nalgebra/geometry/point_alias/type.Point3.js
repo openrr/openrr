@@ -1,0 +1,9 @@
+(function() {
+    var type_impls = Object.fromEntries([["ncollide3d",[["<details class=\"toggle implementors-toggle\" open><summary><section id=\"impl-AsBytes-for-OPoint%3CN,+Const%3C3%3E%3E\" class=\"impl\"><a class=\"src rightside\" href=\"src/ncollide3d/utils/as_bytes.rs.html#28\">Source</a><a href=\"#impl-AsBytes-for-OPoint%3CN,+Const%3C3%3E%3E\" class=\"anchor\">§</a><h3 class=\"code-header\">impl&lt;N: <a class=\"trait\" href=\"simba/scalar/real/trait.RealField.html\" title=\"trait simba::scalar::real::RealField\">RealField</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/marker/trait.Copy.html\" title=\"trait core::marker::Copy\">Copy</a>&gt; <a class=\"trait\" href=\"ncollide3d/utils/trait.AsBytes.html\" title=\"trait ncollide3d::utils::AsBytes\">AsBytes</a> for <a class=\"type\" href=\"nalgebra/geometry/point_alias/type.Point3.html\" title=\"type nalgebra::geometry::point_alias::Point3\">Point3</a>&lt;N&gt;</h3></section></summary><div class=\"impl-items\"><section id=\"method.as_bytes\" class=\"method trait-impl\"><a class=\"src rightside\" href=\"src/ncollide3d/utils/as_bytes.rs.html#28\">Source</a><a href=\"#method.as_bytes\" class=\"anchor\">§</a><h4 class=\"code-header\">fn <a href=\"ncollide3d/utils/trait.AsBytes.html#tymethod.as_bytes\" class=\"fn\">as_bytes</a>&lt;'a&gt;(&amp;'a self) -&gt; &amp;'a [<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.90.0/std/primitive.u8.html\">u8</a>] <a href=\"#\" class=\"tooltip\" data-notable-ty=\"&amp;&#39;a [u8]\">ⓘ</a></h4></section></div></details>","AsBytes","ncollide3d::math::Point"]]]]);
+    if (window.register_type_impls) {
+        window.register_type_impls(type_impls);
+    } else {
+        window.pending_type_impls = type_impls;
+    }
+})()
+//{"start":55,"fragment_lengths":[1548]}

@@ -1,0 +1,1124 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Serde `Deserializer` module."><title>quick_xml::de - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../quick_xml/index.html">quick_<wbr>xml</a><span class="version">0.36.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module de</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#table-of-contents" title="Table of Contents">Table of Contents</a></li><li><a href="#mapping-xml-to-rust-types" title="Mapping XML to Rust types">Mapping XML to Rust types</a><ul><li><a href="#basics" title="Basics">Basics</a></li><li><a href="#optional-attributes-and-elements" title="Optional attributes and elements">Optional attributes and elements</a></li><li><a href="#choices-xschoice-xml-schema-type" title="Choices (`xs:choice` XML Schema type)">Choices (<code>xs:choice</code> XML Schema type)</a></li><li><a href="#sequences-xsall-and-xssequence-xml-schema-types" title="Sequences (`xs:all` and `xs:sequence` XML Schema types)">Sequences (<code>xs:all</code> and <code>xs:sequence</code> XML Schema types)</a></li></ul></li><li><a href="#generate-rust-types-from-xml" title="Generate Rust types from XML">Generate Rust types from XML</a></li><li><a href="#composition-rules" title="Composition Rules">Composition Rules</a></li><li><a href="#enum-representations" title="Enum Representations">Enum Representations</a><ul><li><a href="#normal-enum-variant" title="Normal enum variant">Normal enum variant</a></li><li><a href="#text-enum-variant" title="`$text` enum variant"><code>$text</code> enum variant</a></li></ul></li><li><a href="#difference-between-text-and-value-special-names" title="Difference between `$text` and `$value` special names">Difference between <code>$text</code> and <code>$value</code> special names</a><ul><li><a href="#text" title="`$text`"><code>$text</code></a></li><li><a href="#value" title="`$value`"><code>$value</code></a></li></ul></li><li><a href="#frequently-used-patterns" title="Frequently Used Patterns">Frequently Used Patterns</a><ul><li><a href="#element-lists" title="`&#60;element&#62;` lists"><code>&lt;element&gt;</code> lists</a></li><li><a href="#overlapped-out-of-order-elements" title="Overlapped (Out-of-Order) Elements">Overlapped (Out-of-Order) Elements</a></li><li><a href="#internally-tagged-enums" title="Internally Tagged Enums">Internally Tagged Enums</a></li></ul></li></ul><h3><a href="#reexports">Module Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate quick_<wbr>xml</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">quick_xml</a></div><h1>Module <span>de</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/quick_xml/de/mod.rs.html#1-4683">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Serde <code>Deserializer</code> module.</p>
+<p>Due to the complexity of the XML standard and the fact that Serde was developed
+with JSON in mind, not all Serde concepts apply smoothly to XML. This leads to
+that fact that some XML concepts are inexpressible in terms of Serde derives
+and may require manual deserialization.</p>
+<p>The most notable restriction is the ability to distinguish between <em>elements</em>
+and <em>attributes</em>, as no other format used by serde has such a conception.</p>
+<p>Due to that the mapping is performed in a best effort manner.</p>
+<h2 id="table-of-contents"><a class="doc-anchor" href="#table-of-contents">§</a>Table of Contents</h2>
+<ul>
+<li><a href="#mapping-xml-to-rust-types">Mapping XML to Rust types</a>
+<ul>
+<li><a href="#basics">Basics</a></li>
+<li><a href="#optional-attributes-and-elements">Optional attributes and elements</a></li>
+<li><a href="#choices-xschoice-xml-schema-type">Choices (<code>xs:choice</code> XML Schema type)</a></li>
+<li><a href="#sequences-xsall-and-xssequence-xml-schema-types">Sequences (<code>xs:all</code> and <code>xs:sequence</code> XML Schema types)</a></li>
+</ul>
+</li>
+<li><a href="#generate-rust-types-from-xml">Generate Rust types from XML</a></li>
+<li><a href="#composition-rules">Composition Rules</a></li>
+<li><a href="#enum-representations">Enum Representations</a>
+<ul>
+<li><a href="#normal-enum-variant">Normal enum variant</a></li>
+<li><a href="#text-enum-variant"><code>$text</code> enum variant</a></li>
+</ul>
+</li>
+<li><a href="#difference-between-text-and-value-special-names">Difference between <code>$text</code> and <code>$value</code> special names</a>
+<ul>
+<li><a href="#text"><code>$text</code></a></li>
+<li><a href="#value"><code>$value</code></a>
+<ul>
+<li><a href="#primitives-and-sequences-of-primitives">Primitives and sequences of primitives</a></li>
+<li><a href="#structs-and-sequences-of-structs">Structs and sequences of structs</a></li>
+<li><a href="#enums-and-sequences-of-enums">Enums and sequences of enums</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#frequently-used-patterns">Frequently Used Patterns</a>
+<ul>
+<li><a href="#element-lists"><code>&lt;element&gt;</code> lists</a></li>
+<li><a href="#overlapped-out-of-order-elements">Overlapped (Out-of-Order) Elements</a></li>
+<li><a href="#internally-tagged-enums">Internally Tagged Enums</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="mapping-xml-to-rust-types"><a class="doc-anchor" href="#mapping-xml-to-rust-types">§</a>Mapping XML to Rust types</h2>
+<p>Type names are never considered when deserializing, so you can name your
+types as you wish. Other general rules:</p>
+<ul>
+<li><code>struct</code> field name could be represented in XML only as an attribute name
+or an element name;</li>
+<li><code>enum</code> variant name could be represented in XML only as an attribute name
+or an element name;</li>
+<li>the unit struct, unit type <code>()</code> and unit enum variant can be deserialized
+from any valid XML content:
+<ul>
+<li>attribute and element names;</li>
+<li>attribute and element values;</li>
+<li>text or CDATA content (including mixed text and CDATA content).</li>
+</ul>
+</li>
+</ul>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: All tests are marked with an <code>ignore</code> option, even though they do
+compile. This is  because rustdoc marks such blocks with an information
+icon unlike <code>no_run</code> blocks.</p>
+</div>
+<table>
+<thead>
+<tr><th colspan="2">
+<h3 id="basics"><a class="doc-anchor" href="#basics">§</a>Basics</h3></th></tr>
+<tr><th>To parse all these XML's...</th><th>...use these Rust type(s)</th></tr>
+</thead>
+<tbody style="vertical-align:top;">
+<tr>
+<td>
+Content of attributes and text / CDATA content of elements (including mixed
+text and CDATA content):
+<div class="example-wrap"><pre class="language-xml"><code>&lt;... ...=&quot;content&quot; /&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;...&gt;content&lt;/...&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;...&gt;&lt;![CDATA[content]]&gt;&lt;/...&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;...&gt;text&lt;![CDATA[cdata]]&gt;text&lt;/...&gt;</code></pre></div>
+<p>Mixed text / CDATA content represents one logical string, <code>"textcdatatext"</code> in that case.</p>
+</td>
+<td>
+<p>You can use any type that can be deserialized from an <code>&amp;str</code>, for example:</p>
+<ul>
+<li><a href="https://doc.rust-lang.org/1.90.0/alloc/string/struct.String.html" title="struct alloc::string::String"><code>String</code></a> and <a href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html" title="primitive str"><code>&amp;str</code></a></li>
+<li><a href="https://doc.rust-lang.org/1.90.0/alloc/borrow/enum.Cow.html" title="enum alloc::borrow::Cow"><code>Cow&lt;str&gt;</code></a></li>
+<li><a href="https://doc.rust-lang.org/1.90.0/std/primitive.u32.html" title="primitive u32"><code>u32</code></a>, <a href="https://doc.rust-lang.org/1.90.0/std/primitive.f32.html" title="primitive f32"><code>f32</code></a> and other numeric types</li>
+<li><code>enum</code>s, like
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">enum </span>Language {
+  Rust,
+  Cpp,
+  <span class="attr">#[serde(other)]
+  </span>Other,
+}</code></pre></div>
+</li>
+</ul>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: deserialization to non-owned types (i.e. borrow from the input),
+such as <code>&amp;str</code>, is possible only if you parse document in the UTF-8
+encoding and content does not contain entity references such as <code>&amp;amp;</code>,
+or character references such as <code>&amp;#xD;</code>, as well as text content represented
+by one piece of <a href="../events/enum.Event.html#variant.Text" title="variant quick_xml::events::Event::Text">text</a> or <a href="../events/enum.Event.html#variant.CData" title="variant quick_xml::events::Event::CData">CDATA</a> element.</p>
+</div>
+<!-- TODO: document an error type returned -->
+</td>
+</tr>
+<!-- 2 ===================================================================================== -->
+<tr>
+<td>
+<p>Content of attributes and text / CDATA content of elements (including mixed
+text and CDATA content), which represents a space-delimited lists, as
+specified in the XML Schema specification for <a href="https://www.w3.org/TR/xmlschema11-2/#list-datatypes"><code>xs:list</code></a> <code>simpleType</code>:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;... ...=&quot;element1 element2 ...&quot; /&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;...&gt;
+  element1
+  element2
+  ...
+&lt;/...&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;...&gt;&lt;![CDATA[
+  element1
+  element2
+  ...
+]]&gt;&lt;/...&gt;</code></pre></div></td>
+<td>
+<p>Use any type that deserialized using <a href="../../serde_core/de/trait.Deserializer.html#tymethod.deserialize_seq" title="method serde_core::de::Deserializer::deserialize_seq"><code>deserialize_seq()</code></a> call, for example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">type </span>List = Vec&lt;u32&gt;;</code></pre></div>
+<p>See the next row to learn where in your struct definition you should
+use that type.</p>
+<p>According to the XML Schema specification, delimiters for elements is one
+or more space (<code>' '</code>, <code>'\r'</code>, <code>'\n'</code>, and <code>'\t'</code>) character(s).</p>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: according to the XML Schema restrictions, you cannot escape those
+white-space characters, so list elements will <em>never</em> contain them.
+In practice you will usually use <code>xs:list</code>s for lists of numbers or enumerated
+values which looks like identifiers in many languages, for example, <code>item</code>,
+<code>some_item</code> or <code>some-item</code>, so that shouldn’t be a problem.</p>
+<p>NOTE: according to the XML Schema specification, list elements can be
+delimited only by spaces. Other delimiters (for example, commas) are not
+allowed.</p>
+</div>
+</td>
+</tr>
+<!-- 3 ===================================================================================== -->
+<tr>
+<td>
+A typical XML with attributes. The root tag name does not matter:
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag one=&quot;...&quot; two=&quot;...&quot;/&gt;</code></pre></div></td>
+<td>
+<p>A structure where each XML attribute is mapped to a field with a name
+starting with <code>@</code>. Because Rust identifiers do not permit the <code>@</code> character,
+you should use the <code>#[serde(rename = "@...")]</code> attribute to rename it.
+The name of the struct itself does not matter:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Get both attributes
+</span><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(rename = <span class="string">"@one"</span>)]
+  </span>one: T,
+
+  <span class="attr">#[serde(rename = <span class="string">"@two"</span>)]
+  </span>two: U,
+}</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Get only the one attribute, ignore the other
+</span><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(rename = <span class="string">"@one"</span>)]
+  </span>one: T,
+}</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Ignore all attributes
+// You can also use the `()` type (unit type)
+</span><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName;</code></pre></div>
+<p>All these structs can be used to deserialize from an XML on the
+left side depending on amount of information that you want to get.
+Of course, you can combine them with elements extractor structs (see below).</p>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: XML allows you to have an attribute and an element with the same name
+inside the one element. quick-xml deals with that by prepending a <code>@</code> prefix
+to the name of attributes.</p>
+</div>
+</td>
+</tr>
+<!-- 4 ===================================================================================== -->
+<tr>
+<td>
+A typical XML with child elements. The root tag name does not matter:
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag&gt;
+  &lt;one&gt;...&lt;/one&gt;
+  &lt;two&gt;...&lt;/two&gt;
+&lt;/any-tag&gt;</code></pre></div></td>
+<td>
+A structure where each XML child element is mapped to the field.
+Each element name becomes a name of field. The name of the struct itself
+does not matter:
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Get both elements
+</span><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  one: T,
+  two: U,
+}</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Get only the one element, ignore the other
+</span><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  one: T,
+}</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Ignore all elements
+// You can also use the `()` type (unit type)
+</span><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName;</code></pre></div>
+<p>All these structs can be used to deserialize from an XML on the
+left side depending on amount of information that you want to get.
+Of course, you can combine them with attributes extractor structs (see above).</p>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: XML allows you to have an attribute and an element with the same name
+inside the one element. quick-xml deals with that by prepending a <code>@</code> prefix
+to the name of attributes.</p>
+</div>
+</td>
+</tr>
+<!-- 5 ===================================================================================== -->
+<tr>
+<td>
+An XML with an attribute and a child element named equally:
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag field=&quot;...&quot;&gt;
+  &lt;field&gt;...&lt;/field&gt;
+&lt;/any-tag&gt;</code></pre></div></td>
+<td>
+<p>You MUST specify <code>#[serde(rename = "@field")]</code> on a field that will be used
+for an attribute:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(rename = <span class="string">"@field"</span>)]
+  </span>attribute: T,
+  field: U,
+}</code></pre></div>
+</td>
+</tr>
+<!-- ======================================================================================= -->
+<tr><th colspan="2">
+<h3 id="optional-attributes-and-elements"><a class="doc-anchor" href="#optional-attributes-and-elements">§</a>Optional attributes and elements</h3></th></tr>
+<tr><th>To parse all these XML's...</th><th>...use these Rust type(s)</th></tr>
+<!-- 6 ===================================================================================== -->
+<tr>
+<td>
+An optional XML attribute that you want to capture.
+The root tag name does not matter:
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag optional=&quot;...&quot;/&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag/&gt;</code></pre></div></td>
+<td>
+<p>A structure with an optional field, renamed according to the requirements
+for attributes:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(rename = <span class="string">"@optional"</span>)]
+  </span>optional: <span class="prelude-ty">Option</span>&lt;T&gt;,
+}</code></pre></div>
+<p>When the XML attribute is present, type <code>T</code> will be deserialized from
+an attribute value (which is a string). Note, that if <code>T = String</code> or other
+string type, the empty attribute is mapped to a <code>Some("")</code>, whereas <code>None</code>
+represents the missed attribute:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag optional=&quot;...&quot;/&gt;&lt;!-- Some(&quot;...&quot;) --&gt;
+&lt;any-tag optional=&quot;&quot;/&gt;   &lt;!-- Some(&quot;&quot;) --&gt;
+&lt;any-tag/&gt;               &lt;!-- None --&gt;</code></pre></div></td>
+</tr>
+<!-- 7 ===================================================================================== -->
+<tr>
+<td>
+An optional XML elements that you want to capture.
+The root tag name does not matter:
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag/&gt;
+  &lt;optional&gt;...&lt;/optional&gt;
+&lt;/any-tag&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag/&gt;
+  &lt;optional/&gt;
+&lt;/any-tag&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag/&gt;</code></pre></div></td>
+<td>
+<p>A structure with an optional field:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  optional: <span class="prelude-ty">Option</span>&lt;T&gt;,
+}</code></pre></div>
+<p>When the XML element is present, type <code>T</code> will be deserialized from an
+element (which is a string or a multi-mapping – i.e. mapping which can have
+duplicated keys).</p>
+<div style="background:rgba(80, 240, 100, 0.20);padding:0.75em;">
+<p>Currently some edge cases exists described in the issue <a href="https://github.com/tafia/quick-xml/issues/497">#497</a>.</p>
+</div>
+</td>
+</tr>
+<!-- ======================================================================================= -->
+<tr><th colspan="2">
+<h3 id="choices-xschoice-xml-schema-type"><a class="doc-anchor" href="#choices-xschoice-xml-schema-type">§</a>Choices (<code>xs:choice</code> XML Schema type)</h3></th></tr>
+<tr><th>To parse all these XML's...</th><th>...use these Rust type(s)</th></tr>
+<!-- 8 ===================================================================================== -->
+<tr>
+<td>
+An XML with different root tag names, as well as text / CDATA content:
+<div class="example-wrap"><pre class="language-xml"><code>&lt;one field1=&quot;...&quot;&gt;...&lt;/one&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;two&gt;
+  &lt;field2&gt;...&lt;/field2&gt;
+&lt;/two&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>Text &lt;![CDATA[or (mixed)
+CDATA]]&gt; content</code></pre></div></td>
+<td>
+<p>An enum where each variant has the name of a possible root tag. The name of
+the enum itself does not matter.</p>
+<p>If you need to get the textual content, mark a variant with <code>#[serde(rename = "$text")]</code>.</p>
+<p>All these structs can be used to deserialize from any XML on the
+left side depending on amount of information that you want to get:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>AnyName {
+  One { <span class="attr">#[serde(rename = <span class="string">"@field1"</span>)] </span>field1: T },
+  Two { field2: U },
+
+  <span class="doccomment">/// Use unit variant, if you do not care of a content.
+  /// You can use tuple variant if you want to parse
+  /// textual content as an xs:list.
+  /// Struct variants are will pass a string to the
+  /// struct enum variant visitor, which typically
+  /// returns Err(Custom)
+  </span><span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
+  </span>Text(String),
+}</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>Two {
+  field2: T,
+}
+<span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>AnyName {
+  <span class="comment">// `field1` content discarded
+  </span>One,
+  Two(Two),
+  <span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
+  </span>Text,
+}</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>AnyName {
+  One,
+  <span class="comment">// the &lt;two&gt; and textual content will be mapped to this
+  </span><span class="attr">#[serde(other)]
+  </span>Other,
+}</code></pre></div>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: You should have variants for all possible tag names in your enum
+or have an <code>#[serde(other)]</code> variant.</p>
+<!-- TODO: document an error type if that requirement is violated -->
+</div>
+</td>
+</tr>
+<!-- 9 ===================================================================================== -->
+<tr>
+<td>
+<p><code>&lt;xs:choice&gt;</code> embedded in the other element, and at the same time you want
+to get access to other attributes that can appear in the same container
+(<code>&lt;any-tag&gt;</code>). Also this case can be described, as if you want to choose
+Rust enum variant based on a tag name:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag field=&quot;...&quot;&gt;
+  &lt;one&gt;...&lt;/one&gt;
+&lt;/any-tag&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag field=&quot;...&quot;&gt;
+  &lt;two&gt;...&lt;/two&gt;
+&lt;/any-tag&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag field=&quot;...&quot;&gt;
+  Text &lt;![CDATA[or (mixed)
+  CDATA]]&gt; content
+&lt;/any-tag&gt;</code></pre></div></td>
+<td>
+<p>A structure with a field which type is an <code>enum</code>.</p>
+<p>If you need to get a textual content, mark a variant with <code>#[serde(rename = "$text")]</code>.</p>
+<p>Names of the enum, struct, and struct field with <code>Choice</code> type does not matter:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>Choice {
+  One,
+  Two,
+
+  <span class="doccomment">/// Use unit variant, if you do not care of a content.
+  /// You can use tuple variant if you want to parse
+  /// textual content as an xs:list.
+  /// Struct variants are will pass a string to the
+  /// struct enum variant visitor, which typically
+  /// returns Err(Custom)
+  </span><span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
+  </span>Text(String),
+}
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(rename = <span class="string">"@field"</span>)]
+  </span>field: T,
+
+  <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+  </span>any_name: Choice,
+}</code></pre></div>
+</td>
+</tr>
+<!-- 10 ==================================================================================== -->
+<tr>
+<td>
+<p><code>&lt;xs:choice&gt;</code> embedded in the other element, and at the same time you want
+to get access to other elements that can appear in the same container
+(<code>&lt;any-tag&gt;</code>). Also this case can be described, as if you want to choose
+Rust enum variant based on a tag name:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag&gt;
+  &lt;field&gt;...&lt;/field&gt;
+  &lt;one&gt;...&lt;/one&gt;
+&lt;/any-tag&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag&gt;
+  &lt;two&gt;...&lt;/two&gt;
+  &lt;field&gt;...&lt;/field&gt;
+&lt;/any-tag&gt;</code></pre></div></td>
+<td>
+<p>A structure with a field which type is an <code>enum</code>.</p>
+<p>Names of the enum, struct, and struct field with <code>Choice</code> type does not matter:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>Choice {
+  One,
+  Two,
+}
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  field: T,
+
+  <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+  </span>any_name: Choice,
+}</code></pre></div>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: if your <code>Choice</code> enum would contain an <code>#[serde(other)]</code>
+variant, element <code>&lt;field&gt;</code> will be mapped to the <code>field</code> and not to the enum
+variant.</p>
+</div>
+</td>
+</tr>
+<!-- 11 ==================================================================================== -->
+<tr>
+<td>
+<p><code>&lt;xs:choice&gt;</code> encapsulated in other element with a fixed name:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag field=&quot;...&quot;&gt;
+  &lt;choice&gt;
+    &lt;one&gt;...&lt;/one&gt;
+  &lt;/choice&gt;
+&lt;/any-tag&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag field=&quot;...&quot;&gt;
+  &lt;choice&gt;
+    &lt;two&gt;...&lt;/two&gt;
+  &lt;/choice&gt;
+&lt;/any-tag&gt;</code></pre></div></td>
+<td>
+<p>A structure with a field of an intermediate type with one field of <code>enum</code> type.
+Actually, this example is not necessary, because you can construct it by yourself
+using the composition rules that were described above. However the XML construction
+described here is very common, so it is shown explicitly.</p>
+<p>Names of the enum and struct does not matter:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>Choice {
+  One,
+  Two,
+}
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>Holder {
+  <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+  </span>any_name: Choice,
+}
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(rename = <span class="string">"@field"</span>)]
+  </span>field: T,
+
+  choice: Holder,
+}</code></pre></div>
+</td>
+</tr>
+<!-- 12 ==================================================================================== -->
+<tr>
+<td>
+<p><code>&lt;xs:choice&gt;</code> encapsulated in other element with a fixed name:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag&gt;
+  &lt;field&gt;...&lt;/field&gt;
+  &lt;choice&gt;
+    &lt;one&gt;...&lt;/one&gt;
+  &lt;/choice&gt;
+&lt;/any-tag&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag&gt;
+  &lt;choice&gt;
+    &lt;two&gt;...&lt;/two&gt;
+  &lt;/choice&gt;
+  &lt;field&gt;...&lt;/field&gt;
+&lt;/any-tag&gt;</code></pre></div></td>
+<td>
+<p>A structure with a field of an intermediate type with one field of <code>enum</code> type.
+Actually, this example is not necessary, because you can construct it by yourself
+using the composition rules that were described above. However the XML construction
+described here is very common, so it is shown explicitly.</p>
+<p>Names of the enum and struct does not matter:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>Choice {
+  One,
+  Two,
+}
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>Holder {
+  <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+  </span>any_name: Choice,
+}
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  field: T,
+
+  choice: Holder,
+}</code></pre></div>
+</td>
+</tr>
+<!-- ======================================================================================== -->
+<tr><th colspan="2">
+<h3 id="sequences-xsall-and-xssequence-xml-schema-types"><a class="doc-anchor" href="#sequences-xsall-and-xssequence-xml-schema-types">§</a>Sequences (<code>xs:all</code> and <code>xs:sequence</code> XML Schema types)</h3></th></tr>
+<tr><th>To parse all these XML's...</th><th>...use these Rust type(s)</th></tr>
+<!-- 13 ==================================================================================== -->
+<tr>
+<td>
+A sequence inside of a tag without a dedicated name:
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag/&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag&gt;
+  &lt;item/&gt;
+&lt;/any-tag&gt;</code></pre></div><div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag&gt;
+  &lt;item/&gt;
+  &lt;item/&gt;
+  &lt;item/&gt;
+&lt;/any-tag&gt;</code></pre></div></td>
+<td>
+<p>A structure with a field which is a sequence type, for example, <a href="https://doc.rust-lang.org/1.90.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec"><code>Vec</code></a>.
+Because XML syntax does not distinguish between empty sequences and missed
+elements, we should indicate that on the Rust side, because serde will require
+that field <code>item</code> exists. You can do that in two possible ways:</p>
+<p>Use the <code>#[serde(default)]</code> attribute for a <a href="https://serde.rs/field-attrs.html#default">field</a> or the entire <a href="https://serde.rs/container-attrs.html#default">struct</a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(default)]
+  </span>item: Vec&lt;Item&gt;,
+}</code></pre></div>
+<p>Use the <a href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option"><code>Option</code></a>. In that case inner array will always contains at least one
+element after deserialization:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  item: <span class="prelude-ty">Option</span>&lt;Vec&lt;Item&gt;&gt;,
+}</code></pre></div>
+<p>See also <a href="#element-lists">Frequently Used Patterns</a>.</p>
+</td>
+</tr>
+<!-- 14 ==================================================================================== -->
+<tr>
+<td>
+A sequence with a strict order, probably with mixed content
+(text / CDATA and tags):
+<div class="example-wrap"><pre class="language-xml"><code>&lt;one&gt;...&lt;/one&gt;
+text
+&lt;![CDATA[cdata]]&gt;
+&lt;two&gt;...&lt;/two&gt;
+&lt;one&gt;...&lt;/one&gt;</code></pre></div><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: this is just an example for showing mapping. XML does not allow
+multiple root tags – you should wrap the sequence into a tag.</p>
+</div>
+</td>
+<td>
+<p>All elements mapped to the heterogeneous sequential type: tuple or named tuple.
+Each element of the tuple should be able to be deserialized from the nested
+element content (<code>...</code>), except the enum types which would be deserialized
+from the full element (<code>&lt;one&gt;...&lt;/one&gt;</code>), so they could use the element name
+to choose the right variant:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">type </span>One = ...;
+<span class="kw">type </span>Two = ...;
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName(One, String, Two, One);</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>Choice {
+  One,
+}
+<span class="kw">type </span>Two = ...;
+<span class="kw">type </span>AnyName = (Choice, String, Two, Choice);</code></pre></div>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: consequent text and CDATA nodes are merged into the one text node,
+so you cannot have two adjacent string types in your sequence.</p>
+<p>NOTE: In the case that the list might contain tags that are overlapped with
+tags that do not correspond to the list you should add the feature <a href="../index.html#overlapped-lists"><code>overlapped-lists</code></a>.</p>
+</div>
+</td>
+</tr>
+<!-- 15 ==================================================================================== -->
+<tr>
+<td>
+A sequence with a non-strict order, probably with a mixed content
+(text / CDATA and tags).
+<div class="example-wrap"><pre class="language-xml"><code>&lt;one&gt;...&lt;/one&gt;
+text
+&lt;![CDATA[cdata]]&gt;
+&lt;two&gt;...&lt;/two&gt;
+&lt;one&gt;...&lt;/one&gt;</code></pre></div><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: this is just an example for showing mapping. XML does not allow
+multiple root tags – you should wrap the sequence into a tag.</p>
+</div>
+</td>
+<td>
+A homogeneous sequence of elements with a fixed or dynamic size:
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>Choice {
+  One,
+  Two,
+  <span class="attr">#[serde(other)]
+  </span>Other,
+}
+<span class="kw">type </span>AnyName = [Choice; <span class="number">4</span>];</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>Choice {
+  One,
+  Two,
+  <span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
+  </span>Other(String),
+}
+<span class="kw">type </span>AnyName = Vec&lt;Choice&gt;;</code></pre></div>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: consequent text and CDATA nodes are merged into the one text node,
+so you cannot have two adjacent string types in your sequence.</p>
+</div>
+</td>
+</tr>
+<!-- 16 ==================================================================================== -->
+<tr>
+<td>
+A sequence with a strict order, probably with a mixed content,
+(text and tags) inside of the other element:
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag attribute=&quot;...&quot;&gt;
+  &lt;one&gt;...&lt;/one&gt;
+  text
+  &lt;![CDATA[cdata]]&gt;
+  &lt;two&gt;...&lt;/two&gt;
+  &lt;one&gt;...&lt;/one&gt;
+&lt;/any-tag&gt;</code></pre></div></td>
+<td>
+<p>A structure where all child elements mapped to the one field which have
+a heterogeneous sequential type: tuple or named tuple. Each element of the
+tuple should be able to be deserialized from the full element (<code>&lt;one&gt;...&lt;/one&gt;</code>).</p>
+<p>You MUST specify <code>#[serde(rename = "$value")]</code> on that field:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">type </span>One = ...;
+<span class="kw">type </span>Two = ...;
+
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(rename = <span class="string">"@attribute"</span>)]
+  </span>attribute: ...,
+  <span class="comment">// Does not (yet?) supported by the serde
+  // https://github.com/serde-rs/serde/issues/1905
+  // #[serde(flatten)]
+  </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+  </span>any_name: (One, String, Two, One),
+}</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">type </span>One = ...;
+<span class="kw">type </span>Two = ...;
+
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>NamedTuple(One, String, Two, One);
+
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(rename = <span class="string">"@attribute"</span>)]
+  </span>attribute: ...,
+  <span class="comment">// Does not (yet?) supported by the serde
+  // https://github.com/serde-rs/serde/issues/1905
+  // #[serde(flatten)]
+  </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+  </span>any_name: NamedTuple,
+}</code></pre></div>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: consequent text and CDATA nodes are merged into the one text node,
+so you cannot have two adjacent string types in your sequence.</p>
+</div>
+</td>
+</tr>
+<!-- 17 ==================================================================================== -->
+<tr>
+<td>
+A sequence with a non-strict order, probably with a mixed content
+(text / CDATA and tags) inside of the other element:
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-tag&gt;
+  &lt;one&gt;...&lt;/one&gt;
+  text
+  &lt;![CDATA[cdata]]&gt;
+  &lt;two&gt;...&lt;/two&gt;
+  &lt;one&gt;...&lt;/one&gt;
+&lt;/any-tag&gt;</code></pre></div></td>
+<td>
+<p>A structure where all child elements mapped to the one field which have
+a homogeneous sequential type: array-like container. A container type <code>T</code>
+should be able to be deserialized from the nested element content (<code>...</code>),
+except if it is an enum type which would be deserialized from the full
+element (<code>&lt;one&gt;...&lt;/one&gt;</code>).</p>
+<p>You MUST specify <code>#[serde(rename = "$value")]</code> on that field:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>Choice {
+  One,
+  Two,
+  <span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
+  </span>Other(String),
+}
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(rename = <span class="string">"@attribute"</span>)]
+  </span>attribute: ...,
+  <span class="comment">// Does not (yet?) supported by the serde
+  // https://github.com/serde-rs/serde/issues/1905
+  // #[serde(flatten)]
+  </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+  </span>any_name: [Choice; <span class="number">4</span>],
+}</code></pre></div>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"snake_case"</span>)]
+</span><span class="kw">enum </span>Choice {
+  One,
+  Two,
+  <span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
+  </span>Other(String),
+}
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName {
+  <span class="attr">#[serde(rename = <span class="string">"@attribute"</span>)]
+  </span>attribute: ...,
+  <span class="comment">// Does not (yet?) supported by the serde
+  // https://github.com/serde-rs/serde/issues/1905
+  // #[serde(flatten)]
+  </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+  </span>any_name: Vec&lt;Choice&gt;,
+}</code></pre></div>
+<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: consequent text and CDATA nodes are merged into the one text node,
+so you cannot have two adjacent string types in your sequence.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<h2 id="generate-rust-types-from-xml"><a class="doc-anchor" href="#generate-rust-types-from-xml">§</a>Generate Rust types from XML</h2>
+<p>To speed up the creation of Rust types that represent a given XML file you can
+use the <a href="https://github.com/Thomblin/xml_schema_generator">xml_schema_generator</a>.
+It provides a standalone binary and a Rust library that parses one or more XML files
+and generates a collection of structs that are compatible with quick_xml::de.</p>
+<h2 id="composition-rules"><a class="doc-anchor" href="#composition-rules">§</a>Composition Rules</h2>
+<p>The XML format is very different from other formats supported by <code>serde</code>.
+One such difference it is how data in the serialized form is related to
+the Rust type. Usually each byte in the data can be associated only with
+one field in the data structure. However, XML is an exception.</p>
+<p>For example, took this XML:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any&gt;
+  &lt;key attr=&quot;value&quot;/&gt;
+&lt;/any&gt;</code></pre></div>
+<p>and try to deserialize it to the struct <code>AnyName</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>AnyName { <span class="comment">// AnyName calls `deserialize_struct` on `&lt;any&gt;&lt;key attr="value"/&gt;&lt;/any&gt;`
+                 //                         Used data:          ^^^^^^^^^^^^^^^^^^^
+  </span>key: Inner,    <span class="comment">// Inner   calls `deserialize_struct` on `&lt;key attr="value"/&gt;`
+                 //                         Used data:          ^^^^^^^^^^^^
+</span>}
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>Inner {
+  <span class="attr">#[serde(rename = <span class="string">"@attr"</span>)]
+  </span>attr: String,  <span class="comment">// String  calls `deserialize_string` on `value`
+                 //                         Used data:     ^^^^^
+</span>}</code></pre></div>
+<p>Comments shows what methods of a <a href="struct.Deserializer.html" title="struct quick_xml::de::Deserializer"><code>Deserializer</code></a> called by each struct
+<code>deserialize</code> method and which input their seen. <strong>Used data</strong> shows, what
+content is actually used for deserializing. As you see, name of the inner
+<code>&lt;key&gt;</code> tag used both as a map key / outer struct field name and as part
+of the inner struct (although <em>value</em> of the tag, i.e. <code>key</code> is not used
+by it).</p>
+<h2 id="enum-representations"><a class="doc-anchor" href="#enum-representations">§</a>Enum Representations</h2>
+<p><code>quick-xml</code> represents enums differently in normal fields, <code>$text</code> fields and
+<code>$value</code> fields. A normal representation is compatible with serde’s adjacent
+and internal tags feature – tag for adjacently and internally tagged enums
+are serialized using <a href="../../serde_core/ser/trait.Serializer.html#tymethod.serialize_unit_variant" title="method serde_core::ser::Serializer::serialize_unit_variant"><code>Serializer::serialize_unit_variant</code></a> and deserialized
+using <a href="../../serde_core/de/trait.Deserializer.html#tymethod.deserialize_enum" title="method serde_core::de::Deserializer::deserialize_enum"><code>Deserializer::deserialize_enum</code></a>.</p>
+<p>Use those simple rules to remember, how enum would be represented in XML:</p>
+<ul>
+<li>In <code>$value</code> field the representation is always the same as top-level representation;</li>
+<li>In <code>$text</code> field the representation is always the same as in normal field,
+but surrounding tags with field name are removed;</li>
+<li>In normal field the representation is always contains a tag with a field name.</li>
+</ul>
+<h3 id="normal-enum-variant"><a class="doc-anchor" href="#normal-enum-variant">§</a>Normal enum variant</h3>
+<p>To model an <code>xs:choice</code> XML construct use <code>$value</code> field.
+To model a top-level <code>xs:choice</code> just use the enum type.</p>
+<div><table><thead><tr><th>Kind</th><th>Top-level and in <code>$value</code> field</th><th>In normal field</th><th>In <code>$text</code> field</th></tr></thead><tbody>
+<tr><td>Unit</td><td><code>&lt;Unit/&gt;</code></td><td><code>&lt;field&gt;Unit&lt;/field&gt;</code></td><td><code>Unit</code></td></tr>
+<tr><td>Newtype</td><td><code>&lt;Newtype&gt;42&lt;/Newtype&gt;</code></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup></td></tr>
+<tr><td>Tuple</td><td><code>&lt;Tuple&gt;42&lt;/Tuple&gt;&lt;Tuple&gt;answer&lt;/Tuple&gt;</code></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup></td></tr>
+<tr><td>Struct</td><td><code>&lt;Struct&gt;&lt;q&gt;42&lt;/q&gt;&lt;a&gt;answer&lt;/a&gt;&lt;/Struct&gt;</code></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup></td></tr>
+</tbody></table>
+</div><h3 id="text-enum-variant"><a class="doc-anchor" href="#text-enum-variant">§</a><code>$text</code> enum variant</h3><div><table><thead><tr><th>Kind</th><th>Top-level and in <code>$value</code> field</th><th>In normal field</th><th>In <code>$text</code> field</th></tr></thead><tbody>
+<tr><td>Unit</td><td><em>(empty)</em></td><td><code>&lt;field/&gt;</code></td><td><em>(empty)</em></td></tr>
+<tr><td>Newtype</td><td><code>42</code></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup> <sup id="fnref2"><a href="#fn2">2</a></sup></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup> <sup id="fnref3"><a href="#fn3">3</a></sup></td></tr>
+<tr><td>Tuple</td><td><code>42 answer</code></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup> <sup id="fnref4"><a href="#fn4">4</a></sup></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup> <sup id="fnref5"><a href="#fn5">5</a></sup></td></tr>
+<tr><td>Struct</td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup></td><td>Err(Custom) <sup id="fnref1"><a href="#fn1">1</a></sup></td></tr>
+</tbody></table>
+</div><h2 id="difference-between-text-and-value-special-names"><a class="doc-anchor" href="#difference-between-text-and-value-special-names">§</a>Difference between <code>$text</code> and <code>$value</code> special names</h2>
+<p>quick-xml supports two special names for fields – <code>$text</code> and <code>$value</code>.
+Although they may seem the same, there is a distinction. Two different
+names is required mostly for serialization, because quick-xml should know
+how you want to serialize certain constructs, which could be represented
+through XML in multiple different ways.</p>
+<p>The only difference is in how complex types and sequences are serialized.
+If you doubt which one you should select, begin with <a href="#value"><code>$value</code></a>.</p>
+<h3 id="text"><a class="doc-anchor" href="#text">§</a><code>$text</code></h3>
+<p><code>$text</code> is used when you want to write your XML as a text or a CDATA content.
+More formally, field with that name represents simple type definition with
+<code>{variety} = atomic</code> or <code>{variety} = union</code> whose basic members are all atomic,
+as described in the <a href="https://www.w3.org/TR/xmlschema11-1/#Simple_Type_Definition">specification</a>.</p>
+<p>As a result, not all types of such fields can be serialized. Only serialization
+of following types are supported:</p>
+<ul>
+<li>all primitive types (strings, numbers, booleans)</li>
+<li>unit variants of enumerations (serializes to a name of a variant)</li>
+<li>newtypes (delegates serialization to inner type)</li>
+<li><a href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option"><code>Option</code></a> of above (<code>None</code> serializes to nothing)</li>
+<li>sequences (including tuples and tuple variants of enumerations) of above,
+excluding <code>None</code> and empty string elements (because it will not be possible
+to deserialize them back). The elements are separated by space(s)</li>
+<li>unit type <code>()</code> and unit structs (serializes to nothing)</li>
+</ul>
+<p>Complex types, such as structs and maps, are not supported in this field.
+If you want them, you should use <code>$value</code>.</p>
+<p>Sequences serialized to a space-delimited string, that is why only certain
+types are allowed in this mode:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize, Serialize, PartialEq, Debug)]
+</span><span class="kw">struct </span>AnyName {
+    <span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
+    </span>field: Vec&lt;usize&gt;,
+}
+
+<span class="kw">let </span>obj = AnyName { field: <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>] };
+<span class="kw">let </span>xml = to_string(<span class="kw-2">&amp;</span>obj).unwrap();
+<span class="macro">assert_eq!</span>(xml, <span class="string">"&lt;AnyName&gt;1 2 3&lt;/AnyName&gt;"</span>);
+
+<span class="kw">let </span>object: AnyName = from_str(<span class="kw-2">&amp;</span>xml).unwrap();
+<span class="macro">assert_eq!</span>(object, obj);</code></pre></div>
+<h3 id="value"><a class="doc-anchor" href="#value">§</a><code>$value</code></h3><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<p>NOTE: a name <code>#content</code> would better explain the purpose of that field,
+but <code>$value</code> is used for compatibility with other XML serde crates, which
+uses that name. This will allow you to switch XML crates more smoothly if required.</p>
+</div>
+<p>Representation of primitive types in <code>$value</code> does not differ from their
+representation in <code>$text</code> field. The difference is how sequences are serialized.
+<code>$value</code> serializes each sequence item as a separate XML element. The name
+of that element is taken from serialized type, and because only <code>enum</code>s provide
+such name (their variant name), only they should be used for such fields.</p>
+<p><code>$value</code> fields does not support <code>struct</code> types with fields, the serialization
+of such types would end with an <code>Err(Unsupported)</code>. Unit structs and unit
+type <code>()</code> serializing to nothing and can be deserialized from any content.</p>
+<p>Serialization and deserialization of <code>$value</code> field performed as usual, except
+that name for an XML element will be given by the serialized type, instead of
+field. The latter allow to serialize enumerated types, where variant is encoded
+as a tag name, and, so, represent an XSD <code>xs:choice</code> schema by the Rust <code>enum</code>.</p>
+<p>In the example below, field will be serialized as <code>&lt;field/&gt;</code>, because elements
+get their names from the field name. It cannot be deserialized, because <code>Enum</code>
+expects elements <code>&lt;A/&gt;</code>, <code>&lt;B/&gt;</code> or <code>&lt;C/&gt;</code>, but <code>AnyName</code> looked only for <code>&lt;field/&gt;</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize, Serialize)]
+</span><span class="kw">enum </span>Enum { A, B, C }
+
+<span class="attr">#[derive(Deserialize, Serialize)]
+</span><span class="kw">struct </span>AnyName {
+    <span class="comment">// &lt;field&gt;A&lt;/field&gt;, &lt;field&gt;B&lt;/field&gt;, or &lt;field&gt;C&lt;/field&gt;
+    </span>field: Enum,
+}</code></pre></div>
+<p>If you rename field to <code>$value</code>, then <code>field</code> would be serialized as <code>&lt;A/&gt;</code>,
+<code>&lt;B/&gt;</code> or <code>&lt;C/&gt;</code>, depending on the its content. It is also possible to
+deserialize it from the same elements:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize, Serialize)]
+</span><span class="kw">struct </span>AnyName {
+    <span class="comment">// &lt;A/&gt;, &lt;B/&gt; or &lt;C/&gt;
+    </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+    </span>field: Enum,
+}</code></pre></div>
+<h4 id="primitives-and-sequences-of-primitives"><a class="doc-anchor" href="#primitives-and-sequences-of-primitives">§</a>Primitives and sequences of primitives</h4>
+<p>Sequences serialized to a list of elements. Note, that types that does not
+produce their own tag (i. e. primitives) are written as is, without delimiters:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize, Serialize, PartialEq, Debug)]
+</span><span class="kw">struct </span>AnyName {
+    <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+    </span>field: Vec&lt;usize&gt;,
+}
+
+<span class="kw">let </span>obj = AnyName { field: <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>] };
+<span class="kw">let </span>xml = to_string(<span class="kw-2">&amp;</span>obj).unwrap();
+<span class="comment">// Note, that types that does not produce their own tag are written as is!
+</span><span class="macro">assert_eq!</span>(xml, <span class="string">"&lt;AnyName&gt;123&lt;/AnyName&gt;"</span>);
+
+<span class="kw">let </span>object: AnyName = from_str(<span class="string">"&lt;AnyName&gt;123&lt;/AnyName&gt;"</span>).unwrap();
+<span class="macro">assert_eq!</span>(object, AnyName { field: <span class="macro">vec!</span>[<span class="number">123</span>] });
+
+<span class="comment">// `1 2 3` is mapped to a single `usize` element
+// It is impossible to deserialize list of primitives to such field
+</span>from_str::&lt;AnyName&gt;(<span class="string">"&lt;AnyName&gt;1 2 3&lt;/AnyName&gt;"</span>).unwrap_err();</code></pre></div>
+<p>A particular case of that example is a string <code>$value</code> field, which probably
+would be a most used example of that attribute:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize, Serialize, PartialEq, Debug)]
+</span><span class="kw">struct </span>AnyName {
+    <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+    </span>field: String,
+}
+
+<span class="kw">let </span>obj = AnyName { field: <span class="string">"content"</span>.to_string() };
+<span class="kw">let </span>xml = to_string(<span class="kw-2">&amp;</span>obj).unwrap();
+<span class="macro">assert_eq!</span>(xml, <span class="string">"&lt;AnyName&gt;content&lt;/AnyName&gt;"</span>);</code></pre></div>
+<h4 id="structs-and-sequences-of-structs"><a class="doc-anchor" href="#structs-and-sequences-of-structs">§</a>Structs and sequences of structs</h4>
+<p>Note, that structures do not have a serializable name as well (name of the
+type is never used), so it is impossible to serialize non-unit struct or
+sequence of non-unit structs in <code>$value</code> field. (sequences of) unit structs
+are serialized as empty string, because units itself serializing
+to nothing:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize, Serialize, PartialEq, Debug)]
+</span><span class="kw">struct </span>Unit;
+
+<span class="attr">#[derive(Deserialize, Serialize, PartialEq, Debug)]
+</span><span class="kw">struct </span>AnyName {
+    <span class="comment">// #[serde(default)] is required to deserialization of empty lists
+    // This is a general note, not related to $value
+    </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>, default)]
+    </span>field: Vec&lt;Unit&gt;,
+}
+
+<span class="kw">let </span>obj = AnyName { field: <span class="macro">vec!</span>[Unit, Unit, Unit] };
+<span class="kw">let </span>xml = to_string(<span class="kw-2">&amp;</span>obj).unwrap();
+<span class="macro">assert_eq!</span>(xml, <span class="string">"&lt;AnyName/&gt;"</span>);
+
+<span class="kw">let </span>object: AnyName = from_str(<span class="string">"&lt;AnyName/&gt;"</span>).unwrap();
+<span class="macro">assert_eq!</span>(object, AnyName { field: <span class="macro">vec!</span>[] });
+
+<span class="kw">let </span>object: AnyName = from_str(<span class="string">"&lt;AnyName&gt;&lt;/AnyName&gt;"</span>).unwrap();
+<span class="macro">assert_eq!</span>(object, AnyName { field: <span class="macro">vec!</span>[] });
+
+<span class="kw">let </span>object: AnyName = from_str(<span class="string">"&lt;AnyName&gt;&lt;A/&gt;&lt;B/&gt;&lt;C/&gt;&lt;/AnyName&gt;"</span>).unwrap();
+<span class="macro">assert_eq!</span>(object, AnyName { field: <span class="macro">vec!</span>[Unit, Unit, Unit] });</code></pre></div>
+<h4 id="enums-and-sequences-of-enums"><a class="doc-anchor" href="#enums-and-sequences-of-enums">§</a>Enums and sequences of enums</h4>
+<p>Enumerations uses the variant name as an element name:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize, Serialize, PartialEq, Debug)]
+</span><span class="kw">struct </span>AnyName {
+    <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
+    </span>field: Vec&lt;Enum&gt;,
+}
+
+<span class="attr">#[derive(Deserialize, Serialize, PartialEq, Debug)]
+</span><span class="kw">enum </span>Enum { A, B, C }
+
+<span class="kw">let </span>obj = AnyName { field: <span class="macro">vec!</span>[Enum::A, Enum::B, Enum::C] };
+<span class="kw">let </span>xml = to_string(<span class="kw-2">&amp;</span>obj).unwrap();
+<span class="macro">assert_eq!</span>(
+    xml,
+    <span class="string">"&lt;AnyName&gt;\
+        &lt;A/&gt;\
+        &lt;B/&gt;\
+        &lt;C/&gt;\
+     &lt;/AnyName&gt;"
+</span>);
+
+<span class="kw">let </span>object: AnyName = from_str(<span class="kw-2">&amp;</span>xml).unwrap();
+<span class="macro">assert_eq!</span>(object, obj);</code></pre></div>
+<hr />
+<p>You can have either <code>$text</code> or <code>$value</code> field in your structs. Unfortunately,
+that is not enforced, so you can theoretically have both, but you should
+avoid that.</p>
+<h2 id="frequently-used-patterns"><a class="doc-anchor" href="#frequently-used-patterns">§</a>Frequently Used Patterns</h2>
+<p>Some XML constructs used so frequent, that it is worth to document the recommended
+way to represent them in the Rust. The sections below describes them.</p>
+<h3 id="element-lists"><a class="doc-anchor" href="#element-lists">§</a><code>&lt;element&gt;</code> lists</h3>
+<p>Many XML formats wrap lists of elements in the additional container,
+although this is not required by the XML rules:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;root&gt;
+  &lt;field1/&gt;
+  &lt;field2/&gt;
+  &lt;list&gt;&lt;!-- Container --&gt;
+    &lt;element/&gt;
+    &lt;element/&gt;
+    &lt;element/&gt;
+  &lt;/list&gt;
+  &lt;field3/&gt;
+&lt;/root&gt;</code></pre></div>
+<p>In this case, there is a great desire to describe this XML in this way:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="doccomment">/// Represents &lt;element/&gt;
+</span><span class="kw">type </span>Element = ();
+
+<span class="doccomment">/// Represents &lt;root&gt;...&lt;/root&gt;
+</span><span class="kw">struct </span>AnyName {
+    <span class="comment">// Incorrect
+    </span>list: Vec&lt;Element&gt;,
+}</code></pre></div>
+<p>This will not work, because potentially <code>&lt;list&gt;</code> element can have attributes
+and other elements inside. You should define the struct for the <code>&lt;list&gt;</code>
+explicitly, as you do that in the XSD for that XML:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="doccomment">/// Represents &lt;element/&gt;
+</span><span class="kw">type </span>Element = ();
+
+<span class="doccomment">/// Represents &lt;root&gt;...&lt;/root&gt;
+</span><span class="kw">struct </span>AnyName {
+    <span class="comment">// Correct
+    </span>list: List,
+}
+<span class="doccomment">/// Represents &lt;list&gt;...&lt;/list&gt;
+</span><span class="kw">struct </span>List {
+    element: Vec&lt;Element&gt;,
+}</code></pre></div>
+<p>If you want to simplify your API, you could write a simple function for unwrapping
+inner list and apply it via <a href="https://serde.rs/field-attrs.html#deserialize_with"><code>deserialize_with</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>quick_xml::de::from_str;
+<span class="kw">use </span>serde::{Deserialize, Deserializer};
+
+<span class="doccomment">/// Represents &lt;element/&gt;
+</span><span class="kw">type </span>Element = ();
+
+<span class="doccomment">/// Represents &lt;root&gt;...&lt;/root&gt;
+</span><span class="attr">#[derive(Deserialize, Debug, PartialEq)]
+</span><span class="kw">struct </span>AnyName {
+    <span class="attr">#[serde(deserialize_with = <span class="string">"unwrap_list"</span>)]
+    </span>list: Vec&lt;Element&gt;,
+}
+
+<span class="kw">fn </span>unwrap_list&lt;<span class="lifetime">'de</span>, D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Element&gt;, D::Error&gt;
+<span class="kw">where
+    </span>D: Deserializer&lt;<span class="lifetime">'de</span>&gt;,
+{
+    <span class="doccomment">/// Represents &lt;list&gt;...&lt;/list&gt;
+    </span><span class="attr">#[derive(Deserialize)]
+    </span><span class="kw">struct </span>List {
+        <span class="comment">// default allows empty list
+        </span><span class="attr">#[serde(default)]
+        </span>element: Vec&lt;Element&gt;,
+    }
+    <span class="prelude-val">Ok</span>(List::deserialize(deserializer)<span class="question-mark">?</span>.element)
+}
+
+<span class="macro">assert_eq!</span>(
+    AnyName { list: <span class="macro">vec!</span>[(), (), ()] },
+    from_str(<span class="string">"
+        &lt;root&gt;
+          &lt;list&gt;
+            &lt;element/&gt;
+            &lt;element/&gt;
+            &lt;element/&gt;
+          &lt;/list&gt;
+        &lt;/root&gt;
+    "</span>).unwrap(),
+);</code></pre></div>
+<p>Instead of writing such functions manually, you also could try <a href="https://lib.rs/crates/serde-query">https://lib.rs/crates/serde-query</a>.</p>
+<h3 id="overlapped-out-of-order-elements"><a class="doc-anchor" href="#overlapped-out-of-order-elements">§</a>Overlapped (Out-of-Order) Elements</h3>
+<p>In the case that the list might contain tags that are overlapped with
+tags that do not correspond to the list (this is a usual case in XML
+documents) like this:</p>
+<div class="example-wrap"><pre class="language-xml"><code>&lt;any-name&gt;
+  &lt;item/&gt;
+  &lt;another-item/&gt;
+  &lt;item/&gt;
+  &lt;item/&gt;
+&lt;/any-name&gt;</code></pre></div>
+<p>you should enable the <a href="../index.html#overlapped-lists"><code>overlapped-lists</code></a> feature to make it possible
+to deserialize this to:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">"kebab-case"</span>)]
+</span><span class="kw">struct </span>AnyName {
+    item: Vec&lt;()&gt;,
+    another_item: (),
+}</code></pre></div>
+<h3 id="internally-tagged-enums"><a class="doc-anchor" href="#internally-tagged-enums">§</a>Internally Tagged Enums</h3>
+<p><a href="https://serde.rs/enum-representations.html#internally-tagged">Tagged enums</a> are currently not supported because of an issue in the Serde
+design (see <a href="https://github.com/serde-rs/serde/issues/1183">serde#1183</a> and <a href="https://github.com/tafia/quick-xml/issues/586">quick-xml#586</a>) and missing optimizations in
+Serde which could be useful for XML parsing (<a href="https://github.com/serde-rs/serde/issues/1495">serde#1495</a>). This can be worked
+around by manually implementing deserialize with <code>#[serde(deserialize_with = "func")]</code>
+or implementing <a href="../../serde_core/de/trait.Deserialize.html" title="trait serde_core::de::Deserialize"><code>Deserialize</code></a>, but this can get very tedious very fast for
+files with large amounts of tagged enums. To help with this issue quick-xml
+provides a macro <a href="crate::impl_deserialize_for_internally_tagged_enum"><code>impl_deserialize_for_internally_tagged_enum!</code></a>. See the
+macro documentation for details.</p>
+<div class="footnotes"><hr><ol><li id="fn1"><p>Error is returned by the deserialized type. In case of derived implementation a <code>Custom</code>
+error will be returned, but custom deserialize implementation can successfully deserialize
+value from a string which will be passed to it.&nbsp;<a href="#fnref1">↩</a></p></li><li id="fn2"><p>If this serialize as <code>&lt;field&gt;42&lt;/field&gt;</code> then it will be ambiguity during deserialization,
+because it clash with <code>Unit</code> representation in normal field.&nbsp;<a href="#fnref2">↩</a></p></li><li id="fn3"><p>If this serialize as <code>42</code> then it will be ambiguity during deserialization,
+because it clash with <code>Unit</code> representation in <code>$text</code> field.&nbsp;<a href="#fnref3">↩</a></p></li><li id="fn4"><p>If this serialize as <code>&lt;field&gt;42 answer&lt;/field&gt;</code> then it will be ambiguity during deserialization,
+because it clash with <code>Unit</code> representation in normal field.&nbsp;<a href="#fnref4">↩</a></p></li><li id="fn5"><p>If this serialize as <code>42 answer</code> then it will be ambiguity during deserialization,
+because it clash with <code>Unit</code> representation in <code>$text</code> field.&nbsp;<a href="#fnref5">↩</a></p></li></ol></div></div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.DeError"><code>pub use crate::errors::serialize::<a class="enum" href="../errors/serialize/enum.DeError.html" title="enum quick_xml::errors::serialize::DeError">DeError</a>;</code></dt></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Deserializer.html" title="struct quick_xml::de::Deserializer">Deserializer</a></dt><dd>A structure that deserializes XML into Rust values.</dd><dt><a class="struct" href="struct.IoReader.html" title="struct quick_xml::de::IoReader">IoReader</a></dt><dd>XML input source that reads from a std::io input stream.</dd><dt><a class="struct" href="struct.PredefinedEntityResolver.html" title="struct quick_xml::de::PredefinedEntityResolver">Predefined<wbr>Entity<wbr>Resolver</a></dt><dd>An <a href="trait.EntityResolver.html" title="trait quick_xml::de::EntityResolver"><code>EntityResolver</code></a> that resolves only predefined entities:</dd><dt><a class="struct" href="struct.SliceReader.html" title="struct quick_xml::de::SliceReader">Slice<wbr>Reader</a></dt><dd>XML input source that reads from a slice of bytes and can borrow from it.</dd><dt><a class="struct" href="struct.Text.html" title="struct quick_xml::de::Text">Text</a></dt><dd>Decoded and concatenated content of consequent <a href="../events/enum.Event.html#variant.Text" title="variant quick_xml::events::Event::Text"><code>Text</code></a> and <a href="../events/enum.Event.html#variant.CData" title="variant quick_xml::events::Event::CData"><code>CData</code></a>
+events. <em>Consequent</em> means that events should follow each other or be
+delimited only by (any count of) <a href="../events/enum.Event.html#variant.Comment" title="variant quick_xml::events::Event::Comment"><code>Comment</code></a> or <a href="../events/enum.Event.html#variant.PI" title="variant quick_xml::events::Event::PI"><code>PI</code></a> events.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.DeEvent.html" title="enum quick_xml::de::DeEvent">DeEvent</a></dt><dd>Simplified event which contains only these variants that used by deserializer</dd><dt><a class="enum" href="enum.PayloadEvent.html" title="enum quick_xml::de::PayloadEvent">Payload<wbr>Event</a></dt><dd>Simplified event which contains only these variants that used by deserializer,
+but <a href="../events/enum.Event.html#variant.Text" title="variant quick_xml::events::Event::Text"><code>Text</code></a> events not yet fully processed.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.EntityResolver.html" title="trait quick_xml::de::EntityResolver">Entity<wbr>Resolver</a></dt><dd>Used to resolve unknown entities while parsing</dd><dt><a class="trait" href="trait.XmlRead.html" title="trait quick_xml::de::XmlRead">XmlRead</a></dt><dd>Trait used by the deserializer for iterating over input. This is manually
+“specialized” for iterating over <code>&amp;[u8]</code>.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.from_reader.html" title="fn quick_xml::de::from_reader">from_<wbr>reader</a></dt><dd>Deserialize from a reader. This method will do internal copies of data
+readed from <code>reader</code>. If you want have a <code>&amp;str</code> input and want to borrow
+as much as possible, use <a href="fn.from_str.html" title="fn quick_xml::de::from_str"><code>from_str</code></a>.</dd><dt><a class="fn" href="fn.from_str.html" title="fn quick_xml::de::from_str">from_<wbr>str</a></dt><dd>Deserialize an instance of type <code>T</code> from a string of XML text.</dd></dl></section></div></main></body></html>

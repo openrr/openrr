@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["instantiate_root_module","plugin_constructor"],"static":["_1as_0lib_1header_0root_bmodule_bloader"],"struct":["MyPlugin"]};

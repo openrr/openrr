@@ -1,0 +1,1 @@
+searchState.loadedDescShard("r2r_common", 0, "camel case to to snake case adapted from from …\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.")

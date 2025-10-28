@@ -1,0 +1,1 @@
+searchState.loadedDescShard("zbus_lockstep_macros", 0, "zbus-lockstep-macros\nValidate a struct’s type signature against XML signal …")

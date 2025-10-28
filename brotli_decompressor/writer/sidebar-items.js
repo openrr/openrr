@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BrotliResult"],"fn":["BrotliDecompressStream","write_all"],"struct":["AllocatedStackMemory","BrotliState","DecompressorWriter","DecompressorWriterCustomAlloc","DecompressorWriterCustomIo","HuffmanCode","HuffmanTreeGroup","StackAllocator","StandardAlloc"],"trait":["Allocator","SliceWrapper","SliceWrapperMut"]};

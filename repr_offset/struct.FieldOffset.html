@@ -1,0 +1,1141 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Represents the offset of a (potentially nested) field inside a type."><title>FieldOffset in repr_offset - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc struct"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../repr_offset/index.html">repr_<wbr>offset</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Field<wbr>Offset</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#type-parameters" title="Type parameters">Type parameters</a></li><li><a href="#safety" title="Safety">Safety</a><ul><li><a href="#alignment" title="Alignment">Alignment</a></li></ul></li><li><a href="#field-alignment-guidelines" title="Field alignment guidelines">Field alignment guidelines</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#no-macros" title="No Macros">No Macros</a></li><li><a href="#accessing-nested-fields" title="Accessing Nested Fields">Accessing Nested Fields</a></li></ul></li></ul><h3><a href="#implementations">Methods</a></h3><ul class="block method"><li><a href="#method.add" title="add">add</a></li><li><a href="#method.add-1" title="add">add</a></li><li><a href="#method.cast_field" title="cast_field">cast_field</a></li><li><a href="#method.cast_struct" title="cast_struct">cast_struct</a></li><li><a href="#method.copy" title="copy">copy</a></li><li><a href="#method.copy-1" title="copy">copy</a></li><li><a href="#method.copy_nonoverlapping" title="copy_nonoverlapping">copy_nonoverlapping</a></li><li><a href="#method.copy_nonoverlapping-1" title="copy_nonoverlapping">copy_nonoverlapping</a></li><li><a href="#method.get" title="get">get</a></li><li><a href="#method.get_copy" title="get_copy">get_copy</a></li><li><a href="#method.get_copy-1" title="get_copy">get_copy</a></li><li><a href="#method.get_mut" title="get_mut">get_mut</a></li><li><a href="#method.get_mut_ptr" title="get_mut_ptr">get_mut_ptr</a></li><li><a href="#method.get_ptr" title="get_ptr">get_ptr</a></li><li><a href="#method.identity" title="identity">identity</a></li><li><a href="#method.new" title="new">new</a></li><li><a href="#method.next_field_offset" title="next_field_offset">next_field_offset</a></li><li><a href="#method.offset" title="offset">offset</a></li><li><a href="#method.raw_get" title="raw_get">raw_get</a></li><li><a href="#method.raw_get_mut" title="raw_get_mut">raw_get_mut</a></li><li><a href="#method.read" title="read">read</a></li><li><a href="#method.read-1" title="read">read</a></li><li><a href="#method.read_copy" title="read_copy">read_copy</a></li><li><a href="#method.read_copy-1" title="read_copy">read_copy</a></li><li><a href="#method.replace" title="replace">replace</a></li><li><a href="#method.replace-1" title="replace">replace</a></li><li><a href="#method.replace_mut" title="replace_mut">replace_mut</a></li><li><a href="#method.replace_mut-1" title="replace_mut">replace_mut</a></li><li><a href="#method.swap" title="swap">swap</a></li><li><a href="#method.swap-1" title="swap">swap</a></li><li><a href="#method.swap_mut" title="swap_mut">swap_mut</a></li><li><a href="#method.swap_mut-1" title="swap_mut">swap_mut</a></li><li><a href="#method.swap_nonoverlapping" title="swap_nonoverlapping">swap_nonoverlapping</a></li><li><a href="#method.swap_nonoverlapping-1" title="swap_nonoverlapping">swap_nonoverlapping</a></li><li><a href="#method.to_aligned" title="to_aligned">to_aligned</a></li><li><a href="#method.to_unaligned" title="to_unaligned">to_unaligned</a></li><li><a href="#method.with_vis" title="with_vis">with_vis</a></li><li><a href="#method.wrapping_raw_get" title="wrapping_raw_get">wrapping_raw_get</a></li><li><a href="#method.wrapping_raw_get_mut" title="wrapping_raw_get_mut">wrapping_raw_get_mut</a></li><li><a href="#method.write" title="write">write</a></li><li><a href="#method.write-1" title="write">write</a></li></ul><h3><a href="#trait-implementations">Trait Implementations</a></h3><ul class="block trait-implementation"><li><a href="#impl-Add%3CFieldOffset%3CF,+F2,+A2%3E%3E-for-FieldOffset%3CS,+F,+A%3E" title="Add&#60;FieldOffset&#60;F, F2, A2&#62;&#62;">Add&#60;FieldOffset&#60;F, F2, A2&#62;&#62;</a></li><li><a href="#impl-Clone-for-FieldOffset%3CS,+F,+A%3E" title="Clone">Clone</a></li><li><a href="#impl-Copy-for-FieldOffset%3CS,+F,+A%3E" title="Copy">Copy</a></li><li><a href="#impl-Debug-for-FieldOffset%3CS,+F,+A%3E" title="Debug">Debug</a></li><li><a href="#impl-Eq-for-FieldOffset%3CS,+F,+A%3E" title="Eq">Eq</a></li><li><a href="#impl-Ord-for-FieldOffset%3CS,+F,+A%3E" title="Ord">Ord</a></li><li><a href="#impl-PartialEq-for-FieldOffset%3CS,+F,+A%3E" title="PartialEq">PartialEq</a></li><li><a href="#impl-PartialOrd-for-FieldOffset%3CS,+F,+A%3E" title="PartialOrd">PartialOrd</a></li></ul><h3><a href="#synthetic-implementations">Auto Trait Implementations</a></h3><ul class="block synthetic-implementation"><li><a href="#impl-Freeze-for-FieldOffset%3CS,+F,+A%3E" title="Freeze">Freeze</a></li><li><a href="#impl-RefUnwindSafe-for-FieldOffset%3CS,+F,+A%3E" title="RefUnwindSafe">RefUnwindSafe</a></li><li><a href="#impl-Send-for-FieldOffset%3CS,+F,+A%3E" title="Send">Send</a></li><li><a href="#impl-Sync-for-FieldOffset%3CS,+F,+A%3E" title="Sync">Sync</a></li><li><a href="#impl-Unpin-for-FieldOffset%3CS,+F,+A%3E" title="Unpin">Unpin</a></li><li><a href="#impl-UnwindSafe-for-FieldOffset%3CS,+F,+A%3E" title="UnwindSafe">UnwindSafe</a></li></ul><h3><a href="#blanket-implementations">Blanket Implementations</a></h3><ul class="block blanket-implementation"><li><a href="#impl-Any-for-T" title="Any">Any</a></li><li><a href="#impl-Borrow%3CT%3E-for-T" title="Borrow&#60;T&#62;">Borrow&#60;T&#62;</a></li><li><a href="#impl-BorrowMut%3CT%3E-for-T" title="BorrowMut&#60;T&#62;">BorrowMut&#60;T&#62;</a></li><li><a href="#impl-CloneToUninit-for-T" title="CloneToUninit">CloneToUninit</a></li><li><a href="#impl-From%3CT%3E-for-T" title="From&#60;T&#62;">From&#60;T&#62;</a></li><li><a href="#impl-Into%3CU%3E-for-T" title="Into&#60;U&#62;">Into&#60;U&#62;</a></li><li><a href="#impl-ROExtAcc-for-S" title="ROExtAcc">ROExtAcc</a></li><li><a href="#impl-ROExtOps%3CAligned%3E-for-S" title="ROExtOps&#60;Aligned&#62;">ROExtOps&#60;Aligned&#62;</a></li><li><a href="#impl-ROExtOps%3CUnaligned%3E-for-S" title="ROExtOps&#60;Unaligned&#62;">ROExtOps&#60;Unaligned&#62;</a></li><li><a href="#impl-TryFrom%3CU%3E-for-T" title="TryFrom&#60;U&#62;">TryFrom&#60;U&#62;</a></li><li><a href="#impl-TryInto%3CU%3E-for-T" title="TryInto&#60;U&#62;">TryInto&#60;U&#62;</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate repr_<wbr>offset</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">repr_offset</a></div><h1>Struct <span class="struct">FieldOffset</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/repr_offset/struct_field_offset.rs.html#201-205">Source</a> </span></div><pre class="rust item-decl"><code>pub struct FieldOffset&lt;S, F, A&gt; { <span class="comment">/* private fields */</span> }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Represents the offset of a (potentially nested) field inside a type.</p>
+<h2 id="type-parameters"><a class="doc-anchor" href="#type-parameters">§</a>Type parameters</h2>
+<p>The type parameters are:</p>
+<ul>
+<li>
+<p><code>S</code>(for <code>struct</code>): the struct that contains the field that this is an offset for.</p>
+</li>
+<li>
+<p><code>F</code>(for field): the type of the field this is an offset for.</p>
+</li>
+<li>
+<p><code>A</code>(for alignment):
+Is <a href="./alignment/struct.Aligned.html"><code>Aligned</code></a> if this offset is for <a href="#alignment-guidelines">an aligned field</a>
+within the <code>S</code> struct,
+<a href="./alignment/struct.Unaligned.html"><code>Unaligned</code></a> if it is for <a href="#alignment-guidelines">an unaligned field</a>.
+This changes which methods are available,and the implementation of many of them.</p>
+</li>
+</ul>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2><h4 id="alignment"><a class="doc-anchor" href="#alignment">§</a>Alignment</h4>
+<p>All the unsafe methods for <code>FieldOffset&lt;_, _, Aligned&gt;</code>
+that move/copy the field require that
+the passed in pointers are aligned,
+while the ones for <code>FieldOffset&lt;_, _, Unaligned&gt;</code> do not.</p>
+<p>Because passing unaligned pointers to <code>FieldOffset&lt;_, _, Aligned&gt;</code> methods
+causes undefined behavior,
+you must be careful when accessing a nested field in <code>#[repr(C, packed)]</code> structs.</p>
+<p>For an example of how to correctly access nested fields inside of
+<code>#[repr(C, packed)]</code> structs <a href="#nested-field-in-packed">look here</a>.</p>
+<p><span id="alignment-guidelines"></span></p>
+<h2 id="field-alignment-guidelines"><a class="doc-anchor" href="#field-alignment-guidelines">§</a>Field alignment guidelines</h2>
+<p>A non-nested field is:</p>
+<ul>
+<li>
+<p>Aligned: if the type that contains the field is
+<code>#[repr(C)]</code>/<code>#[repr(C, align(...))]</code>/<code>#[repr(transparent)]</code>.</p>
+</li>
+<li>
+<p>Unaligned: if the type that contains the field is <code>#[repr(C, packed(....))]</code>,
+and the packing is smaller than the alignment of the field type.<br>
+Note that type alignment can vary across platforms,
+so <code>FieldOffset&lt;S, F, Unaligned&gt;</code>(as opposed to <code>FieldOffset&lt;S, F, Aligned&gt;</code>)
+is safest when <code>S</code> is a <code>#[repr(C, packed)]</code> type.</p>
+</li>
+</ul>
+<p>A nested field is unaligned if any field in the chain of field accesses to the
+nested field (ie: <code>foo</code> and <code>bar</code> and <code>baz</code> in <code>foo.bar.baz</code>)
+is unaligned according to the rules for non-nested fields described in this section.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="no-macros"><a class="doc-anchor" href="#no-macros">§</a>No Macros</h4>
+<p>This example demonstrates how you can construct <code>FieldOffset</code> without macros.</p>
+<p>You can use the <a href="./derive.ReprOffset.html"><code>ReprOffset</code></a> derive macro or <a href="./macro.unsafe_struct_field_offsets.html"><code>unsafe_struct_field_offsets</code></a> macro
+to construct the constants more conveniently (and in a less error-prone way).</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{Aligned, FieldOffset};
+
+<span class="kw">use </span>std::mem;
+
+
+<span class="kw">fn </span>main(){
+    <span class="kw">let </span><span class="kw-2">mut </span>foo = Foo{ first: <span class="number">3u16</span>, second: <span class="number">5</span>, third: <span class="prelude-val">None </span>};
+
+    <span class="kw-2">*</span>Foo::OFFSET_FIRST.get_mut(<span class="kw-2">&amp;mut </span>foo) = <span class="number">13</span>;
+    <span class="kw-2">*</span>Foo::OFFSET_SECOND.get_mut(<span class="kw-2">&amp;mut </span>foo) = <span class="number">21</span>;
+    <span class="kw-2">*</span>Foo::OFFSET_THIRD.get_mut(<span class="kw-2">&amp;mut </span>foo) = <span class="prelude-val">Some</span>(<span class="number">34</span>);
+
+    <span class="macro">assert_eq!</span>( foo, Foo{ first: <span class="number">13</span>, second: <span class="number">21</span>, third: <span class="prelude-val">Some</span>(<span class="number">34</span>) } );
+}
+
+
+<span class="attr">#[repr(C)]
+#[derive(Debug,PartialEq)]
+</span><span class="kw">struct </span>Foo&lt;T&gt;{
+    first: T,
+    second: u32,
+    third: <span class="prelude-ty">Option</span>&lt;T&gt;,
+}
+
+<span class="kw">impl</span>&lt;T&gt; Foo&lt;T&gt;{
+    <span class="kw">const </span>OFFSET_FIRST: FieldOffset&lt;<span class="self">Self</span>, T, Aligned&gt; = <span class="kw">unsafe</span>{ FieldOffset::new(<span class="number">0</span>) };
+
+    <span class="kw">const </span>OFFSET_SECOND: FieldOffset&lt;<span class="self">Self</span>, u32, Aligned&gt; = <span class="kw">unsafe</span>{
+        <span class="self">Self</span>::OFFSET_FIRST.next_field_offset()
+    };
+
+    <span class="kw">const </span>OFFSET_THIRD: FieldOffset&lt;<span class="self">Self</span>, <span class="prelude-ty">Option</span>&lt;T&gt;, Aligned&gt; = <span class="kw">unsafe</span>{
+        <span class="self">Self</span>::OFFSET_SECOND.next_field_offset()
+    };
+}
+</code></pre></div>
+<p><span id="nested-field-in-packed"></span></p>
+<h4 id="accessing-nested-fields"><a class="doc-anchor" href="#accessing-nested-fields">§</a>Accessing Nested Fields</h4>
+<p>This example demonstrates how to access nested fields in a <code>#[repr(C, packed)]</code> struct,
+using the <a href="./get_field_offset/trait.GetFieldOffset.html"><code>GetFieldOffset</code></a> trait implemented by the <a href="./derive.ReprOffset.html"><code>ReprOffset</code></a> derive,
+through the <a href="./macro.off.html"><code>off</code></a> macro.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset_derive::ReprOffset;
+<span class="kw">use </span>repr_offset::{
+    alignment::{Aligned, Unaligned},
+    off,
+    FieldOffset,
+};
+
+<span class="attr">#[repr(C, packed)]
+#[derive(ReprOffset)]
+</span><span class="kw">struct </span>Pack{
+    x: u8,
+    y: NestedC,
+}
+
+<span class="attr">#[repr(C)]
+#[derive(ReprOffset)]
+</span><span class="kw">struct </span>NestedC{
+    name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+    years: usize,
+}
+
+<span class="kw">let </span>this = Pack{
+    x: <span class="number">0</span>,
+    y: NestedC{ name: <span class="string">"John"</span>, years: <span class="number">13 </span>},
+};
+
+<span class="kw">let </span>off_y: FieldOffset&lt;Pack, NestedC, Unaligned&gt; = <span class="macro">off!</span>(y);
+
+<span class="kw">let </span>off_name: FieldOffset&lt;Pack, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, Unaligned&gt; = <span class="macro">off!</span>(y.name);
+
+<span class="comment">// You can also get the FieldOffset for a nested field like this.
+</span><span class="kw">let </span>off_years: FieldOffset&lt;Pack, usize, Unaligned&gt; = off_y.add(<span class="macro">off!</span>(years));
+
+<span class="comment">// The this argument is required to call FieldOffset methods,
+// infering the S type parameter of FieldOffset from `this`.
+</span><span class="kw">let _ </span>= <span class="macro">off!</span>(this; y.years);
+
+<span class="macro">assert_eq!</span>(off_name.get_copy(<span class="kw-2">&amp;</span>this), <span class="string">"John" </span>);
+<span class="macro">assert_eq!</span>(off_years.get_copy(<span class="kw-2">&amp;</span>this), <span class="number">13 </span>);
+
+<span class="kw">unsafe</span>{
+    <span class="kw">let </span>nested_ptr: <span class="kw-2">*const </span>NestedC = off_y.get_ptr(<span class="kw-2">&amp;</span>this);
+
+    <span class="comment">// This code is undefined behavior,
+    // because `NestedC`'s offsets require the passed in pointer to be aligned.
+    //
+    // assert_eq!(NestedC::OFFSET_NAME.read(nested_ptr), "John" );
+    // assert_eq!(NestedC::OFFSET_YEARS.read(nested_ptr), 13 );
+
+    // This is fine though,because the offsets were turned into
+    // `FieldOffset&lt;_, _, Unaligned&gt;` with `.to_unaligned()`.
+    </span><span class="macro">assert_eq!</span>( NestedC::OFFSET_NAME.to_unaligned().read(nested_ptr), <span class="string">"John" </span>);
+    <span class="macro">assert_eq!</span>( NestedC::OFFSET_YEARS.to_unaligned().read(nested_ptr), <span class="number">13 </span>);
+
+}</code></pre></div>
+</div></details><h2 id="implementations" class="section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+A%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#265-394">Source</a><a href="#impl-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.new" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#317-322">Source</a><h4 class="code-header">pub const unsafe fn <a href="#method.new" class="fn">new</a>(offset: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.usize.html">usize</a>) -&gt; Self</h4></section></summary><div class="docblock"><p>Constructs this <code>FieldOffset</code> from the offset of the field.</p>
+<h5 id="safety-1"><a class="doc-anchor" href="#safety-1">§</a>Safety</h5>
+<p>Callers must ensure all of these:</p>
+<ul>
+<li>
+<p><code>S</code> must be a <code>#[repr(C)]</code> or <code>#[repr(transparent)]</code> struct
+(optionally with <code>align</code> or <code>packed</code> attributes).</p>
+</li>
+<li>
+<p><code>offset</code> must be the byte offset of a field of type <code>F</code> inside the struct <code>S</code>.</p>
+</li>
+<li>
+<p>The <code>A</code> type parameter must be <a href="./alignment/struct.Unaligned.html"><code>Unaligned</code></a>
+if the field <a href="#alignment-guidelines">is unaligned</a>,
+or <a href="./alignment/struct.Aligned.html"><code>Aligned</code></a> if <a href="#alignment-guidelines">it is aligned</a>.</p>
+</li>
+</ul>
+<h5 id="example"><a class="doc-anchor" href="#example">§</a>Example</h5>
+<p>Constructing the <code>FieldOffset</code>s of a packed struct.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{Aligned, FieldOffset, Unaligned};
+
+<span class="kw">let </span>this = Packed{ x: <span class="number">3</span>, y: <span class="number">5</span>, z: <span class="string">"huh" </span>};
+
+<span class="macro">assert_eq!</span>( OFFSET_X.get_copy(<span class="kw-2">&amp;</span>this), <span class="number">3 </span>);
+<span class="macro">assert_eq!</span>( OFFSET_Y.get_copy(<span class="kw-2">&amp;</span>this), <span class="number">5 </span>);
+<span class="macro">assert_eq!</span>( OFFSET_Z.get_copy(<span class="kw-2">&amp;</span>this), <span class="string">"huh" </span>);
+
+<span class="attr">#[repr(C, packed)]
+</span><span class="kw">struct </span>Packed{
+    x: u8,
+    y: u32,
+    z: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+}
+
+<span class="comment">// `u8` is always aligned.
+</span><span class="kw">const </span>OFFSET_X: FieldOffset&lt;Packed, u8, Aligned&gt; = <span class="kw">unsafe</span>{
+    FieldOffset::new(<span class="number">0</span>)
+};
+<span class="kw">const </span>OFFSET_Y: FieldOffset&lt;Packed, u32, Unaligned&gt; = <span class="kw">unsafe</span>{
+    OFFSET_X.next_field_offset()
+};
+<span class="kw">const </span>OFFSET_Z: FieldOffset&lt;Packed, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, Unaligned&gt; = <span class="kw">unsafe</span>{
+    OFFSET_Y.next_field_offset()
+};
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.next_field_offset" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#380-393">Source</a><h4 class="code-header">pub const unsafe fn <a href="#method.next_field_offset" class="fn">next_field_offset</a>&lt;Next, NextA&gt;(
+    self,
+) -&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, Next, NextA&gt;</h4></section></summary><div class="docblock"><p>Constructs a <code>FieldOffset</code> by calculating the offset of the next field.</p>
+<h5 id="safety-2"><a class="doc-anchor" href="#safety-2">§</a>Safety</h5>
+<p>Callers must ensure that:</p>
+<ul>
+<li>
+<p><code>Next</code> is the type of the field after the one that this is an offset for.</p>
+</li>
+<li>
+<p><code>NextA</code> must be <a href="./alignment/struct.Unaligned.html"><code>Unaligned</code></a> if the field <a href="#alignment-guidelines">is unaligned</a>,
+or <a href="./alignment/struct.Aligned.html"><code>Aligned</code></a> if <a href="#alignment-guidelines">it is aligned</a>.</p>
+</li>
+</ul>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<p>Constructing the <code>FieldOffset</code>s of a <code>#[repr(C, align(16))]</code> struct.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{Aligned, FieldOffset};
+
+<span class="kw">let </span>this = ReprAligned{ foo: <span class="bool-val">true</span>, bar: <span class="prelude-val">Some</span>(<span class="string">'8'</span>), baz: <span class="number">55 </span>};
+
+<span class="macro">assert_eq!</span>( OFFSET_FOO.get_copy(<span class="kw-2">&amp;</span>this), <span class="bool-val">true </span>);
+<span class="macro">assert_eq!</span>( OFFSET_BAR.get_copy(<span class="kw-2">&amp;</span>this), <span class="prelude-val">Some</span>(<span class="string">'8'</span>) );
+<span class="macro">assert_eq!</span>( OFFSET_BAZ.get_copy(<span class="kw-2">&amp;</span>this), <span class="number">55 </span>);
+
+
+<span class="attr">#[repr(C, align(<span class="number">16</span>))]
+</span><span class="kw">struct </span>ReprAligned{
+    foo: bool,
+    bar: <span class="prelude-ty">Option</span>&lt;char&gt;,
+    baz: u64,
+}
+
+<span class="kw">const </span>OFFSET_FOO: FieldOffset&lt;ReprAligned, bool, Aligned&gt; = <span class="kw">unsafe</span>{
+    FieldOffset::new(<span class="number">0</span>)
+};
+<span class="kw">const </span>OFFSET_BAR: FieldOffset&lt;ReprAligned, <span class="prelude-ty">Option</span>&lt;char&gt;, Aligned&gt; = <span class="kw">unsafe</span>{
+    OFFSET_FOO.next_field_offset()
+};
+<span class="kw">const </span>OFFSET_BAZ: FieldOffset&lt;ReprAligned, u64, Aligned&gt; = <span class="kw">unsafe</span>{
+    OFFSET_BAR.next_field_offset()
+};
+</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3C(),+(),+Aligned%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#396-404">Source</a><a href="#impl-FieldOffset%3C(),+(),+Aligned%3E" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.unit.html">()</a>, <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.unit.html">()</a>, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.identity" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#398-403">Source</a><h4 class="code-header">pub const fn <a href="#method.identity" class="fn">identity</a>&lt;T&gt;() -&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;T, T, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;</h4></section></summary><div class="docblock"><p>Constructs a <code>FieldOffset</code> where <code>T</code> is the struct and the field type.</p>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+Aligned%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#406-448">Source</a><a href="#impl-FieldOffset%3CS,+F,+Aligned%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.add" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#445-447">Source</a><h4 class="code-header">pub const fn <a href="#method.add" class="fn">add</a>&lt;F2, A2&gt;(
+    self,
+    other: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;F, F2, A2&gt;,
+) -&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F2, A2&gt;</h4></section></summary><div class="docblock"><p>Combines this <code>FieldOffset</code> with another one, to access a nested field.</p>
+<p>Note that the resulting <code>FieldOffset</code> has the
+alignment type parameter (the third one) of <code>other</code>.</p>
+<h5 id="example-2"><a class="doc-anchor" href="#example-2">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{Aligned, FieldOffset, Unaligned};
+<span class="kw">use </span>repr_offset::for_examples::{ReprC, ReprPacked};
+
+<span class="kw">type </span>This = ReprC&lt;char, ReprC&lt;u8, u16&gt;, ReprPacked&lt;u32, u64&gt;&gt;;
+
+<span class="kw">let </span>this: This = ReprC {
+    a: <span class="string">'3'</span>,
+    b: ReprC{ a: <span class="number">5u8</span>, b: <span class="number">8u16</span>, c: (), d: () },
+    c: ReprPacked{ a: <span class="number">13u32</span>, b: <span class="number">21u64</span>, c: (), d: () },
+    d: (),
+};
+
+<span class="macro">assert_eq!</span>( OFFSET_B_A.get_copy(<span class="kw-2">&amp;</span>this), <span class="number">5 </span>);
+<span class="macro">assert_eq!</span>( OFFSET_C_A.get_copy(<span class="kw-2">&amp;</span>this), <span class="number">13 </span>);
+
+<span class="comment">// This is the FieldOffset of the `.b.a` nested field.
+</span><span class="kw">const </span>OFFSET_B_A: FieldOffset&lt;This, u8, Aligned&gt; =
+    ReprC::OFFSET_B.add(ReprC::OFFSET_A);
+
+<span class="comment">// This is the FieldOffset of the `.c.a` nested field.
+//
+// The alignment type parameter of the combined FieldOffset is`Unaligned` if
+// either FieldOffset has `Unaligned` as the `A` type parameter.
+</span><span class="kw">const </span>OFFSET_C_A: FieldOffset&lt;This, u32, Unaligned&gt; =
+    ReprC::OFFSET_C.add(ReprPacked::OFFSET_A);
+</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+Unaligned%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#450-486">Source</a><a href="#impl-FieldOffset%3CS,+F,+Unaligned%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.add-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#483-485">Source</a><h4 class="code-header">pub const fn <a href="#method.add-1" class="fn">add</a>&lt;F2, A2&gt;(
+    self,
+    other: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;F, F2, A2&gt;,
+) -&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F2, <a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;</h4></section></summary><div class="docblock"><p>Combines this <code>FieldOffset</code> with another one, to access a nested field.</p>
+<h5 id="example-3"><a class="doc-anchor" href="#example-3">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{FieldOffset, Unaligned};
+<span class="kw">use </span>repr_offset::for_examples::{ReprC, ReprPacked};
+
+<span class="kw">type </span>This = ReprPacked&lt;char, ReprC&lt;u8, u16&gt;, ReprPacked&lt;u32, u64&gt;&gt;;
+
+<span class="kw">let </span>this: This = ReprPacked {
+    a: <span class="string">'3'</span>,
+    b: ReprC{ a: <span class="number">34u8</span>, b: <span class="number">55u16</span>, c: (), d: () },
+    c: ReprPacked{ a: <span class="number">89u32</span>, b: <span class="number">144u64</span>, c: (), d: () },
+    d: (),
+};
+
+<span class="macro">assert_eq!</span>( OFFSET_B_A.get_copy(<span class="kw-2">&amp;</span>this), <span class="number">34 </span>);
+<span class="macro">assert_eq!</span>( OFFSET_C_A.get_copy(<span class="kw-2">&amp;</span>this), <span class="number">89 </span>);
+
+<span class="comment">// This is the FieldOffset of the `.b.a` nested field.
+</span><span class="kw">const </span>OFFSET_B_A: FieldOffset&lt;This, u8, Unaligned&gt; =
+    ReprPacked::OFFSET_B.add(ReprC::OFFSET_A);
+
+<span class="comment">// This is the FieldOffset of the `.c.a` nested field.
+</span><span class="kw">const </span>OFFSET_C_A: FieldOffset&lt;This, u32, Unaligned&gt; =
+    ReprPacked::OFFSET_C.add(ReprPacked::OFFSET_A);
+</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+A%3E-1" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#531-561">Source</a><a href="#impl-FieldOffset%3CS,+F,+A%3E-1" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.offset" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#558-560">Source</a><h4 class="code-header">pub const fn <a href="#method.offset" class="fn">offset</a>(self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>The offset (in bytes) of the <code>F</code> field in the <code>S</code> struct.</p>
+<h5 id="example-4"><a class="doc-anchor" href="#example-4">§</a>Example</h5>
+<p>This example demonstrates this method with a <code>#[repr(C, packed)]</code> struct.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">type </span>Normal = ReprPacked&lt;u8, u16, u32, u64&gt;;
+<span class="kw">type </span>Reversed = ReprPacked&lt;u64, u32, u16, u8&gt;;
+
+<span class="macro">assert_eq!</span>( Normal::OFFSET_A.offset(), <span class="number">0 </span>);
+<span class="macro">assert_eq!</span>( Normal::OFFSET_B.offset(), <span class="number">1 </span>);
+<span class="macro">assert_eq!</span>( Normal::OFFSET_C.offset(), <span class="number">3 </span>);
+<span class="macro">assert_eq!</span>( Normal::OFFSET_D.offset(), <span class="number">7 </span>);
+
+<span class="macro">assert_eq!</span>( Reversed::OFFSET_A.offset(), <span class="number">0 </span>);
+<span class="macro">assert_eq!</span>( Reversed::OFFSET_B.offset(), <span class="number">8 </span>);
+<span class="macro">assert_eq!</span>( Reversed::OFFSET_C.offset(), <span class="number">12 </span>);
+<span class="macro">assert_eq!</span>( Reversed::OFFSET_D.offset(), <span class="number">14 </span>);
+
+</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+A%3E-2" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#563-587">Source</a><a href="#impl-FieldOffset%3CS,+F,+A%3E-2" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.with_vis" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#584-586">Source</a><h4 class="code-header">pub const unsafe fn <a href="#method.with_vis" class="fn">with_vis</a>&lt;V, FN&gt;(self) -&gt; <a class="struct" href="get_field_offset/struct.FieldOffsetWithVis.html" title="struct repr_offset::get_field_offset::FieldOffsetWithVis">FieldOffsetWithVis</a>&lt;S, V, FN, F, A&gt;</h4></section></summary><div class="docblock"><p>Converts this FieldOffset into a <a href="get_field_offset/struct.FieldOffsetWithVis.html" title="struct repr_offset::get_field_offset::FieldOffsetWithVis"><code>FieldOffsetWithVis</code></a>.</p>
+<h5 id="safety-3"><a class="doc-anchor" href="#safety-3">§</a>Safety</h5>
+<p>The <code>V</code> type parameter must be:</p>
+<ul>
+<li>
+<p><code>[</code>IsPublic<code>]</code>: When the field is <code>pub</code>.</p>
+</li>
+<li>
+<p><a href="./privacy/struct.IsPrivate.html"><code>IsPrivate</code></a>: When the field has the default (private) visibility,
+or has a visibility smaller or equal to <code>pub(crate)</code>.</p>
+</li>
+</ul>
+<p>The <code>FN</code> type parameter must be the name of the field using the
+<code>repr_offset::tstr::TS</code> macro,
+eg: <code>TS!(foo)</code> for the <code>foo</code> field.</p>
+<p><a href="get_field_offset/struct.FieldOffsetWithVis.html" title="struct repr_offset::get_field_offset::FieldOffsetWithVis"><code>FieldOffsetWithVis</code></a> ./get_field_offset/struct.FieldOffsetWithVis.html</p>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+A%3E-3" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#589-756">Source</a><a href="#impl-FieldOffset%3CS,+F,+A%3E-3" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.cast_struct" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#638-640">Source</a><h4 class="code-header">pub const unsafe fn <a href="#method.cast_struct" class="fn">cast_struct</a>&lt;S2&gt;(self) -&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S2, F, A&gt;</h4></section></summary><div class="docblock"><p>Changes the <code>S</code> type parameter, most useful for <code>#[repr(transparent)]</code> wrappers.</p>
+<h5 id="safety-4"><a class="doc-anchor" href="#safety-4">§</a>Safety</h5>
+<p>Callers must ensure that there is a field of type <code>F</code> at the same offset
+inside the <code>S2</code> type,
+and is at least as public as this <code>FieldOffset</code>.</p>
+<p>If the <code>A</code> type parameter is <a href="./alignment/struct.Aligned.html"><code>Aligned</code></a>,
+then the field <a href="#alignment-guidelines">must be aligned</a></p>
+<h5 id="example-5"><a class="doc-anchor" href="#example-5">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::FieldOffset;
+<span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span>this = Wrapper(ReprC{
+    a: <span class="bool-val">false</span>,
+    b: <span class="number">3u8</span>,
+    c: <span class="prelude-val">Some</span>(<span class="string">'5'</span>),
+    d: [<span class="number">8u32</span>, <span class="number">13u32</span>],
+});
+
+<span class="macro">assert_eq!</span>( cast_offset(ReprC::OFFSET_A).get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span><span class="bool-val">false </span>);
+<span class="macro">assert_eq!</span>( cast_offset(ReprC::OFFSET_B).get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span><span class="number">3u8 </span>);
+<span class="macro">assert_eq!</span>( cast_offset(ReprC::OFFSET_C).get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="string">'5'</span>) );
+<span class="macro">assert_eq!</span>( cast_offset(ReprC::OFFSET_D).get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span>[<span class="number">8u32</span>, <span class="number">13u32</span>] );
+
+
+<span class="attr">#[repr(transparent)]
+</span><span class="kw">pub struct </span>Wrapper&lt;T&gt;(<span class="kw">pub </span>T);
+
+<span class="kw">pub const fn </span>cast_offset&lt;T,F,A&gt;(offset: FieldOffset&lt;T,F,A&gt;) -&gt; FieldOffset&lt;Wrapper&lt;T&gt;,F,A&gt;{
+    <span class="comment">// safety: This case is safe because this is a
+    // `#[repr(transparent)]` wrapper around `T`
+    // where `T` is a public field in the wrapper
+    </span><span class="kw">unsafe</span>{ offset.cast_struct() }
+}
+
+
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.cast_field" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#678-680">Source</a><h4 class="code-header">pub const unsafe fn <a href="#method.cast_field" class="fn">cast_field</a>&lt;F2&gt;(self) -&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F2, A&gt;</h4></section></summary><div class="docblock"><p>Changes the <code>F</code> type parameter.</p>
+<h5 id="safety-5"><a class="doc-anchor" href="#safety-5">§</a>Safety</h5>
+<p>Callers must ensure that the <code>F2</code> type is compatible with the <code>F</code> type,
+including size,alignment, and internal layout.</p>
+<p>If the <code>F</code> type encodes an invariant,
+then callers must ensure that if the field is used as the <code>F</code> type
+(including the destructor for the type)
+that the invariants for that type must be upheld.</p>
+<p>The same applies if the field is used as the <code>F2</code> type
+(if the returned FieldOffset isn’t used,then it would not be used as the <code>F2</code> type)</p>
+<h5 id="example-6"><a class="doc-anchor" href="#example-6">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>repr_offset::{Aligned, FieldOffset};
+<span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">type </span>This = ReprC&lt;u8, u64, (), ()&gt;;
+
+<span class="kw">let </span>this: This = ReprC{ a: <span class="number">3</span>, b: <span class="number">5</span>, c: (), d: () };
+
+<span class="kw">unsafe</span>{
+    <span class="macro">assert_eq!</span>( This::OFFSET_A.cast_field::&lt;i8&gt;().get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span><span class="number">3i8 </span>);
+    <span class="macro">assert_eq!</span>( This::OFFSET_B.cast_field::&lt;i64&gt;().get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span><span class="number">5i64 </span>);
+}
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_unaligned" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#717-722">Source</a><h4 class="code-header">pub const fn <a href="#method.to_unaligned" class="fn">to_unaligned</a>(self) -&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;</h4></section></summary><div class="docblock"><p>Changes this <code>FieldOffset</code> to be for a (potentially) unaligned field.</p>
+<p>This is useful if you want to get a nested field from an unaligned pointer to a
+<code>#[repr(C)]</code>/<code>#[repr(C,align())]</code> struct.</p>
+<h5 id="example-7"><a class="doc-anchor" href="#example-7">§</a>Example</h5>
+<p>This example demonstrates how you can copy a field
+from an unaligned pointer to a <code>#[repr(C)]</code> struct.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::{ReprC, ReprPacked};
+
+<span class="kw">type </span>Inner = ReprC&lt;usize, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;;
+<span class="kw">type </span>Outer = ReprPacked&lt;u8, Inner&gt;;
+
+<span class="kw">let </span>inner = ReprC { a: <span class="number">3</span>, b: <span class="string">"5"</span>, c: (), d: () };
+<span class="kw">let </span>outer: Outer = ReprPacked{ a: <span class="number">21</span>, b: inner, c: (), d: () };
+
+<span class="kw">let </span>inner_ptr: <span class="kw-2">*const </span>Inner = Outer::OFFSET_B.get_ptr(<span class="kw-2">&amp;</span>outer);
+<span class="kw">unsafe</span>{
+    <span class="macro">assert_eq!</span>( Inner::OFFSET_A.to_unaligned().read_copy(inner_ptr), <span class="number">3 </span>);
+    <span class="macro">assert_eq!</span>( Inner::OFFSET_B.to_unaligned().read_copy(inner_ptr), <span class="string">"5" </span>);
+
+    <span class="comment">// This is undefined behavior,
+    // because ReprC's FieldOFfsets require the pointer to be aligned.
+    //
+    // assert_eq!( Inner::OFFSET_A.read_copy(inner_ptr), 3 );
+    // assert_eq!( Inner::OFFSET_B.read_copy(inner_ptr), "5" );
+</span>}
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_aligned" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#753-755">Source</a><h4 class="code-header">pub const unsafe fn <a href="#method.to_aligned" class="fn">to_aligned</a>(self) -&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;</h4></section></summary><div class="docblock"><p>Changes this <code>FieldOffset</code> to be for an aligned field.</p>
+<h5 id="safety-6"><a class="doc-anchor" href="#safety-6">§</a>Safety</h5>
+<p>Callers must ensure that <a href="#alignment-guidelines">the field is aligned</a>
+within the <code>S</code> type.</p>
+<h5 id="example-8"><a class="doc-anchor" href="#example-8">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{Aligned, FieldOffset, Unaligned};
+
+<span class="comment">// ReprPacked2 is aligned to 2 bytes.
+</span><span class="kw">use </span>repr_offset::for_examples::ReprPacked2;
+
+<span class="kw">type </span>This = ReprPacked2&lt;u8, u16, (), ()&gt;;
+
+<span class="kw">let _</span>: FieldOffset&lt;This, u8, Unaligned&gt; = This::OFFSET_A;
+<span class="kw">let _</span>: FieldOffset&lt;This, u16, Unaligned&gt; = This::OFFSET_B;
+
+<span class="kw">let </span>this: This = ReprPacked2{ a: <span class="number">89</span>, b: <span class="number">144</span>, c: (), d: () };
+
+<span class="kw">unsafe</span>{
+    <span class="macro">assert_eq!</span>( This::OFFSET_A.to_aligned().get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span><span class="number">89 </span>);
+    <span class="macro">assert_eq!</span>( This::OFFSET_B.to_aligned().get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span><span class="number">144 </span>);
+}</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+Aligned%3E-1" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#758-828">Source</a><a href="#impl-FieldOffset%3CS,+F,+Aligned%3E-1" class="anchor">§</a><h3 class="code-header">impl&lt;S, F&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.get" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#774-776">Source</a><h4 class="code-header">pub fn <a href="#method.get" class="fn">get</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;S</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;F</a></h4></section></summary><div class="docblock"><p>Gets a reference to the field that this is an offset for.</p>
+<h5 id="example-9"><a class="doc-anchor" href="#example-9">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span>this = ReprC{ a: <span class="string">'@'</span>, b: <span class="number">21u8</span>, c: (), d: () };
+
+<span class="macro">assert_eq!</span>( ReprC::OFFSET_A.get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span><span class="string">'@' </span>);
+<span class="macro">assert_eq!</span>( ReprC::OFFSET_B.get(<span class="kw-2">&amp;</span>this), <span class="kw-2">&amp;</span><span class="number">21u8 </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_mut" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#793-795">Source</a><h4 class="code-header">pub fn <a href="#method.get_mut" class="fn">get_mut</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut S</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut F</a></h4></section></summary><div class="docblock"><p>Gets a mutable reference to the field that this is an offset for.</p>
+<h5 id="example-10"><a class="doc-anchor" href="#example-10">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprC{ a: <span class="string">"what"</span>, b: <span class="string">'?'</span>, c: (), d: () };
+
+<span class="macro">assert_eq!</span>( ReprC::OFFSET_A.get_mut(<span class="kw-2">&amp;mut </span>this), <span class="kw-2">&amp;mut </span><span class="string">"what" </span>);
+<span class="macro">assert_eq!</span>( ReprC::OFFSET_B.get_mut(<span class="kw-2">&amp;mut </span>this), <span class="kw-2">&amp;mut </span><span class="string">'?' </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_copy" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#822-827">Source</a><h4 class="code-header">pub fn <a href="#method.get_copy" class="fn">get_copy</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;S</a>) -&gt; F<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a>,</div></h4></section></summary><div class="docblock"><p>Copies the aligned field that this is an offset for.</p>
+<h5 id="example-11"><a class="doc-anchor" href="#example-11">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span>this = ReprC{ a: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>), b: [<span class="number">8i32</span>, <span class="number">13</span>, <span class="number">21</span>], c: (), d: () };
+
+<span class="macro">assert_eq!</span>( ReprC::OFFSET_A.get_copy(<span class="kw-2">&amp;</span>this), <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) );
+<span class="macro">assert_eq!</span>( ReprC::OFFSET_B.get_copy(<span class="kw-2">&amp;</span>this), [<span class="number">8i32</span>, <span class="number">13</span>, <span class="number">21</span>] );
+</code></pre></div>
+<p>This method can’t be called for non-Copy fields.</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span>this = ReprC{ a: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], b: (), c: (), d: () };
+
+<span class="kw">let _ </span>= ReprC::OFFSET_A.get_copy(<span class="kw-2">&amp;</span>this);</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+A%3E-4" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#830-1051">Source</a><a href="#impl-FieldOffset%3CS,+F,+A%3E-4" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.get_ptr" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#853-855">Source</a><h4 class="code-header">pub fn <a href="#method.get_ptr" class="fn">get_ptr</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;S</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const F</a></h4></section></summary><div class="docblock"><p>Gets a raw pointer to a field from a reference to the <code>S</code> struct.</p>
+<h5 id="example-12"><a class="doc-anchor" href="#example-12">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::FieldOffset;
+<span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">let </span>this = ReprPacked{ a: <span class="number">3u8</span>, b: <span class="number">5u16</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr_a = ReprPacked::OFFSET_A.get_ptr(<span class="kw-2">&amp;</span>this);
+<span class="comment">// A `u8` is always aligned,so a `.read()` is fine.
+</span><span class="macro">assert_eq!</span>( <span class="kw">unsafe</span>{ ptr_a.read() }, <span class="number">3u8 </span>);
+
+<span class="kw">let </span>ptr_b = ReprPacked::OFFSET_B.get_ptr(<span class="kw-2">&amp;</span>this);
+<span class="comment">// ReprPacked has an alignment of 1,
+// so this u16 field has to be copied with `.read_unaligned()`.
+</span><span class="macro">assert_eq!</span>( <span class="kw">unsafe</span>{ ptr_b.read_unaligned() }, <span class="number">5u16 </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_mut_ptr" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#887-889">Source</a><h4 class="code-header">pub fn <a href="#method.get_mut_ptr" class="fn">get_mut_ptr</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut S</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut F</a></h4></section></summary><div class="docblock"><p>Gets a mutable raw pointer to a field from a mutable reference to the <code>S</code> struct.</p>
+<h5 id="example-13"><a class="doc-anchor" href="#example-13">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::FieldOffset;
+<span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprPacked{ a: <span class="number">3u8</span>, b: <span class="number">5u16</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr_a = ReprPacked::OFFSET_A.get_mut_ptr(<span class="kw-2">&amp;mut </span>this);
+<span class="kw">unsafe</span>{
+    <span class="comment">// A `u8` is always aligned,so a `.read()` is fine.
+    </span><span class="macro">assert_eq!</span>( ptr_a.read(), <span class="number">3u8 </span>);
+    ptr_a.write(<span class="number">103</span>);
+    <span class="macro">assert_eq!</span>( ptr_a.read(), <span class="number">103 </span>);
+}
+
+<span class="kw">let </span>ptr_b = ReprPacked::OFFSET_B.get_mut_ptr(<span class="kw-2">&amp;mut </span>this);
+<span class="kw">unsafe</span>{
+    <span class="comment">// ReprPacked has an alignment of 1,
+    // so this u16 field has to be read with `.read_unaligned()`.
+    </span><span class="macro">assert_eq!</span>( ptr_b.read_unaligned(), <span class="number">5u16 </span>);
+    ptr_b.write_unaligned(<span class="number">105</span>);
+    <span class="macro">assert_eq!</span>( ptr_b.read_unaligned(), <span class="number">105 </span>);
+}
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.raw_get" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#922-924">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.raw_get" class="fn">raw_get</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const F</a></h4></section></summary><div class="docblock"><p>Gets a raw pointer to a field from a pointer to the <code>S</code> struct.</p>
+<h5 id="safety-7"><a class="doc-anchor" href="#safety-7">§</a>Safety</h5>
+<p>This has the same safety requirements as the <a href="https://doc.rust-lang.org/std/primitive.pointer.html#method.offset"><code>&lt;*const T&gt;::offset</code></a> method.</p>
+<h5 id="example-14"><a class="doc-anchor" href="#example-14">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::FieldOffset;
+<span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">let </span>this = ReprPacked{ a: <span class="number">3u8</span>, b: <span class="number">5u16</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="kw-2">&amp;</span>this;
+
+<span class="kw">unsafe</span>{
+    <span class="comment">// A `u8` is always aligned,so a `.read()` is fine.
+    </span><span class="macro">assert_eq!</span>( ReprPacked::OFFSET_A.raw_get(ptr).read(), <span class="number">3u8 </span>);
+     
+    <span class="comment">// ReprPacked has an alignment of 1,
+    // so this u16 field has to be copied with `.read_unaligned()`.
+    </span><span class="macro">assert_eq!</span>( ReprPacked::OFFSET_B.raw_get(ptr).read_unaligned(), <span class="number">5u16 </span>);
+}
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.raw_get_mut" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#966-968">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.raw_get_mut" class="fn">raw_get_mut</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut F</a></h4></section></summary><div class="docblock"><p>Gets a mutable raw pointer to a field from a pointer to the <code>S</code> struct.</p>
+<h5 id="safety-8"><a class="doc-anchor" href="#safety-8">§</a>Safety</h5>
+<p>This has the same safety requirements as the <a href="https://doc.rust-lang.org/std/primitive.pointer.html#method.offset-1"><code>&lt;*mut T&gt;::offset</code></a> method.</p>
+<h5 id="example-15"><a class="doc-anchor" href="#example-15">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::FieldOffset;
+<span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprPacked{ a: <span class="number">3u8</span>, b: <span class="number">5u16</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>this;
+
+<span class="kw">unsafe</span>{
+    <span class="kw">let </span>ptr_a = ReprPacked::OFFSET_A.raw_get_mut(ptr);
+
+    <span class="comment">// A `u8` is always aligned,so a `.read()` is fine.
+    </span><span class="macro">assert_eq!</span>( ptr_a.read(), <span class="number">3u8 </span>);
+    ptr_a.write(<span class="number">103</span>);
+    <span class="macro">assert_eq!</span>( ptr_a.read(), <span class="number">103 </span>);
+
+
+    <span class="kw">let </span>ptr_b = ReprPacked::OFFSET_B.raw_get_mut(ptr);
+
+    <span class="comment">// ReprPacked has an alignment of 1,
+    // so this u16 field has to be read with `.read_unaligned()`.
+    </span><span class="macro">assert_eq!</span>( ptr_b.read_unaligned(), <span class="number">5u16 </span>);
+    ptr_b.write_unaligned(<span class="number">105</span>);
+    <span class="macro">assert_eq!</span>( ptr_b.read_unaligned(), <span class="number">105 </span>);
+}
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.wrapping_raw_get" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1001-1003">Source</a><h4 class="code-header">pub fn <a href="#method.wrapping_raw_get" class="fn">wrapping_raw_get</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const F</a></h4></section></summary><div class="docblock"><p>Gets a raw pointer to a field from a pointer to the <code>S</code> struct.</p>
+<h5 id="safety-9"><a class="doc-anchor" href="#safety-9">§</a>Safety</h5>
+<p>While calling this method is not by itself unsafe,
+using the pointer returned by this method has the same safety requirements
+as the <a href="https://doc.rust-lang.org/std/primitive.pointer.html#method.wrapping_offset"><code>&lt;*const T&gt;::wrapping_offset</code></a> method.</p>
+<h5 id="example-16"><a class="doc-anchor" href="#example-16">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::FieldOffset;
+<span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">let </span>this = ReprPacked{ a: <span class="number">3u8</span>, b: <span class="number">5u16</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr_a = ReprPacked::OFFSET_A.wrapping_raw_get(<span class="kw-2">&amp;</span>this);
+<span class="comment">// A `u8` is always aligned,so a `.read()` is fine.
+</span><span class="macro">assert_eq!</span>( <span class="kw">unsafe</span>{ ptr_a.read() }, <span class="number">3u8 </span>);
+
+<span class="kw">let </span>ptr_b = ReprPacked::OFFSET_B.wrapping_raw_get(<span class="kw-2">&amp;</span>this);
+<span class="comment">// ReprPacked has an alignment of 1,
+// so this u16 field has to be copied with `.read_unaligned()`.
+</span><span class="macro">assert_eq!</span>( <span class="kw">unsafe</span>{ ptr_b.read_unaligned() }, <span class="number">5u16 </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.wrapping_raw_get_mut" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1048-1050">Source</a><h4 class="code-header">pub fn <a href="#method.wrapping_raw_get_mut" class="fn">wrapping_raw_get_mut</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut F</a></h4></section></summary><div class="docblock"><p>Gets a mutable raw pointer to a field from a pointer to the <code>S</code> struct.</p>
+<h5 id="safety-10"><a class="doc-anchor" href="#safety-10">§</a>Safety</h5>
+<p>While calling this method is not by itself unsafe,
+using the pointer returned by this method has the same safety requirements
+as the <a href="https://doc.rust-lang.org/std/primitive.pointer.html#method.wrapping_offset-1"><code>&lt;*mut T&gt;::wrapping_offset</code></a> method.</p>
+<h5 id="example-17"><a class="doc-anchor" href="#example-17">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::FieldOffset;
+<span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprPacked{ a: <span class="number">3u8</span>, b: <span class="number">5u16</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>this;
+
+<span class="kw">let </span>ptr_a = ReprPacked::OFFSET_A.wrapping_raw_get_mut(ptr);
+<span class="kw">unsafe</span>{
+
+    <span class="comment">// A `u8` is always aligned,so a `.read()` is fine.
+    </span><span class="macro">assert_eq!</span>( ptr_a.read(), <span class="number">3u8 </span>);
+    ptr_a.write(<span class="number">103</span>);
+    <span class="macro">assert_eq!</span>( ptr_a.read(), <span class="number">103 </span>);
+}
+
+<span class="kw">let </span>ptr_b = ReprPacked::OFFSET_B.wrapping_raw_get_mut(ptr);
+<span class="kw">unsafe</span>{
+
+    <span class="comment">// ReprPacked has an alignment of 1,
+    // so this u16 field has to be read with `.read_unaligned()`.
+    </span><span class="macro">assert_eq!</span>( ptr_b.read_unaligned(), <span class="number">5u16 </span>);
+    ptr_b.write_unaligned(<span class="number">105</span>);
+    <span class="macro">assert_eq!</span>( ptr_b.read_unaligned(), <span class="number">105 </span>);
+}
+</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+Aligned%3E-2" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1053-1405">Source</a><a href="#impl-FieldOffset%3CS,+F,+Aligned%3E-2" class="anchor">§</a><h3 class="code-header">impl&lt;S, F&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.read_copy" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1091-1096">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.read_copy" class="fn">read_copy</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a>) -&gt; F<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a>,</div></h4></section></summary><div class="docblock"><p>Copies the aligned field that this is an offset for.</p>
+<h5 id="safety-11"><a class="doc-anchor" href="#safety-11">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.read.html"><code>std::ptr::read</code></a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-18"><a class="doc-anchor" href="#example-18">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span>this = ReprC{ a: <span class="number">10u8</span>, b: <span class="string">"20"</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="kw-2">&amp;</span>this;
+<span class="kw">unsafe</span>{
+    <span class="macro">assert_eq!</span>( ReprC::OFFSET_A.read_copy(ptr), <span class="number">10u8 </span>);
+    <span class="macro">assert_eq!</span>( ReprC::OFFSET_B.read_copy(ptr), <span class="string">"20" </span>);
+}</code></pre></div>
+<p>This method can’t be called for non-Copy fields.</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span>this = ReprC{ a: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], b: (), c: (), d: () };
+<span class="kw">unsafe</span>{
+    <span class="kw">let _ </span>= ReprC::OFFSET_A.read_copy(<span class="kw-2">&amp;</span>this);
+}</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.read" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1131-1133">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.read" class="fn">read</a>(self, source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a>) -&gt; F</h4></section></summary><div class="docblock"><p>Reads the value from the field in <code>source</code> without moving it.</p>
+<h5 id="safety-12"><a class="doc-anchor" href="#safety-12">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.read.html"><code>std::ptr::read</code></a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-19"><a class="doc-anchor" href="#example-19">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">use </span>std::mem::ManuallyDrop;
+
+<span class="kw">let </span>this = ManuallyDrop::new(ReprC{
+    a: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],
+    b: <span class="string">"20"</span>.to_string(),
+    c: (),
+    d: (),
+});
+
+<span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="kw-2">&amp;*</span>this;
+<span class="kw">unsafe</span>{
+    <span class="macro">assert_eq!</span>( ReprC::OFFSET_A.read(ptr), <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>] );
+    <span class="macro">assert_eq!</span>( ReprC::OFFSET_B.read(ptr), <span class="string">"20"</span>.to_string() );
+}
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.write" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1166-1168">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.write" class="fn">write</a>(self, destination: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>, value: F)</h4></section></summary><div class="docblock"><p>Writes <code>value</code> ìnto the field in <code>destination</code> without dropping the old value of the field.</p>
+<p>This allows uninitialized fields to be initialized,since doing
+<code>*OFFSET_FOO.raw_get_mut(ptr) = value;</code> would drop uninitialized memory.</p>
+<h5 id="safety-13"><a class="doc-anchor" href="#safety-13">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.write.html"><code>std::ptr::write</code></a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-20"><a class="doc-anchor" href="#example-20">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprC{ a: <span class="number">10u8</span>, b: <span class="string">"20"</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>this;
+<span class="kw">unsafe</span>{
+    ReprC::OFFSET_A.write(ptr, <span class="number">13u8</span>);
+    ReprC::OFFSET_B.write(ptr, <span class="string">"21"</span>);
+}
+<span class="macro">assert_eq!</span>( this.a, <span class="number">13u8 </span>);
+<span class="macro">assert_eq!</span>( this.b, <span class="string">"21" </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.copy" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1203-1205">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.copy" class="fn">copy</a>(self, source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a>, destination: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>)</h4></section></summary><div class="docblock"><p>Copies the field in <code>source</code> into <code>destination</code>.</p>
+<h5 id="safety-14"><a class="doc-anchor" href="#safety-14">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.copy.html"><code>std::ptr::copy</code></a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-21"><a class="doc-anchor" href="#example-21">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span>this = ReprC{ a: <span class="number">10u8</span>, b: <span class="string">"20"</span>, c: (), d: () };
+<span class="kw">let </span><span class="kw-2">mut </span>other = ReprC{ a: <span class="number">0u8</span>, b: <span class="string">""</span>, c: (), d: () };
+
+<span class="kw">let </span>this_ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="kw-2">&amp;</span>this;
+<span class="kw">let </span>other_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>other;
+<span class="kw">unsafe</span>{
+    ReprC::OFFSET_A.copy(this_ptr, other_ptr);
+    ReprC::OFFSET_B.copy(this_ptr, other_ptr);
+}
+<span class="macro">assert_eq!</span>( this.a, <span class="number">10u8 </span>);
+<span class="macro">assert_eq!</span>( this.b, <span class="string">"20" </span>);
+
+<span class="macro">assert_eq!</span>( other.a, <span class="number">10u8 </span>);
+<span class="macro">assert_eq!</span>( other.b, <span class="string">"20" </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.copy_nonoverlapping" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1242-1244">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.copy_nonoverlapping" class="fn">copy_nonoverlapping</a>(self, source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a>, destination: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>)</h4></section></summary><div class="docblock"><p>Copies the field in <code>source</code> into <code>destination</code>,
+<code>source</code> and <code>destination</code> must not overlap.</p>
+<h5 id="safety-15"><a class="doc-anchor" href="#safety-15">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.copy_nonoverlapping.html"><code>std::ptr::copy_nonoverlapping</code>
+</a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-22"><a class="doc-anchor" href="#example-22">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span>this = ReprC{ a: <span class="string">'#'</span>, b: <span class="number">81</span>, c: (), d: () };
+<span class="kw">let </span><span class="kw-2">mut </span>other = ReprC{ a: <span class="string">'_'</span>, b: <span class="number">0</span>, c: (), d: () };
+
+<span class="kw">let </span>this_ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="kw-2">&amp;</span>this;
+<span class="kw">let </span>other_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>other;
+<span class="kw">unsafe</span>{
+    ReprC::OFFSET_A.copy_nonoverlapping(this_ptr, other_ptr);
+    ReprC::OFFSET_B.copy_nonoverlapping(this_ptr, other_ptr);
+}
+<span class="macro">assert_eq!</span>( this.a, <span class="string">'#' </span>);
+<span class="macro">assert_eq!</span>( this.b, <span class="number">81 </span>);
+
+<span class="macro">assert_eq!</span>( other.a, <span class="string">'#' </span>);
+<span class="macro">assert_eq!</span>( other.b, <span class="number">81 </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.replace" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1276-1278">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.replace" class="fn">replace</a>(self, destination: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>, value: F) -&gt; F</h4></section></summary><div class="docblock"><p>Replaces the value of a field in <code>destination</code> with <code>value</code>,
+returning the old value of the field.</p>
+<h5 id="safety-16"><a class="doc-anchor" href="#safety-16">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.replace.html"><code>std::ptr::replace</code></a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-23"><a class="doc-anchor" href="#example-23">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprC{ a: [<span class="number">0u8</span>, <span class="number">1</span>], b: <span class="bool-val">false</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>this;
+<span class="kw">unsafe</span>{
+    <span class="macro">assert_eq!</span>( ReprC::OFFSET_A.replace(ptr, [<span class="number">2</span>, <span class="number">3</span>]), [<span class="number">0u8</span>, <span class="number">1</span>] );
+    <span class="macro">assert_eq!</span>( ReprC::OFFSET_B.replace(ptr, <span class="bool-val">true</span>), <span class="bool-val">false </span>);
+}
+
+<span class="macro">assert_eq!</span>( this.a, [<span class="number">2u8</span>, <span class="number">3</span>] );
+<span class="macro">assert_eq!</span>( this.b, <span class="bool-val">true </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.replace_mut" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1299-1301">Source</a><h4 class="code-header">pub fn <a href="#method.replace_mut" class="fn">replace_mut</a>(self, destination: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut S</a>, value: F) -&gt; F</h4></section></summary><div class="docblock"><p>Replaces the value of a field in <code>destination</code> with <code>value</code>,
+returning the old value of the field.</p>
+<h5 id="example-24"><a class="doc-anchor" href="#example-24">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprC{ a: [<span class="number">0u8</span>, <span class="number">1</span>], b: <span class="bool-val">false</span>, c: (), d: () };
+
+<span class="macro">assert_eq!</span>( ReprC::OFFSET_A.replace_mut(<span class="kw-2">&amp;mut </span>this, [<span class="number">2</span>, <span class="number">3</span>]), [<span class="number">0u8</span>, <span class="number">1</span>] );
+<span class="macro">assert_eq!</span>( ReprC::OFFSET_B.replace_mut(<span class="kw-2">&amp;mut </span>this, <span class="bool-val">true</span>), <span class="bool-val">false </span>);
+
+<span class="macro">assert_eq!</span>( this.a, [<span class="number">2u8</span>, <span class="number">3</span>] );
+<span class="macro">assert_eq!</span>( this.b, <span class="bool-val">true </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.swap" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1336-1338">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.swap" class="fn">swap</a>(self, left: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>, right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>)</h4></section></summary><div class="docblock"><p>Swaps the values of a field between the <code>left</code> and <code>right</code> pointers.</p>
+<h5 id="safety-17"><a class="doc-anchor" href="#safety-17">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.swap.html"><code>std::ptr::swap</code></a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-25"><a class="doc-anchor" href="#example-25">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprC{ a: <span class="string">'='</span>, b: <span class="number">64u16</span>, c: (), d: () };
+<span class="kw">let </span><span class="kw-2">mut </span>other = ReprC{ a: <span class="string">'!'</span>, b: <span class="number">255u16</span>, c: (), d: () };
+
+<span class="kw">let </span>this_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>this;
+<span class="kw">let </span>other_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>other;
+<span class="kw">unsafe</span>{
+    ReprC::OFFSET_A.swap(this_ptr, other_ptr);
+    ReprC::OFFSET_B.swap(this_ptr, other_ptr);
+}
+<span class="macro">assert_eq!</span>( this.a, <span class="string">'!' </span>);
+<span class="macro">assert_eq!</span>( this.b, <span class="number">255 </span>);
+
+<span class="macro">assert_eq!</span>( other.a, <span class="string">'=' </span>);
+<span class="macro">assert_eq!</span>( other.b, <span class="number">64 </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.swap_nonoverlapping" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1375-1377">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.swap_nonoverlapping" class="fn">swap_nonoverlapping</a>(self, left: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>, right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>)</h4></section></summary><div class="docblock"><p>Swaps the values of a field between the <code>left</code> and <code>right</code> non-overlapping pointers.</p>
+<h5 id="safety-18"><a class="doc-anchor" href="#safety-18">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.swap_nonoverlapping.html"><code>std::ptr::swap_nonoverlapping</code>
+</a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-26"><a class="doc-anchor" href="#example-26">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprC{ a: [<span class="bool-val">false</span>, <span class="bool-val">true</span>], b: <span class="kw-2">&amp;</span><span class="number">27u32</span>, c: (), d: () };
+<span class="kw">let </span><span class="kw-2">mut </span>other = ReprC{ a: [<span class="bool-val">true</span>, <span class="bool-val">false</span>], b: <span class="kw-2">&amp;</span><span class="number">81u32</span>, c: (), d: () };
+
+<span class="kw">let </span>this_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>this;
+<span class="kw">let </span>other_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>other;
+<span class="kw">unsafe</span>{
+    ReprC::OFFSET_A.swap_nonoverlapping(this_ptr, other_ptr);
+    ReprC::OFFSET_B.swap_nonoverlapping(this_ptr, other_ptr);
+}
+<span class="macro">assert_eq!</span>( this.a, [<span class="bool-val">true</span>, <span class="bool-val">false</span>] );
+<span class="macro">assert_eq!</span>( this.b, <span class="kw-2">&amp;</span><span class="number">81 </span>);
+
+<span class="macro">assert_eq!</span>( other.a, [<span class="bool-val">false</span>, <span class="bool-val">true</span>] );
+<span class="macro">assert_eq!</span>( other.b, <span class="kw-2">&amp;</span><span class="number">27 </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.swap_mut" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1402-1404">Source</a><h4 class="code-header">pub fn <a href="#method.swap_mut" class="fn">swap_mut</a>(self, left: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut S</a>, right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut S</a>)</h4></section></summary><div class="docblock"><p>Swaps the values of a field between <code>left</code> and <code>right</code>.</p>
+<h5 id="example-27"><a class="doc-anchor" href="#example-27">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprC;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprC{ a: [<span class="bool-val">true</span>, <span class="bool-val">true</span>], b: <span class="number">0x0Fu8</span>, c: (), d: () };
+<span class="kw">let </span><span class="kw-2">mut </span>other = ReprC{ a: [<span class="bool-val">false</span>, <span class="bool-val">false</span>], b: <span class="number">0xF0u8</span>, c: (), d: () };
+
+ReprC::OFFSET_A.swap_mut(<span class="kw-2">&amp;mut </span>this, <span class="kw-2">&amp;mut </span>other);
+ReprC::OFFSET_B.swap_mut(<span class="kw-2">&amp;mut </span>this, <span class="kw-2">&amp;mut </span>other);
+
+<span class="macro">assert_eq!</span>( this.a, [<span class="bool-val">false</span>, <span class="bool-val">false</span>] );
+<span class="macro">assert_eq!</span>( this.b, <span class="number">0xF0u8 </span>);
+
+<span class="macro">assert_eq!</span>( other.a, [<span class="bool-val">true</span>, <span class="bool-val">true</span>] );
+<span class="macro">assert_eq!</span>( other.b, <span class="number">0x0Fu8 </span>);
+</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+Unaligned%3E-1" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1407-1636">Source</a><a href="#impl-FieldOffset%3CS,+F,+Unaligned%3E-1" class="anchor">§</a><h3 class="code-header">impl&lt;S, F&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.get_copy-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1434-1439">Source</a><h4 class="code-header">pub fn <a href="#method.get_copy-1" class="fn">get_copy</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;S</a>) -&gt; F<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a>,</div></h4></section></summary><div class="docblock"><p>Copies the unaligned field that this is an offset for.</p>
+<h5 id="example-28"><a class="doc-anchor" href="#example-28">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">let </span>this = ReprPacked{ a: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>), b: [<span class="number">8i32</span>, <span class="number">13</span>, <span class="number">21</span>], c: (), d: () };
+
+<span class="macro">assert_eq!</span>( ReprPacked::OFFSET_A.get_copy(<span class="kw-2">&amp;</span>this), <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) );
+<span class="macro">assert_eq!</span>( ReprPacked::OFFSET_B.get_copy(<span class="kw-2">&amp;</span>this), [<span class="number">8i32</span>, <span class="number">13</span>, <span class="number">21</span>] );
+</code></pre></div>
+<p>This method can’t be called for non-Copy fields.</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">let </span>this = ReprPacked{ a: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>], b: (), c: (), d: () };
+
+<span class="kw">let _ </span>= ReprPacked::OFFSET_A.get_copy(<span class="kw-2">&amp;</span>this);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.read_copy-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1478-1483">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.read_copy-1" class="fn">read_copy</a>(self, base: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a>) -&gt; F<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a>,</div></h4></section></summary><div class="docblock"><p>Copies the unaligned field that this is an offset for.</p>
+<h5 id="safety-19"><a class="doc-anchor" href="#safety-19">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.read_unaligned.html"><code>std::ptr::read_unaligned</code></a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-29"><a class="doc-anchor" href="#example-29">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">let </span>this = ReprPacked{ a: <span class="number">10u8</span>, b: <span class="string">"20"</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="kw-2">&amp;</span>this;
+<span class="kw">unsafe</span>{
+    <span class="macro">assert_eq!</span>( ReprPacked::OFFSET_A.read_copy(ptr), <span class="number">10u8 </span>);
+    <span class="macro">assert_eq!</span>( ReprPacked::OFFSET_B.read_copy(ptr), <span class="string">"20" </span>);
+}</code></pre></div>
+<p>This method can’t be called for non-Copy fields.</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">let </span>this = ReprPacked{ a: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>], b: <span class="string">"20"</span>, c: (), d: () };
+
+<span class="kw">unsafe</span>{
+    <span class="kw">let _ </span>= ReprPacked::OFFSET_A.read_copy(<span class="kw-2">&amp;</span>this);
+}</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.read-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1518-1520">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.read-1" class="fn">read</a>(self, source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a>) -&gt; F</h4></section></summary><div class="docblock"><p>Reads the value from the field in <code>source</code> without moving it.</p>
+<h5 id="safety-20"><a class="doc-anchor" href="#safety-20">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.read_unaligned.html"><code>std::ptr::read_unaligned</code></a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-30"><a class="doc-anchor" href="#example-30">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+
+<span class="kw">use </span>std::mem::ManuallyDrop;
+
+<span class="kw">let </span>this = ManuallyDrop::new(ReprPacked{
+    a: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],
+    b: <span class="string">"20"</span>.to_string(),
+    c: (),
+    d: (),
+});
+
+<span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="kw-2">&amp;*</span>this;
+<span class="kw">unsafe</span>{
+    <span class="macro">assert_eq!</span>( ReprPacked::OFFSET_A.read(ptr), <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>] );
+    <span class="macro">assert_eq!</span>( ReprPacked::OFFSET_B.read(ptr), <span class="string">"20"</span>.to_string() );
+}
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.write-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1552-1554">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.write-1" class="fn">write</a>(self, source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>, value: F)</h4></section></summary><div class="docblock"><p>Writes <code>value</code> ìnto the field in <code>source</code> without dropping the old value of the field.</p>
+<h5 id="safety-21"><a class="doc-anchor" href="#safety-21">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.write_unaligned.html"><code>std::ptr::write_unaligned</code></a>.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-31"><a class="doc-anchor" href="#example-31">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+<span class="kw">use </span>repr_offset::utils::moved;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprPacked{ a: <span class="number">10u8</span>, b: <span class="string">"20"</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>this;
+<span class="kw">unsafe</span>{
+    ReprPacked::OFFSET_A.write(ptr, <span class="number">13u8</span>);
+    ReprPacked::OFFSET_B.write(ptr, <span class="string">"21"</span>);
+}
+<span class="macro">assert_eq!</span>( moved(this.a), <span class="number">13u8 </span>);
+<span class="macro">assert_eq!</span>( moved(this.b), <span class="string">"21" </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.copy-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1592-1594">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.copy-1" class="fn">copy</a>(self, source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a>, destination: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>)</h4></section></summary><div class="docblock"><p>Copies the field in <code>source</code> into <code>destination</code>.</p>
+<h5 id="safety-22"><a class="doc-anchor" href="#safety-22">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.copy.html"><code>std::ptr::copy</code></a>,
+except that <code>source</code> and <code>destination</code> do not need to be properly aligned.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-32"><a class="doc-anchor" href="#example-32">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+<span class="kw">use </span>repr_offset::utils::moved;
+
+
+<span class="kw">let </span>this = ReprPacked{ a: <span class="number">10u8</span>, b: <span class="string">"20"</span>, c: (), d: () };
+<span class="kw">let </span><span class="kw-2">mut </span>other = ReprPacked{ a: <span class="number">0u8</span>, b: <span class="string">""</span>, c: (), d: () };
+
+<span class="kw">let </span>this_ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="kw-2">&amp;</span>this;
+<span class="kw">let </span>other_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>other;
+<span class="kw">unsafe</span>{
+    ReprPacked::OFFSET_A.copy(this_ptr, other_ptr);
+    ReprPacked::OFFSET_B.copy(this_ptr, other_ptr);
+}
+<span class="macro">assert_eq!</span>( moved(this.a), <span class="number">10u8 </span>);
+<span class="macro">assert_eq!</span>( moved(this.b), <span class="string">"20" </span>);
+
+<span class="macro">assert_eq!</span>( moved(other.a), <span class="number">10u8 </span>);
+<span class="macro">assert_eq!</span>( moved(other.b), <span class="string">"20" </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.copy_nonoverlapping-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1633-1635">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.copy_nonoverlapping-1" class="fn">copy_nonoverlapping</a>(self, source: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const S</a>, destination: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>)</h4></section></summary><div class="docblock"><p>Copies the field in <code>source</code> into <code>destination</code>,
+<code>source</code> and <code>destination</code> must not overlap.</p>
+<h5 id="safety-23"><a class="doc-anchor" href="#safety-23">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.copy_nonoverlapping.html"><code>std::ptr::copy_nonoverlapping</code>
+</a>,
+except that <code>source</code> and <code>destination</code> do not need to be properly aligned.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-33"><a class="doc-anchor" href="#example-33">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+<span class="kw">use </span>repr_offset::utils::moved;
+
+<span class="kw">let </span>this = ReprPacked{ a: <span class="string">'#'</span>, b: <span class="number">81</span>, c: (), d: () };
+<span class="kw">let </span><span class="kw-2">mut </span>other = ReprPacked{ a: <span class="string">'_'</span>, b: <span class="number">0</span>, c: (), d: () };
+
+<span class="kw">let </span>this_ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= <span class="kw-2">&amp;</span>this;
+<span class="kw">let </span>other_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>other;
+<span class="kw">unsafe</span>{
+    ReprPacked::OFFSET_A.copy_nonoverlapping(this_ptr, other_ptr);
+    ReprPacked::OFFSET_B.copy_nonoverlapping(this_ptr, other_ptr);
+}
+<span class="macro">assert_eq!</span>( moved(this.a), <span class="string">'#' </span>);
+<span class="macro">assert_eq!</span>( moved(this.b), <span class="number">81 </span>);
+
+<span class="macro">assert_eq!</span>( moved(other.a), <span class="string">'#' </span>);
+<span class="macro">assert_eq!</span>( moved(other.b), <span class="number">81 </span>);
+</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+Unaligned%3E-2" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1638-1698">Source</a><a href="#impl-FieldOffset%3CS,+F,+Unaligned%3E-2" class="anchor">§</a><h3 class="code-header">impl&lt;S, F&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.replace-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1671-1673">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.replace-1" class="fn">replace</a>(self, dest: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>, value: F) -&gt; F</h4></section></summary><div class="docblock"><p>Replaces the value of a field in <code>dest</code> with <code>value</code>,
+returning the old value of the field.</p>
+<h5 id="safety-24"><a class="doc-anchor" href="#safety-24">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.replace.html"><code>std::ptr::replace</code></a>,
+except that <code>dest</code> does not need to be properly aligned.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-34"><a class="doc-anchor" href="#example-34">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+<span class="kw">use </span>repr_offset::utils::moved;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprPacked{ a: [<span class="number">0u8</span>, <span class="number">1</span>], b: <span class="bool-val">false</span>, c: (), d: () };
+
+<span class="kw">let </span>ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>this;
+<span class="kw">unsafe</span>{
+    <span class="macro">assert_eq!</span>( ReprPacked::OFFSET_A.replace(ptr, [<span class="number">2</span>, <span class="number">3</span>]), [<span class="number">0u8</span>, <span class="number">1</span>] );
+    <span class="macro">assert_eq!</span>( ReprPacked::OFFSET_B.replace(ptr, <span class="bool-val">true</span>), <span class="bool-val">false </span>);
+}
+
+<span class="macro">assert_eq!</span>( moved(this.a), [<span class="number">2u8</span>, <span class="number">3</span>] );
+<span class="macro">assert_eq!</span>( moved(this.b), <span class="bool-val">true </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.replace_mut-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1695-1697">Source</a><h4 class="code-header">pub fn <a href="#method.replace_mut-1" class="fn">replace_mut</a>(self, dest: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut S</a>, value: F) -&gt; F</h4></section></summary><div class="docblock"><p>Replaces the value of a field in <code>dest</code> with <code>value</code>,
+returning the old value of the field.</p>
+<h5 id="example-35"><a class="doc-anchor" href="#example-35">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+<span class="kw">use </span>repr_offset::utils::moved;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprPacked{ a: [<span class="number">0u8</span>, <span class="number">1</span>], b: <span class="bool-val">false</span>, c: (), d: () };
+
+<span class="macro">assert_eq!</span>( ReprPacked::OFFSET_A.replace_mut(<span class="kw-2">&amp;mut </span>this, [<span class="number">2</span>, <span class="number">3</span>]), [<span class="number">0u8</span>, <span class="number">1</span>] );
+<span class="macro">assert_eq!</span>( ReprPacked::OFFSET_B.replace_mut(<span class="kw-2">&amp;mut </span>this, <span class="bool-val">true</span>), <span class="bool-val">false </span>);
+
+<span class="macro">assert_eq!</span>( moved(this.a), [<span class="number">2u8</span>, <span class="number">3</span>] );
+<span class="macro">assert_eq!</span>( moved(this.b), <span class="bool-val">true </span>);
+</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-FieldOffset%3CS,+F,+Unaligned%3E-3" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1700-1808">Source</a><a href="#impl-FieldOffset%3CS,+F,+Unaligned%3E-3" class="anchor">§</a><h3 class="code-header">impl&lt;S, F&gt; <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.swap-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1736-1738">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.swap-1" class="fn">swap</a>(self, left: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>, right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>)</h4></section></summary><div class="docblock"><p>Swaps the values of a field between the <code>left</code> and <code>right</code> pointers.</p>
+<h5 id="safety-25"><a class="doc-anchor" href="#safety-25">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.swap.html"><code>std::ptr::swap</code></a>,
+except that it does not require aligned pointers.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-36"><a class="doc-anchor" href="#example-36">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+<span class="kw">use </span>repr_offset::utils::moved;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprPacked{ a: <span class="string">'='</span>, b: <span class="number">64u16</span>, c: (), d: () };
+<span class="kw">let </span><span class="kw-2">mut </span>other = ReprPacked{ a: <span class="string">'!'</span>, b: <span class="number">255u16</span>, c: (), d: () };
+
+<span class="kw">let </span>this_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>this;
+<span class="kw">let </span>other_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>other;
+<span class="kw">unsafe</span>{
+    ReprPacked::OFFSET_A.swap(this_ptr, other_ptr);
+    ReprPacked::OFFSET_B.swap(this_ptr, other_ptr);
+}
+<span class="macro">assert_eq!</span>( moved(this.a), <span class="string">'!' </span>);
+<span class="macro">assert_eq!</span>( moved(this.b), <span class="number">255 </span>);
+
+<span class="macro">assert_eq!</span>( moved(other.a), <span class="string">'=' </span>);
+<span class="macro">assert_eq!</span>( moved(other.b), <span class="number">64 </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.swap_nonoverlapping-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1777-1779">Source</a><h4 class="code-header">pub unsafe fn <a href="#method.swap_nonoverlapping-1" class="fn">swap_nonoverlapping</a>(self, left: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>, right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut S</a>)</h4></section></summary><div class="docblock"><p>Swaps the values of a field between the non-overlapping <code>left</code> and <code>right</code> pointers.</p>
+<h5 id="safety-26"><a class="doc-anchor" href="#safety-26">§</a>Safety</h5>
+<p>This function has the same safety requirements as
+<a href="https://doc.rust-lang.org/std/ptr/fn.swap_nonoverlapping.html"><code>std::ptr::swap_nonoverlapping</code>
+</a>
+except that it does not require aligned pointers.</p>
+<p>Those safety requirements only apply to the field that this is an offset for,
+fields after it or before it don’t need to be valid to call this method.</p>
+<h5 id="example-37"><a class="doc-anchor" href="#example-37">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+<span class="kw">use </span>repr_offset::utils::moved;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprPacked{ a: [<span class="bool-val">false</span>, <span class="bool-val">true</span>], b: <span class="kw-2">&amp;</span><span class="number">27u32</span>, c: (), d: () };
+<span class="kw">let </span><span class="kw-2">mut </span>other = ReprPacked{ a: [<span class="bool-val">true</span>, <span class="bool-val">false</span>], b: <span class="kw-2">&amp;</span><span class="number">81u32</span>, c: (), d: () };
+
+<span class="kw">let </span>this_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>this;
+<span class="kw">let </span>other_ptr: <span class="kw-2">*mut </span><span class="kw">_ </span>= <span class="kw-2">&amp;mut </span>other;
+<span class="kw">unsafe</span>{
+    ReprPacked::OFFSET_A.swap_nonoverlapping(this_ptr, other_ptr);
+    ReprPacked::OFFSET_B.swap_nonoverlapping(this_ptr, other_ptr);
+}
+<span class="macro">assert_eq!</span>( moved(this.a), [<span class="bool-val">true</span>, <span class="bool-val">false</span>] );
+<span class="macro">assert_eq!</span>( moved(this.b), <span class="kw-2">&amp;</span><span class="number">81 </span>);
+
+<span class="macro">assert_eq!</span>( moved(other.a), [<span class="bool-val">false</span>, <span class="bool-val">true</span>] );
+<span class="macro">assert_eq!</span>( moved(other.b), <span class="kw-2">&amp;</span><span class="number">27 </span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.swap_mut-1" class="method"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#1805-1807">Source</a><h4 class="code-header">pub fn <a href="#method.swap_mut-1" class="fn">swap_mut</a>(self, left: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut S</a>, right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut S</a>)</h4></section></summary><div class="docblock"><p>Swaps the values of a field between <code>left</code> and <code>right</code>.</p>
+<h5 id="example-38"><a class="doc-anchor" href="#example-38">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::for_examples::ReprPacked;
+<span class="kw">use </span>repr_offset::utils::moved;
+
+<span class="kw">let </span><span class="kw-2">mut </span>this = ReprPacked{ a: [<span class="bool-val">true</span>, <span class="bool-val">true</span>], b: <span class="number">0x0Fu8</span>, c: (), d: () };
+<span class="kw">let </span><span class="kw-2">mut </span>other = ReprPacked{ a: [<span class="bool-val">false</span>, <span class="bool-val">false</span>], b: <span class="number">0xF0u8</span>, c: (), d: () };
+
+ReprPacked::OFFSET_A.swap_mut(<span class="kw-2">&amp;mut </span>this, <span class="kw-2">&amp;mut </span>other);
+ReprPacked::OFFSET_B.swap_mut(<span class="kw-2">&amp;mut </span>this, <span class="kw-2">&amp;mut </span>other);
+
+<span class="macro">assert_eq!</span>( moved(this.a), [<span class="bool-val">false</span>, <span class="bool-val">false</span>] );
+<span class="macro">assert_eq!</span>( moved(this.b), <span class="number">0xF0u8 </span>);
+
+<span class="macro">assert_eq!</span>( moved(other.a), [<span class="bool-val">true</span>, <span class="bool-val">true</span>] );
+<span class="macro">assert_eq!</span>( moved(other.b), <span class="number">0x0Fu8 </span>);
+</code></pre></div>
+</div></details></div></details></div><h2 id="trait-implementations" class="section-header">Trait Implementations<a href="#trait-implementations" class="anchor">§</a></h2><div id="trait-implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-Add%3CFieldOffset%3CF,+F2,+A2%3E%3E-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#518-529">Source</a><a href="#impl-Add%3CFieldOffset%3CF,+F2,+A2%3E%3E-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A, F2, A2&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/arith/trait.Add.html" title="trait core::ops::arith::Add">Add</a>&lt;<a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;F, F2, A2&gt;&gt; for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;<div class="where">where
+    A: <a class="trait" href="alignment/trait.CombineAlignment.html" title="trait repr_offset::alignment::CombineAlignment">CombineAlignment</a>&lt;A2&gt;,
+    A2: <a class="trait" href="alignment/trait.Alignment.html" title="trait repr_offset::alignment::Alignment">Alignment</a>,</div></h3><div class="docblock"><p>Equivalent to the inherent <code>FieldOffset::add</code> method,
+that one can be ran at compile-time(this one can’t).</p>
+</div></section></summary><div class="docblock"><h4 id="example-39"><a class="doc-anchor" href="#example-39">§</a>Example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{Aligned, FieldOffset, Unaligned};
+<span class="kw">use </span>repr_offset::for_examples::{ReprC, ReprPacked};
+
+<span class="kw">type </span>This = ReprC&lt;char, ReprC&lt;u8, u16&gt;, ReprPacked&lt;u32, u64&gt;&gt;;
+
+<span class="kw">let </span>this: This = ReprC {
+    a: <span class="string">'3'</span>,
+    b: ReprC{ a: <span class="number">5u8</span>, b: <span class="number">8u16</span>, c: (), d: () },
+    c: ReprPacked{ a: <span class="number">13u32</span>, b: <span class="number">21u64</span>, c: (), d: () },
+    d: (),
+};
+
+<span class="comment">// This is the FieldOffset of the `.b.a` nested field.
+</span><span class="kw">let </span>offset_b_b = ReprC::OFFSET_B + ReprC::OFFSET_B;
+
+<span class="comment">// This is the FieldOffset of the `.c.a` nested field.
+</span><span class="kw">let </span>offset_c_b = ReprC::OFFSET_C + ReprPacked::OFFSET_B;
+
+<span class="macro">assert_eq!</span>( offset_b_b.get_copy(<span class="kw-2">&amp;</span>this), <span class="number">8 </span>);
+<span class="macro">assert_eq!</span>( offset_c_b.get_copy(<span class="kw-2">&amp;</span>this), <span class="number">21 </span>);
+</code></pre></div>
+</div><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Output" class="associatedtype trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#523">Source</a><a href="#associatedtype.Output" class="anchor">§</a><h4 class="code-header">type <a href="https://doc.rust-lang.org/1.90.0/core/ops/arith/trait.Add.html#associatedtype.Output" class="associatedtype">Output</a> = <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F2, &lt;A as <a class="trait" href="alignment/trait.CombineAlignment.html" title="trait repr_offset::alignment::CombineAlignment">CombineAlignment</a>&lt;A2&gt;&gt;::<a class="associatedtype" href="alignment/trait.CombineAlignment.html#associatedtype.Output" title="type repr_offset::alignment::CombineAlignment::Output">Output</a>&gt;</h4></section></summary><div class='docblock'>The resulting type after applying the <code>+</code> operator.</div></details><details class="toggle method-toggle" open><summary><section id="method.add-2" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#526-528">Source</a><a href="#method.add-2" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/ops/arith/trait.Add.html#tymethod.add" class="fn">add</a>(self, other: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;F, F2, A2&gt;) -&gt; Self::<a class="associatedtype" href="https://doc.rust-lang.org/1.90.0/core/ops/arith/trait.Add.html#associatedtype.Output" title="type core::ops::arith::Add::Output">Output</a></h4></section></summary><div class='docblock'>Performs the <code>+</code> operation. <a href="https://doc.rust-lang.org/1.90.0/core/ops/arith/trait.Add.html#tymethod.add">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Clone-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#258-263">Source</a><a href="#impl-Clone-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.clone" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#260-262">Source</a><a href="#method.clone" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html#tymethod.clone" class="fn">clone</a>(&amp;self) -&gt; Self</h4></section></summary><div class='docblock'>Returns a duplicate of the value. <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html#tymethod.clone">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.clone_from" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/clone.rs.html#213-215">Source</a></span><a href="#method.clone_from" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html#method.clone_from" class="fn">clone_from</a>(&amp;mut self, source: &amp;Self)</h4></section></summary><div class='docblock'>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html#method.clone_from">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Debug-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#248-254">Source</a><a href="#impl-Debug-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.fmt" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#249-253">Source</a><a href="#method.fmt" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html#tymethod.fmt" class="fn">fmt</a>(&amp;self, f: &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>&lt;'_&gt;) -&gt; <a class="type" href="https://doc.rust-lang.org/1.90.0/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></h4></section></summary><div class='docblock'>Formats the value using the given formatter. <a href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html#tymethod.fmt">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Ord-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#244-246">Source</a><a href="#impl-Ord-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html" title="trait core::cmp::Ord">Ord</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.cmp" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#244-246">Source</a><a href="#method.cmp" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#tymethod.cmp" class="fn">cmp</a>(&amp;self, other: &amp;Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/cmp/enum.Ordering.html" title="enum core::cmp::Ordering">Ordering</a></h4></section></summary><div class='docblock'>This method returns an <a href="https://doc.rust-lang.org/1.90.0/core/cmp/enum.Ordering.html" title="enum core::cmp::Ordering"><code>Ordering</code></a> between <code>self</code> and <code>other</code>. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#tymethod.cmp">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.max" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.21.0">1.21.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1013-1015">Source</a></span><a href="#method.max" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.max" class="fn">max</a>(self, other: Self) -&gt; Self<div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class='docblock'>Compares and returns the maximum of two values. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.max">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.min" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.21.0">1.21.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1052-1054">Source</a></span><a href="#method.min" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.min" class="fn">min</a>(self, other: Self) -&gt; Self<div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class='docblock'>Compares and returns the minimum of two values. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.min">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.clamp" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.50.0">1.50.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1078-1080">Source</a></span><a href="#method.clamp" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.clamp" class="fn">clamp</a>(self, min: Self, max: Self) -&gt; Self<div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class='docblock'>Restrict a value to a certain interval. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Ord.html#method.clamp">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-PartialEq-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#244-246">Source</a><a href="#impl-PartialEq-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialEq.html" title="trait core::cmp::PartialEq">PartialEq</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.eq" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#244-246">Source</a><a href="#method.eq" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialEq.html#tymethod.eq" class="fn">eq</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests for <code>self</code> and <code>other</code> values to be equal, and is used by <code>==</code>.</div></details><details class="toggle method-toggle" open><summary><section id="method.ne" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#265">Source</a></span><a href="#method.ne" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialEq.html#method.ne" class="fn">ne</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;Rhs</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests for <code>!=</code>. The default implementation is almost always sufficient,
+and should not be overridden without very good reason.</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-PartialOrd-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#244-246">Source</a><a href="#impl-PartialOrd-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html" title="trait core::cmp::PartialOrd">PartialOrd</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.partial_cmp" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#244-246">Source</a><a href="#method.partial_cmp" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#tymethod.partial_cmp" class="fn">partial_cmp</a>(&amp;self, other: &amp;Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.90.0/core/cmp/enum.Ordering.html" title="enum core::cmp::Ordering">Ordering</a>&gt;</h4></section></summary><div class='docblock'>This method returns an ordering between <code>self</code> and <code>other</code> values if one exists. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#tymethod.partial_cmp">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.lt" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1387">Source</a></span><a href="#method.lt" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.lt" class="fn">lt</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;Rhs</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests less than (for <code>self</code> and <code>other</code>) and is used by the <code>&lt;</code> operator. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.lt">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.le" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1405">Source</a></span><a href="#method.le" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.le" class="fn">le</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;Rhs</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests less than or equal to (for <code>self</code> and <code>other</code>) and is used by the
+<code>&lt;=</code> operator. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.le">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.gt" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1423">Source</a></span><a href="#method.gt" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.gt" class="fn">gt</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;Rhs</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests greater than (for <code>self</code> and <code>other</code>) and is used by the <code>&gt;</code>
+operator. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.gt">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.ge" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.90.0/src/core/cmp.rs.html#1441">Source</a></span><a href="#method.ge" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.ge" class="fn">ge</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;Rhs</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.bool.html">bool</a></h4></section></summary><div class='docblock'>Tests greater than or equal to (for <code>self</code> and <code>other</code>) and is used by
+the <code>&gt;=</code> operator. <a href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.PartialOrd.html#method.ge">Read more</a></div></details></div></details><section id="impl-Copy-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#256">Source</a><a href="#impl-Copy-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section><section id="impl-Eq-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset.rs.html#244-246">Source</a><a href="#impl-Eq-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></div><h2 id="synthetic-implementations" class="section-header">Auto Trait Implementations<a href="#synthetic-implementations" class="anchor">§</a></h2><div id="synthetic-implementations-list"><section id="impl-Freeze-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a href="#impl-Freeze-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section><section id="impl-RefUnwindSafe-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a href="#impl-RefUnwindSafe-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/panic/unwind_safe/trait.RefUnwindSafe.html" title="trait core::panic::unwind_safe::RefUnwindSafe">RefUnwindSafe</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section><section id="impl-Send-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a href="#impl-Send-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section><section id="impl-Sync-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a href="#impl-Sync-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section><section id="impl-Unpin-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a href="#impl-Unpin-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Unpin.html" title="trait core::marker::Unpin">Unpin</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section><section id="impl-UnwindSafe-for-FieldOffset%3CS,+F,+A%3E" class="impl"><a href="#impl-UnwindSafe-for-FieldOffset%3CS,+F,+A%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, F, A&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/panic/unwind_safe/trait.UnwindSafe.html" title="trait core::panic::unwind_safe::UnwindSafe">UnwindSafe</a> for <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;</h3></section></div><h2 id="blanket-implementations" class="section-header">Blanket Implementations<a href="#blanket-implementations" class="anchor">§</a></h2><div id="blanket-implementations-list"><details class="toggle implementors-toggle"><summary><section id="impl-Any-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/any.rs.html#138">Source</a><a href="#impl-Any-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/any/trait.Any.html" title="trait core::any::Any">Any</a> for T<div class="where">where
+    T: 'static + ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.type_id" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/any.rs.html#139">Source</a><a href="#method.type_id" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/any/trait.Any.html#tymethod.type_id" class="fn">type_id</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/any/struct.TypeId.html" title="struct core::any::TypeId">TypeId</a></h4></section></summary><div class='docblock'>Gets the <code>TypeId</code> of <code>self</code>. <a href="https://doc.rust-lang.org/1.90.0/core/any/trait.Any.html#tymethod.type_id">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-Borrow%3CT%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/borrow.rs.html#209">Source</a><a href="#impl-Borrow%3CT%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.Borrow.html" title="trait core::borrow::Borrow">Borrow</a>&lt;T&gt; for T<div class="where">where
+    T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.borrow" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/borrow.rs.html#211">Source</a><a href="#method.borrow" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.Borrow.html#tymethod.borrow" class="fn">borrow</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;T</a></h4></section></summary><div class='docblock'>Immutably borrows from an owned value. <a href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.Borrow.html#tymethod.borrow">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-BorrowMut%3CT%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/borrow.rs.html#217">Source</a><a href="#impl-BorrowMut%3CT%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.BorrowMut.html" title="trait core::borrow::BorrowMut">BorrowMut</a>&lt;T&gt; for T<div class="where">where
+    T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.borrow_mut" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/borrow.rs.html#218">Source</a><a href="#method.borrow_mut" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.BorrowMut.html#tymethod.borrow_mut" class="fn">borrow_mut</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut T</a></h4></section></summary><div class='docblock'>Mutably borrows from an owned value. <a href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.BorrowMut.html#tymethod.borrow_mut">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-CloneToUninit-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/clone.rs.html#483">Source</a><a href="#impl-CloneToUninit-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.CloneToUninit.html" title="trait core::clone::CloneToUninit">CloneToUninit</a> for T<div class="where">where
+    T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.clone_to_uninit" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/clone.rs.html#485">Source</a><a href="#method.clone_to_uninit" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.CloneToUninit.html#tymethod.clone_to_uninit" class="fn">clone_to_uninit</a>(&amp;self, dest: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut </a><a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.u8.html">u8</a>)</h4></section></summary><span class="item-info"><div class="stab unstable"><span class="emoji">🔬</span><span>This is a nightly-only experimental API. (<code>clone_to_uninit</code>)</span></div></span><div class='docblock'>Performs copy-assignment from <code>self</code> to <code>dest</code>. <a href="https://doc.rust-lang.org/1.90.0/core/clone/trait.CloneToUninit.html#tymethod.clone_to_uninit">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-From%3CT%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#791">Source</a><a href="#impl-From%3CT%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;T&gt; for T</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.from" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#794">Source</a><a href="#method.from" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.From.html#tymethod.from" class="fn">from</a>(t: T) -&gt; T</h4></section></summary><div class="docblock"><p>Returns the argument unchanged.</p>
+</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-Into%3CU%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#773-775">Source</a><a href="#impl-Into%3CU%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, U&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;U&gt; for T<div class="where">where
+    U: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;T&gt;,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.into" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#783">Source</a><a href="#method.into" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html#tymethod.into" class="fn">into</a>(self) -&gt; U</h4></section></summary><div class="docblock"><p>Calls <code>U::from(self)</code>.</p>
+<p>That is, this conversion is whatever the implementation of
+<code><a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;T&gt; for U</code> chooses to do.</p>
+</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-ROExtAcc-for-S" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#9-28">Source</a><a href="#impl-ROExtAcc-for-S" class="anchor">§</a><h3 class="code-header">impl&lt;S&gt; <a class="trait" href="ext/trait.ROExtAcc.html" title="trait repr_offset::ext::ROExtAcc">ROExtAcc</a> for S</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.f_get" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#11-13">Source</a><a href="#method.f_get" class="anchor">§</a><h4 class="code-header">fn <a href="ext/trait.ROExtAcc.html#tymethod.f_get" class="fn">f_get</a>&lt;F&gt;(&amp;self, offset: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;F</a></h4></section></summary><div class='docblock'>Gets a reference to a field, determined by <code>offset</code>. <a href="ext/trait.ROExtAcc.html#tymethod.f_get">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.f_get_mut" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#15-17">Source</a><a href="#method.f_get_mut" class="anchor">§</a><h4 class="code-header">fn <a href="ext/trait.ROExtAcc.html#tymethod.f_get_mut" class="fn">f_get_mut</a>&lt;F&gt;(&amp;mut self, offset: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut F</a></h4></section></summary><div class='docblock'>Gets a muatble reference to a field, determined by <code>offset</code>. <a href="ext/trait.ROExtAcc.html#tymethod.f_get_mut">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.f_get_ptr" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#20-22">Source</a><a href="#method.f_get_ptr" class="anchor">§</a><h4 class="code-header">fn <a href="ext/trait.ROExtAcc.html#tymethod.f_get_ptr" class="fn">f_get_ptr</a>&lt;F, A&gt;(&amp;self, offset: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*const F</a></h4></section></summary><div class='docblock'>Gets a const pointer to a field,
+the field is determined by <code>offset</code>. <a href="ext/trait.ROExtAcc.html#tymethod.f_get_ptr">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.f_get_mut_ptr" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#25-27">Source</a><a href="#method.f_get_mut_ptr" class="anchor">§</a><h4 class="code-header">fn <a href="ext/trait.ROExtAcc.html#tymethod.f_get_mut_ptr" class="fn">f_get_mut_ptr</a>&lt;F, A&gt;(&amp;mut self, offset: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, A&gt;) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.pointer.html">*mut F</a></h4></section></summary><div class='docblock'>Gets a mutable pointer to a field, determined by <code>offset</code>. <a href="ext/trait.ROExtAcc.html#tymethod.f_get_mut_ptr">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-ROExtOps%3CAligned%3E-for-S" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#56">Source</a><a href="#impl-ROExtOps%3CAligned%3E-for-S" class="anchor">§</a><h3 class="code-header">impl&lt;S&gt; <a class="trait" href="ext/trait.ROExtOps.html" title="trait repr_offset::ext::ROExtOps">ROExtOps</a>&lt;<a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt; for S</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.f_replace" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#56">Source</a><a href="#method.f_replace" class="anchor">§</a><h4 class="code-header">fn <a href="ext/trait.ROExtOps.html#tymethod.f_replace" class="fn">f_replace</a>&lt;F&gt;(&amp;mut self, offset: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;, value: F) -&gt; F</h4></section></summary><div class='docblock'>Replaces a field (determined by <code>offset</code>) with <code>value</code>,
+returning the previous value of the field. <a href="ext/trait.ROExtOps.html#tymethod.f_replace">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.f_swap" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#56">Source</a><a href="#method.f_swap" class="anchor">§</a><h4 class="code-header">fn <a href="ext/trait.ROExtOps.html#tymethod.f_swap" class="fn">f_swap</a>&lt;F&gt;(&amp;mut self, offset: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;, right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut S</a>)</h4></section></summary><div class='docblock'>Swaps a field (determined by <code>offset</code>) with the same field in <code>right</code>. <a href="ext/trait.ROExtOps.html#tymethod.f_swap">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.f_get_copy" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#56">Source</a><a href="#method.f_get_copy" class="anchor">§</a><h4 class="code-header">fn <a href="ext/trait.ROExtOps.html#tymethod.f_get_copy" class="fn">f_get_copy</a>&lt;F&gt;(&amp;self, offset: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Aligned.html" title="struct repr_offset::alignment::Aligned">Aligned</a>&gt;) -&gt; F<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a>,</div></h4></section></summary><div class='docblock'>Gets a copy of a field (determined by <code>offset</code>).
+The field is determined by <code>offset</code>. <a href="ext/trait.ROExtOps.html#tymethod.f_get_copy">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-ROExtOps%3CUnaligned%3E-for-S" class="impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#57">Source</a><a href="#impl-ROExtOps%3CUnaligned%3E-for-S" class="anchor">§</a><h3 class="code-header">impl&lt;S&gt; <a class="trait" href="ext/trait.ROExtOps.html" title="trait repr_offset::ext::ROExtOps">ROExtOps</a>&lt;<a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt; for S</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.f_replace-1" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#57">Source</a><a href="#method.f_replace-1" class="anchor">§</a><h4 class="code-header">fn <a href="ext/trait.ROExtOps.html#tymethod.f_replace" class="fn">f_replace</a>&lt;F&gt;(&amp;mut self, offset: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;, value: F) -&gt; F</h4></section></summary><div class='docblock'>Replaces a field (determined by <code>offset</code>) with <code>value</code>,
+returning the previous value of the field. <a href="ext/trait.ROExtOps.html#tymethod.f_replace">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.f_swap-1" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#57">Source</a><a href="#method.f_swap-1" class="anchor">§</a><h4 class="code-header">fn <a href="ext/trait.ROExtOps.html#tymethod.f_swap" class="fn">f_swap</a>&lt;F&gt;(&amp;mut self, offset: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;, right: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/core/primitive.reference.html">&amp;mut S</a>)</h4></section></summary><div class='docblock'>Swaps a field (determined by <code>offset</code>) with the same field in <code>right</code>. <a href="ext/trait.ROExtOps.html#tymethod.f_swap">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.f_get_copy-1" class="method trait-impl"><a class="src rightside" href="../src/repr_offset/struct_field_offset/repr_offset_ext_impls.rs.html#57">Source</a><a href="#method.f_get_copy-1" class="anchor">§</a><h4 class="code-header">fn <a href="ext/trait.ROExtOps.html#tymethod.f_get_copy" class="fn">f_get_copy</a>&lt;F&gt;(&amp;self, offset: <a class="struct" href="struct.FieldOffset.html" title="struct repr_offset::FieldOffset">FieldOffset</a>&lt;S, F, <a class="struct" href="alignment/struct.Unaligned.html" title="struct repr_offset::alignment::Unaligned">Unaligned</a>&gt;) -&gt; F<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a>,</div></h4></section></summary><div class='docblock'>Gets a copy of a field (determined by <code>offset</code>).
+The field is determined by <code>offset</code>. <a href="ext/trait.ROExtOps.html#tymethod.f_get_copy">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TryFrom%3CU%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#833-835">Source</a><a href="#impl-TryFrom%3CU%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, U&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;U&gt; for T<div class="where">where
+    U: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;T&gt;,</div></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Error-1" class="associatedtype trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#837">Source</a><a href="#associatedtype.Error-1" class="anchor">§</a><h4 class="code-header">type <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html#associatedtype.Error" class="associatedtype">Error</a> = <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/convert/enum.Infallible.html" title="enum core::convert::Infallible">Infallible</a></h4></section></summary><div class='docblock'>The type returned in the event of a conversion error.</div></details><details class="toggle method-toggle" open><summary><section id="method.try_from" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#840">Source</a><a href="#method.try_from" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html#tymethod.try_from" class="fn">try_from</a>(value: U) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;T, &lt;T as <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;U&gt;&gt;::<a class="associatedtype" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html#associatedtype.Error" title="type core::convert::TryFrom::Error">Error</a>&gt;</h4></section></summary><div class='docblock'>Performs the conversion.</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TryInto%3CU%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#817-819">Source</a><a href="#impl-TryInto%3CU%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, U&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryInto.html" title="trait core::convert::TryInto">TryInto</a>&lt;U&gt; for T<div class="where">where
+    U: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;T&gt;,</div></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Error" class="associatedtype trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#821">Source</a><a href="#associatedtype.Error" class="anchor">§</a><h4 class="code-header">type <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryInto.html#associatedtype.Error" class="associatedtype">Error</a> = &lt;U as <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;T&gt;&gt;::<a class="associatedtype" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html#associatedtype.Error" title="type core::convert::TryFrom::Error">Error</a></h4></section></summary><div class='docblock'>The type returned in the event of a conversion error.</div></details><details class="toggle method-toggle" open><summary><section id="method.try_into" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/convert/mod.rs.html#824">Source</a><a href="#method.try_into" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryInto.html#tymethod.try_into" class="fn">try_into</a>(self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;U, &lt;U as <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;T&gt;&gt;::<a class="associatedtype" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.TryFrom.html#associatedtype.Error" title="type core::convert::TryFrom::Error">Error</a>&gt;</h4></section></summary><div class='docblock'>Performs the conversion.</div></details></div></details></div></section></div></main></body></html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A library for consistent and reliable error handling"><title>error_chain - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="error_chain" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../error_chain/index.html">error_<wbr>chain</a><span class="version">0.12.4</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#quick-start" title="Quick start">Quick start</a></li><li><a href="#why-error-chain" title="Why error chain?">Why error chain?</a></li><li><a href="#principles-of-error-chain" title="Principles of error-chain">Principles of error-chain</a></li><li><a href="#declaring-error-types" title="Declaring error types">Declaring error types</a></li><li><a href="#returning-new-errors" title="Returning new errors">Returning new errors</a></li><li><a href="#the-bail-macro" title="The `bail!` macro">The <code>bail!</code> macro</a></li><li><a href="#chaining-errors" title="Chaining errors">Chaining errors</a></li><li><a href="#linking-errors" title="Linking errors">Linking errors</a></li><li><a href="#matching-errors" title="Matching errors">Matching errors</a></li><li><a href="#inspecting-errors" title="Inspecting errors">Inspecting errors</a></li><li><a href="#foreign-links" title="Foreign links">Foreign links</a></li><li><a href="#backtraces" title="Backtraces">Backtraces</a></li><li><a href="#iteration" title="Iteration">Iteration</a></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#traits" title="Traits">Traits</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>error_chain</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/error_chain/lib.rs.html#1-824">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A library for consistent and reliable error handling</p>
+<p>error-chain makes it easy to take full advantage of Rust’s
+powerful error handling features without the overhead of
+maintaining boilerplate error types and conversions. It implements
+an opinionated strategy for defining your own error types, as well
+as conversions from others’ error types.</p>
+<h3 id="quick-start"><a class="doc-anchor" href="#quick-start">§</a>Quick start</h3>
+<p>If you just want to set up your new project with error-chain,
+follow the <a href="https://github.com/rust-lang-nursery/error-chain/blob/master/examples/quickstart.rs">quickstart.rs</a> template, and read this <a href="http://brson.github.io/2016/11/30/starting-with-error-chain">intro</a>
+to error-chain.</p>
+<h3 id="why-error-chain"><a class="doc-anchor" href="#why-error-chain">§</a>Why error chain?</h3>
+<ul>
+<li>error-chain is easy to configure. Handle errors robustly with minimal
+effort.</li>
+<li>Basic error handling requires no maintenance of custom error types
+nor the <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> conversions that make <code>?</code> work.</li>
+<li>error-chain scales from simple error handling strategies to more
+rigorous.  Return formatted strings for simple errors, only
+introducing error variants and their strong typing as needed for
+advanced error recovery.</li>
+<li>error-chain makes it trivial to correctly manage the <a href="https://doc.rust-lang.org/std/error/trait.Error.html#method.cause">cause</a> of
+the errors generated by your own code. This is the “chaining”
+in “error-chain”.</li>
+</ul>
+<h3 id="principles-of-error-chain"><a class="doc-anchor" href="#principles-of-error-chain">§</a>Principles of error-chain</h3>
+<p>error-chain is based on the following principles:</p>
+<ul>
+<li>No error should ever be discarded. This library primarily
+makes it easy to “chain” errors with the <a href="example_generated/trait.ResultExt.html#tymethod.chain_err"><code>chain_err</code></a> method.</li>
+<li>Introducing new errors is trivial. Simple errors can be introduced
+at the error site with just a string.</li>
+<li>Handling errors is possible with pattern matching.</li>
+<li>Conversions between error types are done in an automatic and
+consistent way - <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> conversion behavior is never specified
+explicitly.</li>
+<li>Errors implement <a href="https://doc.rust-lang.org/std/marker/trait.Send.html"><code>Send</code></a>.</li>
+<li>Errors can carry backtraces.</li>
+</ul>
+<p>Similar to other libraries like <a href="https://github.com/DanielKeep/rust-error-type">error-type</a> and <a href="https://github.com/tailhook/quick-error">quick-error</a>,
+this library introduces the error chaining mechanism originally
+employed by Cargo.  The <a href="macro.error_chain.html"><code>error_chain!</code></a> macro declares the types
+and implementation boilerplate necessary for fulfilling a
+particular error-handling strategy. Most importantly it defines a
+custom error type (called <a href="example_generated/struct.Error.html"><code>Error</code></a> by convention) and the <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a>
+conversions that let the <code>?</code> operator work.</p>
+<p>This library differs in a few ways from previous error libs:</p>
+<ul>
+<li>Instead of defining the custom <a href="example_generated/struct.Error.html"><code>Error</code></a> type as an enum, it is a
+struct containing an <a href="example_generated/enum.ErrorKind.html"><code>ErrorKind</code></a> (which defines the
+<a href="example_generated/enum.ErrorKind.html#method.description"><code>description</code></a> and <a href="trait.ChainedError.html#method.display_chain"><code>display_chain</code></a> methods for the error), an opaque,
+optional, boxed <a href="https://doc.rust-lang.org/std/error/trait.Error.html"><code>std::error::Error</code></a><code>+</code><a href="https://doc.rust-lang.org/std/marker/trait.Send.html"><code>Send</code></a><code> + 'static</code> object
+(which defines the <a href="example_generated/struct.Error.html#method.cause"><code>cause</code></a>, and establishes the links in the
+error chain), and a <a href="struct.Backtrace.html"><code>Backtrace</code></a>.</li>
+<li>The macro also defines a <a href="example_generated/trait.ResultExt.html"><code>ResultExt</code></a> trait that defines a
+<a href="example_generated/trait.ResultExt.html#tymethod.chain_err"><code>chain_err</code></a> method. This method on all <a href="https://doc.rust-lang.org/std/error/trait.Error.html"><code>std::error::Error</code></a><code>+</code><a href="https://doc.rust-lang.org/std/marker/trait.Send.html"><code>Send</code></a><code> + 'static</code>
+types extends the error chain by boxing the current
+error into an opaque object and putting it inside a new concrete
+error.</li>
+<li>It provides automatic <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> conversions between other error types
+defined by the <a href="macro.error_chain.html"><code>error_chain!</code></a> that preserve type information,
+and facilitate seamless error composition and matching of composed
+errors.</li>
+<li>It provides automatic <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> conversions between any other error
+type that hides the type of the other error in the <a href="example_generated/struct.Error.html#method.cause"><code>cause</code></a> box.</li>
+<li>If <code>RUST_BACKTRACE</code> is enabled, it collects a single backtrace at
+the earliest opportunity and propagates it down the stack through
+<a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> and <a href="example_generated/trait.ResultExt.html"><code>ResultExt</code></a> conversions.</li>
+</ul>
+<p>To accomplish its goals it makes some tradeoffs:</p>
+<ul>
+<li>The split between the <a href="example_generated/struct.Error.html"><code>Error</code></a> and <a href="example_generated/enum.ErrorKind.html"><code>ErrorKind</code></a> types can make it
+slightly more cumbersome to instantiate new (unchained) errors,
+requiring an <a href="https://doc.rust-lang.org/std/convert/trait.Into.html"><code>Into</code></a> or <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> conversion; as well as slightly
+more cumbersome to match on errors with another layer of types
+to match.</li>
+<li>Because the error type contains <a href="https://doc.rust-lang.org/std/error/trait.Error.html"><code>std::error::Error</code></a><code>+</code><a href="https://doc.rust-lang.org/std/marker/trait.Send.html"><code>Send</code></a><code> + 'static</code> objects,
+it can’t implement <a href="https://doc.rust-lang.org/std/cmp/trait.PartialEq.html"><code>PartialEq</code></a> for easy comparisons.</li>
+</ul>
+<h3 id="declaring-error-types"><a class="doc-anchor" href="#declaring-error-types">§</a>Declaring error types</h3>
+<p>Generally, you define one family of error types per crate, though
+it’s also perfectly fine to define error types on a finer-grained
+basis, such as per module.</p>
+<p>Assuming you are using crate-level error types, typically you will
+define an <code>errors</code> module and inside it call <a href="macro.error_chain.html"><code>error_chain!</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">mod </span>other_error {
+    <span class="macro">error_chain!</span> {}
+}
+
+<span class="macro">error_chain!</span> {
+    <span class="comment">// The type defined for this error. These are the conventional
+    // and recommended names, but they can be arbitrarily chosen.
+    //
+    // It is also possible to leave this section out entirely, or
+    // leave it empty, and these names will be used automatically.
+    </span>types {
+        Error, ErrorKind, ResultExt, <span class="prelude-ty">Result</span>;
+    }
+
+    <span class="comment">// Without the `Result` wrapper:
+    //
+    // types {
+    //     Error, ErrorKind, ResultExt;
+    // }
+
+    // Automatic conversions between this error chain and other
+    // error chains. In this case, it will e.g. generate an
+    // `ErrorKind` variant called `Another` which in turn contains
+    // the `other_error::ErrorKind`, with conversions from
+    // `other_error::Error`.
+    //
+    // Optionally, some attributes can be added to a variant.
+    //
+    // This section can be empty.
+    </span>links {
+        Another(other_error::Error, other_error::ErrorKind) <span class="attr">#[cfg(unix)]</span>;
+    }
+
+    <span class="comment">// Automatic conversions between this error chain and other
+    // error types not defined by the `error_chain!`. These will be
+    // wrapped in a new error with, in the first case, the
+    // `ErrorKind::Fmt` variant. The description and cause will
+    // forward to the description and cause of the original error.
+    //
+    // Optionally, some attributes can be added to a variant.
+    //
+    // This section can be empty.
+    </span>foreign_links {
+        Fmt(::std::fmt::Error);
+        Io(::std::io::Error) <span class="attr">#[cfg(unix)]</span>;
+    }
+
+    <span class="comment">// Define additional `ErrorKind` variants.  Define custom responses with the
+    // `description` and `display` calls.
+    </span>errors {
+        InvalidToolchainName(t: String) {
+            description(<span class="string">"invalid toolchain name"</span>)
+            display(<span class="string">"invalid toolchain name: '{}'"</span>, t)
+        }
+
+        <span class="comment">// You can also add commas after description/display.
+        // This may work better with some editor auto-indentation modes:
+        </span>UnknownToolchainVersion(v: String) {
+            description(<span class="string">"unknown toolchain version"</span>), <span class="comment">// note the ,
+            </span>display(<span class="string">"unknown toolchain version: '{}'"</span>, v), <span class="comment">// trailing comma is allowed
+        </span>}
+    }
+
+    <span class="comment">// If this annotation is left off, a variant `Msg(s: String)` will be added, and `From`
+    // impls will be provided for `String` and `&amp;str`
+    </span>skip_msg_variant
+}
+</code></pre></div>
+<p>Each section, <code>types</code>, <code>links</code>, <code>foreign_links</code>, and <code>errors</code> may
+be omitted if it is empty.</p>
+<p>This populates the module with a number of definitions,
+the most important of which are the <a href="example_generated/struct.Error.html"><code>Error</code></a> type
+and the <a href="example_generated/enum.ErrorKind.html"><code>ErrorKind</code></a> type. An example of generated code can be found in the
+<a href="example_generated/index.html">example_generated</a> module.</p>
+<h3 id="returning-new-errors"><a class="doc-anchor" href="#returning-new-errors">§</a>Returning new errors</h3>
+<p>Introducing new error chains, with a string message:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>foo() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="prelude-val">Err</span>(<span class="string">"foo error!"</span>.into())
+}</code></pre></div>
+<p>Introducing new error chains, with an <a href="example_generated/enum.ErrorKind.html"><code>ErrorKind</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">error_chain!</span> {
+    errors { FooError }
+}
+
+<span class="kw">fn </span>foo() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="prelude-val">Err</span>(ErrorKind::FooError.into())
+}</code></pre></div>
+<p>Note that the return type is the typedef <a href="example_generated/type.Result.html"><code>Result</code></a>, which is
+defined by the macro as <code>pub type Result&lt;T&gt; = ::std::result::Result&lt;T, Error&gt;</code>. Note that in both cases
+<a href="https://doc.rust-lang.org/std/convert/trait.Into.html#tymethod.into"><code>.into()</code></a> is called to convert a type into the <a href="example_generated/struct.Error.html"><code>Error</code></a> type; both
+strings and <a href="example_generated/enum.ErrorKind.html"><code>ErrorKind</code></a> have <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> conversions to turn them into
+<a href="example_generated/struct.Error.html"><code>Error</code></a>.</p>
+<p>When the error is emitted behind the <code>?</code> operator, the explicit conversion
+isn’t needed; <code>Err(ErrorKind)</code> will automatically be converted to <code>Err(Error)</code>.
+So the below is equivalent to the previous:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>foo() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(ErrorKind::FooError)<span class="question-mark">?</span>)
+}
+
+<span class="kw">fn </span>bar() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="string">"bogus!"</span>)<span class="question-mark">?</span>)
+}</code></pre></div>
+<h3 id="the-bail-macro"><a class="doc-anchor" href="#the-bail-macro">§</a>The <code>bail!</code> macro</h3>
+<p>The above method of introducing new errors works but is a little
+verbose. Instead, we can use the <a href="macro.bail.html"><code>bail!</code></a> macro, which performs an early return
+with conversions done automatically.</p>
+<p>With <a href="macro.bail.html"><code>bail!</code></a> the previous examples look like:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>foo() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">if </span><span class="bool-val">true </span>{
+        <span class="macro">bail!</span>(ErrorKind::FooError);
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="kw">fn </span>bar() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">if </span><span class="bool-val">true </span>{
+        <span class="macro">bail!</span>(<span class="string">"bogus!"</span>);
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Ok</span>(())
+    }
+}</code></pre></div>
+<h3 id="chaining-errors"><a class="doc-anchor" href="#chaining-errors">§</a>Chaining errors</h3>
+<p>error-chain supports extending an error chain by appending new errors.
+This can be done on a Result or on an existing Error.</p>
+<p>To extend the error chain:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>res: <span class="prelude-ty">Result</span>&lt;()&gt; = do_something().chain_err(|| <span class="string">"something went wrong"</span>);</code></pre></div>
+<p><a href="example_generated/trait.ResultExt.html#tymethod.chain_err"><code>chain_err</code></a> can be called on any <a href="example_generated/type.Result.html"><code>Result</code></a> type where the contained
+error type implements <a href="https://doc.rust-lang.org/std/error/trait.Error.html"><code>std::error::Error</code></a><code>+</code><a href="https://doc.rust-lang.org/std/marker/trait.Send.html"><code>Send</code></a><code> + 'static</code>, as long as
+the <a href="example_generated/type.Result.html"><code>Result</code></a> type’s corresponding <a href="example_generated/trait.ResultExt.html"><code>ResultExt</code></a> trait is in scope.  If
+the <a href="example_generated/type.Result.html"><code>Result</code></a> is an <code>Err</code> then <a href="example_generated/trait.ResultExt.html#tymethod.chain_err"><code>chain_err</code></a> evaluates the closure,
+which returns <em>some type that can be converted to <a href="example_generated/enum.ErrorKind.html"><code>ErrorKind</code></a></em>,
+boxes the original error to store as the cause, then returns a new
+error containing the original error.</p>
+<p>Calling <a href="example_generated/struct.Error.html#method.chain_err"><code>chain_err</code></a> on an existing <a href="example_generated/struct.Error.html"><code>Error</code></a> instance has
+the same signature and produces the same outcome as being called on a
+<a href="example_generated/type.Result.html"><code>Result</code></a> matching the properties described above. This is most useful when
+partially handling errors using the <a href="https://doc.rust-lang.org/std/result/enum.Result.html#method.map_err"><code>map_err</code></a> function.</p>
+<p>To chain an error directly, use <a href="example_generated/struct.Error.html#method.with_chain"><code>with_chain</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>res: <span class="prelude-ty">Result</span>&lt;()&gt; =
+    do_something().map_err(|e| Error::with_chain(e, <span class="string">"something went wrong"</span>));</code></pre></div>
+<h3 id="linking-errors"><a class="doc-anchor" href="#linking-errors">§</a>Linking errors</h3>
+<p>To convert an error from another error chain to this error chain:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">error_chain!</span> {
+    links {
+        OtherError(other::Error, other::ErrorKind);
+    }
+}
+
+<span class="kw">fn </span>do_other_thing() -&gt; other::Result&lt;()&gt; { <span class="macro">unimplemented!</span>() }
+
+<span class="kw">let </span>res: <span class="prelude-ty">Result</span>&lt;()&gt; = do_other_thing().map_err(|e| e.into());</code></pre></div>
+<p>The <a href="example_generated/struct.Error.html"><code>Error</code></a> and <a href="example_generated/enum.ErrorKind.html"><code>ErrorKind</code></a> types implements <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> for the corresponding
+types of all linked error chains. Linked errors do not introduce a new
+cause to the error chain.</p>
+<h3 id="matching-errors"><a class="doc-anchor" href="#matching-errors">§</a>Matching errors</h3>
+<p>error-chain error variants are matched with simple patterns.
+<a href="example_generated/struct.Error.html"><code>Error</code></a> is a tuple struct and its first field is the <a href="example_generated/enum.ErrorKind.html"><code>ErrorKind</code></a>,
+making dispatching on error kinds relatively compact:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">error_chain!</span> {
+    errors {
+        InvalidToolchainName(t: String) {
+            description(<span class="string">"invalid toolchain name"</span>)
+            display(<span class="string">"invalid toolchain name: '{}'"</span>, t)
+        }
+    }
+}
+
+<span class="kw">match </span>Error::from(<span class="string">"error!"</span>) {
+    Error(ErrorKind::InvalidToolchainName(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; { }
+    Error(ErrorKind::Msg(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; { }
+    <span class="kw">_ </span>=&gt; { }
+}</code></pre></div>
+<p>Chained errors are also matched with (relatively) compact syntax</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">mod </span>utils {
+    <span class="macro">error_chain!</span> {
+        errors {
+            BadStuff {
+                description(<span class="string">"bad stuff"</span>)
+            }
+        }
+    }
+}
+
+<span class="kw">mod </span>app {
+    <span class="macro">error_chain!</span> {
+        links {
+            Utils(::utils::Error, ::utils::ErrorKind);
+        }
+    }
+}
+
+
+<span class="kw">match </span>app::Error::from(<span class="string">"error!"</span>) {
+    app::Error(app::ErrorKind::Utils(utils::ErrorKind::BadStuff), <span class="kw">_</span>) =&gt; { }
+    <span class="kw">_ </span>=&gt; { }
+}</code></pre></div>
+<h3 id="inspecting-errors"><a class="doc-anchor" href="#inspecting-errors">§</a>Inspecting errors</h3>
+<p>An error-chain error contains information about the error itself, a backtrace, and the chain
+of causing errors. For reporting purposes, this information can be accessed as follows.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>error_chain::ChainedError;  <span class="comment">// for e.display_chain()
+
+</span><span class="macro">error_chain!</span> {
+    errors {
+        InvalidToolchainName(t: String) {
+            description(<span class="string">"invalid toolchain name"</span>)
+            display(<span class="string">"invalid toolchain name: '{}'"</span>, t)
+        }
+    }
+}
+
+<span class="comment">// Generate an example error to inspect:
+</span><span class="kw">let </span>e = <span class="string">"xyzzy"</span>.parse::&lt;i32&gt;()
+    .chain_err(|| ErrorKind::InvalidToolchainName(<span class="string">"xyzzy"</span>.to_string()))
+    .unwrap_err();
+
+<span class="comment">// Get the brief description of the error:
+</span><span class="macro">assert_eq!</span>(e.description(), <span class="string">"invalid toolchain name"</span>);
+
+<span class="comment">// Get the display version of the error:
+</span><span class="macro">assert_eq!</span>(e.to_string(), <span class="string">"invalid toolchain name: 'xyzzy'"</span>);
+
+<span class="comment">// Get the full cause and backtrace:
+</span><span class="macro">println!</span>(<span class="string">"{}"</span>, e.display_chain().to_string());
+<span class="comment">//     Error: invalid toolchain name: 'xyzzy'
+//     Caused by: invalid digit found in string
+//     stack backtrace:
+//        0:     0x7fa9f684fc94 - backtrace::backtrace::libunwind::trace
+//                             at src/backtrace/libunwind.rs:53
+//                              - backtrace::backtrace::trace&lt;closure&gt;
+//                             at src/backtrace/mod.rs:42
+//        1:     0x7fa9f6850b0e - backtrace::capture::{{impl}}::new
+//                             at out/capture.rs:79
+//     [..]</span></code></pre></div>
+<p>The <a href="example_generated/struct.Error.html"><code>Error</code></a> and <a href="example_generated/enum.ErrorKind.html"><code>ErrorKind</code></a> types also allow programmatic access to these elements.</p>
+<h3 id="foreign-links"><a class="doc-anchor" href="#foreign-links">§</a>Foreign links</h3>
+<p>Errors that do not conform to the same conventions as this library
+can still be included in the error chain. They are considered “foreign
+errors”, and are declared using the <code>foreign_links</code> block of the
+<a href="macro.error_chain.html"><code>error_chain!</code></a> macro. <a href="example_generated/struct.Error.html"><code>Error</code></a>s are automatically created from
+foreign errors by the <code>?</code> operator.</p>
+<p>Foreign links and regular links have one crucial difference:
+<a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> conversions for regular links <em>do not introduce a new error
+into the error chain</em>, while conversions for foreign links <em>always
+introduce a new error into the error chain</em>. So for the example
+above all errors deriving from the <a href="https://doc.rust-lang.org/std/fmt/struct.Error.html"><code>std::fmt::Error</code></a> type will be
+presented to the user as a new <a href="example_generated/enum.ErrorKind.html"><code>ErrorKind</code></a> variant, and the
+cause will be the original <a href="https://doc.rust-lang.org/std/fmt/struct.Error.html"><code>std::fmt::Error</code></a> error. In contrast, when
+<code>other_error::Error</code> is converted to <code>Error</code> the two <code>ErrorKind</code>s
+are converted between each other to create a new <code>Error</code> but the
+old error is discarded; there is no “cause” created from the
+original error.</p>
+<h3 id="backtraces"><a class="doc-anchor" href="#backtraces">§</a>Backtraces</h3>
+<p>If the <code>RUST_BACKTRACE</code> environment variable is set to anything
+but <code>0</code>, the earliest non-foreign error to be generated creates
+a single backtrace, which is passed through all <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> conversions
+and <a href="example_generated/trait.ResultExt.html#tymethod.chain_err"><code>chain_err</code></a> invocations of compatible types. To read the
+backtrace just call the <a href="struct.Backtrace.html"><code>backtrace</code></a> method.</p>
+<p>Backtrace generation can be disabled by turning off the <code>backtrace</code> feature.</p>
+<p>The Backtrace contains a Vec of <a href="https://docs.rs/backtrace/0.3.2/backtrace/struct.BacktraceFrame.html"><code>BacktraceFrame</code></a>s that can be operated
+on directly.  For example, to only see the files and line numbers of code
+within your own project.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) = open_file() {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(backtrace) = e.backtrace() {
+        <span class="kw">let </span>frames = backtrace.frames();
+        <span class="kw">for </span>frame <span class="kw">in </span>frames.iter() {
+            <span class="kw">for </span>symbol <span class="kw">in </span>frame.symbols().iter() {
+                <span class="kw">if let </span>(<span class="prelude-val">Some</span>(file), <span class="prelude-val">Some</span>(lineno)) = (symbol.filename(), symbol.lineno()) {
+                    <span class="kw">if </span>file.display().to_string()[<span class="number">0</span>..<span class="number">3</span>] == <span class="string">"src"</span>.to_string(){
+                        <span class="macro">println!</span>(<span class="string">"{}:{}"</span>, file.display().to_string(), lineno);
+                    }
+                }
+            }
+        }
+    }
+};
+
+<span class="kw">fn </span>open_file() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+   std::fs::File::open(<span class="string">"does_not_exist"</span>)<span class="question-mark">?</span>;
+   <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+<h3 id="iteration"><a class="doc-anchor" href="#iteration">§</a>Iteration</h3>
+<p>The <a href="example_generated/struct.Error.html#method.iter"><code>iter</code></a> method returns an iterator over the chain of error boxes.</p>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="example_generated/index.html" title="mod error_chain::example_generated">example_<wbr>generated</a></dt><dd>These modules show an example of code generated by the macro. <strong>IT MUST NOT BE
+USED OUTSIDE THIS CRATE</strong>.</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.bail.html" title="macro error_chain::bail">bail</a></dt><dd>Exits a function early with an error</dd><dt><a class="macro" href="macro.ensure.html" title="macro error_chain::ensure">ensure</a></dt><dd>Exits a function early with an error if the condition is not satisfied</dd><dt><a class="macro" href="macro.error_chain.html" title="macro error_chain::error_chain">error_<wbr>chain</a></dt><dd>Macro for generating error types and traits. See crate level documentation for details.</dd><dt><a class="macro" href="macro.quick_main.html" title="macro error_chain::quick_main">quick_<wbr>main</a></dt><dd>Convenient wrapper to be able to use <code>?</code> and such in the main. You can
+use it with a separated function:</dd><dt><a class="macro" href="macro.stringify_internal.html" title="macro error_chain::stringify_internal">stringify_<wbr>internal</a></dt><dd>From https://github.com/tailhook/quick-error
+Changes:</dd><dt><a class="macro" href="macro.write_internal.html" title="macro error_chain::write_internal">write_<wbr>internal</a></dt><dd>Macro used interally for output expanding an expression</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Backtrace.html" title="struct error_chain::Backtrace">Backtrace</a></dt><dd>Representation of an owned and self-contained backtrace.</dd><dt><a class="struct" href="struct.DisplayChain.html" title="struct error_chain::DisplayChain">Display<wbr>Chain</a></dt><dd>A struct which formats an error for output.</dd><dt><a class="struct" href="struct.Iter.html" title="struct error_chain::Iter">Iter</a></dt><dd>Iterator over the error chain using the <code>Error::cause()</code> method.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.ChainedError.html" title="trait error_chain::ChainedError">Chained<wbr>Error</a></dt><dd>This trait is implemented on all the errors generated by the <code>error_chain</code>
+macro.</dd><dt><a class="trait" href="trait.ExitCode.html" title="trait error_chain::ExitCode">Exit<wbr>Code</a></dt><dd>Represents a value that can be used as the exit status of the process.
+See <a href="macro.quick_main.html"><code>quick_main!</code></a>.</dd></dl></section></div></main></body></html>

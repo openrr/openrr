@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ExtraChecks_Interface","ExtraChecks_TO"],"trait":["ExtraChecks"],"type":["ExtraChecks_Backend","ExtraChecks_CTO"]};

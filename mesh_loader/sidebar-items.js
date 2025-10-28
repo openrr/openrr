@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ShadingModel"],"mod":["collada","obj","stl"],"struct":["Colors","Loader","Material","Mesh","Scene","Textures"]};

@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Chained processing of request (and response)."><title>Middleware in ureq - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="ureq" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../ureq/index.html">ureq</a><span class="version">2.12.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Middleware</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#middleware-as-fn" title="Middleware as `fn`">Middleware as <code>fn</code></a></li><li><a href="#adding-headers" title="Adding headers">Adding headers</a></li><li><a href="#state" title="State">State</a><ul><li><a href="#example-with-mutex-lock" title="Example with mutex lock">Example with mutex lock</a></li><li><a href="#example-with-atomic" title="Example with atomic">Example with atomic</a></li></ul></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.handle" title="handle">handle</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate ureq</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">ureq</a></div><h1>Trait <span class="trait">Middleware</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/ureq/middleware.rs.html#129-132">Source</a> </span></div><pre class="rust item-decl"><code>pub trait Middleware:
+    <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a>
+    + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a>
+    + 'static {
+    // Required method
+    fn <a href="#tymethod.handle" class="fn">handle</a>(
+        &amp;self,
+        request: <a class="struct" href="struct.Request.html" title="struct ureq::Request">Request</a>,
+        next: <a class="struct" href="struct.MiddlewareNext.html" title="struct ureq::MiddlewareNext">MiddlewareNext</a>&lt;'_&gt;,
+    ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="struct.Response.html" title="struct ureq::Response">Response</a>, <a class="enum" href="enum.Error.html" title="enum ureq::Error">Error</a>&gt;;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Chained processing of request (and response).</p>
+<h2 id="middleware-as-fn"><a class="doc-anchor" href="#middleware-as-fn">§</a>Middleware as <code>fn</code></h2>
+<p>The middleware trait is implemented for all functions that have the signature</p>
+<p><code>Fn(Request, MiddlewareNext) -&gt; Result&lt;Response, Error&gt;</code></p>
+<p>That means the easiest way to implement middleware is by providing a <code>fn</code>, like so</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>my_middleware(req: Request, next: MiddlewareNext) -&gt; <span class="prelude-ty">Result</span>&lt;Response, Error&gt; {
+    <span class="comment">// do middleware things
+
+    // continue the middleware chain
+    </span>next.handle(req)
+}</code></pre></div>
+<h2 id="adding-headers"><a class="doc-anchor" href="#adding-headers">§</a>Adding headers</h2>
+<p>A common use case is to add headers to the outgoing request. Here an example of how.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>my_middleware(req: Request, next: MiddlewareNext) -&gt; <span class="prelude-ty">Result</span>&lt;Response, Error&gt; {
+    <span class="comment">// set my bespoke header and continue the chain
+    </span>next.handle(req.set(<span class="string">"X-My-Header"</span>, <span class="string">"value_42"</span>))
+}
+
+<span class="kw">let </span>agent = ureq::builder()
+    .middleware(my_middleware)
+    .build();
+
+<span class="kw">let </span>result: serde_json::Value =
+    agent.get(<span class="string">"http://httpbin.org/headers"</span>).call()<span class="question-mark">?</span>.into_json()<span class="question-mark">?</span>;
+
+<span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>result[<span class="string">"headers"</span>][<span class="string">"X-My-Header"</span>], <span class="string">"value_42"</span>);
+</code></pre></div>
+<h2 id="state"><a class="doc-anchor" href="#state">§</a>State</h2>
+<p>To maintain state between middleware invocations, we need to do something more elaborate than
+the simple <code>fn</code> and implement the <code>Middleware</code> trait directly.</p>
+<h3 id="example-with-mutex-lock"><a class="doc-anchor" href="#example-with-mutex-lock">§</a>Example with mutex lock</h3>
+<p>In the <code>examples</code> directory there is an additional example <code>count-bytes.rs</code> which uses
+a mutex lock like shown below.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>MyState {
+    <span class="comment">// whatever is needed
+</span>}
+
+<span class="kw">struct </span>MyMiddleware(Arc&lt;Mutex&lt;MyState&gt;&gt;);
+
+<span class="kw">impl </span>Middleware <span class="kw">for </span>MyMiddleware {
+    <span class="kw">fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>, request: Request, next: MiddlewareNext) -&gt; <span class="prelude-ty">Result</span>&lt;Response, Error&gt; {
+        <span class="comment">// These extra brackets ensures we release the Mutex lock before continuing the
+        // chain. There could also be scenarios where we want to maintain the lock through
+        // the invocation, which would block other requests from proceeding concurrently
+        // through the middleware.
+        </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.<span class="number">0</span>.lock().unwrap();
+            <span class="comment">// do stuff with state
+        </span>}
+
+        <span class="comment">// continue middleware chain
+        </span>next.handle(request)
+    }
+}</code></pre></div>
+<h3 id="example-with-atomic"><a class="doc-anchor" href="#example-with-atomic">§</a>Example with atomic</h3>
+<p>This example shows how we can increase a counter for each request going
+through the agent.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>ureq::{Request, Response, Middleware, MiddlewareNext, Error};
+<span class="kw">use </span>std::sync::atomic::{AtomicU64, Ordering};
+<span class="kw">use </span>std::sync::Arc;
+
+<span class="comment">// Middleware that stores a counter state. This example uses an AtomicU64
+// since the middleware is potentially shared by multiple threads running
+// requests at the same time.
+</span><span class="kw">struct </span>MyCounter(Arc&lt;AtomicU64&gt;);
+
+<span class="kw">impl </span>Middleware <span class="kw">for </span>MyCounter {
+    <span class="kw">fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>, req: Request, next: MiddlewareNext) -&gt; <span class="prelude-ty">Result</span>&lt;Response, Error&gt; {
+        <span class="comment">// increase the counter for each invocation
+        </span><span class="self">self</span>.<span class="number">0</span>.fetch_add(<span class="number">1</span>, Ordering::SeqCst);
+
+        <span class="comment">// continue the middleware chain
+        </span>next.handle(req)
+    }
+}
+
+<span class="kw">let </span>shared_counter = Arc::new(AtomicU64::new(<span class="number">0</span>));
+
+<span class="kw">let </span>agent = ureq::builder()
+    <span class="comment">// Add our middleware
+    </span>.middleware(MyCounter(shared_counter.clone()))
+    .build();
+
+agent.get(<span class="string">"http://httpbin.org/get"</span>).call()<span class="question-mark">?</span>;
+agent.get(<span class="string">"http://httpbin.org/get"</span>).call()<span class="question-mark">?</span>;
+
+<span class="comment">// Check we did indeed increase the counter twice.
+</span><span class="macro">assert_eq!</span>(shared_counter.load(Ordering::SeqCst), <span class="number">2</span>);
+</code></pre></div>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.handle" class="method"><a class="src rightside" href="../src/ureq/middleware.rs.html#131">Source</a><h4 class="code-header">fn <a href="#tymethod.handle" class="fn">handle</a>(
+    &amp;self,
+    request: <a class="struct" href="struct.Request.html" title="struct ureq::Request">Request</a>,
+    next: <a class="struct" href="struct.MiddlewareNext.html" title="struct ureq::MiddlewareNext">MiddlewareNext</a>&lt;'_&gt;,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="struct.Response.html" title="struct ureq::Response">Response</a>, <a class="enum" href="enum.Error.html" title="enum ureq::Error">Error</a>&gt;</h4></section></summary><div class="docblock"><p>Handle of the middleware logic.</p>
+</div></details></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-Middleware-for-F" class="impl"><a class="src rightside" href="../src/ureq/middleware.rs.html#159-166">Source</a><a href="#impl-Middleware-for-F" class="anchor">§</a><h3 class="code-header">impl&lt;F&gt; <a class="trait" href="trait.Middleware.html" title="trait ureq::Middleware">Middleware</a> for F<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.Fn.html" title="trait core::ops::function::Fn">Fn</a>(<a class="struct" href="struct.Request.html" title="struct ureq::Request">Request</a>, <a class="struct" href="struct.MiddlewareNext.html" title="struct ureq::MiddlewareNext">MiddlewareNext</a>&lt;'_&gt;) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="struct.Response.html" title="struct ureq::Response">Response</a>, <a class="enum" href="enum.Error.html" title="enum ureq::Error">Error</a>&gt; + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> + 'static,</div></h3></section></div><script src="../trait.impl/ureq/middleware/trait.Middleware.js" async></script></section></div></main></body></html>

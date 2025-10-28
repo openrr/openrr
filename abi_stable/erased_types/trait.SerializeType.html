@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Describes how a type is serialized by `DynTrait`."><title>SerializeType in abi_stable::erased_types - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Serialize<wbr>Type</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#required-associated-types">Required Associated Types</a></h3><ul class="block"><li><a href="#associatedtype.Interface" title="Interface">Interface</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.serialize_impl" title="serialize_impl">serialize_impl</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In abi_<wbr>stable::<wbr>erased_<wbr>types</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">abi_stable</a>::<wbr><a href="index.html">erased_types</a></div><h1>Trait <span class="trait">SerializeType</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/abi_stable/erased_types/traits.rs.html#265-276">Source</a> </span></div><pre class="rust item-decl"><code>pub trait SerializeType&lt;'s&gt; {
+    type <a href="#associatedtype.Interface" class="associatedtype">Interface</a>: <a class="trait" href="trait.SerializeProxyType.html" title="trait abi_stable::erased_types::SerializeProxyType">SerializeProxyType</a>&lt;'s&gt;;
+
+    // Required method
+    fn <a href="#tymethod.serialize_impl" class="fn">serialize_impl</a>(
+        &amp;'s self,
+    ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;&lt;Self::<a class="associatedtype" href="trait.SerializeType.html#associatedtype.Interface" title="type abi_stable::erased_types::SerializeType::Interface">Interface</a> as <a class="trait" href="trait.SerializeProxyType.html" title="trait abi_stable::erased_types::SerializeProxyType">SerializeProxyType</a>&lt;'s&gt;&gt;::<a class="associatedtype" href="trait.SerializeProxyType.html#associatedtype.Proxy" title="type abi_stable::erased_types::SerializeProxyType::Proxy">Proxy</a>, <a class="type" href="../std_types/type.RBoxError.html" title="type abi_stable::std_types::RBoxError">RBoxError</a>&gt;;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Describes how a type is serialized by <a href="../struct.DynTrait.html"><code>DynTrait</code></a>.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    erased_types::{SerializeType, SerializeProxyType, DynTrait},
+    external_types::RawValueBox,
+    std_types::{RBox, RBoxError, RErr, ROk, RResult, RStr},
+    StableAbi,
+};
+
+<span class="kw">let </span>boxed = make_foo_box(<span class="number">1234</span>);
+<span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>boxed).unwrap();
+<span class="macro">assert_eq!</span>(serialized, <span class="string">r#"{"field":1234}"#</span>);
+
+
+<span class="kw">type </span>FooBox = DynTrait&lt;<span class="lifetime">'static</span>, RBox&lt;()&gt;, FooInterface&gt;;
+
+<span class="doccomment">/// Implements `InterfaceType`, requiring `Send + Sync + Debug + Eq`
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(impl_InterfaceType(Send, Sync, Debug, Eq, Serialize))]
+</span><span class="kw">pub struct </span>FooInterface;
+
+<span class="kw">impl </span>SerializeProxyType&lt;<span class="lifetime">'_</span>&gt; <span class="kw">for </span>FooInterface {
+    <span class="kw">type </span>Proxy = RawValueBox;
+}
+
+<span class="comment">/////////////
+// everything below could be defined in an implementation crate
+
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+</span><span class="kw">struct </span>Foo {
+    field: u32,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; SerializeType&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>Foo {
+    <span class="kw">type </span>Interface = FooInterface;
+     
+    <span class="kw">fn </span>serialize_impl(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;RawValueBox, RBoxError&gt; {
+        <span class="kw">match </span>serde_json::value::to_raw_value::&lt;Foo&gt;(<span class="self">self</span>) {
+            <span class="prelude-val">Ok</span>(x) =&gt; <span class="prelude-val">Ok</span>(x.into()),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(RBoxError::new(e)),
+        }
+    }
+}
+
+<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>make_foo_box(field: u32) -&gt; FooBox {
+    <span class="macro">abi_stable::extern_fn_panic_handling!</span>{
+        FooBox::from_value(Foo{field})
+    }
+}</code></pre></div>
+</div></details><h2 id="required-associated-types" class="section-header">Required Associated Types<a href="#required-associated-types" class="anchor">§</a></h2><div class="methods"><details class="toggle" open><summary><section id="associatedtype.Interface" class="method"><a class="src rightside" href="../../src/abi_stable/erased_types/traits.rs.html#270">Source</a><h4 class="code-header">type <a href="#associatedtype.Interface" class="associatedtype">Interface</a>: <a class="trait" href="trait.SerializeProxyType.html" title="trait abi_stable::erased_types::SerializeProxyType">SerializeProxyType</a>&lt;'s&gt;</h4></section></summary><div class="docblock"><p>An <a href="./trait.InterfaceType.html"><code>InterfaceType</code></a> implementor which determines the
+intermediate type through which this is serialized.</p>
+</div></details></div><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.serialize_impl" class="method"><a class="src rightside" href="../../src/abi_stable/erased_types/traits.rs.html#273-275">Source</a><h4 class="code-header">fn <a href="#tymethod.serialize_impl" class="fn">serialize_impl</a>(
+    &amp;'s self,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;&lt;Self::<a class="associatedtype" href="trait.SerializeType.html#associatedtype.Interface" title="type abi_stable::erased_types::SerializeType::Interface">Interface</a> as <a class="trait" href="trait.SerializeProxyType.html" title="trait abi_stable::erased_types::SerializeProxyType">SerializeProxyType</a>&lt;'s&gt;&gt;::<a class="associatedtype" href="trait.SerializeProxyType.html#associatedtype.Proxy" title="type abi_stable::erased_types::SerializeProxyType::Proxy">Proxy</a>, <a class="type" href="../std_types/type.RBoxError.html" title="type abi_stable::std_types::RBoxError">RBoxError</a>&gt;</h4></section></summary><div class="docblock"><p>Performs the serialization into the proxy.</p>
+</div></details></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"></div><script src="../../trait.impl/abi_stable/erased_types/traits/trait.SerializeType.js" async></script></section></div></main></body></html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="openrr: `Open Rust Robotics`"><title>openrr - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="openrr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../openrr/index.html">openrr</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#openrr-open-rust-robotics" title="openrr: `Open Rust Robotics`">openrr: <code>Open Rust Robotics</code></a><ul><li><a href="#supported-platforms" title="Supported Platforms">Supported Platforms</a></li><li><a href="#dependencies" title="Dependencies">Dependencies</a></li><li><a href="#architecture" title="Architecture">Architecture</a></li><li><a href="#what-is-openrr" title="What is OpenRR?">What is OpenRR?</a></li><li><a href="#tools" title="Tools">Tools</a></li><li><a href="#format" title="Format">Format</a></li><li><a href="#license" title="License">License</a></li><li><a href="#related-openrr-repositories" title="Related openrr repositories">Related openrr repositories</a></li><li><a href="#why-openrr" title="Why OpenRR?">Why OpenRR?</a></li><li><a href="#contribution" title="Contribution">Contribution</a></li><li><a href="#using-openrr" title="Using OpenRR">Using OpenRR</a></li></ul></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>openrr</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/openrr/lib.rs.html#1-25">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="openrr-open-rust-robotics"><a class="doc-anchor" href="#openrr-open-rust-robotics">§</a>openrr: <code>Open Rust Robotics</code></h2>
+<p><a href="https://github.com/openrr/openrr/actions"><img src="https://img.shields.io/github/actions/workflow/status/openrr/openrr/ci.yml?branch=main&amp;logo=github" alt="Build Status" /></a> <a href="https://crates.io/crates/openrr"><img src="https://img.shields.io/crates/v/openrr.svg?logo=rust" alt="crates.io" /></a> <a href="https://codecov.io/gh/openrr/openrr"><img src="https://codecov.io/gh/openrr/openrr/branch/main/graph/badge.svg?token=28GTOOT4RY" alt="codecov" /></a> <a href="https://docs.rs/openrr"><img src="https://docs.rs/openrr/badge.svg" alt="docs" /></a></p>
+<p><strong>For developers and future users</strong></p>
+<p><a href="https://openrr.github.io/openrr/openrr"><img src="https://img.shields.io/badge/docs-main-blue" alt="docs" /></a> <a href="https://discord.gg/8DAFFKc88B"><img src="https://dcbadge.vercel.app/api/server/8DAFFKc88B?style=flat" alt="discord" /></a> <a href="https://github.com/openrr/openrr-tutorial"><img src="https://img.shields.io/badge/OpenRR-Tutorial-red" alt="tutorial" /></a></p>
+<p>OpenRR (pronounced like “opener”) is Open Rust Robotics platform.</p>
+<p><strong>It’s heavily under development.</strong></p>
+<h3 id="supported-platforms"><a class="doc-anchor" href="#supported-platforms">§</a>Supported Platforms</h3><div><table><thead><tr><th>OS</th><th>Core</th><th>GUI</th><th>ROS</th><th>ROS2</th></tr></thead><tbody>
+<tr><td>Linux (Ubuntu)</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
+<tr><td>macOS</td><td>✔</td><td>✔</td><td>✔</td><td></td></tr>
+<tr><td>Windows</td><td>✔</td><td>✔</td><td></td><td></td></tr>
+</tbody></table>
+</div>
+<ul>
+<li>You can use ROS <em>without ROS installation</em> on Linux/macOS.</li>
+<li>ROS2 Support is experimental. See <a href="https://github.com/openrr/openrr/tree/main/arci-ros2">arci-ros2</a> for details.</li>
+</ul>
+<h3 id="dependencies"><a class="doc-anchor" href="#dependencies">§</a>Dependencies</h3><h4 id="linux"><a class="doc-anchor" href="#linux">§</a>Linux</h4><div class="example-wrap"><pre class="language-bash"><code>sudo apt install cmake build-essential libudev-dev xorg-dev libglu1-mesa-dev libasound2-dev libxkbcommon-dev protobuf-compiler</code></pre></div>
+<ul>
+<li>cmake build-essential (openrr-planner (assimp-sys))</li>
+<li>libudev-dev (arci-gamepad-gilrs)</li>
+<li>xorg-dev libglu1-mesa-dev libxkbcommon-dev (openrr-gui (egui))</li>
+<li>libasound2-dev (arci-speak-audio)</li>
+<li>protobuf-compiler (openrr-remote)</li>
+</ul>
+<h3 id="architecture"><a class="doc-anchor" href="#architecture">§</a>Architecture</h3>
+<p><img src="https://raw.githubusercontent.com/openrr/openrr/main/img/architecture.png" alt="architecture" /></p>
+<p><code>arci</code> is a hardware abstraction layer for openrr.
+Currently <a href="https://ros.org">ROS1</a> and <a href="https://github.com/openrr/urdf-viz">urdf-viz</a> (as a static simulator (actually it’s just a viewer)) are implemented.</p>
+<p>You can write platform/hardware independent code if you use <code>arci</code> traits.</p>
+<h3 id="what-is-openrr"><a class="doc-anchor" href="#what-is-openrr">§</a>What is OpenRR?</h3>
+<p>OpenRR contains..</p>
+<ul>
+<li>abstract robot interfaces (<code>arci</code>)</li>
+<li>concrete implementation of the interfaces (<code>arci-ros</code>, <code>arci-urdf-viz</code>, …)</li>
+<li>library which uses the interfaces (<code>openrr-client</code>, …)</li>
+<li>tools (<code>openrr-apps</code>)</li>
+<li>pure libraries nothing to do with <code>arci</code> (<code>openrr-planner</code>, …)</li>
+</ul>
+<h3 id="tools"><a class="doc-anchor" href="#tools">§</a>Tools</h3>
+<p>Currently we have some tools to control real/sim robots.</p>
+<p>See <a href="https://github.com/openrr/openrr/tree/main/openrr-apps">openrr-apps</a> for details.</p>
+<h4 id="joint_trajectory_sender"><a class="doc-anchor" href="#joint_trajectory_sender">§</a>joint_trajectory_sender</h4>
+<p>Inspired by <a href="http://wiki.ros.org/joint_state_publisher">joint_state_publisher_gui</a></p>
+<img width="400" alt="joint_sender" src="https://user-images.githubusercontent.com/43724913/106704866-27600680-6630-11eb-91ee-5eb29515fe46.png">
+<p>You can use this GUI not only for ROS but anything if you implement <code>arci::JointTrajectoryClient</code> and write a small binary main function.</p>
+<h4 id="robot_command"><a class="doc-anchor" href="#robot_command">§</a>robot_command</h4>
+<p>General CLI to access <code>arci</code> robot clients. It supports not only sending joint trajectory directly but it supports inverse kinematics with self-collision check, and navigation.</p>
+<h3 id="format"><a class="doc-anchor" href="#format">§</a>Format</h3>
+<p>To format use nightly rustfmt,</p>
+<div class="example-wrap"><pre class="language-bash"><code>cargo +nightly fmt</code></pre></div><h3 id="license"><a class="doc-anchor" href="#license">§</a>License</h3>
+<p>Licensed under the <a href="https://github.com/openrr/openrr/blob/main/LICENSE">Apache License, Version 2.0</a>.</p>
+<h3 id="related-openrr-repositories"><a class="doc-anchor" href="#related-openrr-repositories">§</a>Related openrr repositories</h3>
+<ul>
+<li><a href="https://github.com/OpenRR/k">k</a> : kinematics library</li>
+<li><a href="https://github.com/OpenRR/ros-nalgebra">ros-nalgebra</a> : rosrust nalgebra converter generator</li>
+<li><a href="https://github.com/OpenRR/rrt">rrt</a> : RRT-dual-connect path planner</li>
+<li><a href="https://github.com/OpenRR/trajectory">trajectory</a> : trajectory interpolator</li>
+<li><a href="https://github.com/OpenRR/urdf-rs">urdf-rs</a> : URDF parser</li>
+<li><a href="https://github.com/OpenRR/urdf-viz">urdf-viz</a>: URDF visualizer</li>
+<li><del><a href="https://github.com/OpenRR/gear">gear</a></del> : (deprecated) motion planning library, but it is openrr-planner now.</li>
+</ul>
+<h3 id="why-openrr"><a class="doc-anchor" href="#why-openrr">§</a>Why OpenRR?</h3>
+<p>We strongly believe that Rust is the future of robotics.
+OpenRR is the world first robotics platform which is made by Rust, made for Rust.
+It can be a reference, a base for the future robotic people, like us.</p>
+<h3 id="contribution"><a class="doc-anchor" href="#contribution">§</a>Contribution</h3>
+<p>We appreciate for your any contributions!
+<a href="https://github.com/openrr/openrr/issues/new">Create an issue</a> at first!</p>
+<p><a href="https://discord.gg/8DAFFKc88B">Here</a> is a discord server.</p>
+<h3 id="using-openrr"><a class="doc-anchor" href="#using-openrr">§</a>Using OpenRR</h3>
+<p>You can read the tutorial books at the following links.</p>
+<ul>
+<li><a href="https://openrr.github.io/openrr-tutorial/en/html">English</a></li>
+<li><a href="https://openrr.github.io/openrr-tutorial/ja/html">Japanese</a></li>
+</ul>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="apps/index.html" title="mod openrr::apps">apps</a></dt><dt><a class="mod" href="client/index.html" title="mod openrr::client">client</a></dt><dt><a class="mod" href="command/index.html" title="mod openrr::command">command</a></dt><dt><a class="mod" href="config/index.html" title="mod openrr::config">config</a></dt><dt><a class="mod" href="planner/index.html" title="mod openrr::planner">planner</a></dt><dt><a class="mod" href="teleop/index.html" title="mod openrr::teleop">teleop</a></dt></dl></section></div></main></body></html>

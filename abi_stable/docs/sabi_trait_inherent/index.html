@@ -1,0 +1,280 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Shared docs for inherent items of `sabi_trait` trait objects."><title>abi_stable::docs::sabi_trait_inherent - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module sabi_<wbr>trait_<wbr>inherent</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#methods" title="Methods">Methods</a><ul><li><a href="#from_ptr-method" title="`from_ptr` method"><code>from_ptr</code> method</a></li><li><a href="#from_value-method" title="`from_value` method"><code>from_value</code> method</a></li><li><a href="#from_const-method" title="`from_const` method"><code>from_const</code> method</a></li><li><a href="#from_sabi-method" title="`from_sabi` method"><code>from_sabi</code> method</a></li><li><a href="#sabi_reborrow-method" title="`sabi_reborrow` method"><code>sabi_reborrow</code> method</a></li><li><a href="#sabi_reborrow_mut-method" title="`sabi_reborrow_mut` method"><code>sabi_reborrow_mut</code> method</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In abi_<wbr>stable::<wbr>docs</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">abi_stable</a>::<wbr><a href="../index.html">docs</a></div><h1>Module <span>sabi_trait_inherent</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/abi_stable/docs/sabi_trait_inherent.rs.html#1-387">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Shared docs for inherent items of <code>sabi_trait</code> trait objects.</p>
+<p><code>&lt;trait&gt;</code> here is a generic way to refer to the name of “a trait that’s
+annotated with the <a href="../../attr.sabi_trait.html"><code>sabi_trait</code></a> attribute macro”.</p>
+<p><a href="../../sabi_trait/doc_examples/trait.Action.html">The trait used in method examples
+</a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[abi_stable::sabi_trait]
+</span><span class="kw">pub trait </span>Action: Debug {
+    <span class="doccomment">/// Gets the current value of `self`.
+    </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize;
+
+    <span class="doccomment">/// Adds `val` into `self`, returning the new value.
+    </span><span class="kw">fn </span>add_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: usize) -&gt; usize;
+
+    <span class="doccomment">/// Adds `val` into `self`, returning the new value.
+    </span><span class="attr">#[sabi(last_prefix_field)]
+    </span><span class="kw">fn </span>add_into(<span class="self">self</span>, val: usize) -&gt; usize;
+}</code></pre></div>
+<h2 id="methods"><a class="doc-anchor" href="#methods">§</a>Methods</h2>
+<p>These are the common methods for the <code>&lt;trait&gt;_TO</code> ffi-safe trait object type
+generated by the <a href="../../attr.sabi_trait.html"><code>sabi_trait</code></a> attribute.</p>
+<p>-<a href="#from_ptr-method"><code>from_ptr</code></a></p>
+<p>-<a href="#from_value-method"><code>from_value</code></a></p>
+<p>-<a href="#from_const-method"><code>from_const</code></a></p>
+<p>-<a href="#from_sabi-method"><code>from_sabi</code></a></p>
+<p>-<a href="#sabi_reborrow_mut-method"><code>sabi_reborrow_mut</code></a></p>
+<p>-<a href="#sabi_reborrow-method"><code>sabi_reborrow</code></a></p>
+<h3 id="from_ptr-method"><a class="doc-anchor" href="#from_ptr-method">§</a><code>from_ptr</code> method</h3><div class="example-wrap"><pre class="language-text"><code>impl&lt;&#39;lt, ErasedPtr, …&gt; Trait_TO&lt;&#39;lt, ErasedPtr, …&gt; {
+    pub fn from_ptr&lt;Ptr, Downcasting&gt;(
+        pointer: Ptr,
+        can_it_downcast: Downcasting
+    ) -&gt; Self</code></pre></div>
+<p>Constructs <code>&lt;trait&gt;_TO</code> from a pointer to a type that implements <code>&lt;trait&gt;</code></p>
+<p>The <code>can_it_downcast</code> parameter describes whether the trait object can be
+converted back into the original type or not.<br>
+Its possible values are <a href="../../type_level/downcasting/struct.TD_CanDowncast.html"><code>TD_CanDowncast</code></a> and <a href="../../type_level/downcasting/struct.TD_Opaque.html"><code>TD_Opaque</code></a>.</p>
+<p><a href="../../sabi_trait/doc_examples/struct.Action_TO.html#method.from_ptr">Method docs for <code>Action_TO::from_ptr</code>
+</a></p>
+<p><strong>Example</strong>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    sabi_trait::doc_examples::Action_TO,
+    std_types::{RArc, RBox},
+    type_level::downcasting::TD_CanDowncast,
+    RMut, RRef,
+};
+
+<span class="comment">// From an RBox
+</span>{
+    <span class="comment">// The type annotation is purely for the reader.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>object: Action_TO&lt;<span class="lifetime">'static</span>, RBox&lt;()&gt;&gt; =
+        Action_TO::from_ptr(RBox::new(<span class="number">10_usize</span>), TD_CanDowncast);
+
+    <span class="macro">assert_eq!</span>(object.get(), <span class="number">10</span>);
+
+    <span class="macro">assert_eq!</span>(object.add_mut(<span class="number">3</span>), <span class="number">13</span>);
+    <span class="macro">assert_eq!</span>(object.get(), <span class="number">13</span>);
+
+    <span class="comment">// consumes `object`, now it can't be used anymore.
+    </span><span class="macro">assert_eq!</span>(object.add_into(<span class="number">7</span>), <span class="number">20</span>);
+}
+
+<span class="comment">// From a reference
+</span>{
+    <span class="comment">// `Action_TO`s constructed from `&amp;` are `Action_TO&lt;'_, RRef&lt;'_, ()&gt;&gt;`
+    // since `&amp;T` can't soundly be transmuted back and forth into `&amp;()`
+    </span><span class="kw">let </span>object: Action_TO&lt;<span class="lifetime">'static</span>, RRef&lt;<span class="lifetime">'static</span>, ()&gt;&gt; =
+        Action_TO::from_ptr(<span class="kw-2">&amp;</span><span class="number">20_usize</span>, TD_CanDowncast);
+
+    <span class="macro">assert_eq!</span>(object.get(), <span class="number">20</span>);
+}
+
+<span class="comment">// From a mutable reference
+</span>{
+    <span class="kw">let </span><span class="kw-2">mut </span>val = <span class="number">30_usize</span>;
+
+    <span class="comment">// `Action_TO`s constructed from `&amp;mut` are `Action_TO&lt;'_, RMut&lt;'_, ()&gt;&gt;`
+    // since `&amp;mut T` can't soundly be transmuted back and forth into `&amp;mut ()`
+    </span><span class="kw">let </span><span class="kw-2">mut </span>object: Action_TO&lt;<span class="lifetime">'static</span>, RMut&lt;<span class="lifetime">'_</span>, ()&gt;&gt; =
+        Action_TO::from_ptr(<span class="kw-2">&amp;mut </span>val, TD_CanDowncast);
+
+    <span class="macro">assert_eq!</span>(object.get(), <span class="number">30</span>);
+
+    <span class="macro">assert_eq!</span>(object.add_mut(<span class="number">3</span>), <span class="number">33</span>);
+    <span class="macro">assert_eq!</span>(object.get(), <span class="number">33</span>);
+
+    drop(object);
+
+    <span class="macro">assert_eq!</span>(val, <span class="number">33</span>);
+}
+
+<span class="comment">// From an RArc
+</span>{
+    <span class="kw">let </span>object: Action_TO&lt;<span class="lifetime">'static</span>, RArc&lt;()&gt;&gt; =
+        Action_TO::from_ptr(RArc::new(<span class="number">40</span>), TD_CanDowncast);
+
+    <span class="macro">assert_eq!</span>(object.get(), <span class="number">40</span>);
+}
+</code></pre></div>
+<h3 id="from_value-method"><a class="doc-anchor" href="#from_value-method">§</a><code>from_value</code> method</h3><div class="example-wrap"><pre class="language-text"><code>impl&lt;&#39;lt, …&gt; Trait_TO&lt;&#39;lt, RBox&lt;()&gt;, …&gt; {
+    pub fn from_value&lt;_OrigPtr, Downcasting&gt;(
+        pointer: _OrigPtr,
+        can_it_downcast: Downcasting
+    ) -&gt; Self</code></pre></div>
+<p>Constructs <code>&lt;trait&gt;_TO</code> from a type that implements <code>&lt;trait&gt;</code>,
+wrapping that value in an <a href="../../std_types/struct.RBox.html"><code>RBox</code></a>.</p>
+<p>The <code>can_it_downcast</code> parameter describes whether the trait object can be
+converted back into the original type or not.<br>
+Its possible values are <a href="../../type_level/downcasting/struct.TD_CanDowncast.html"><code>TD_CanDowncast</code></a> and <a href="../../type_level/downcasting/struct.TD_Opaque.html"><code>TD_Opaque</code></a>.</p>
+<p><a href="../../sabi_trait/doc_examples/struct.Action_TO.html#method.from_value">Method docs for <code>Action_TO::from_value</code>
+</a></p>
+<p><strong>Example</strong>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    sabi_trait::doc_examples::Action_TO, std_types::RBox,
+    type_level::downcasting::TD_CanDowncast,
+};
+
+<span class="comment">// The type annotation is purely for the reader.
+</span><span class="kw">let </span><span class="kw-2">mut </span>object: Action_TO&lt;<span class="lifetime">'static</span>, RBox&lt;()&gt;&gt; =
+    Action_TO::from_value(<span class="number">100_usize</span>, TD_CanDowncast);
+
+<span class="macro">assert_eq!</span>(object.get(), <span class="number">100</span>);
+
+<span class="macro">assert_eq!</span>(object.add_mut(<span class="number">3</span>), <span class="number">103</span>);
+<span class="macro">assert_eq!</span>(object.get(), <span class="number">103</span>);
+
+<span class="comment">// consumes `object`, now it can't be used anymore.
+</span><span class="macro">assert_eq!</span>(object.add_into(<span class="number">7</span>), <span class="number">110</span>);
+</code></pre></div>
+<h3 id="from_const-method"><a class="doc-anchor" href="#from_const-method">§</a><code>from_const</code> method</h3><div class="example-wrap"><pre class="language-text"><code>impl&lt;&#39;lt, &#39;sub, …&gt; Trait_TO&lt;&#39;lt, RRef&lt;&#39;sub, ()&gt;, …&gt; {
+    pub const fn from_const&lt;T, Downcasting&gt;(
+        pointer: &amp;&#39;sub T,
+        can_it_downcast: Downcasting,
+    ) -&gt; Self</code></pre></div>
+<p>Const-constructs <code>&lt;trait&gt;_TO</code> from a constant that
+implements <code>&lt;trait&gt;</code>,</p>
+<p>The <code>can_it_downcast</code> parameter describes whether the trait object can be
+converted back into the original type or not.<br>
+Its possible values are <a href="../../type_level/downcasting/struct.TD_CanDowncast.html"><code>TD_CanDowncast</code></a> and <a href="../../type_level/downcasting/struct.TD_Opaque.html"><code>TD_Opaque</code></a>.</p>
+<p><a href="../../sabi_trait/doc_examples/struct.Action_TO.html#method.from_const">Method docs for <code>Action_TO::from_const</code>
+</a></p>
+<p><strong>Example:</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    sabi_trait::doc_examples::Action_trait::{Action_CTO, Action_TO},
+    std_types::RBox,
+    type_level::downcasting::TD_CanDowncast,
+};
+
+<span class="kw">const </span>TO: Action_CTO&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt; = Action_TO::from_const(<span class="kw-2">&amp;</span><span class="number">200</span>, TD_CanDowncast);
+
+<span class="macro">assert_eq!</span>(TO.get(), <span class="number">200</span>);
+</code></pre></div>
+<h3 id="from_sabi-method"><a class="doc-anchor" href="#from_sabi-method">§</a><code>from_sabi</code> method</h3><div class="example-wrap"><pre class="language-text"><code>impl&lt;&#39;lt, ErasedPtr, …&gt; Trait_TO&lt;&#39;lt, ErasedPtr, …&gt; {
+    pub fn from_sabi(obj: Trait_Backend&lt;&#39;lt, ErasedPtr, …&gt;) -&gt; Self</code></pre></div>
+<p>Constructs <code>&lt;trait&gt;_TO</code> from the backend trait object type,
+either <a href="../../sabi_trait/struct.RObject.html"><code>RObject</code></a> or <a href="../../struct.DynTrait.html"><code>DynTrait</code></a>.</p>
+<p><a href="../../sabi_trait/doc_examples/struct.Action_TO.html#method.from_sabi">Method docs for <code>Action_TO::from_sabi</code>
+</a></p>
+<p>This allows calling methods on the <code>.obj</code> field of <code>&lt;trait&gt;_TO</code>
+that consume the backend and return it back.</p>
+<p>For <a href="../../sabi_trait/doc_examples/struct.Action_TO.html"><code>Action_TO</code></a> specifically, <a href="../../sabi_trait/struct.RObject.html"><code>RObject</code></a> is the backend.</p>
+<p><strong>Example:</strong></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    pointer_trait::{CanTransmuteElement, OwnedPointer},
+    sabi_trait::{
+        doc_examples::Action_trait::{Action_Interface, Action_TO},
+        RObject,
+    },
+    std_types::RBox,
+    type_level::downcasting::TD_CanDowncast,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>object: Action_TO&lt;<span class="lifetime">'static</span>, RBox&lt;()&gt;&gt; =
+    Action_TO::from_value(<span class="number">700</span>, TD_CanDowncast);
+
+object = try_downcast::&lt;<span class="kw">_</span>, u32&gt;(object).unwrap_err();
+
+object = try_downcast::&lt;<span class="kw">_</span>, String&gt;(object).unwrap_err();
+
+<span class="macro">assert_eq!</span>(<span class="kw-2">*</span>try_downcast::&lt;<span class="kw">_</span>, usize&gt;(object).unwrap(), <span class="number">700</span>);
+
+<span class="kw">fn </span>try_downcast&lt;P, T&gt;(
+    object: Action_TO&lt;<span class="lifetime">'static</span>, P&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;P::TransmutedPtr, Action_TO&lt;<span class="lifetime">'static</span>, P&gt;&gt;
+<span class="kw">where
+    </span>T: <span class="lifetime">'static</span>,
+    <span class="comment">// This bound is required to call `downcast_into` on the `obj: RObject&lt;…&gt;` field
+    </span>P: OwnedPointer&lt;PtrTarget = ()&gt; + CanTransmuteElement&lt;T&gt;,
+{
+    object
+        .obj
+        .downcast_into()
+        .map_err(|e| Action_TO::from_sabi(e.into_inner()))
+}
+</code></pre></div>
+<h3 id="sabi_reborrow-method"><a class="doc-anchor" href="#sabi_reborrow-method">§</a><code>sabi_reborrow</code> method</h3><div class="example-wrap"><pre class="language-text"><code>impl&lt;&#39;lt, ErasedPtr, …&gt; Trait_TO&lt;&#39;lt, ErasedPtr, …&gt; {
+    pub fn sabi_reborrow&lt;&#39;r&gt;(&amp;&#39;r self) -&gt; Trait_TO&lt;&#39;lt, RRef&lt;&#39;r, ()&gt;, …&gt; {</code></pre></div>
+<p>Reborrows a <code>&amp;'r &lt;trait&gt;_TO&lt;'lt, …&gt;</code> into a <code>&lt;trait&gt;_TO&lt;'lt, RRef&lt;'r, ()&gt;, …&gt;</code>.</p>
+<p><a href="../../sabi_trait/doc_examples/struct.Action_TO.html#method.sabi_reborrow">Method docs for <code>Action_TO::sabi_reborrow</code>
+</a></p>
+<p>This allows passing the trait object to functions that take a
+<code>&lt;trait&gt;_TO&lt;'b, RRef&lt;'a, ()&gt;, …&gt;</code>,
+and functions generic over the traits that <code>&lt;trait&gt;_TO</code> implements.</p>
+<p>This method is only available for traits that either:</p>
+<ul>
+<li>require neither Send nor Sync,</li>
+<li>require <code>Send + Sync</code>.</li>
+</ul>
+<p><strong>Example</strong>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    sabi_trait::doc_examples::Action_TO, std_types::RBox,
+    type_level::downcasting::TD_CanDowncast, RRef,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>object: Action_TO&lt;<span class="lifetime">'static</span>, RBox&lt;()&gt;&gt; =
+    Action_TO::from_value(<span class="number">300_usize</span>, TD_CanDowncast);
+
+<span class="macro">assert_eq!</span>(to_debug_string(object.sabi_reborrow()), <span class="string">"300"</span>);
+
+<span class="macro">assert_eq!</span>(object.add_mut(<span class="number">7</span>), <span class="number">307</span>);
+<span class="macro">assert_eq!</span>(get_usize(object.sabi_reborrow()), <span class="number">307</span>);
+
+<span class="macro">assert_eq!</span>(object.add_mut(<span class="number">14</span>), <span class="number">321</span>);
+<span class="comment">// last use of `object`, so we can move it into the function
+</span><span class="macro">assert_eq!</span>(to_debug_string(object), <span class="string">"321"</span>);
+
+<span class="kw">fn </span>to_debug_string&lt;T&gt;(x: T) -&gt; String
+<span class="kw">where
+    </span>T: std::fmt::Debug,
+{
+    <span class="macro">format!</span>(<span class="string">"{:?}"</span>, x)
+}
+
+<span class="kw">fn </span>get_usize(x: Action_TO&lt;<span class="lifetime">'_</span>, RRef&lt;<span class="lifetime">'_</span>, ()&gt;&gt;) -&gt; usize {
+    x.get()
+}
+</code></pre></div>
+<h3 id="sabi_reborrow_mut-method"><a class="doc-anchor" href="#sabi_reborrow_mut-method">§</a><code>sabi_reborrow_mut</code> method</h3><div class="example-wrap"><pre class="language-text"><code>impl&lt;&#39;lt, ErasedPtr, …&gt; Trait_TO&lt;&#39;lt, ErasedPtr, …&gt; {
+    pub fn sabi_reborrow_mut&lt;&#39;r&gt;(&amp;&#39;r mut self) -&gt; Trait_TO&lt;&#39;lt, RMut&lt;&#39;r, ()&gt;, …&gt; {</code></pre></div>
+<p>Reborrows a <code>&amp;'r mut &lt;trait&gt;_TO&lt;'b, …&gt;</code> into a <code>&lt;trait&gt;_TO&lt;'b, RMut&lt;'r, ()&gt;, …&gt;</code>.</p>
+<p><a href="../../sabi_trait/doc_examples/struct.Action_TO.html#method.sabi_reborrow_mut">Method docs for <code>Action_TO::sabi_reborrow_mut</code>
+</a></p>
+<p>This allows passing the trait object to functions that take a
+<code>&lt;trait&gt;_TO&lt;'b, RMut&lt;'a, ()&gt;, …&gt;</code>,
+and functions generic over the traits that <code>&lt;trait&gt;_TO</code> implements.</p>
+<p>This method is only available for traits that either:</p>
+<ul>
+<li>require neither Send nor Sync,</li>
+<li>require <code>Send + Sync</code>.</li>
+</ul>
+<p><strong>Example</strong>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    pointer_trait::AsMutPtr, sabi_trait::doc_examples::Action_TO, std_types::RBox,
+    type_level::downcasting::TD_CanDowncast,
+};
+
+<span class="kw">let </span><span class="kw-2">mut </span>object: Action_TO&lt;<span class="lifetime">'static</span>, RBox&lt;()&gt;&gt; =
+    Action_TO::from_value(<span class="number">400_usize</span>, TD_CanDowncast);
+
+<span class="macro">assert_eq!</span>(add_mut(object.sabi_reborrow_mut(), <span class="number">6</span>), <span class="number">406</span>);
+
+<span class="macro">assert_eq!</span>(add_mut(object.sabi_reborrow_mut(), <span class="number">10</span>), <span class="number">416</span>);
+
+<span class="comment">// last use of `object`, so we can move it into the function
+</span><span class="macro">assert_eq!</span>(add_mut(object, <span class="number">20</span>), <span class="number">436</span>);
+
+<span class="kw">fn </span>add_mut&lt;P&gt;(<span class="kw-2">mut </span>x: Action_TO&lt;<span class="lifetime">'_</span>, P&gt;, how_much: usize) -&gt; usize
+<span class="kw">where
+    </span><span class="comment">// Needed for calling mutable methods on `Action_TO`
+    </span>P: AsMutPtr&lt;PtrTarget = ()&gt;,
+{
+    x.add_mut(how_much)
+}
+</code></pre></div>
+</div></details></section></div></main></body></html>

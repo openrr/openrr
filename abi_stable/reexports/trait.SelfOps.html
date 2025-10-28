@@ -1,0 +1,174 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension trait for every type."><title>SelfOps in abi_stable::reexports - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">SelfOps</a></h2><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.as_mut_" title="as_mut_">as_mut_</a></li><li><a href="#method.as_ref_" title="as_ref_">as_ref_</a></li><li><a href="#method.drop_" title="drop_">drop_</a></li><li><a href="#method.eq_id" title="eq_id">eq_id</a></li><li><a href="#method.into_" title="into_">into_</a></li><li><a href="#method.mutated" title="mutated">mutated</a></li><li><a href="#method.observe" title="observe">observe</a></li><li><a href="#method.piped" title="piped">piped</a></li><li><a href="#method.piped_mut" title="piped_mut">piped_mut</a></li><li><a href="#method.piped_ref" title="piped_ref">piped_ref</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In abi_<wbr>stable::<wbr>reexports</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">abi_stable</a>::<wbr><a href="index.html">reexports</a></div><h1>Trait <span class="trait">SelfOps</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/core_extensions/self_ops.rs.html#6">Source</a> </span></div><pre class="rust item-decl"><code>pub trait SelfOps {
+    // Provided methods
+    fn <a href="#method.eq_id" class="fn">eq_id</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.piped" class="fn">piped</a>&lt;F, U&gt;(self, f: F) -&gt; U
+       <span class="where">where F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(Self) -&gt; U,
+             Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.piped_ref" class="fn">piped_ref</a>&lt;'a, F, U&gt;(&amp;'a self, f: F) -&gt; U
+       <span class="where">where F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(&amp;'a Self) -&gt; U</span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.piped_mut" class="fn">piped_mut</a>&lt;'a, F, U&gt;(&amp;'a mut self, f: F) -&gt; U
+       <span class="where">where F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(&amp;'a mut Self) -&gt; U</span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.mutated" class="fn">mutated</a>&lt;F&gt;(self, f: F) -&gt; Self
+       <span class="where">where F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(&amp;mut Self),
+             Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.observe" class="fn">observe</a>&lt;F&gt;(self, f: F) -&gt; Self
+       <span class="where">where F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(&amp;Self),
+             Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.into_" class="fn">into_</a>&lt;T&gt;(self) -&gt; T
+       <span class="where">where Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;T&gt;</span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.as_ref_" class="fn">as_ref_</a>&lt;T&gt;(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.reference.html">&amp;T</a>
+       <span class="where">where Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.AsRef.html" title="trait core::convert::AsRef">AsRef</a>&lt;T&gt;,
+             T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.as_mut_" class="fn">as_mut_</a>&lt;T&gt;(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.reference.html">&amp;mut T</a>
+       <span class="where">where Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.AsMut.html" title="trait core::convert::AsMut">AsMut</a>&lt;T&gt;,
+             T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.drop_" class="fn">drop_</a>(self)
+       <span class="where">where Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension trait for every type.</p>
+</div></details><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.eq_id" class="method"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#24">Source</a><h4 class="code-header">fn <a href="#method.eq_id" class="fn">eq_id</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>Compares the address of <code>self</code> with the address of <code>other</code>.</p>
+<h5 id="example"><a class="doc-anchor" href="#example">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SelfOps;
+
+<span class="kw">let </span>a = <span class="number">5</span>.to_string();
+<span class="kw">let </span>b = <span class="number">5</span>.to_string();
+
+<span class="macro">assert!</span>(!a.eq_id(<span class="kw-2">&amp;</span>b));
+<span class="macro">assert!</span>(!b.eq_id(<span class="kw-2">&amp;</span>a));
+<span class="macro">assert!</span>( a.eq_id(<span class="kw-2">&amp;</span>a));
+<span class="macro">assert!</span>( b.eq_id(<span class="kw-2">&amp;</span>b));
+<span class="macro">assert_eq!</span>(a,b);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.piped" class="method"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#66-69">Source</a><h4 class="code-header">fn <a href="#method.piped" class="fn">piped</a>&lt;F, U&gt;(self, f: F) -&gt; U<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(Self) -&gt; U,
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Emulates the pipeline operator, allowing method syntax in more places.</p>
+<p>Allows calling functions as part of a method chain.</p>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SelfOps;
+
+<span class="kw">use </span>std::sync::{Mutex, Arc};
+
+<span class="kw">let </span>hello = <span class="string">"hello"
+    </span>.to_string()
+    .mutated(|s| s.push_str(<span class="string">"_world"</span>))
+    .piped(Mutex::new)
+    .piped(Arc::new);
+
+<span class="macro">assert_eq!</span>(hello.lock().unwrap().as_str(), <span class="string">"hello_world"</span>);</code></pre></div>
+<h5 id="examplecalling-functions"><a class="doc-anchor" href="#examplecalling-functions">§</a>Example,calling functions</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SelfOps;
+
+ 
+<span class="string">"what"
+    </span>.piped(|x| opposed(x) + <span class="string">"-"</span>)
+    .observe(|s| <span class="macro">assert_eq!</span>(s, <span class="string">"whattahw-"</span>))
+    .piped(opposed)
+    .observe(|s| <span class="macro">assert_eq!</span>(s, <span class="string">"whattahw--whattahw"</span>));</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.piped_ref" class="method"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#91-93">Source</a><h4 class="code-header">fn <a href="#method.piped_ref" class="fn">piped_ref</a>&lt;'a, F, U&gt;(&amp;'a self, f: F) -&gt; U<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(&amp;'a Self) -&gt; U,</div></h4></section></summary><div class="docblock"><p>The same as <code>piped</code> except that the function takes <code>&amp;Self</code>
+Useful for functions that take <code>&amp;Self</code> instead of <code>Self</code>.</p>
+<h5 id="example-2"><a class="doc-anchor" href="#example-2">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SelfOps;
+
+<span class="kw">let </span>problem = <span class="string">"air"</span>.to_string();
+<span class="kw">let </span>edited = problem.piped_ref(|s| <span class="macro">format!</span>(<span class="string">"{} problems."</span>, s));
+
+<span class="macro">println!</span>(<span class="string">"{:?}"</span>, problem); <span class="comment">// problem wasn't consumed by `.piped_ref`
+</span><span class="macro">assert_eq!</span>(edited, <span class="string">"air problems."</span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.piped_mut" class="method"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#102-104">Source</a><h4 class="code-header">fn <a href="#method.piped_mut" class="fn">piped_mut</a>&lt;'a, F, U&gt;(&amp;'a mut self, f: F) -&gt; U<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(&amp;'a mut Self) -&gt; U,</div></h4></section></summary><div class="docblock"><p>The same as <code>piped</code>, except that the function takes <code>&amp;mut Self</code>.
+Useful for functions that take <code>&amp;mut Self</code> instead of <code>Self</code>.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.mutated" class="method"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#140-143">Source</a><h4 class="code-header">fn <a href="#method.mutated" class="fn">mutated</a>&lt;F&gt;(self, f: F) -&gt; Self<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(&amp;mut Self),
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Mutates self using a closure taking self by mutable reference,
+passing it along the method chain.</p>
+<p>This is useful for initializing a variable and then freezing it.</p>
+<h5 id="example-of-initialization"><a class="doc-anchor" href="#example-of-initialization">§</a>Example of initialization</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SelfOps;
+
+<span class="kw">let </span>list = Vec::new().mutated(|v|{
+    v.push(<span class="string">"This"</span>);
+    v.push(<span class="string">"is"</span>);
+    v.push(<span class="string">"[redacted]"</span>);
+});
+
+<span class="macro">assert_eq!</span>(list.join(<span class="string">" "</span>), <span class="string">"This is [redacted]"</span>);
+</code></pre></div>
+<h5 id="example-of-mutating-in-a-method-chain"><a class="doc-anchor" href="#example-of-mutating-in-a-method-chain">§</a>Example of mutating in a method chain</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SelfOps;
+
+<span class="string">"what"</span>.to_string()
+    .mutated(|v| v.push_str(<span class="string">" the"</span>) )
+    .observe(|v| <span class="macro">assert_eq!</span>(v, <span class="string">"what the"</span>) );
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.observe" class="method"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#165-168">Source</a><h4 class="code-header">fn <a href="#method.observe" class="fn">observe</a>&lt;F&gt;(self, f: F) -&gt; Self<div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(&amp;Self),
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Observes the value of self, passing it along unmodified.
+Useful in long method chains.</p>
+<h5 id="example-3"><a class="doc-anchor" href="#example-3">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SelfOps;
+
+<span class="kw">let </span>v = <span class="string">"1234"
+    </span>.parse()
+    .observe(|d| <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="prelude-val">Ok</span>(<span class="number">1234</span>), d))
+    .unwrap();
+
+<span class="macro">assert_eq!</span>(v,<span class="number">1234</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.into_" class="method"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#196-198">Source</a><h4 class="code-header">fn <a href="#method.into_" class="fn">into_</a>&lt;T&gt;(self) -&gt; T<div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;T&gt;,</div></h4></section></summary><div class="docblock"><p>Performs a conversion with <code>Into</code>.
+using the turbofish <code>.into_::&lt;_&gt;()</code> syntax.</p>
+<h5 id="example-4"><a class="doc-anchor" href="#example-4">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SelfOps;
+<span class="kw">use </span>std::borrow::Cow;
+
+<span class="kw">let </span>word = <span class="string">"hello"</span>;
+
+<span class="macro">assert_eq!</span>(word, word.into_::&lt;Cow&lt;<span class="lifetime">'_</span>, <span class="kw">_</span>&gt;&gt;());
+<span class="macro">assert_eq!</span>(word, word.into_::&lt;Cow&lt;<span class="lifetime">'_</span>, str&gt;&gt;());
+<span class="macro">assert_eq!</span>(word, word.into_::&lt;String&gt;());
+
+<span class="kw">let </span>vec_=||<span class="macro">vec!</span>[<span class="number">0</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>];
+<span class="macro">assert_eq!</span>(vec_().into_::&lt;Cow&lt;<span class="lifetime">'_</span>, <span class="kw">_</span>&gt;&gt;(), vec_());
+<span class="macro">assert_eq!</span>(vec_().into_::&lt;Cow&lt;<span class="lifetime">'_</span>, <span class="kw">_</span>&gt;&gt;(), vec_());
+<span class="macro">assert_eq!</span>(vec_().into_::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()    , vec_());
+<span class="macro">assert_eq!</span>(vec_().into_::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()    , vec_());
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.as_ref_" class="method"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#215-217">Source</a><h4 class="code-header">fn <a href="#method.as_ref_" class="fn">as_ref_</a>&lt;T&gt;(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.reference.html">&amp;T</a><div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.AsRef.html" title="trait core::convert::AsRef">AsRef</a>&lt;T&gt;,
+    T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Performs a reference to reference conversion with <code>AsRef</code>,
+using the turbofish <code>.as_ref_::&lt;_&gt;()</code> syntax.</p>
+<h5 id="example-5"><a class="doc-anchor" href="#example-5">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SelfOps;
+
+<span class="kw">let </span>s = <span class="string">"the path"</span>;
+
+<span class="macro">assert_eq!</span>(s, s.as_ref_::&lt;str&gt;());</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.as_mut_" class="method"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#234-236">Source</a><h4 class="code-header">fn <a href="#method.as_mut_" class="fn">as_mut_</a>&lt;T&gt;(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.reference.html">&amp;mut T</a><div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.AsMut.html" title="trait core::convert::AsMut">AsMut</a>&lt;T&gt;,
+    T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Performs a mutable reference to mutable reference conversion with <code>AsMut</code>,
+using the turbofish <code>.as_mut_::&lt;_&gt;()</code> syntax.</p>
+<h5 id="example-6"><a class="doc-anchor" href="#example-6">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SelfOps;
+
+<span class="kw">let </span><span class="kw-2">mut </span>s_0 = <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
+<span class="kw">let </span><span class="kw-2">mut </span>s_1 = s_0.clone();
+
+<span class="macro">assert_eq!</span>(s_1, s_0.as_mut_::&lt;[<span class="kw">_</span>]&gt;());</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.drop_" class="method"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#259-261">Source</a><h4 class="code-header">fn <a href="#method.drop_" class="fn">drop_</a>(self)<div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Drops <code>self</code> using method notation.
+Alternative to <code>std::mem::drop</code>.</p>
+<h5 id="exampleignore-must_use-values"><a class="doc-anchor" href="#exampleignore-must_use-values">§</a>Example,ignore #[must_use] values.</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#![deny(unused_must_use)]
+</span><span class="kw">use </span>std::fmt::Write;
+
+<span class="kw">use </span>core_extensions::SelfOps;
+
+<span class="kw">let </span><span class="kw-2">mut </span>buff=String::new();
+
+buff.write_str(<span class="string">"hello_"</span>).drop_();
+buff.write_str(<span class="string">"world"</span>).drop_();
+
+<span class="macro">assert_eq!</span>(buff, <span class="string">"hello_world"</span>);
+</code></pre></div>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-SelfOps-for-T" class="impl"><a class="src rightside" href="../../src/core_extensions/self_ops.rs.html#270">Source</a><a href="#impl-SelfOps-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="trait.SelfOps.html" title="trait abi_stable::reexports::SelfOps">SelfOps</a> for T<div class="where">where
+    T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></div><script src="../../trait.impl/core_extensions/self_ops/trait.SelfOps.js" async></script></section></div></main></body></html>

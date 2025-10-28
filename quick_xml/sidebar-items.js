@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["de","encoding","errors","escape","events","name","parser","reader","se","writer"]};

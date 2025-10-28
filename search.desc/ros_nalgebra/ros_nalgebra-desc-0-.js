@@ -1,0 +1,1 @@
+searchState.loadedDescShard("ros_nalgebra", 0, "ros-nalgebra\nGenerate Point/Vector3/Quaternion/Pose/Transform converter …\nGenerate <code>impl From&lt;&lt;ROS_MESSAGE&gt;</code> and …\nUse this macro instead of rosrust::rosmsg_include!() to …")

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Config","ConfigKind","Subcommand"],"fn":["main"],"struct":["Args"]};

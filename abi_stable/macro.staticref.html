@@ -1,0 +1,146 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Allows declaring a `StaticRef` inherent associated `const`ant from possibly non-`&#39;static` references."><title>staticref in abi_stable - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">staticref</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a><ul><li><a href="#basic" title="Basic">Basic</a></li><li><a href="#more-realistic" title="More realistic">More realistic</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate abi_<wbr>stable</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">abi_stable</a></div><h1>Macro <span class="macro">staticref</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/abi_stable/macros.rs.html#831-855">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! staticref {
+    (
+        $(
+            $(#[$attr:meta])* $vis:vis const $name:ident : $ty:ty = $expr:expr
+        );*
+        $(;)?
+    ) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Allows declaring a <a href="./sabi_types/struct.StaticRef.html"><code>StaticRef</code></a> inherent associated <code>const</code>ant
+from possibly non-<code>'static</code> references.</p>
+<p>This only works in inherent implementations.</p>
+<p>This does not work in:</p>
+<ul>
+<li>trait definitions</li>
+<li>trait implementations.</li>
+<li>modules: to define a non-associated constant.</li>
+</ul>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2><h4 id="basic"><a class="doc-anchor" href="#basic">§</a>Basic</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::staticref;
+
+<span class="kw">struct </span>NONE_REF&lt;T&gt;(T);
+
+<span class="kw">impl</span>&lt;T&gt; NONE_REF&lt;T&gt; {
+    <span class="comment">// Declares a `StaticRef&lt;Option&lt;T&gt;&gt;` that points to a `None`, for any `T`.
+    </span><span class="macro">staticref!</span>(<span class="kw">const </span>V: <span class="prelude-ty">Option</span>&lt;T&gt; = <span class="prelude-val">None</span>);
+}
+
+<span class="kw">let </span>none_string: <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="prelude-ty">Option</span>&lt;String&gt; = NONE_REF::&lt;String&gt;::V.get();
+<span class="macro">assert_eq!</span>(none_string, <span class="kw-2">&amp;</span><span class="prelude-val">None</span>::&lt;String&gt;);
+</code></pre></div>
+<h4 id="more-realistic"><a class="doc-anchor" href="#more-realistic">§</a>More realistic</h4>
+<p>This example demonstrates how you can construct a pointer to a vtable,
+constructed at compile-time.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    StableAbi,
+    extern_fn_panic_handling,
+    staticref,
+    pointer_trait::CallReferentDrop,
+    prefix_type::{PrefixTypeTrait, WithMetadata},
+};
+
+<span class="kw">use </span>std::{
+    mem::ManuallyDrop,
+    ops::Deref,
+};
+
+<span class="kw">fn </span>main(){
+    <span class="kw">let </span>boxed = BoxLike::new(<span class="number">100</span>);
+    
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>boxed, <span class="number">100</span>);
+    <span class="macro">assert_eq!</span>(boxed.into_inner(), <span class="number">100</span>);
+}
+
+<span class="doccomment">/// An ffi-safe `Box&lt;T&gt;`
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+</span><span class="kw">pub struct </span>BoxLike&lt;T&gt; {
+    data: <span class="kw-2">*mut </span>T,
+     
+    vtable: VTable_Ref&lt;T&gt;,
+
+    _marker: std::marker::PhantomData&lt;T&gt;,
+}
+
+<span class="kw">impl</span>&lt;T&gt; BoxLike&lt;T&gt;{
+    <span class="kw">pub fn </span>new(value: T) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>box_ = Box::new(value);
+         
+        <span class="self">Self</span>{
+            data: Box::into_raw(box_),
+            vtable: VTable::VTABLE,
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    <span class="doccomment">/// Extracts the value this owns.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T{
+        <span class="kw">let </span>this = ManuallyDrop::new(<span class="self">self</span>);
+        <span class="kw">unsafe</span>{
+            <span class="comment">// Must copy this before calling `self.vtable.destructor()`
+            // because otherwise it would be reading from a dangling pointer.
+            </span><span class="kw">let </span>ret = this.data.read();
+            this.vtable.destructor()(this.data,CallReferentDrop::No);
+            ret
+        }
+    }
+}
+
+
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>BoxLike&lt;T&gt;{
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>){
+        <span class="kw">unsafe</span>{
+            <span class="self">self</span>.vtable.destructor()(<span class="self">self</span>.data, CallReferentDrop::Yes)
+        }
+    }
+}
+
+<span class="comment">// `#[sabi(kind(Prefix))]` Declares this type as being a prefix-type,
+// generating both of these types:
+//
+//     - VTable_Prefix`: A struct with the fields up to (and including) the field with the
+//     `#[sabi(last_prefix_field)]` attribute.
+//
+//     - VTable_Ref`: An ffi-safe pointer to `VTable`,with methods to get `VTable`'s fields.
+//
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(kind(Prefix))]
+</span><span class="kw">struct </span>VTable&lt;T&gt;{
+    <span class="attr">#[sabi(last_prefix_field)]
+    </span>destructor: <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>T, CallReferentDrop),
+}
+
+<span class="kw">impl</span>&lt;T&gt; VTable&lt;T&gt;{
+   <span class="macro">staticref!</span>(<span class="kw">const </span>VTABLE_VAL: WithMetadata&lt;<span class="self">Self</span>&gt; = WithMetadata::new(
+       <span class="self">Self</span>{
+           destructor: destroy_box::&lt;T&gt;,
+       },
+   ));
+
+   <span class="kw">const </span>VTABLE: VTable_Ref&lt;T&gt; = {
+       VTable_Ref( <span class="self">Self</span>::VTABLE_VAL.as_prefix() )
+   };
+}
+
+<span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>destroy_box&lt;T&gt;(v: <span class="kw-2">*mut </span>T, call_drop: CallReferentDrop) {
+    <span class="macro">extern_fn_panic_handling!</span> {
+        <span class="kw">let </span><span class="kw-2">mut </span>box_ = Box::from_raw(v <span class="kw">as </span><span class="kw-2">*mut </span>ManuallyDrop&lt;T&gt;);
+        <span class="kw">if </span>call_drop == CallReferentDrop::Yes {
+            ManuallyDrop::drop(<span class="kw-2">&amp;mut *</span>box_);
+        }
+        drop(box_);
+    }
+}
+
+
+<span class="kw">impl</span>&lt;T&gt; Deref <span class="kw">for </span>BoxLike&lt;T&gt; {
+    <span class="kw">type </span>Target=T;
+
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>)-&gt;<span class="kw-2">&amp;</span>T{
+        <span class="kw">unsafe</span>{
+            <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="self">self</span>.data)
+        }
+    }
+}</code></pre></div>
+</div></details></section></div></main></body></html>

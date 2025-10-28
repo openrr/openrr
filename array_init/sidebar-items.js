@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["array_init","from_iter","from_iter_reversed","map_array_init","try_array_init"]};

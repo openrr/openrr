@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This document describes what changes are valid/invalid for a library using `abi_stable`,"><title>abi_stable::docs::library_evolution - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module library_<wbr>evolution</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#semver-incompatible-changes" title="Semver in/compatible changes">Semver in/compatible changes</a><ul><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#exhaustive-enums" title="Exhaustive Enums">Exhaustive Enums</a></li><li><a href="#non-exhaustive-enums" title="Non-exhaustive enums">Non-exhaustive enums</a></li><li><a href="#unions" title="Unions">Unions</a></li></ul></li><li><a href="#semver-incompatible-additions" title="Semver in/compatible additions">Semver in/compatible additions</a><ul><li><a href="#wrapping-non-stableabi-types" title="Wrapping non-StableAbi types">Wrapping non-StableAbi types</a></li></ul></li><li><a href="#abi_stable-specific" title="abi_stable specific">abi_stable specific</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In abi_<wbr>stable::<wbr>docs</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">abi_stable</a>::<wbr><a href="../index.html">docs</a></div><h1>Module <span>library_evolution</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/abi_stable/docs/library_evolution.rs.html#1-130">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This document describes what changes are valid/invalid for a library using <code>abi_stable</code>,</p>
+<p>Note that all of these only applies to types that implement <code>StableAbi</code>,
+and are checked when loading the dynamic libraries using
+the functions in <code>abi_stable::library::RootModule</code>.
+Those dynamic libraries use the <a href="../../attr.export_root_module.html" title="attr abi_stable::export_root_module"><code>export_root_module</code></a> attribute on some function
+that export the root module
+(<a href="../prefix_types/index.html">a struct of function pointers and other nested modules</a>).</p>
+<h2 id="semver-incompatible-changes"><a class="doc-anchor" href="#semver-incompatible-changes">§</a>Semver in/compatible changes</h2>
+<p>These are the changes to pre-existing data structures that are
+allowed/disallowed in semver compatible versions
+(0.y.z &lt; 0.(y+1).0 , x.y.z &lt; (x+1).0.0).</p>
+<p>It is never allowed to remove fields or variants in newer versions of a library.</p>
+<p>Types cannot be renamed.</p>
+<p>A type cannot be replaced with a <code>#[repr(transparent)]</code> types wrappig it.</p>
+<p>If you rename a field,remember to use the <code>#[sabi(rename=the_old_name)]</code> attribute,
+field names are part of the ABI of a type.</p>
+<h4 id="structs"><a class="doc-anchor" href="#structs">§</a>Structs</h4>
+<p>It’s only valid to add fields to structs if they are
+<a href="../prefix_types/index.html">prefix types (vtables or modules)</a>,
+and only after the last field.</p>
+<h4 id="exhaustive-enums"><a class="doc-anchor" href="#exhaustive-enums">§</a>Exhaustive Enums</h4>
+<p>It is not possible to add variants or fields to exhaustive enums.</p>
+<p>Exhaustive enums being ones that are declared like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{std_types::RString, StableAbi};
+
+<span class="attr">#[repr(u8)]
+#[derive(StableAbi)]
+</span><span class="kw">enum </span>Exhaustive {
+    A,
+    B(RString),
+    C,
+    D { hello: u32, world: i64 },
+}
+
+</code></pre></div>
+<h4 id="non-exhaustive-enums"><a class="doc-anchor" href="#non-exhaustive-enums">§</a>Non-exhaustive enums</h4>
+<p>It’s possible to add variants with either:</p>
+<ul>
+<li>
+<p>Field-less enums implemented as a struct wrapping an integer,
+with associated constants as the variants.</p>
+</li>
+<li>
+<p><a href="../sabi_nonexhaustive/index.html">Enums which use the
+<code>#[sabi(kind(WithNonExhaustive())]</code> attribute
+</a>,
+wrapped inside <code>NonExhaustive&lt;&gt;</code>.</p>
+</li>
+</ul>
+<p>Neither one allow enums to change their size or alignment.</p>
+<br>
+<p>Example field-less enum implemented as a struct wrapping an integer:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>abi_stable::StableAbi;
+
+<span class="attr">#[repr(transparent)]
+#[derive(StableAbi, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>Direction(u8);
+
+<span class="kw">impl </span>Direction {
+    <span class="kw">pub const </span>LEFT: <span class="self">Self </span>= Direction(<span class="number">0</span>);
+    <span class="kw">pub const </span>RIGHT: <span class="self">Self </span>= Direction(<span class="number">1</span>);
+    <span class="kw">pub const </span>UP: <span class="self">Self </span>= Direction(<span class="number">2</span>);
+    <span class="kw">pub const </span>DOWN: <span class="self">Self </span>= Direction(<span class="number">3</span>);
+}
+
+
+</code></pre></div>
+<h4 id="unions"><a class="doc-anchor" href="#unions">§</a>Unions</h4>
+<p>It’s not possible to add fields to unions,this is not currently possible
+because the original author of<code>abi_stable</code> didn’t see any need for it
+(if you need it create an issue for it).</p>
+<h2 id="semver-incompatible-additions"><a class="doc-anchor" href="#semver-incompatible-additions">§</a>Semver in/compatible additions</h2>
+<p>It is always valid to declare new types in a library.</p>
+<h4 id="wrapping-non-stableabi-types"><a class="doc-anchor" href="#wrapping-non-stableabi-types">§</a>Wrapping non-StableAbi types</h4>
+<p>You must be very careful when wrapping types which don’t implement StableAbi
+from external libraries,
+since they might not guarantee any of these properties:</p>
+<ul>
+<li>
+<p>Their size,alignment,representation attribute,layout in general.</p>
+</li>
+<li>
+<p>Their dependence on global state,
+which could cause undefined behavior if passed between dynamic libraries,
+or just be unpredictable.</p>
+</li>
+</ul>
+<p>The potential dependence on global state is why <code>abi_stable</code> uses dynamic dispatch
+for all the types it wraps in <code>abi_stable::external_types</code></p>
+<h2 id="abi_stable-specific"><a class="doc-anchor" href="#abi_stable-specific">§</a>abi_stable specific</h2>
+<p>If you add StableAbi types to abi_stable,make sure to add them to the list of types in
+<code>version_compatibility_interface::ManyTypes</code>
+(the crate is in testing/version_compatibility/interface/)</p>
+</div></details></section></div></main></body></html>

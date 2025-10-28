@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["char_to_debug","char_to_display"],"struct":["FmtChar"]};

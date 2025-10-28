@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["CharIndicesFrom","KeyStr","LeftPadder","RSplitWhile","SplitWhile"],"trait":["StringExt"]};

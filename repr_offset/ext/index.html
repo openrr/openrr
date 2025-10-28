@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension traits that use `FieldOffset` parameters to operate on fields."><title>repr_offset::ext - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="repr_offset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../repr_offset/index.html">repr_<wbr>offset</a><span class="version">0.2.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module ext</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#imports" title="Imports">Imports</a></li><li><a href="#examples" title="Examples">Examples</a></li><li><a href="#initializing-types" title="Initializing Types">Initializing Types</a></li></ul><h3><a href="#traits">Module Items</a></h3><ul class="block"><li><a href="#traits" title="Traits">Traits</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate repr_<wbr>offset</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">repr_offset</a></div><h1>Module <span>ext</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/repr_offset/ext.rs.html#1-1199">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension traits that use <code>FieldOffset</code> parameters to operate on fields.</p>
+<p>These are the extension traits for each kind of type:</p>
+<ul>
+<li>
+<p>non-pointer / <code>&amp;T</code> / <code>&amp;mut T</code>: <a href="./trait.ROExtAcc.html"><code>ROExtAcc</code></a> and <a href="./trait.ROExtOps.html"><code>ROExtOps</code></a></p>
+</li>
+<li>
+<p><code>*const T</code> and <code>*mut T</code>: <a href="./trait.ROExtRawAcc.html"><code>ROExtRawAcc</code></a> and <a href="./trait.ROExtRawOps.html"><code>ROExtRawOps</code></a></p>
+</li>
+<li>
+<p><code>*mut T</code>: <a href="./trait.ROExtRawMutAcc.html"><code>ROExtRawMutAcc</code></a> and <a href="./trait.ROExtRawMutOps.html"><code>ROExtRawMutOps</code></a></p>
+</li>
+</ul>
+<h2 id="imports"><a class="doc-anchor" href="#imports">§</a>Imports</h2>
+<p>Here is the code to import all of the extension traits for convenience:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{ROExtAcc, ROExtOps, ROExtRawAcc, ROExtRawMutAcc, ROExtRawOps, ROExtRawMutOps};</code></pre></div>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h2 id="initializing-types"><a class="doc-anchor" href="#initializing-types">§</a>Initializing Types</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>repr_offset::{
+    for_examples::ReprC,
+    off,
+    ROExtRawMutOps,
+};
+
+<span class="kw">use </span>std::mem::MaybeUninit;
+
+<span class="kw">type </span>This = ReprC&lt;String, Vec&lt;u8&gt;, usize, <span class="prelude-ty">Option</span>&lt;char&gt;&gt;;
+
+<span class="kw">let </span>this = <span class="kw">unsafe</span>{
+    <span class="kw">let </span><span class="kw-2">mut </span>uninit = MaybeUninit::&lt;This&gt;::uninit();
+    initialize_this(uninit.as_mut_ptr());
+    uninit.assume_init()
+};
+
+<span class="macro">assert_eq!</span>(this.a, <span class="string">"foo"</span>);
+<span class="macro">assert_eq!</span>(this.b, [<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]);
+<span class="macro">assert_eq!</span>(this.c, <span class="number">13</span>);
+<span class="macro">assert_eq!</span>(this.d, <span class="prelude-val">Some</span>(<span class="string">'_'</span>));
+
+<span class="doccomment">/// Initializes `this`
+///
+/// # Safety
+///
+/// The passed in pointer must point to an aligned, allocated `This` (including on the stack).
+</span><span class="kw">unsafe fn </span>initialize_this(this: <span class="kw-2">*mut </span>This) {
+    this.f_write(<span class="macro">off!</span>(a), <span class="string">"foo"</span>.to_string());
+    this.f_write(<span class="macro">off!</span>(b), <span class="macro">vec!</span>[<span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>]);
+    this.f_write(<span class="macro">off!</span>(c), <span class="number">13_usize</span>);
+    this.f_write(<span class="macro">off!</span>(d), <span class="prelude-val">Some</span>(<span class="string">'_'</span>));
+}
+</code></pre></div>
+</div></details><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.ROExtAcc.html" title="trait repr_offset::ext::ROExtAcc">ROExt<wbr>Acc</a></dt><dd>Extension trait for (mutable) references to access fields generically,
+where the field is determined by a <a href="../struct.FieldOffset.html"><code>FieldOffset</code></a> parameter.</dd><dt><a class="trait" href="trait.ROExtOps.html" title="trait repr_offset::ext::ROExtOps">ROExt<wbr>Ops</a></dt><dd>Extension trait for (mutable) references to do generic field operations,
+where the field is determined by a <a href="../struct.FieldOffset.html"><code>FieldOffset</code></a> parameter.</dd><dt><a class="trait" href="trait.ROExtRawAcc.html" title="trait repr_offset::ext::ROExtRawAcc">ROExt<wbr>RawAcc</a></dt><dd>Extension trait for raw pointers to access fields generically,
+where the field is determined by a <a href="../struct.FieldOffset.html"><code>FieldOffset</code></a> parameter.</dd><dt><a class="trait" href="trait.ROExtRawMutAcc.html" title="trait repr_offset::ext::ROExtRawMutAcc">ROExt<wbr>RawMut<wbr>Acc</a></dt><dd>Extension trait for mutable raw pointers to access fields generically,
+where the field is determined by a <a href="../struct.FieldOffset.html"><code>FieldOffset</code></a> parameter.</dd><dt><a class="trait" href="trait.ROExtRawMutOps.html" title="trait repr_offset::ext::ROExtRawMutOps">ROExt<wbr>RawMut<wbr>Ops</a></dt><dd>Extension trait for mutable raw pointers to do generic field operations,
+where the field is determined by a <a href="../struct.FieldOffset.html"><code>FieldOffset</code></a> parameter.</dd><dt><a class="trait" href="trait.ROExtRawOps.html" title="trait repr_offset::ext::ROExtRawOps">ROExt<wbr>RawOps</a></dt><dd>Extension trait for raw pointers to do generic field operations,
+where the field is determined by a <a href="../struct.FieldOffset.html"><code>FieldOffset</code></a> parameter.</dd></dl></section></div></main></body></html>

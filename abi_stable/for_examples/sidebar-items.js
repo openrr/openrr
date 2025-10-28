@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ValidTag"],"struct":["Module","Module_Prefix","Module_Ref","PhantModule","PhantModule_Prefix","PhantModule_Ref","ValidTag_Interface","ValidTag_NEMarker","ValidTag_Storage"],"trait":["ValidTag_Bounds"],"type":["ValidTag_NE"]};

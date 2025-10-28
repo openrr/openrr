@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["moved"],"struct":["MakePhantomData"],"trait":["PointerTarget"]};

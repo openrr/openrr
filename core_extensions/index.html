@@ -1,0 +1,269 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension traits for many standard/core library types/traits. and other miscelaneuous types / traits / functions / macros."><title>core_extensions - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="core_extensions" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../core_extensions/index.html">core_<wbr>extensions</a><span class="version">1.5.4</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#adding-as-dependency" title="Adding as dependency">Adding as dependency</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#quasiconst-generic-constants" title="`quasiconst`, generic constants."><code>quasiconst</code>, generic constants.</a></li></ul></li><li><a href="#cargo-features" title="Cargo Features">Cargo Features</a><ul><li><a href="#item-features" title="Item features">Item features</a></li><li><a href="#rust-version-numbers" title="Rust Version numbers">Rust Version numbers</a></li><li><a href="#support-for-other-crates" title="Support for other crates">Support for other crates</a></li><li><a href="#miscelaneous-features" title="Miscelaneous features">Miscelaneous features</a></li></ul></li><li><a href="#no-std-support" title="no-std support">no-std support</a></li><li><a href="#supported-rust-versions" title="Supported Rust versions">Supported Rust versions</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li><li><a href="#attributes" title="Attribute Macros">Attribute Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>core_extensions</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/core_extensions/lib.rs.html#1-580">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension traits for many standard/core library types/traits.
+and other miscelaneuous types / traits / functions / macros.</p>
+<h2 id="adding-as-dependency"><a class="doc-anchor" href="#adding-as-dependency">§</a>Adding as dependency</h2>
+<p>This crate requires cargo features for enabling items, to get all of them you can use:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies.core_extensions]
+version = &quot;1.5&quot;
+features = [
+    ## enables items that use anything from the standard `std` or `alloc` crates.
+    &quot;std&quot;,
+    ## Requires the latest stable release, enables all the rust-version-dependent features
+    &quot;rust_latest_stable&quot;,
+    ## enables all the item features 
+    &quot;all_items&quot;,
+]</code></pre></div>
+<p>The <code>"std"</code> feature is required to enable impls and items that use <a href="https://doc.rust-lang.org/std/"><code>std</code></a> types,
+otherwise only the <a href="https://doc.rust-lang.org/core/"><code>core</code></a> library is supported.</p>
+<p><code>"rust_latest_stable"</code> enables all the <code>"rust_1_*"</code> crate features
+to use the newest stable language features,
+<a href="#cargo-features-lang-section">here’s a list of all the <code>"rust_1_*"</code> features</a>,</p>
+<p><code>"all_items"</code> enables all of the features for enabling items from this crate
+(<a href="#cargo-features-section">documented here</a>):</p>
+<p>Here is the expanded version of the above configuration:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies.core_extensions]
+version = &quot;1.5&quot;
+features = [
+    &quot;std&quot;,
+    &quot;rust_latest_stable&quot;
+    ## all of the features below are what &quot;all_items&quot; enables
+    &quot;derive&quot;
+    &quot;bools&quot;,
+    &quot;callable&quot;,
+    &quot;collections&quot;,
+    &quot;const_default&quot;,
+    &quot;const_val&quot;,
+    &quot;generics_parsing&quot;,
+    &quot;integers&quot;,
+    &quot;item_parsing&quot;,
+    &quot;iterators&quot;,
+    &quot;macro_utils&quot;,
+    &quot;marker_type&quot;,
+    &quot;on_drop&quot;,
+    &quot;option_result&quot;,
+    &quot;phantom&quot;,
+    &quot;self_ops&quot;,
+    &quot;slices&quot;,
+    &quot;strings&quot;,
+    &quot;transparent_newtype&quot;,
+    &quot;type_asserts&quot;,
+    &quot;type_identity&quot;,
+    &quot;type_level_bool&quot;,
+    &quot;void&quot;,
+]</code></pre></div><h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p>Showcasing some features from this crate.</p>
+<h4 id="quasiconst-generic-constants"><a class="doc-anchor" href="#quasiconst-generic-constants">§</a><code>quasiconst</code>, generic constants.</h4>
+<p>The <a href="./macro.quasiconst.html"><code>quasiconst</code></a> macro allows emulating generic constants by generating a
+zero-sized generic type that implements the <a href="./trait.ConstVal.html"><code>ConstVal</code></a> trait,
+the preferred way to get its value is the <a href="./macro.getconst.html"><code>getconst</code></a> macro.</p>
+<p>This example demonstrates how you can use them to declare a generic VTABLE constant.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::{getconst, quasiconst};
+
+<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Debug};
+
+
+<span class="macro">quasiconst!</span>{
+   <span class="kw">pub const </span>VTABLE&lt;T: Debug&gt;: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Vtable = <span class="kw-2">&amp;</span>Vtable {
+       size: std::mem::size_of::&lt;T&gt;(),
+       align: std::mem::align_of::&lt;T&gt;(),
+       drop: drop_erased::&lt;T&gt;,
+       fmt: debug_fmt_erased::&lt;T&gt;,
+   };
+}
+
+<span class="kw">const </span>VTABLE_U8: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Vtable = <span class="macro">getconst!</span>(VTABLE&lt;u8&gt;);
+<span class="macro">assert_eq!</span>(VTABLE_U8.size, <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(VTABLE_U8.align, <span class="number">1</span>);
+
+<span class="kw">const </span>VTABLE_USIZE: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Vtable = <span class="macro">getconst!</span>(VTABLE&lt;usize&gt;);
+<span class="macro">assert_eq!</span>(VTABLE_USIZE.size, std::mem::size_of::&lt;usize&gt;());
+<span class="macro">assert_eq!</span>(VTABLE_USIZE.align, std::mem::align_of::&lt;usize&gt;());
+
+<span class="kw">const </span>VTABLE_STRING: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Vtable = <span class="macro">getconst!</span>(VTABLE&lt;<span class="kw-2">&amp;</span>str&gt;);
+<span class="macro">assert_eq!</span>(VTABLE_STRING.size, std::mem::size_of::&lt;usize&gt;() * <span class="number">2</span>);
+<span class="macro">assert_eq!</span>(VTABLE_STRING.align, std::mem::align_of::&lt;usize&gt;());
+
+
+
+<span class="kw">pub struct </span>Vtable {
+   <span class="kw">pub </span>size: usize,
+   <span class="kw">pub </span>align: usize,
+   <span class="kw">pub </span>drop: <span class="kw">unsafe fn</span>(<span class="kw-2">*mut </span>()),
+   <span class="kw">pub </span>fmt: <span class="kw">unsafe fn</span>(<span class="kw-2">*const </span>(), <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result,
+}
+
+<span class="kw">unsafe fn </span>drop_erased&lt;T&gt;(ptr: <span class="kw-2">*mut </span>()) {
+   std::ptr::drop_in_place(ptr <span class="kw">as </span><span class="kw-2">*mut </span>T)
+}
+
+<span class="kw">unsafe fn </span>debug_fmt_erased&lt;T&gt;(ptr: <span class="kw-2">*const </span>(), f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result 
+<span class="kw">where
+   </span>T: Debug,
+{
+   <span class="kw">let </span>this = <span class="kw">unsafe</span>{ <span class="kw-2">&amp;*</span>(ptr <span class="kw">as </span><span class="kw-2">*const </span>T) };
+    
+   Debug::fmt(this, f)
+}</code></pre></div>
+<p><span id = "cargo-features-section"></span></p>
+<h2 id="cargo-features"><a class="doc-anchor" href="#cargo-features">§</a>Cargo Features</h2><h4 id="item-features"><a class="doc-anchor" href="#item-features">§</a>Item features</h4>
+<p>Item features enables items from this crate.</p>
+<p>The <code>"all_items"</code> feature enables all of these features,
+you can use it instead of the ones below if you don’t mind longer compile-times.</p>
+<p>The <code>"all_items_no_derive"</code> feature eanbles all the features below
+except for the <code>"derive"</code> feature,
+to reduce compile-times due to enabling the <code>syn</code> indirect dependency.</p>
+<ul>
+<li>
+<p><code>"derive"</code>: Enables derive macros for traits declared in core_extensions.
+If a trait has a derive macro it’ll mention and link to it.</p>
+</li>
+<li>
+<p><code>"bools"</code>: Enables the <a href="./trait.BoolExt.html"><code>BoolExt</code></a> trait, extension trait for <code>bool</code>.</p>
+</li>
+<li>
+<p><code>"callable"</code>: Enables the <a href="./callable/index.html"><code>callable</code></a> module,
+with stably implementable equivalents of the <code>Fn*</code> traits.</p>
+</li>
+<li>
+<p><code>"collections"</code>: Enables the <a href="./collections/index.html"><code>collections</code></a> module, with traits for collection types.</p>
+</li>
+<li>
+<p><code>"const_default"</code>:
+Enables the <a href="./trait.ConstDefault.html"><code>ConstDefault</code></a> trait, and <a href="./macro.const_default.html"><code>const_default</code></a> macro,
+for a <code>const</code> equivalent of the <code>Default</code> trait.</p>
+</li>
+<li>
+<p><code>"const_val"</code>:
+Enables the <a href="./trait.ConstVal.html"><code>ConstVal</code></a> trait (for types that represent constants),
+<a href="./macro.getconst.html"><code>getconst</code></a> macro (for getting the <a href="./trait.ConstDefault.html#associatedconstant.VAL"><code>ConstVal::VAL</code></a> associated constant),
+and <a href="./macro.quasiconst.html"><code>quasiconst</code></a> macro (for declaring types that emulate generic constants).
+Enables the <code>"generics_parsing"</code> feature.</p>
+</li>
+<li>
+<p><code>"macro_utils</code>:
+Enables the <a href="./macro.rewrap_macro_parameters.html"><code>rewrap_macro_parameters</code></a>, <a href="./macro.count_tts.html"><code>count_tts</code></a>, <a href="./macro.gen_ident_range.html"><code>gen_ident_range</code></a>,
+<a href="./macro.tokens_method.html"><code>tokens_method</code></a>, <a href="./macro.compile_error_stringify.html"><code>compile_error_stringify</code></a>, and <a href="./macro.parenthesize_args.html"><code>parenthesize_args</code></a> macro.
+Also enables the <a href="./attr.macro_attr.html"><code>macro_attr</code></a> attribute.</p>
+</li>
+<li>
+<p><code>"generics_parsing"</code>:
+Enables the <a href="./macro.parse_generics.html"><code>parse_generics</code></a>, <a href="./macro.parse_generics_and_where.html"><code>parse_generics_and_where</code></a>,
+<a href="./macro.split_generics_and_where.html"><code>split_generics_and_where</code></a>,
+<a href="./macro.parse_split_generics.html"><code>parse_split_generics</code></a>, and <a href="./macro.parse_split_generics_and_where.html"><code>parse_split_generics_and_where</code></a> macros.
+These allow macros to parse items with generic parameters.</p>
+</li>
+<li>
+<p><code>"item_parsing"</code>:
+Enables the <code>"macro_utils</code> and <code>"generics_parsing"</code> features.
+Enables the <a href="./macro.impl_parse_generics.html"><code>impl_parse_generics</code></a> and <a href="./macro.impl_split.html"><code>impl_split</code></a> macros.</p>
+</li>
+<li>
+<p><code>"integers"</code>: Enables the <a href="./integers/index.html"><code>integers</code></a> module, with extension traits for integer types.</p>
+</li>
+<li>
+<p><code>"iterators"</code>: Enables the <a href="./iterators/index.html"><code>iterators</code></a> module,
+with the <a href="./iterators/trait.IteratorExt.html"><code>IteratorExt</code></a> extension trait for iterators, and a few iterator types.</p>
+</li>
+<li>
+<p><code>"marker_type"</code>: Enables the <a href="./trait.MarkerType.html"><code>MarkerType</code></a> trait,
+for trivially constructible, zero-sized, and aligned-to-1 types.</p>
+</li>
+<li>
+<p><code>"on_drop"</code>: Enables the <a href="./struct.RunOnDrop.html"><code>RunOnDrop</code></a> type,
+a wrapper type that runs a closure at the end of the scope.</p>
+</li>
+<li>
+<p><code>"option_result"</code>: Enables the <a href="./option_result_ext/index.html"><code>option_result_ext</code></a> module,
+with traits for <code>Option</code> and <code>Result</code>-like types.</p>
+</li>
+<li>
+<p><code>"phantom"</code>: Enables the <a href="./phantom/index.html"><code>phantom</code></a> module(with <code>PhantomData</code>-related items),
+<a href="./macro.expr_as_phantom.html"><code>expr_as_phantom</code></a> macro,<a href="./macro.map_phantomdata.html"><code>map_phantomdata</code></a> macro, and <a href="./macro.return_type_phantom.html"><code>return_type_phantom</code></a> macro.</p>
+</li>
+<li>
+<p><code>"self_ops"</code>: Enables the <a href="./trait.SelfOps.html"><code>SelfOps</code></a> trait, an extension trait for all types.
+It primarily has methods for calling free functions as methods.</p>
+</li>
+<li>
+<p><code>"slices"</code>:
+Enables the <a href="./slices/index.html"><code>slices</code></a> module, with extension traits for <code>[T]</code> and <code>str</code> slices.</p>
+</li>
+<li>
+<p><code>"strings"</code>:
+Enables the <a href="./strings/index.html"><code>strings</code></a> module, with the <a href="./strings/trait.StringExt.html"><code>StringExt</code></a> extension trait for strings.</p>
+</li>
+<li>
+<p><code>"transparent_newtype"</code>: Enables the <a href="./transparent_newtype/index.html"><code>transparent_newtype</code></a> module,
+with extension traits and functions for <code>#[repr(transparent)]</code> newtypes with public fields.
+<br>
+Enables the <code>"marker_type"</code> feature.</p>
+</li>
+<li>
+<p><code>"type_asserts"</code>: Enables the <a href="./type_asserts/index.html"><code>type_asserts</code></a> module, with type-level assertiosn,
+most useful in tests.</p>
+</li>
+<li>
+<p><code>"type_identity"</code>: Enables the <a href="./trait.TypeIdentity.html"><code>TypeIdentity</code></a> trait,
+for proving that two types are equal, and converting between them in a generic context.</p>
+</li>
+<li>
+<p><code>"type_level_bool"</code>: Enables the <a href="./type_level_bool/index.html"><code>type_level_bool</code></a> module,
+which encodes <code>bool</code>s on the type-level.</p>
+</li>
+<li>
+<p><code>"void"</code>: Enables the <a href="./enum.Void.html"><code>Void</code></a> type, a type that can’t be constructed,
+for encodign impossible situations.</p>
+</li>
+</ul>
+<p><span id = "cargo-features-lang-section"></span></p>
+<h4 id="rust-version-numbers"><a class="doc-anchor" href="#rust-version-numbers">§</a>Rust Version numbers</h4>
+<p>These features enable code that require some Rust version past the minimum supported one:</p>
+<ul>
+<li>
+<p>“rust_1_46”: Makes <a href="./transparent_newtype/trait.TransparentNewtype.html"><code>TransparentNewtype</code></a> and <a href="./trait.TypeIdentity.html"><code>TypeIdentity</code></a>
+associated functions that take <code>Rc&lt;Self&gt;</code> or <code>Arc&lt;Self&gt;</code> callable as methods.</p>
+</li>
+<li>
+<p>“rust_1_51”: Enables the “rust_1_46” feature, and impls of traits for all array lengths.
+Enables the <code>"on_drop"</code> feature because <a href="./struct.RunOnDrop.html"><code>RunOnDrop</code></a> is used by the impls for
+arrays of all lengths.</p>
+</li>
+<li>
+<p>“rust_latest_stable”:
+Enables all the “rust_1_*” features.
+This requires the last stable release of Rust,
+since more <code>"rust_1_*"</code> features can be added at any time.</p>
+</li>
+</ul>
+<h4 id="support-for-other-crates"><a class="doc-anchor" href="#support-for-other-crates">§</a>Support for other crates</h4>
+<p>All of these are disabled by default:</p>
+<ul>
+<li>
+<p><code>"std"</code>: Enables <code>std</code> library support. Implies the <code>"alloc"</code> feature.</p>
+</li>
+<li>
+<p><code>"alloc"</code>: Enables <code>alloc</code> library support.</p>
+</li>
+<li>
+<p><code>"serde_"</code>: Enables serde support.</p>
+</li>
+</ul>
+<h4 id="miscelaneous-features"><a class="doc-anchor" href="#miscelaneous-features">§</a>Miscelaneous features</h4>
+<p><code>"track_caller"</code>:
+Enables the “rust_1_46” feature.
+Changes <code>ResultLike</code> to allow getting the caller location in <code>ResultLike::into_result_</code>,
+and makes <code>IsNoneError</code> store where it was constructed.</p>
+<p><code>"docsrs"</code>: Used to document the required features in docs.rs, requires Rust nightly.
+Doesn’t enable any items itself.</p>
+<h2 id="no-std-support"><a class="doc-anchor" href="#no-std-support">§</a>no-std support</h2>
+<p>This crate works in <code>#![no_std]</code> contexts by default.</p>
+<h2 id="supported-rust-versions"><a class="doc-anchor" href="#supported-rust-versions">§</a>Supported Rust versions</h2>
+<p>This crate support Rust back to 1.41.0,
+requiring cargo features to use language features from newer versions.</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.IterCloner"><code>pub use self::iterators::<a class="struct" href="iterators/struct.IterCloner.html" title="struct core_extensions::iterators::IterCloner">IterCloner</a>;</code></dt><dt id="reexport.IterConstructor"><code>pub use self::iterators::<a class="struct" href="iterators/struct.IterConstructor.html" title="struct core_extensions::iterators::IterConstructor">IterConstructor</a>;</code></dt><dt id="reexport.IteratorExt"><code>pub use self::iterators::<a class="trait" href="iterators/trait.IteratorExt.html" title="trait core_extensions::iterators::IteratorExt">IteratorExt</a>;</code></dt><dt id="reexport.LazyOnce"><code>pub use self::iterators::<a class="struct" href="iterators/struct.LazyOnce.html" title="struct core_extensions::iterators::LazyOnce">LazyOnce</a>;</code></dt><dt id="reexport.StringExt"><code>pub use self::strings::<a class="trait" href="strings/trait.StringExt.html" title="trait core_extensions::strings::StringExt">StringExt</a>;</code></dt><dt id="reexport.ValSliceExt"><code>pub use self::slices::<a class="trait" href="slices/trait.ValSliceExt.html" title="trait core_extensions::slices::ValSliceExt">ValSliceExt</a>;</code></dt><dt id="reexport.SliceExt"><code>pub use self::slices::<a class="trait" href="slices/trait.SliceExt.html" title="trait core_extensions::slices::SliceExt">SliceExt</a>;</code></dt><dt id="reexport.Void"><code>pub use self::void::<a class="enum" href="void/enum.Void.html" title="enum core_extensions::void::Void">Void</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="iterators/index.html" title="mod core_extensions::iterators">iterators</a></dt><dd>Iterator adaptors and constructors.</dd><dt><a class="mod" href="measure_time/index.html" title="mod core_extensions::measure_time">measure_<wbr>time</a></dt><dd>Time measurement.</dd><dt><a class="mod" href="slices/index.html" title="mod core_extensions::slices">slices</a></dt><dd>Slice extension traits, and related items.</dd><dt><a class="mod" href="strings/index.html" title="mod core_extensions::strings">strings</a></dt><dd>Extension trait for string types.</dd><dt><a class="mod" href="type_asserts/index.html" title="mod core_extensions::type_asserts">type_<wbr>asserts</a></dt><dd>Type-level assertions, most useful for tests.</dd><dt><a class="mod" href="type_level_bool/index.html" title="mod core_extensions::type_level_bool">type_<wbr>level_<wbr>bool</a></dt><dd>Type level booleans</dd><dt><a class="mod" href="utils/index.html" title="mod core_extensions::utils">utils</a></dt><dd>Miscelaneous utility functions</dd><dt><a class="mod" href="void/index.html" title="mod core_extensions::void">void</a></dt><dd>Contains types and functions for impossible situations.</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.__priv_usize_const.html" title="macro core_extensions::__priv_usize_const">__<wbr>priv_<wbr>usize_<wbr>const</a></dt><dt><a class="macro" href="macro.compile_error_stringify.html" title="macro core_extensions::compile_error_stringify">compile_<wbr>error_<wbr>stringify</a></dt><dd>Stringifies the input tokens, and errors with <code>compile_error</code>.</dd><dt><a class="macro" href="macro.count_tts.html" title="macro core_extensions::count_tts">count_<wbr>tts</a></dt><dd>Counts the amount of token trees passed to this macro,
+passing the amount to an (optional) callback macro.</dd><dt><a class="macro" href="macro.gen_ident_range.html" title="macro core_extensions::gen_ident_range">gen_<wbr>ident_<wbr>range</a></dt><dd>Generates identifiers. passing them to a callback macro.</dd><dt><a class="macro" href="macro.iter_cloner.html" title="macro core_extensions::iter_cloner">iter_<wbr>cloner</a></dt><dd>Use this macro to create an
+<a href="./iterators/struct.IterCloner.html"><code>IterCloner</code></a>
+from an <a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html"><code>IntoIterator</code></a> (this includes all <a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html"><code>Iterator</code></a>s).</dd><dt><a class="macro" href="macro.matches.html" title="macro core_extensions::matches">matches</a></dt><dd>Evaluates to true if the expression matches any of the patterns
+(this macro can have multiple patterns).</dd><dt><a class="macro" href="macro.parenthesize_args.html" title="macro core_extensions::parenthesize_args">parenthesize_<wbr>args</a></dt><dd>Adaptor macro which passes arguments to a callback macro, wrapping them in parentheses.</dd><dt><a class="macro" href="macro.rewrap_macro_parameters.html" title="macro core_extensions::rewrap_macro_parameters">rewrap_<wbr>macro_<wbr>parameters</a></dt><dd>Rewraps the tokens inside macro parameters into parentheses.</dd><dt><a class="macro" href="macro.tokens_method.html" title="macro core_extensions::tokens_method">tokens_<wbr>method</a></dt><dd>Does slice and iterator operations on tokens, passing the result to a callback macro.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.SelfOps.html" title="trait core_extensions::SelfOps">SelfOps</a></dt><dd>Extension trait for every type.</dd><dt><a class="trait" href="trait.TypeIdentity.html" title="trait core_extensions::TypeIdentity">Type<wbr>Identity</a></dt><dd>Allows converting <code>Self</code> to
+<a href="./trait.TypeIdentity.html#associatedtype.Type"><code>Self::Type</code></a>
+by proving that both types are equal.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.TIdentity.html" title="type core_extensions::TIdentity">TIdentity</a></dt><dd>A type-level identity function</dd></dl><h2 id="attributes" class="section-header">Attribute Macros<a href="#attributes" class="anchor">§</a></h2><dl class="item-table"><dt><a class="attr" href="attr.macro_attr.html" title="attr core_extensions::macro_attr">macro_<wbr>attr</a></dt><dd>For using function-like macros as attributes.</dd></dl></section></div></main></body></html>

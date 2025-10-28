@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="ros-nalgebra"><title>ros_nalgebra - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="ros_nalgebra" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../ros_nalgebra/index.html">ros_<wbr>nalgebra</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#ros-nalgebra" title="ros-nalgebra">ros-nalgebra</a><ul><li><a href="#pre-requirements--dependencies" title="Pre-requirements &#38; dependencies">Pre-requirements &amp; dependencies</a></li><li><a href="#how-to-use" title="How to use">How to use</a></li><li><a href="#other-usage-ros_nalgebra-and-ros_nalgebra_msg" title="Other usage: `ros_nalgebra!() and ros_nalgebra_msg!()`">Other usage: <code>ros_nalgebra!() and ros_nalgebra_msg!()</code></a></li><li><a href="#supported-conversions" title="Supported conversions">Supported conversions</a></li><li><a href="#todo" title="TODO">TODO</a></li></ul></li></ul><h3><a href="#macros">Crate Items</a></h3><ul class="block"><li><a href="#macros" title="Macros">Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>ros_nalgebra</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/ros_nalgebra/lib.rs.html#17-236">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="ros-nalgebra"><a class="doc-anchor" href="#ros-nalgebra">§</a>ros-nalgebra</h2>
+<p><a href="https://github.com/openrr/ros-nalgebra/actions"><img src="https://img.shields.io/github/workflow/status/openrr/ros-nalgebra/CI/main" alt="Build Status" /></a> <a href="https://crates.io/crates/ros-nalgebra"><img src="https://img.shields.io/crates/v/ros-nalgebra.svg" alt="crates.io" /></a> <a href="https://docs.rs/ros-nalgebra"><img src="https://docs.rs/ros-nalgebra/badge.svg" alt="docs" /></a></p>
+<p>Generate code to convert <code>geometry_msgs</code> into nalgebra structs, for <a href="https://github.com/adnanademovic/rosrust">rosrust</a>.</p>
+<h3 id="pre-requirements--dependencies"><a class="doc-anchor" href="#pre-requirements--dependencies">§</a>Pre-requirements &amp; dependencies</h3>
+<ul>
+<li><a href="https://ros.org">ROS</a></li>
+<li><a href="https://rust-lang.org">Rust</a></li>
+<li><a href="https://github.com/adnanademovic/rosrust">rosrust</a></li>
+<li><a href="https://nalgebra.org/">nalgebra</a></li>
+</ul>
+<h3 id="how-to-use"><a class="doc-anchor" href="#how-to-use">§</a>How to use</h3><h4 id="easy-usage-ros_nalgebrarosmsg_include"><a class="doc-anchor" href="#easy-usage-ros_nalgebrarosmsg_include">§</a>Easy usage: <code>ros_nalgebra::rosmsg_include!()</code></h4>
+<p>Use <code>ros_nalgebra::rosmsg_include</code> instead of <code>rosrust::rosmsg_include</code> in your code.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>nalgebra <span class="kw">as </span>na;
+
+<span class="kw">mod </span>msg {
+    <span class="macro">ros_nalgebra::rosmsg_include!</span>(nav_msgs / Odometry);
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span><span class="kw-2">mut </span>odom_msg = msg::nav_msgs::Odometry::default();
+    odom_msg.pose.pose.position.x = <span class="number">1.0</span>;
+    odom_msg.pose.pose.position.y = -<span class="number">1.0</span>;
+    odom_msg.pose.pose.position.z = <span class="number">2.0</span>;
+    odom_msg.pose.pose.orientation.x = <span class="number">0.0</span>;
+    odom_msg.pose.pose.orientation.y = <span class="number">0.0</span>;
+    odom_msg.pose.pose.orientation.z = <span class="number">0.0</span>;
+    odom_msg.pose.pose.orientation.w = <span class="number">1.0</span>;
+
+    <span class="comment">// convert into nalgebra::Isometry&lt;f64&gt; by `from()`
+    </span><span class="kw">let </span>pose = na::Isometry3::from(odom_msg.pose.pose);
+    <span class="macro">println!</span>(<span class="string">"{pose}"</span>);
+
+    <span class="kw">let </span><span class="kw-2">mut </span>pose2 = pose.clone();
+    pose2.translation.vector.x = -<span class="number">5.0</span>;
+
+    <span class="comment">// convert into ROS msg using `into()`
+    </span><span class="kw">let </span>pose_msg: msg::geometry_msgs::Pose = pose2.into();
+    <span class="macro">println!</span>(<span class="string">"{pose_msg:?}"</span>);
+}</code></pre></div>
+<h5 id="automatically-defined-messages-by-ros_nalgebrarosmsg_include"><a class="doc-anchor" href="#automatically-defined-messages-by-ros_nalgebrarosmsg_include">§</a>Automatically defined messages by <code>ros_nalgebra::rosmsg_include!()</code></h5>
+<p>Below messages are automatically included by <code>ros_nalgebra::rosmsg_include!()</code>. Do not include them in your code.</p>
+<div class="example-wrap"><pre class="language-text"><code>geometry_msgs/Point,
+geometry_msgs/Pose,
+geometry_msgs/Quaternion,
+geometry_msgs/Transform,
+geometry_msgs/Vector3,</code></pre></div><h3 id="other-usage-ros_nalgebra-and-ros_nalgebra_msg"><a class="doc-anchor" href="#other-usage-ros_nalgebra-and-ros_nalgebra_msg">§</a>Other usage: <code>ros_nalgebra!() and ros_nalgebra_msg!()</code></h3>
+<p>If some messages are included already (for example in other crate), you can use <code>ros_nalgebra_msg!()</code>. The arguments are the rust namespace of the <code>geometry_msgs</code> (example:<code>msg</code>) and the message type (example: <code>Pose</code> for <code>geometry_msgs/Pose</code>, <code>Point</code> for <code>geometry_msgs/Point</code>).</p>
+<h4 id="example"><a class="doc-anchor" href="#example">§</a>Example</h4>
+<p>In <code>some_other_crate</code>,</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">mod </span>msg {
+    <span class="macro">rosrust::rosmsg_include!</span>(geometry_msgs/Point);
+}</code></pre></div>
+<p>Then you can use <code>ros_nalgebra::ros_nalgebra_msg!()</code> in your crate.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="comment">// generate conversion code only for `geometry_msgs/Point` which is defined in `some_other_crate::msg`.
+</span><span class="macro">ros_nalgebra::ros_nalgebra_msg!</span>(some_other_crate::msg, Point);</code></pre></div>
+<h3 id="supported-conversions"><a class="doc-anchor" href="#supported-conversions">§</a>Supported conversions</h3>
+<p>See lib.rs.</p>
+<h3 id="todo"><a class="doc-anchor" href="#todo">§</a>TODO</h3>
+<p>Handle dependencies.</p>
+</div></details><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.ros_nalgebra.html" title="macro ros_nalgebra::ros_nalgebra">ros_<wbr>nalgebra</a></dt><dd>Generate Point/Vector3/Quaternion/Pose/Transform converter in <code>mod $ns</code>.
+<code>$ns</code> is the namespace for the rust messages.
+For example <code>msg</code>.</dd><dt><a class="macro" href="macro.ros_nalgebra_msg.html" title="macro ros_nalgebra::ros_nalgebra_msg">ros_<wbr>nalgebra_<wbr>msg</a></dt><dd>Generate <code>impl From&lt;&lt;ROS_MESSAGE&gt;</code> and <code>impl From&lt;NALGEBRA_STRUCT&gt;</code></dd><dt><a class="macro" href="macro.rosmsg_include.html" title="macro ros_nalgebra::rosmsg_include">rosmsg_<wbr>include</a></dt><dd>Use this macro instead of rosrust::rosmsg_include!() to generate <code>impl From</code>.</dd></dl></section></div></main></body></html>

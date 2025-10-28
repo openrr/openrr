@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The macro provided by this crate, `match_cfg`, is similar to the `if/elif` C preprocessor directives and allows defining a cascade of `#[cfg]` cases, emitting the implementation which matches first."><title>match_cfg in match_cfg - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="match_cfg" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../match_cfg/index.html">match_<wbr>cfg</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">match_<wbr>cfg</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate match_<wbr>cfg</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">match_cfg</a></div><h1>Macro <span class="macro">match_cfg</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/match_cfg/lib.rs.html#38-79">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! match_cfg {
+    (#[cfg($cfg:meta)] =&gt; { $($i:item)* }) =&gt; { ... };
+    (#[cfg($cfg:meta)] @ #[cfg($cfg_not:meta)] =&gt; { $($i:item)* }) =&gt; { ... };
+    (_ =&gt; { $($i:item)* }) =&gt; { ... };
+    (_ @ #[cfg($cfg_not:meta)] =&gt; { $($i:item)* }) =&gt; { ... };
+    (
+        #[cfg($cfg0:meta)] =&gt; { $($i:item)* }
+        $(#[cfg($cfgs:meta)] =&gt; { $($is:item)* })*
+    ) =&gt; { ... };
+    (
+        $(#[cfg($cfgs:meta)] =&gt; { $($is:item)* })*
+        _ =&gt; { $($ni:item)* }
+    ) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The macro provided by this crate, <code>match_cfg</code>, is similar to the <code>if/elif</code> C
+preprocessor directives and allows defining a cascade of <code>#[cfg]</code> cases,
+emitting the implementation which matches first.</p>
+<p>This conveniently allows providing a long list <code>#[cfg]</code>’d blocks of code
+without having to rewrite each <code>cfg()</code> clause multiple times.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[macro_use(match_cfg)]
+</span><span class="kw">extern crate </span>match_cfg;
+
+<span class="macro">match_cfg!</span> {
+    <span class="attr">#[cfg(unix)] </span>=&gt; {
+        <span class="kw">fn </span>foo() { <span class="comment">/* unix specific functionality */ </span>}
+    }
+    <span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)] </span>=&gt; {
+        <span class="kw">fn </span>foo() { <span class="comment">/* non-unix, 32-bit functionality */ </span>}
+    }
+    <span class="kw">_ </span>=&gt; {
+        <span class="kw">fn </span>foo() { <span class="comment">/* fallback implementation */ </span>}
+    }
+}</code></pre></div>
+</div></details></section></div></main></body></html>

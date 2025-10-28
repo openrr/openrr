@@ -1,0 +1,721 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/claxon-0.4.3/src/subframe.rs`."><title>subframe.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="claxon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">claxon/</div>subframe.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Claxon -- A FLAC decoding library in Rust
+<a href=#2 id=2 data-nosnippet>2</a>// Copyright 2014 Ruud van Asseldonk
+<a href=#3 id=3 data-nosnippet>3</a>//
+<a href=#4 id=4 data-nosnippet>4</a>// Licensed under the Apache License, Version 2.0 (the "License");
+<a href=#5 id=5 data-nosnippet>5</a>// you may not use this file except in compliance with the License.
+<a href=#6 id=6 data-nosnippet>6</a>// A copy of the License has been included in the root of the repository.
+<a href=#7 id=7 data-nosnippet>7</a>
+<a href=#8 id=8 data-nosnippet>8</a></span><span class="doccomment">//! The `subframe` module deals with subframes that make up a frame of the FLAC stream.
+<a href=#9 id=9 data-nosnippet>9</a>
+<a href=#10 id=10 data-nosnippet>10</a></span><span class="kw">use </span>std::cmp;
+<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span>std::num;
+<a href=#12 id=12 data-nosnippet>12</a><span class="kw">use </span>error::{Error, <span class="prelude-ty">Result</span>, fmt_err};
+<a href=#13 id=13 data-nosnippet>13</a><span class="kw">use </span>input::{Bitstream, ReadBytes};
+<a href=#14 id=14 data-nosnippet>14</a>
+<a href=#15 id=15 data-nosnippet>15</a><span class="attr">#[derive(Clone, Copy, Debug)]
+<a href=#16 id=16 data-nosnippet>16</a></span><span class="kw">enum </span>SubframeType {
+<a href=#17 id=17 data-nosnippet>17</a>    Constant,
+<a href=#18 id=18 data-nosnippet>18</a>    Verbatim,
+<a href=#19 id=19 data-nosnippet>19</a>    Fixed(u8),
+<a href=#20 id=20 data-nosnippet>20</a>    Lpc(u8),
+<a href=#21 id=21 data-nosnippet>21</a>}
+<a href=#22 id=22 data-nosnippet>22</a>
+<a href=#23 id=23 data-nosnippet>23</a><span class="attr">#[derive(Clone, Copy)]
+<a href=#24 id=24 data-nosnippet>24</a></span><span class="kw">struct </span>SubframeHeader {
+<a href=#25 id=25 data-nosnippet>25</a>    sf_type: SubframeType,
+<a href=#26 id=26 data-nosnippet>26</a>    wasted_bits_per_sample: u32,
+<a href=#27 id=27 data-nosnippet>27</a>}
+<a href=#28 id=28 data-nosnippet>28</a>
+<a href=#29 id=29 data-nosnippet>29</a><span class="kw">fn </span>read_subframe_header&lt;R: ReadBytes&gt;(input: <span class="kw-2">&amp;mut </span>Bitstream&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;SubframeHeader&gt; {
+<a href=#30 id=30 data-nosnippet>30</a>    <span class="comment">// The first bit must be a 0 padding bit.
+<a href=#31 id=31 data-nosnippet>31</a>    </span><span class="kw">if </span><span class="macro">try!</span>(input.read_bit()) {
+<a href=#32 id=32 data-nosnippet>32</a>        <span class="kw">return </span>fmt_err(<span class="string">"invalid subframe header"</span>);
+<a href=#33 id=33 data-nosnippet>33</a>    }
+<a href=#34 id=34 data-nosnippet>34</a>
+<a href=#35 id=35 data-nosnippet>35</a>    <span class="comment">// Next is a 6-bit subframe type.
+<a href=#36 id=36 data-nosnippet>36</a>    </span><span class="kw">let </span>sf_type = <span class="kw">match </span><span class="macro">try!</span>(input.read_leq_u8(<span class="number">6</span>)) {
+<a href=#37 id=37 data-nosnippet>37</a>        <span class="number">0 </span>=&gt; SubframeType::Constant,
+<a href=#38 id=38 data-nosnippet>38</a>        <span class="number">1 </span>=&gt; SubframeType::Verbatim,
+<a href=#39 id=39 data-nosnippet>39</a>
+<a href=#40 id=40 data-nosnippet>40</a>        <span class="comment">// Bit patterns 00001x, 0001xx and 01xxxx are reserved, this library
+<a href=#41 id=41 data-nosnippet>41</a>        // would not know how to handle them, so this is an error. Values that
+<a href=#42 id=42 data-nosnippet>42</a>        // are reserved at the time of writing are a format error, the
+<a href=#43 id=43 data-nosnippet>43</a>        // `Unsupported` error type is for specified features that are not
+<a href=#44 id=44 data-nosnippet>44</a>        // implemented.
+<a href=#45 id=45 data-nosnippet>45</a>        </span>n <span class="kw">if </span>(n &amp; <span class="number">0b111_110 </span>== <span class="number">0b000_010</span>) || (n &amp; <span class="number">0b111_100 </span>== <span class="number">0b000_100</span>) ||
+<a href=#46 id=46 data-nosnippet>46</a>             (n &amp; <span class="number">0b110_000 </span>== <span class="number">0b010_000</span>) =&gt; {
+<a href=#47 id=47 data-nosnippet>47</a>            <span class="kw">return </span>fmt_err(<span class="string">"invalid subframe header, encountered reserved value"</span>);
+<a href=#48 id=48 data-nosnippet>48</a>        }
+<a href=#49 id=49 data-nosnippet>49</a>
+<a href=#50 id=50 data-nosnippet>50</a>        n <span class="kw">if </span>n &amp; <span class="number">0b111_000 </span>== <span class="number">0b001_000 </span>=&gt; {
+<a href=#51 id=51 data-nosnippet>51</a>            <span class="kw">let </span>order = n &amp; <span class="number">0b000_111</span>;
+<a href=#52 id=52 data-nosnippet>52</a>
+<a href=#53 id=53 data-nosnippet>53</a>            <span class="comment">// A fixed frame has order up to 4, other bit patterns are reserved.
+<a href=#54 id=54 data-nosnippet>54</a>            </span><span class="kw">if </span>order &gt; <span class="number">4 </span>{
+<a href=#55 id=55 data-nosnippet>55</a>                <span class="kw">return </span>fmt_err(<span class="string">"invalid subframe header, encountered reserved value"</span>);
+<a href=#56 id=56 data-nosnippet>56</a>            }
+<a href=#57 id=57 data-nosnippet>57</a>
+<a href=#58 id=58 data-nosnippet>58</a>            SubframeType::Fixed(order)
+<a href=#59 id=59 data-nosnippet>59</a>        }
+<a href=#60 id=60 data-nosnippet>60</a>
+<a href=#61 id=61 data-nosnippet>61</a>        <span class="comment">// The only possibility left is bit pattern 1xxxxx, an LPC subframe.
+<a href=#62 id=62 data-nosnippet>62</a>        </span>n =&gt; {
+<a href=#63 id=63 data-nosnippet>63</a>            <span class="comment">// The xxxxx bits are the order minus one.
+<a href=#64 id=64 data-nosnippet>64</a>            </span><span class="kw">let </span>order_mo = n &amp; <span class="number">0b011_111</span>;
+<a href=#65 id=65 data-nosnippet>65</a>            SubframeType::Lpc(order_mo + <span class="number">1</span>)
+<a href=#66 id=66 data-nosnippet>66</a>        }
+<a href=#67 id=67 data-nosnippet>67</a>    };
+<a href=#68 id=68 data-nosnippet>68</a>
+<a href=#69 id=69 data-nosnippet>69</a>    <span class="comment">// Next bits indicates whether there are wasted bits per sample.
+<a href=#70 id=70 data-nosnippet>70</a>    </span><span class="kw">let </span>wastes_bits = <span class="macro">try!</span>(input.read_bit());
+<a href=#71 id=71 data-nosnippet>71</a>
+<a href=#72 id=72 data-nosnippet>72</a>    <span class="comment">// If so, k - 1 zero bits follow, where k is the number of wasted bits.
+<a href=#73 id=73 data-nosnippet>73</a>    </span><span class="kw">let </span>wasted_bits = <span class="kw">if </span>!wastes_bits {
+<a href=#74 id=74 data-nosnippet>74</a>        <span class="number">0
+<a href=#75 id=75 data-nosnippet>75</a>    </span>} <span class="kw">else </span>{
+<a href=#76 id=76 data-nosnippet>76</a>        <span class="number">1 </span>+ <span class="macro">try!</span>(input.read_unary())
+<a href=#77 id=77 data-nosnippet>77</a>    };
+<a href=#78 id=78 data-nosnippet>78</a>
+<a href=#79 id=79 data-nosnippet>79</a>    <span class="comment">// The spec puts no bounds on the number of wasted bits per sample, but more
+<a href=#80 id=80 data-nosnippet>80</a>    // than 31 does not make sense, as it would remove all data even for 32-bit
+<a href=#81 id=81 data-nosnippet>81</a>    // samples.
+<a href=#82 id=82 data-nosnippet>82</a>    </span><span class="kw">if </span>wasted_bits &gt; <span class="number">31 </span>{
+<a href=#83 id=83 data-nosnippet>83</a>        <span class="kw">return </span>fmt_err(<span class="string">"wasted bits per sample must not exceed 31"</span>);
+<a href=#84 id=84 data-nosnippet>84</a>    }
+<a href=#85 id=85 data-nosnippet>85</a>
+<a href=#86 id=86 data-nosnippet>86</a>    <span class="kw">let </span>subframe_header = SubframeHeader {
+<a href=#87 id=87 data-nosnippet>87</a>        sf_type: sf_type,
+<a href=#88 id=88 data-nosnippet>88</a>        wasted_bits_per_sample: wasted_bits,
+<a href=#89 id=89 data-nosnippet>89</a>    };
+<a href=#90 id=90 data-nosnippet>90</a>    <span class="prelude-val">Ok</span>(subframe_header)
+<a href=#91 id=91 data-nosnippet>91</a>}
+<a href=#92 id=92 data-nosnippet>92</a>
+<a href=#93 id=93 data-nosnippet>93</a><span class="doccomment">/// Given a signed two's complement integer in the `bits` least significant
+<a href=#94 id=94 data-nosnippet>94</a>/// bits of `val`, extends the sign bit to a valid 16-bit signed integer.
+<a href=#95 id=95 data-nosnippet>95</a></span><span class="attr">#[inline(always)]
+<a href=#96 id=96 data-nosnippet>96</a></span><span class="kw">fn </span>extend_sign_u16(val: u16, bits: u32) -&gt; i16 {
+<a href=#97 id=97 data-nosnippet>97</a>    <span class="comment">// First shift the value so the desired sign bit is the actual sign bit,
+<a href=#98 id=98 data-nosnippet>98</a>    // then convert to a signed integer, and then do an arithmetic shift back,
+<a href=#99 id=99 data-nosnippet>99</a>    // which will extend the sign bit.
+<a href=#100 id=100 data-nosnippet>100</a>    </span><span class="kw">return </span>((val &lt;&lt; (<span class="number">16 </span>- bits)) <span class="kw">as </span>i16) &gt;&gt; (<span class="number">16 </span>- bits);
+<a href=#101 id=101 data-nosnippet>101</a>}
+<a href=#102 id=102 data-nosnippet>102</a>
+<a href=#103 id=103 data-nosnippet>103</a><span class="attr">#[test]
+<a href=#104 id=104 data-nosnippet>104</a></span><span class="kw">fn </span>verify_extend_sign_u16() {
+<a href=#105 id=105 data-nosnippet>105</a>    <span class="macro">assert_eq!</span>(<span class="number">5</span>, extend_sign_u16(<span class="number">5</span>, <span class="number">4</span>));
+<a href=#106 id=106 data-nosnippet>106</a>    <span class="macro">assert_eq!</span>(<span class="number">0x3ffe</span>, extend_sign_u16(<span class="number">0x3ffe</span>, <span class="number">15</span>));
+<a href=#107 id=107 data-nosnippet>107</a>    <span class="macro">assert_eq!</span>(-<span class="number">5</span>, extend_sign_u16(<span class="number">16 </span>- <span class="number">5</span>, <span class="number">4</span>));
+<a href=#108 id=108 data-nosnippet>108</a>    <span class="macro">assert_eq!</span>(-<span class="number">3</span>, extend_sign_u16(<span class="number">512 </span>- <span class="number">3</span>, <span class="number">9</span>));
+<a href=#109 id=109 data-nosnippet>109</a>    <span class="macro">assert_eq!</span>(-<span class="number">1</span>, extend_sign_u16(<span class="number">0xffff</span>, <span class="number">16</span>));
+<a href=#110 id=110 data-nosnippet>110</a>    <span class="macro">assert_eq!</span>(-<span class="number">2</span>, extend_sign_u16(<span class="number">0xfffe</span>, <span class="number">16</span>));
+<a href=#111 id=111 data-nosnippet>111</a>    <span class="macro">assert_eq!</span>(-<span class="number">1</span>, extend_sign_u16(<span class="number">0x7fff</span>, <span class="number">15</span>));
+<a href=#112 id=112 data-nosnippet>112</a>}
+<a href=#113 id=113 data-nosnippet>113</a>
+<a href=#114 id=114 data-nosnippet>114</a><span class="doccomment">/// Given a signed two's complement integer in the `bits` least significant
+<a href=#115 id=115 data-nosnippet>115</a>/// bits of `val`, extends the sign bit to a valid 32-bit signed integer.
+<a href=#116 id=116 data-nosnippet>116</a></span><span class="attr">#[inline(always)]
+<a href=#117 id=117 data-nosnippet>117</a></span><span class="kw">pub fn </span>extend_sign_u32(val: u32, bits: u32) -&gt; i32 {
+<a href=#118 id=118 data-nosnippet>118</a>    <span class="comment">// First shift the value so the desired sign bit is the actual sign bit,
+<a href=#119 id=119 data-nosnippet>119</a>    // then convert to a signed integer, and then do an arithmetic shift back,
+<a href=#120 id=120 data-nosnippet>120</a>    // which will extend the sign bit.
+<a href=#121 id=121 data-nosnippet>121</a>    </span>((val &lt;&lt; (<span class="number">32 </span>- bits)) <span class="kw">as </span>i32) &gt;&gt; (<span class="number">32 </span>- bits)
+<a href=#122 id=122 data-nosnippet>122</a>}
+<a href=#123 id=123 data-nosnippet>123</a>
+<a href=#124 id=124 data-nosnippet>124</a><span class="attr">#[test]
+<a href=#125 id=125 data-nosnippet>125</a></span><span class="kw">fn </span>verify_extend_sign_u32() {
+<a href=#126 id=126 data-nosnippet>126</a>    <span class="macro">assert_eq!</span>(<span class="number">5</span>, extend_sign_u32(<span class="number">5</span>, <span class="number">4</span>));
+<a href=#127 id=127 data-nosnippet>127</a>    <span class="macro">assert_eq!</span>(<span class="number">0x3ffffffe</span>, extend_sign_u32(<span class="number">0x3ffffffe</span>, <span class="number">31</span>));
+<a href=#128 id=128 data-nosnippet>128</a>    <span class="macro">assert_eq!</span>(-<span class="number">5</span>, extend_sign_u32(<span class="number">16 </span>- <span class="number">5</span>, <span class="number">4</span>));
+<a href=#129 id=129 data-nosnippet>129</a>    <span class="macro">assert_eq!</span>(-<span class="number">3</span>, extend_sign_u32(<span class="number">512 </span>- <span class="number">3</span>, <span class="number">9</span>));
+<a href=#130 id=130 data-nosnippet>130</a>    <span class="macro">assert_eq!</span>(-<span class="number">2</span>, extend_sign_u32(<span class="number">0xfffe</span>, <span class="number">16</span>));
+<a href=#131 id=131 data-nosnippet>131</a>    <span class="macro">assert_eq!</span>(-<span class="number">1</span>, extend_sign_u32(<span class="number">0xffffffff_u32</span>, <span class="number">32</span>));
+<a href=#132 id=132 data-nosnippet>132</a>    <span class="macro">assert_eq!</span>(-<span class="number">2</span>, extend_sign_u32(<span class="number">0xfffffffe_u32</span>, <span class="number">32</span>));
+<a href=#133 id=133 data-nosnippet>133</a>    <span class="macro">assert_eq!</span>(-<span class="number">1</span>, extend_sign_u32(<span class="number">0x7fffffff</span>, <span class="number">31</span>));
+<a href=#134 id=134 data-nosnippet>134</a>
+<a href=#135 id=135 data-nosnippet>135</a>    <span class="comment">// The data below are samples from a real FLAC stream.
+<a href=#136 id=136 data-nosnippet>136</a>    </span><span class="macro">assert_eq!</span>(-<span class="number">6392</span>, extend_sign_u32(<span class="number">124680</span>, <span class="number">17</span>));
+<a href=#137 id=137 data-nosnippet>137</a>    <span class="macro">assert_eq!</span>(-<span class="number">6605</span>, extend_sign_u32(<span class="number">124467</span>, <span class="number">17</span>));
+<a href=#138 id=138 data-nosnippet>138</a>    <span class="macro">assert_eq!</span>(-<span class="number">6850</span>, extend_sign_u32(<span class="number">124222</span>, <span class="number">17</span>));
+<a href=#139 id=139 data-nosnippet>139</a>    <span class="macro">assert_eq!</span>(-<span class="number">7061</span>, extend_sign_u32(<span class="number">124011</span>, <span class="number">17</span>));
+<a href=#140 id=140 data-nosnippet>140</a>}
+<a href=#141 id=141 data-nosnippet>141</a>
+<a href=#142 id=142 data-nosnippet>142</a><span class="doccomment">/// Decodes a signed number from Rice coding to the two's complement.
+<a href=#143 id=143 data-nosnippet>143</a>///
+<a href=#144 id=144 data-nosnippet>144</a>/// The Rice coding used by FLAC operates on unsigned integers, but the
+<a href=#145 id=145 data-nosnippet>145</a>/// residual is signed. The mapping is done as follows:
+<a href=#146 id=146 data-nosnippet>146</a>///
+<a href=#147 id=147 data-nosnippet>147</a>///  0 -&gt; 0
+<a href=#148 id=148 data-nosnippet>148</a>/// -1 -&gt; 1
+<a href=#149 id=149 data-nosnippet>149</a>///  1 -&gt; 2
+<a href=#150 id=150 data-nosnippet>150</a>/// -2 -&gt; 3
+<a href=#151 id=151 data-nosnippet>151</a>///  2 -&gt; 4
+<a href=#152 id=152 data-nosnippet>152</a>///  etc.
+<a href=#153 id=153 data-nosnippet>153</a>///
+<a href=#154 id=154 data-nosnippet>154</a>/// This function takes the unsigned value and converts it into a signed
+<a href=#155 id=155 data-nosnippet>155</a>/// number.
+<a href=#156 id=156 data-nosnippet>156</a></span><span class="attr">#[inline(always)]
+<a href=#157 id=157 data-nosnippet>157</a></span><span class="kw">fn </span>rice_to_signed(val: u32) -&gt; i32 {
+<a href=#158 id=158 data-nosnippet>158</a>    <span class="comment">// The following bit-level hackery compiles to only four instructions on
+<a href=#159 id=159 data-nosnippet>159</a>    // x64. It is equivalent to the following code:
+<a href=#160 id=160 data-nosnippet>160</a>    //
+<a href=#161 id=161 data-nosnippet>161</a>    //   if val &amp; 1 == 1 {
+<a href=#162 id=162 data-nosnippet>162</a>    //       -1 - (val / 2) as i32
+<a href=#163 id=163 data-nosnippet>163</a>    //   } else {
+<a href=#164 id=164 data-nosnippet>164</a>    //       (val / 2) as i32
+<a href=#165 id=165 data-nosnippet>165</a>    //   }
+<a href=#166 id=166 data-nosnippet>166</a>    //
+<a href=#167 id=167 data-nosnippet>167</a>    </span><span class="kw">let </span>half = (val &gt;&gt; <span class="number">1</span>) <span class="kw">as </span>i32;
+<a href=#168 id=168 data-nosnippet>168</a>    <span class="kw">let </span>extended_bit_0 = ((val &lt;&lt; <span class="number">31</span>) <span class="kw">as </span>i32) &gt;&gt; <span class="number">31</span>;
+<a href=#169 id=169 data-nosnippet>169</a>    half ^ extended_bit_0
+<a href=#170 id=170 data-nosnippet>170</a>}
+<a href=#171 id=171 data-nosnippet>171</a>
+<a href=#172 id=172 data-nosnippet>172</a><span class="attr">#[test]
+<a href=#173 id=173 data-nosnippet>173</a></span><span class="kw">fn </span>verify_rice_to_signed() {
+<a href=#174 id=174 data-nosnippet>174</a>    <span class="macro">assert_eq!</span>(rice_to_signed(<span class="number">0</span>), <span class="number">0</span>);
+<a href=#175 id=175 data-nosnippet>175</a>    <span class="macro">assert_eq!</span>(rice_to_signed(<span class="number">1</span>), -<span class="number">1</span>);
+<a href=#176 id=176 data-nosnippet>176</a>    <span class="macro">assert_eq!</span>(rice_to_signed(<span class="number">2</span>), <span class="number">1</span>);
+<a href=#177 id=177 data-nosnippet>177</a>    <span class="macro">assert_eq!</span>(rice_to_signed(<span class="number">3</span>), -<span class="number">2</span>);
+<a href=#178 id=178 data-nosnippet>178</a>    <span class="macro">assert_eq!</span>(rice_to_signed(<span class="number">4</span>), <span class="number">2</span>);
+<a href=#179 id=179 data-nosnippet>179</a>}
+<a href=#180 id=180 data-nosnippet>180</a>
+<a href=#181 id=181 data-nosnippet>181</a><span class="doccomment">/// Decodes a subframe into the provided block-size buffer.
+<a href=#182 id=182 data-nosnippet>182</a>///
+<a href=#183 id=183 data-nosnippet>183</a>/// It is assumed that the length of the buffer is the block size.
+<a href=#184 id=184 data-nosnippet>184</a></span><span class="kw">pub fn </span>decode&lt;R: ReadBytes&gt;(input: <span class="kw-2">&amp;mut </span>Bitstream&lt;R&gt;,
+<a href=#185 id=185 data-nosnippet>185</a>                            bps: u32,
+<a href=#186 id=186 data-nosnippet>186</a>                            buffer: <span class="kw-2">&amp;mut </span>[i32])
+<a href=#187 id=187 data-nosnippet>187</a>                            -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#188 id=188 data-nosnippet>188</a>    <span class="comment">// The sample type i32 should be wide enough to accomodate for all bits of
+<a href=#189 id=189 data-nosnippet>189</a>    // the stream, but this can be verified at a higher level than here. Still,
+<a href=#190 id=190 data-nosnippet>190</a>    // it is a good idea to make the assumption explicit. FLAC supports up to
+<a href=#191 id=191 data-nosnippet>191</a>    // sample widths of 32 in theory, so with the delta between channels that
+<a href=#192 id=192 data-nosnippet>192</a>    // requires 33 bits, but the reference decoder supports only subset FLAC of
+<a href=#193 id=193 data-nosnippet>193</a>    // 24 bits per sample at most, so restricting ourselves to i32 is fine.
+<a href=#194 id=194 data-nosnippet>194</a>    </span><span class="macro">debug_assert!</span>(<span class="number">32 </span>&gt;= bps);
+<a href=#195 id=195 data-nosnippet>195</a>
+<a href=#196 id=196 data-nosnippet>196</a>    <span class="kw">let </span>header = <span class="macro">try!</span>(read_subframe_header(input));
+<a href=#197 id=197 data-nosnippet>197</a>
+<a href=#198 id=198 data-nosnippet>198</a>    <span class="kw">if </span>header.wasted_bits_per_sample &gt;= bps {
+<a href=#199 id=199 data-nosnippet>199</a>        <span class="kw">return </span>fmt_err(<span class="string">"subframe has no non-wasted bits"</span>);
+<a href=#200 id=200 data-nosnippet>200</a>    }
+<a href=#201 id=201 data-nosnippet>201</a>
+<a href=#202 id=202 data-nosnippet>202</a>    <span class="comment">// If there are wasted bits, the subframe stores samples with a lower bps
+<a href=#203 id=203 data-nosnippet>203</a>    // than the stream bps. We later shift all the samples left to correct this.
+<a href=#204 id=204 data-nosnippet>204</a>    </span><span class="kw">let </span>sf_bps = bps - header.wasted_bits_per_sample;
+<a href=#205 id=205 data-nosnippet>205</a>
+<a href=#206 id=206 data-nosnippet>206</a>    <span class="kw">match </span>header.sf_type {
+<a href=#207 id=207 data-nosnippet>207</a>        SubframeType::Constant =&gt; <span class="macro">try!</span>(decode_constant(input, sf_bps, buffer)),
+<a href=#208 id=208 data-nosnippet>208</a>        SubframeType::Verbatim =&gt; <span class="macro">try!</span>(decode_verbatim(input, sf_bps, buffer)),
+<a href=#209 id=209 data-nosnippet>209</a>        SubframeType::Fixed(ord) =&gt; <span class="macro">try!</span>(decode_fixed(input, sf_bps, ord <span class="kw">as </span>u32, buffer)),
+<a href=#210 id=210 data-nosnippet>210</a>        SubframeType::Lpc(ord) =&gt; <span class="macro">try!</span>(decode_lpc(input, sf_bps, ord <span class="kw">as </span>u32, buffer)),
+<a href=#211 id=211 data-nosnippet>211</a>    }
+<a href=#212 id=212 data-nosnippet>212</a>
+<a href=#213 id=213 data-nosnippet>213</a>    <span class="comment">// Finally, everything must be shifted by 'wasted bits per sample' to
+<a href=#214 id=214 data-nosnippet>214</a>    // the left. Note: it might be better performance-wise to do this on
+<a href=#215 id=215 data-nosnippet>215</a>    // the fly while decoding. That could be done if this is a bottleneck.
+<a href=#216 id=216 data-nosnippet>216</a>    </span><span class="kw">if </span>header.wasted_bits_per_sample &gt; <span class="number">0 </span>{
+<a href=#217 id=217 data-nosnippet>217</a>        <span class="macro">debug_assert!</span>(header.wasted_bits_per_sample &lt;= <span class="number">31</span>,
+<a href=#218 id=218 data-nosnippet>218</a>                      <span class="string">"Cannot shift by more than the sample width."</span>);
+<a href=#219 id=219 data-nosnippet>219</a>        <span class="kw">for </span>s <span class="kw">in </span>buffer {
+<a href=#220 id=220 data-nosnippet>220</a>            <span class="comment">// For a valid FLAC file, this shift does not overflow. For an
+<a href=#221 id=221 data-nosnippet>221</a>            // invalid file it might, and then we decode garbage, but we don't
+<a href=#222 id=222 data-nosnippet>222</a>            // crash the program in debug mode due to shift overflow.
+<a href=#223 id=223 data-nosnippet>223</a>            </span><span class="kw-2">*</span>s = s.wrapping_shl(header.wasted_bits_per_sample);
+<a href=#224 id=224 data-nosnippet>224</a>        }
+<a href=#225 id=225 data-nosnippet>225</a>    }
+<a href=#226 id=226 data-nosnippet>226</a>
+<a href=#227 id=227 data-nosnippet>227</a>    <span class="prelude-val">Ok</span>(())
+<a href=#228 id=228 data-nosnippet>228</a>}
+<a href=#229 id=229 data-nosnippet>229</a>
+<a href=#230 id=230 data-nosnippet>230</a><span class="attr">#[derive(Copy, Clone)]
+<a href=#231 id=231 data-nosnippet>231</a></span><span class="kw">enum </span>RicePartitionType {
+<a href=#232 id=232 data-nosnippet>232</a>    Rice,
+<a href=#233 id=233 data-nosnippet>233</a>    Rice2,
+<a href=#234 id=234 data-nosnippet>234</a>}
+<a href=#235 id=235 data-nosnippet>235</a>
+<a href=#236 id=236 data-nosnippet>236</a><span class="kw">fn </span>decode_residual&lt;R: ReadBytes&gt;(input: <span class="kw-2">&amp;mut </span>Bitstream&lt;R&gt;,
+<a href=#237 id=237 data-nosnippet>237</a>                                 block_size: u16,
+<a href=#238 id=238 data-nosnippet>238</a>                                 buffer: <span class="kw-2">&amp;mut </span>[i32])
+<a href=#239 id=239 data-nosnippet>239</a>                                 -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#240 id=240 data-nosnippet>240</a>    <span class="comment">// Residual starts with two bits of coding method.
+<a href=#241 id=241 data-nosnippet>241</a>    </span><span class="kw">let </span>partition_type = <span class="kw">match </span><span class="macro">try!</span>(input.read_leq_u8(<span class="number">2</span>)) {
+<a href=#242 id=242 data-nosnippet>242</a>        <span class="number">0b00 </span>=&gt; RicePartitionType::Rice,
+<a href=#243 id=243 data-nosnippet>243</a>        <span class="number">0b01 </span>=&gt; RicePartitionType::Rice2,
+<a href=#244 id=244 data-nosnippet>244</a>        <span class="comment">// 10 and 11 are reserved.
+<a href=#245 id=245 data-nosnippet>245</a>        </span><span class="kw">_ </span>=&gt; <span class="kw">return </span>fmt_err(<span class="string">"invalid residual, encountered reserved value"</span>),
+<a href=#246 id=246 data-nosnippet>246</a>    };
+<a href=#247 id=247 data-nosnippet>247</a>
+<a href=#248 id=248 data-nosnippet>248</a>    <span class="comment">// Next are 4 bits partition order.
+<a href=#249 id=249 data-nosnippet>249</a>    </span><span class="kw">let </span>order = <span class="macro">try!</span>(input.read_leq_u8(<span class="number">4</span>));
+<a href=#250 id=250 data-nosnippet>250</a>
+<a href=#251 id=251 data-nosnippet>251</a>    <span class="comment">// There are 2^order partitions. Note: the specification states a 4-bit
+<a href=#252 id=252 data-nosnippet>252</a>    // partition order, so the order is at most 31, so there could be 2^31
+<a href=#253 id=253 data-nosnippet>253</a>    // partitions, but the block size is a 16-bit number, so there are at
+<a href=#254 id=254 data-nosnippet>254</a>    // most 2^16 - 1 samples in the block. No values have been marked as
+<a href=#255 id=255 data-nosnippet>255</a>    // invalid by the specification though.
+<a href=#256 id=256 data-nosnippet>256</a>    </span><span class="kw">let </span>n_partitions = <span class="number">1u32 </span>&lt;&lt; order;
+<a href=#257 id=257 data-nosnippet>257</a>    <span class="kw">let </span>n_samples_per_partition = block_size &gt;&gt; order;
+<a href=#258 id=258 data-nosnippet>258</a>
+<a href=#259 id=259 data-nosnippet>259</a>    <span class="comment">// The partitions together must fill the block. If the block size is not a
+<a href=#260 id=260 data-nosnippet>260</a>    // multiple of 2^order; if we shifted off some bits, then we would not fill
+<a href=#261 id=261 data-nosnippet>261</a>    // the entire block. Such a partition order is invalid for this block size.
+<a href=#262 id=262 data-nosnippet>262</a>    </span><span class="kw">if </span>block_size &amp; (n_partitions - <span class="number">1</span>) <span class="kw">as </span>u16 != <span class="number">0 </span>{
+<a href=#263 id=263 data-nosnippet>263</a>        <span class="kw">return </span>fmt_err(<span class="string">"invalid partition order"</span>)
+<a href=#264 id=264 data-nosnippet>264</a>    }
+<a href=#265 id=265 data-nosnippet>265</a>
+<a href=#266 id=266 data-nosnippet>266</a>    <span class="comment">// NOTE: the check above checks that block_size is a multiple of n_partitions
+<a href=#267 id=267 data-nosnippet>267</a>    // (this works because n_partitions is a power of 2). The check below is
+<a href=#268 id=268 data-nosnippet>268</a>    // equivalent but more expensive.
+<a href=#269 id=269 data-nosnippet>269</a>    </span><span class="macro">debug_assert_eq!</span>(n_partitions * n_samples_per_partition <span class="kw">as </span>u32, block_size <span class="kw">as </span>u32);
+<a href=#270 id=270 data-nosnippet>270</a>
+<a href=#271 id=271 data-nosnippet>271</a>    <span class="kw">let </span>n_warm_up = block_size - buffer.len() <span class="kw">as </span>u16;
+<a href=#272 id=272 data-nosnippet>272</a>
+<a href=#273 id=273 data-nosnippet>273</a>    <span class="comment">// The partition size must be at least as big as the number of warm-up
+<a href=#274 id=274 data-nosnippet>274</a>    // samples, otherwise the size of the first partition is negative.
+<a href=#275 id=275 data-nosnippet>275</a>    </span><span class="kw">if </span>n_warm_up &gt; n_samples_per_partition {
+<a href=#276 id=276 data-nosnippet>276</a>        <span class="kw">return </span>fmt_err(<span class="string">"invalid residual"</span>);
+<a href=#277 id=277 data-nosnippet>277</a>    }
+<a href=#278 id=278 data-nosnippet>278</a>
+<a href=#279 id=279 data-nosnippet>279</a>    <span class="comment">// Finally decode the partitions themselves.
+<a href=#280 id=280 data-nosnippet>280</a>    </span><span class="kw">match </span>partition_type {
+<a href=#281 id=281 data-nosnippet>281</a>        RicePartitionType::Rice =&gt; {
+<a href=#282 id=282 data-nosnippet>282</a>            <span class="kw">let </span><span class="kw-2">mut </span>start = <span class="number">0</span>;
+<a href=#283 id=283 data-nosnippet>283</a>            <span class="kw">let </span><span class="kw-2">mut </span>len = n_samples_per_partition - n_warm_up;
+<a href=#284 id=284 data-nosnippet>284</a>            <span class="kw">for _ in </span><span class="number">0</span>..n_partitions {
+<a href=#285 id=285 data-nosnippet>285</a>                <span class="kw">let </span>slice = <span class="kw-2">&amp;mut </span>buffer[start..start + len <span class="kw">as </span>usize];
+<a href=#286 id=286 data-nosnippet>286</a>                <span class="macro">try!</span>(decode_rice_partition(input, slice));
+<a href=#287 id=287 data-nosnippet>287</a>                start = start + len <span class="kw">as </span>usize;
+<a href=#288 id=288 data-nosnippet>288</a>                len = n_samples_per_partition;
+<a href=#289 id=289 data-nosnippet>289</a>            }
+<a href=#290 id=290 data-nosnippet>290</a>        }
+<a href=#291 id=291 data-nosnippet>291</a>        RicePartitionType::Rice2 =&gt; {
+<a href=#292 id=292 data-nosnippet>292</a>            <span class="kw">let </span><span class="kw-2">mut </span>start = <span class="number">0</span>;
+<a href=#293 id=293 data-nosnippet>293</a>            <span class="kw">let </span><span class="kw-2">mut </span>len = n_samples_per_partition - n_warm_up;
+<a href=#294 id=294 data-nosnippet>294</a>            <span class="kw">for _ in </span><span class="number">0</span>..n_partitions {
+<a href=#295 id=295 data-nosnippet>295</a>                <span class="kw">let </span>slice = <span class="kw-2">&amp;mut </span>buffer[start..start + len <span class="kw">as </span>usize];
+<a href=#296 id=296 data-nosnippet>296</a>                <span class="macro">try!</span>(decode_rice2_partition(input, slice));
+<a href=#297 id=297 data-nosnippet>297</a>                start = start + len <span class="kw">as </span>usize;
+<a href=#298 id=298 data-nosnippet>298</a>                len = n_samples_per_partition;
+<a href=#299 id=299 data-nosnippet>299</a>            }
+<a href=#300 id=300 data-nosnippet>300</a>        }
+<a href=#301 id=301 data-nosnippet>301</a>    }
+<a href=#302 id=302 data-nosnippet>302</a>
+<a href=#303 id=303 data-nosnippet>303</a>    <span class="prelude-val">Ok</span>(())
+<a href=#304 id=304 data-nosnippet>304</a>}
+<a href=#305 id=305 data-nosnippet>305</a>
+<a href=#306 id=306 data-nosnippet>306</a><span class="comment">// Performance note: all Rice partitions in real-world FLAC files are Rice
+<a href=#307 id=307 data-nosnippet>307</a>// partitions, not Rice2 partitions. Therefore it makes sense to inline this
+<a href=#308 id=308 data-nosnippet>308</a>// function into decode_residual.
+<a href=#309 id=309 data-nosnippet>309</a></span><span class="attr">#[inline(always)]
+<a href=#310 id=310 data-nosnippet>310</a></span><span class="kw">fn </span>decode_rice_partition&lt;R: ReadBytes&gt;(input: <span class="kw-2">&amp;mut </span>Bitstream&lt;R&gt;,
+<a href=#311 id=311 data-nosnippet>311</a>                                       buffer: <span class="kw-2">&amp;mut </span>[i32])
+<a href=#312 id=312 data-nosnippet>312</a>                                       -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#313 id=313 data-nosnippet>313</a>    <span class="comment">// A Rice partition (not Rice2), starts with a 4-bit Rice parameter.
+<a href=#314 id=314 data-nosnippet>314</a>    </span><span class="kw">let </span>rice_param = <span class="macro">try!</span>(input.read_leq_u8(<span class="number">4</span>)) <span class="kw">as </span>u32;
+<a href=#315 id=315 data-nosnippet>315</a>
+<a href=#316 id=316 data-nosnippet>316</a>    <span class="comment">// All ones is an escape code that indicates unencoded binary.
+<a href=#317 id=317 data-nosnippet>317</a>    </span><span class="kw">if </span>rice_param == <span class="number">0b1111 </span>{
+<a href=#318 id=318 data-nosnippet>318</a>        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Unsupported(<span class="string">"unencoded binary is not yet implemented"</span>))
+<a href=#319 id=319 data-nosnippet>319</a>    }
+<a href=#320 id=320 data-nosnippet>320</a>
+<a href=#321 id=321 data-nosnippet>321</a>    <span class="comment">// About the decoding below: the first part of the sample is the quotient,
+<a href=#322 id=322 data-nosnippet>322</a>    // unary encoded. This means that there are q zeros, and then a one.
+<a href=#323 id=323 data-nosnippet>323</a>    //
+<a href=#324 id=324 data-nosnippet>324</a>    // The reference decoder supports sample widths up to 24 bits, so with
+<a href=#325 id=325 data-nosnippet>325</a>    // the additional bytes for difference in channels and for prediction, a
+<a href=#326 id=326 data-nosnippet>326</a>    // sample fits in 26 bits. The Rice parameter could be as little as 1,
+<a href=#327 id=327 data-nosnippet>327</a>    // so the quotient can potentially be very large. However, in practice
+<a href=#328 id=328 data-nosnippet>328</a>    // it is rarely greater than 5. Values as large as 75 still occur though.
+<a href=#329 id=329 data-nosnippet>329</a>    //
+<a href=#330 id=330 data-nosnippet>330</a>    // Next up is the remainder in rice_param bits. Depending on the number of
+<a href=#331 id=331 data-nosnippet>331</a>    // bits, at most two or three bytes need to be read, so the code below is
+<a href=#332 id=332 data-nosnippet>332</a>    // split into two cases to allow a more efficient reading function to be
+<a href=#333 id=333 data-nosnippet>333</a>    // used when possible. About 45% of the time, rice_param is less than 9
+<a href=#334 id=334 data-nosnippet>334</a>    // (measured from real-world FLAC files).
+<a href=#335 id=335 data-nosnippet>335</a>
+<a href=#336 id=336 data-nosnippet>336</a>    </span><span class="kw">if </span>rice_param &lt;= <span class="number">8 </span>{
+<a href=#337 id=337 data-nosnippet>337</a>        <span class="kw">for </span>sample <span class="kw">in </span>buffer.iter_mut() {
+<a href=#338 id=338 data-nosnippet>338</a>            <span class="kw">let </span>q = <span class="macro">try!</span>(input.read_unary());
+<a href=#339 id=339 data-nosnippet>339</a>            <span class="kw">let </span>r = <span class="macro">try!</span>(input.read_leq_u8(rice_param)) <span class="kw">as </span>u32;
+<a href=#340 id=340 data-nosnippet>340</a>            <span class="kw-2">*</span>sample = rice_to_signed((q &lt;&lt; rice_param) | r);
+<a href=#341 id=341 data-nosnippet>341</a>        }
+<a href=#342 id=342 data-nosnippet>342</a>    } <span class="kw">else </span>{
+<a href=#343 id=343 data-nosnippet>343</a>        <span class="kw">for </span>sample <span class="kw">in </span>buffer.iter_mut() {
+<a href=#344 id=344 data-nosnippet>344</a>            <span class="kw">let </span>q = <span class="macro">try!</span>(input.read_unary());
+<a href=#345 id=345 data-nosnippet>345</a>            <span class="kw">let </span>r = <span class="macro">try!</span>(input.read_gt_u8_leq_u16(rice_param));
+<a href=#346 id=346 data-nosnippet>346</a>            <span class="kw-2">*</span>sample = rice_to_signed((q &lt;&lt; rice_param) | r);
+<a href=#347 id=347 data-nosnippet>347</a>        }
+<a href=#348 id=348 data-nosnippet>348</a>    }
+<a href=#349 id=349 data-nosnippet>349</a>
+<a href=#350 id=350 data-nosnippet>350</a>    <span class="prelude-val">Ok</span>(())
+<a href=#351 id=351 data-nosnippet>351</a>}
+<a href=#352 id=352 data-nosnippet>352</a>
+<a href=#353 id=353 data-nosnippet>353</a><span class="comment">// Performance note: a Rice2 partition is extremely uncommon, I haven’t seen a
+<a href=#354 id=354 data-nosnippet>354</a>// single one in any real-world FLAC file. So do not inline it, in order not to
+<a href=#355 id=355 data-nosnippet>355</a>// pollute the caller with dead code.
+<a href=#356 id=356 data-nosnippet>356</a></span><span class="attr">#[inline(never)]
+<a href=#357 id=357 data-nosnippet>357</a>#[cold]
+<a href=#358 id=358 data-nosnippet>358</a></span><span class="kw">fn </span>decode_rice2_partition&lt;R: ReadBytes&gt;(input: <span class="kw-2">&amp;mut </span>Bitstream&lt;R&gt;,
+<a href=#359 id=359 data-nosnippet>359</a>                                        buffer: <span class="kw-2">&amp;mut </span>[i32])
+<a href=#360 id=360 data-nosnippet>360</a>                                        -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#361 id=361 data-nosnippet>361</a>    <span class="comment">// A Rice2 partition, starts with a 5-bit Rice parameter.
+<a href=#362 id=362 data-nosnippet>362</a>    </span><span class="kw">let </span>rice_param = <span class="macro">try!</span>(input.read_leq_u8(<span class="number">5</span>)) <span class="kw">as </span>u32;
+<a href=#363 id=363 data-nosnippet>363</a>
+<a href=#364 id=364 data-nosnippet>364</a>    <span class="comment">// All ones is an escape code that indicates unencoded binary.
+<a href=#365 id=365 data-nosnippet>365</a>    </span><span class="kw">if </span>rice_param == <span class="number">0b11111 </span>{
+<a href=#366 id=366 data-nosnippet>366</a>        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Unsupported(<span class="string">"unencoded binary is not yet implemented"</span>))
+<a href=#367 id=367 data-nosnippet>367</a>    }
+<a href=#368 id=368 data-nosnippet>368</a>
+<a href=#369 id=369 data-nosnippet>369</a>    <span class="kw">for </span>sample <span class="kw">in </span>buffer.iter_mut() {
+<a href=#370 id=370 data-nosnippet>370</a>        <span class="comment">// First part of the sample is the quotient, unary encoded.
+<a href=#371 id=371 data-nosnippet>371</a>        </span><span class="kw">let </span>q = <span class="macro">try!</span>(input.read_unary());
+<a href=#372 id=372 data-nosnippet>372</a>
+<a href=#373 id=373 data-nosnippet>373</a>        <span class="comment">// Next is the remainder, in rice_param bits. Because at this
+<a href=#374 id=374 data-nosnippet>374</a>        // point rice_param is at most 30, we can safely read into a u32.
+<a href=#375 id=375 data-nosnippet>375</a>        </span><span class="kw">let </span>r = <span class="macro">try!</span>(input.read_leq_u32(rice_param));
+<a href=#376 id=376 data-nosnippet>376</a>        <span class="kw-2">*</span>sample = rice_to_signed((q &lt;&lt; rice_param) | r);
+<a href=#377 id=377 data-nosnippet>377</a>    }
+<a href=#378 id=378 data-nosnippet>378</a>
+<a href=#379 id=379 data-nosnippet>379</a>    <span class="prelude-val">Ok</span>(())
+<a href=#380 id=380 data-nosnippet>380</a>}
+<a href=#381 id=381 data-nosnippet>381</a>
+<a href=#382 id=382 data-nosnippet>382</a><span class="kw">fn </span>decode_constant&lt;R: ReadBytes&gt;(input: <span class="kw-2">&amp;mut </span>Bitstream&lt;R&gt;,
+<a href=#383 id=383 data-nosnippet>383</a>                                 bps: u32,
+<a href=#384 id=384 data-nosnippet>384</a>                                 buffer: <span class="kw-2">&amp;mut </span>[i32])
+<a href=#385 id=385 data-nosnippet>385</a>                                 -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#386 id=386 data-nosnippet>386</a>    <span class="kw">let </span>sample_u32 = <span class="macro">try!</span>(input.read_leq_u32(bps));
+<a href=#387 id=387 data-nosnippet>387</a>    <span class="kw">let </span>sample = extend_sign_u32(sample_u32, bps);
+<a href=#388 id=388 data-nosnippet>388</a>
+<a href=#389 id=389 data-nosnippet>389</a>    <span class="kw">for </span>s <span class="kw">in </span>buffer {
+<a href=#390 id=390 data-nosnippet>390</a>        <span class="kw-2">*</span>s = sample;
+<a href=#391 id=391 data-nosnippet>391</a>    }
+<a href=#392 id=392 data-nosnippet>392</a>
+<a href=#393 id=393 data-nosnippet>393</a>    <span class="prelude-val">Ok</span>(())
+<a href=#394 id=394 data-nosnippet>394</a>}
+<a href=#395 id=395 data-nosnippet>395</a>
+<a href=#396 id=396 data-nosnippet>396</a><span class="attr">#[cold]
+<a href=#397 id=397 data-nosnippet>397</a></span><span class="kw">fn </span>decode_verbatim&lt;R: ReadBytes&gt;(input: <span class="kw-2">&amp;mut </span>Bitstream&lt;R&gt;,
+<a href=#398 id=398 data-nosnippet>398</a>                                 bps: u32,
+<a href=#399 id=399 data-nosnippet>399</a>                                 buffer: <span class="kw-2">&amp;mut </span>[i32])
+<a href=#400 id=400 data-nosnippet>400</a>                                 -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#401 id=401 data-nosnippet>401</a>
+<a href=#402 id=402 data-nosnippet>402</a>    <span class="comment">// This function must not be called for a sample wider than the sample type.
+<a href=#403 id=403 data-nosnippet>403</a>    // This has been verified at an earlier stage, but it is good to state the
+<a href=#404 id=404 data-nosnippet>404</a>    // assumption explicitly. FLAC supports up to 32-bit samples, so the
+<a href=#405 id=405 data-nosnippet>405</a>    // mid/side delta would require 33 bits per sample. But that is not subset
+<a href=#406 id=406 data-nosnippet>406</a>    // FLAC, and the reference decoder does not support it either.
+<a href=#407 id=407 data-nosnippet>407</a>    </span><span class="macro">debug_assert!</span>(bps &lt;= <span class="number">32</span>);
+<a href=#408 id=408 data-nosnippet>408</a>
+<a href=#409 id=409 data-nosnippet>409</a>    <span class="comment">// A verbatim block stores samples without encoding whatsoever.
+<a href=#410 id=410 data-nosnippet>410</a>    </span><span class="kw">for </span>s <span class="kw">in </span>buffer {
+<a href=#411 id=411 data-nosnippet>411</a>        <span class="kw-2">*</span>s = extend_sign_u32(<span class="macro">try!</span>(input.read_leq_u32(bps)), bps);
+<a href=#412 id=412 data-nosnippet>412</a>    }
+<a href=#413 id=413 data-nosnippet>413</a>
+<a href=#414 id=414 data-nosnippet>414</a>    <span class="prelude-val">Ok</span>(())
+<a href=#415 id=415 data-nosnippet>415</a>}
+<a href=#416 id=416 data-nosnippet>416</a>
+<a href=#417 id=417 data-nosnippet>417</a><span class="kw">fn </span>predict_fixed(order: u32, buffer: <span class="kw-2">&amp;mut </span>[i32]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#418 id=418 data-nosnippet>418</a>    <span class="comment">// When this is called during decoding, the order as read from the subframe
+<a href=#419 id=419 data-nosnippet>419</a>    // header has already been verified, so it is safe to assume that
+<a href=#420 id=420 data-nosnippet>420</a>    // 0 &lt;= order &lt;= 4. Still, it is good to state that assumption explicitly.
+<a href=#421 id=421 data-nosnippet>421</a>    </span><span class="macro">debug_assert!</span>(order &lt;= <span class="number">4</span>);
+<a href=#422 id=422 data-nosnippet>422</a>
+<a href=#423 id=423 data-nosnippet>423</a>    <span class="comment">// Coefficients for fitting an order n polynomial. You get these
+<a href=#424 id=424 data-nosnippet>424</a>    // coefficients by writing down n numbers, then their differences, then the
+<a href=#425 id=425 data-nosnippet>425</a>    // differences of the differences, etc. What results is Pascal's triangle
+<a href=#426 id=426 data-nosnippet>426</a>    // with alternating signs.
+<a href=#427 id=427 data-nosnippet>427</a>    </span><span class="kw">let </span>o0 = [];
+<a href=#428 id=428 data-nosnippet>428</a>    <span class="kw">let </span>o1 = [<span class="number">1</span>];
+<a href=#429 id=429 data-nosnippet>429</a>    <span class="kw">let </span>o2 = [-<span class="number">1</span>, <span class="number">2</span>];
+<a href=#430 id=430 data-nosnippet>430</a>    <span class="kw">let </span>o3 = [<span class="number">1</span>, -<span class="number">3</span>, <span class="number">3</span>];
+<a href=#431 id=431 data-nosnippet>431</a>    <span class="kw">let </span>o4 = [-<span class="number">1</span>, <span class="number">4</span>, -<span class="number">6</span>, <span class="number">4</span>];
+<a href=#432 id=432 data-nosnippet>432</a>
+<a href=#433 id=433 data-nosnippet>433</a>    <span class="comment">// Multiplying samples with at most 6 adds 3 bits. Then summing at most 5
+<a href=#434 id=434 data-nosnippet>434</a>    // of those values again adds at most 4 bits, so a sample type that is 7
+<a href=#435 id=435 data-nosnippet>435</a>    // bits wider than bps should suffice. Subset FLAC supports at most 24 bits
+<a href=#436 id=436 data-nosnippet>436</a>    // per sample, 25 for the channel delta, so using an i32 is safe here.
+<a href=#437 id=437 data-nosnippet>437</a>
+<a href=#438 id=438 data-nosnippet>438</a>    </span><span class="kw">let </span>coefficients: <span class="kw-2">&amp;</span>[i32] = <span class="kw">match </span>order {
+<a href=#439 id=439 data-nosnippet>439</a>        <span class="number">0 </span>=&gt; <span class="kw-2">&amp;</span>o0,
+<a href=#440 id=440 data-nosnippet>440</a>        <span class="number">1 </span>=&gt; <span class="kw-2">&amp;</span>o1,
+<a href=#441 id=441 data-nosnippet>441</a>        <span class="number">2 </span>=&gt; <span class="kw-2">&amp;</span>o2,
+<a href=#442 id=442 data-nosnippet>442</a>        <span class="number">3 </span>=&gt; <span class="kw-2">&amp;</span>o3,
+<a href=#443 id=443 data-nosnippet>443</a>        <span class="number">4 </span>=&gt; <span class="kw-2">&amp;</span>o4,
+<a href=#444 id=444 data-nosnippet>444</a>        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+<a href=#445 id=445 data-nosnippet>445</a>    };
+<a href=#446 id=446 data-nosnippet>446</a>
+<a href=#447 id=447 data-nosnippet>447</a>    <span class="kw">let </span>window_size = order <span class="kw">as </span>usize + <span class="number">1</span>;
+<a href=#448 id=448 data-nosnippet>448</a>
+<a href=#449 id=449 data-nosnippet>449</a>    <span class="comment">// TODO: abstract away this iterating over a window into a function?
+<a href=#450 id=450 data-nosnippet>450</a>    </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..buffer.len() - order <span class="kw">as </span>usize {
+<a href=#451 id=451 data-nosnippet>451</a>        <span class="comment">// Manually do the windowing, because .windows() returns immutable slices.
+<a href=#452 id=452 data-nosnippet>452</a>        </span><span class="kw">let </span>window = <span class="kw-2">&amp;mut </span>buffer[i..i + window_size];
+<a href=#453 id=453 data-nosnippet>453</a>
+<a href=#454 id=454 data-nosnippet>454</a>        <span class="comment">// The #coefficients elements of the window store already decoded
+<a href=#455 id=455 data-nosnippet>455</a>        // samples, the last element of the window is the delta. Therefore,
+<a href=#456 id=456 data-nosnippet>456</a>        // predict based on the first #coefficients samples. From the note
+<a href=#457 id=457 data-nosnippet>457</a>        // above we know that the multiplication will not overflow for 24-bit
+<a href=#458 id=458 data-nosnippet>458</a>        // samples, so the wrapping mul is safe. If it wraps, the file was
+<a href=#459 id=459 data-nosnippet>459</a>        // invalid, and we make no guarantees about the decoded result. But
+<a href=#460 id=460 data-nosnippet>460</a>        // we explicitly do not crash.
+<a href=#461 id=461 data-nosnippet>461</a>        </span><span class="kw">let </span>prediction = coefficients.iter()
+<a href=#462 id=462 data-nosnippet>462</a>                                     .zip(window.iter())
+<a href=#463 id=463 data-nosnippet>463</a>                                     .map(|(<span class="kw-2">&amp;</span>c, <span class="kw-2">&amp;</span>s)| num::Wrapping(c) * num::Wrapping(s))
+<a href=#464 id=464 data-nosnippet>464</a>                                     <span class="comment">// Rust 1.13 does not support using `sum`
+<a href=#465 id=465 data-nosnippet>465</a>                                     // with `Wrapping`, so do a fold.
+<a href=#466 id=466 data-nosnippet>466</a>                                     </span>.fold(num::Wrapping(<span class="number">0</span>), |a, x| a + x).<span class="number">0</span>;
+<a href=#467 id=467 data-nosnippet>467</a>
+<a href=#468 id=468 data-nosnippet>468</a>        <span class="comment">// The delta is stored, so the sample is the prediction + delta.
+<a href=#469 id=469 data-nosnippet>469</a>        </span><span class="kw">let </span>delta = window[coefficients.len()];
+<a href=#470 id=470 data-nosnippet>470</a>        window[coefficients.len()] = prediction.wrapping_add(delta);
+<a href=#471 id=471 data-nosnippet>471</a>    }
+<a href=#472 id=472 data-nosnippet>472</a>
+<a href=#473 id=473 data-nosnippet>473</a>    <span class="prelude-val">Ok</span>(())
+<a href=#474 id=474 data-nosnippet>474</a>}
+<a href=#475 id=475 data-nosnippet>475</a>
+<a href=#476 id=476 data-nosnippet>476</a><span class="attr">#[test]
+<a href=#477 id=477 data-nosnippet>477</a></span><span class="kw">fn </span>verify_predict_fixed() {
+<a href=#478 id=478 data-nosnippet>478</a>    <span class="comment">// The following data is from an actual FLAC stream and has been verified
+<a href=#479 id=479 data-nosnippet>479</a>    // against the reference decoder. The data is from a 16-bit stream.
+<a href=#480 id=480 data-nosnippet>480</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = [-<span class="number">729</span>, -<span class="number">722</span>, -<span class="number">667</span>, -<span class="number">19</span>, -<span class="number">16</span>,  <span class="number">17</span>, -<span class="number">23</span>, -<span class="number">7</span>,
+<a href=#481 id=481 data-nosnippet>481</a>                        <span class="number">16</span>,  -<span class="number">16</span>,   -<span class="number">5</span>,   <span class="number">3</span>,  -<span class="number">8</span>, -<span class="number">13</span>, -<span class="number">15</span>, -<span class="number">1</span>];
+<a href=#482 id=482 data-nosnippet>482</a>    <span class="macro">assert!</span>(predict_fixed(<span class="number">3</span>, <span class="kw-2">&amp;mut </span>buffer).is_ok());
+<a href=#483 id=483 data-nosnippet>483</a>    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>buffer, <span class="kw-2">&amp;</span>[-<span class="number">729</span>, -<span class="number">722</span>, -<span class="number">667</span>, -<span class="number">583</span>, -<span class="number">486</span>, -<span class="number">359</span>, -<span class="number">225</span>, -<span class="number">91</span>,
+<a href=#484 id=484 data-nosnippet>484</a>                            <span class="number">59</span>,  <span class="number">209</span>,  <span class="number">354</span>,  <span class="number">497</span>,  <span class="number">630</span>,  <span class="number">740</span>,  <span class="number">812</span>, <span class="number">845</span>]);
+<a href=#485 id=485 data-nosnippet>485</a>
+<a href=#486 id=486 data-nosnippet>486</a>    <span class="comment">// The following data causes overflow of i32 when not handled with care.
+<a href=#487 id=487 data-nosnippet>487</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">21877</span>, <span class="number">27482</span>, -<span class="number">6513</span>];
+<a href=#488 id=488 data-nosnippet>488</a>    <span class="macro">assert!</span>(predict_fixed(<span class="number">2</span>, <span class="kw-2">&amp;mut </span>buffer).is_ok());
+<a href=#489 id=489 data-nosnippet>489</a>    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>buffer, <span class="kw-2">&amp;</span>[<span class="number">21877</span>, <span class="number">27482</span>, <span class="number">26574</span>]);
+<a href=#490 id=490 data-nosnippet>490</a>}
+<a href=#491 id=491 data-nosnippet>491</a>
+<a href=#492 id=492 data-nosnippet>492</a><span class="kw">fn </span>decode_fixed&lt;R: ReadBytes&gt;(input: <span class="kw-2">&amp;mut </span>Bitstream&lt;R&gt;,
+<a href=#493 id=493 data-nosnippet>493</a>                              bps: u32,
+<a href=#494 id=494 data-nosnippet>494</a>                              order: u32,
+<a href=#495 id=495 data-nosnippet>495</a>                              buffer: <span class="kw-2">&amp;mut </span>[i32])
+<a href=#496 id=496 data-nosnippet>496</a>                              -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#497 id=497 data-nosnippet>497</a>    <span class="comment">// The length of the buffer which is passed in, is the length of the block.
+<a href=#498 id=498 data-nosnippet>498</a>    // Thus, the number of warm-up samples must not exceed that length.
+<a href=#499 id=499 data-nosnippet>499</a>    </span><span class="kw">if </span>buffer.len() &lt; order <span class="kw">as </span>usize {
+<a href=#500 id=500 data-nosnippet>500</a>        <span class="kw">return </span>fmt_err(<span class="string">"invalid fixed subframe, order is larger than block size"</span>)
+<a href=#501 id=501 data-nosnippet>501</a>    }
+<a href=#502 id=502 data-nosnippet>502</a>
+<a href=#503 id=503 data-nosnippet>503</a>    <span class="comment">// There are order * bits per sample unencoded warm-up sample bits.
+<a href=#504 id=504 data-nosnippet>504</a>    </span><span class="macro">try!</span>(decode_verbatim(input, bps, <span class="kw-2">&amp;mut </span>buffer[..order <span class="kw">as </span>usize]));
+<a href=#505 id=505 data-nosnippet>505</a>
+<a href=#506 id=506 data-nosnippet>506</a>    <span class="comment">// Next up is the residual. We decode into the buffer directly, the
+<a href=#507 id=507 data-nosnippet>507</a>    // predictor contributions will be added in a second pass. The first
+<a href=#508 id=508 data-nosnippet>508</a>    // `order` samples have been decoded already, so continue after that.
+<a href=#509 id=509 data-nosnippet>509</a>    </span><span class="macro">try!</span>(decode_residual(input,
+<a href=#510 id=510 data-nosnippet>510</a>                         buffer.len() <span class="kw">as </span>u16,
+<a href=#511 id=511 data-nosnippet>511</a>                         <span class="kw-2">&amp;mut </span>buffer[order <span class="kw">as </span>usize..]));
+<a href=#512 id=512 data-nosnippet>512</a>
+<a href=#513 id=513 data-nosnippet>513</a>    <span class="macro">try!</span>(predict_fixed(order, buffer));
+<a href=#514 id=514 data-nosnippet>514</a>
+<a href=#515 id=515 data-nosnippet>515</a>    <span class="prelude-val">Ok</span>(())
+<a href=#516 id=516 data-nosnippet>516</a>}
+<a href=#517 id=517 data-nosnippet>517</a>
+<a href=#518 id=518 data-nosnippet>518</a><span class="doccomment">/// Apply LPC prediction for subframes with LPC order of at most 12.
+<a href=#519 id=519 data-nosnippet>519</a>///
+<a href=#520 id=520 data-nosnippet>520</a>/// This function takes advantage of the upper bound on the order. Virtually all
+<a href=#521 id=521 data-nosnippet>521</a>/// files that occur in the wild are subset-compliant files, which have an order
+<a href=#522 id=522 data-nosnippet>522</a>/// of at most 12, so it makes sense to optimize for this. A simpler (but
+<a href=#523 id=523 data-nosnippet>523</a>/// slower) fallback is implemented in `predict_lpc_high_order`.
+<a href=#524 id=524 data-nosnippet>524</a></span><span class="kw">fn </span>predict_lpc_low_order(
+<a href=#525 id=525 data-nosnippet>525</a>    raw_coefficients: <span class="kw-2">&amp;</span>[i16],
+<a href=#526 id=526 data-nosnippet>526</a>    qlp_shift: i16,
+<a href=#527 id=527 data-nosnippet>527</a>    buffer: <span class="kw-2">&amp;mut </span>[i32],
+<a href=#528 id=528 data-nosnippet>528</a>) {
+<a href=#529 id=529 data-nosnippet>529</a>    <span class="macro">debug_assert!</span>(qlp_shift &gt;= <span class="number">0</span>, <span class="string">"Right-shift by negative value is not allowed."</span>);
+<a href=#530 id=530 data-nosnippet>530</a>    <span class="macro">debug_assert!</span>(qlp_shift &lt; <span class="number">64</span>, <span class="string">"Cannot shift by more than integer width."</span>);
+<a href=#531 id=531 data-nosnippet>531</a>    <span class="comment">// The decoded residuals are 25 bits at most (assuming subset FLAC of at
+<a href=#532 id=532 data-nosnippet>532</a>    // most 24 bits per sample, but there is the delta encoding for channels).
+<a href=#533 id=533 data-nosnippet>533</a>    // The coefficients are 16 bits at most, so their product is 41 bits. In
+<a href=#534 id=534 data-nosnippet>534</a>    // practice the predictor order does not exceed 12, so adding 12 numbers of
+<a href=#535 id=535 data-nosnippet>535</a>    // 41 bits each requires at most 53 bits. Therefore, do all intermediate
+<a href=#536 id=536 data-nosnippet>536</a>    // computations as i64.
+<a href=#537 id=537 data-nosnippet>537</a>
+<a href=#538 id=538 data-nosnippet>538</a>    // In the code below, a predictor order of 12 is assumed. This aids
+<a href=#539 id=539 data-nosnippet>539</a>    // optimization and vectorization by making some counts available at compile
+<a href=#540 id=540 data-nosnippet>540</a>    // time. If the actual order is less than 12, simply set the early
+<a href=#541 id=541 data-nosnippet>541</a>    // coefficients to 0.
+<a href=#542 id=542 data-nosnippet>542</a>    </span><span class="kw">let </span>order = raw_coefficients.len();
+<a href=#543 id=543 data-nosnippet>543</a>    <span class="kw">let </span>coefficients = {
+<a href=#544 id=544 data-nosnippet>544</a>        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0i64</span>; <span class="number">12</span>];
+<a href=#545 id=545 data-nosnippet>545</a>        <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">12 </span>- order;
+<a href=#546 id=546 data-nosnippet>546</a>        <span class="kw">for </span>c <span class="kw">in </span>raw_coefficients {
+<a href=#547 id=547 data-nosnippet>547</a>            buf[i] = <span class="kw-2">*</span>c <span class="kw">as </span>i64;
+<a href=#548 id=548 data-nosnippet>548</a>            i = i + <span class="number">1</span>;
+<a href=#549 id=549 data-nosnippet>549</a>        }
+<a href=#550 id=550 data-nosnippet>550</a>        buf
+<a href=#551 id=551 data-nosnippet>551</a>    };
+<a href=#552 id=552 data-nosnippet>552</a>
+<a href=#553 id=553 data-nosnippet>553</a>    <span class="comment">// The linear prediction is essentially an inner product of the known
+<a href=#554 id=554 data-nosnippet>554</a>    // samples with the coefficients, followed by a shift. To be able to do an
+<a href=#555 id=555 data-nosnippet>555</a>    // inner product of 12 elements at a time, we must first have 12 samples.
+<a href=#556 id=556 data-nosnippet>556</a>    // If the predictor order is less, first predict the few samples after the
+<a href=#557 id=557 data-nosnippet>557</a>    // warm-up samples.
+<a href=#558 id=558 data-nosnippet>558</a>    </span><span class="kw">let </span>left = cmp::min(<span class="number">12</span>, buffer.len()) - order;
+<a href=#559 id=559 data-nosnippet>559</a>    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..left {
+<a href=#560 id=560 data-nosnippet>560</a>        <span class="kw">let </span>prediction = raw_coefficients.iter()
+<a href=#561 id=561 data-nosnippet>561</a>                                         .zip(<span class="kw-2">&amp;</span>buffer[i..order + i])
+<a href=#562 id=562 data-nosnippet>562</a>                                         .map(|(<span class="kw-2">&amp;</span>c, <span class="kw-2">&amp;</span>s)| c <span class="kw">as </span>i64 * s <span class="kw">as </span>i64)
+<a href=#563 id=563 data-nosnippet>563</a>                                         .sum::&lt;i64&gt;() &gt;&gt; qlp_shift;
+<a href=#564 id=564 data-nosnippet>564</a>        <span class="kw">let </span>delta = buffer[order + i] <span class="kw">as </span>i64;
+<a href=#565 id=565 data-nosnippet>565</a>        buffer[order + i] = (prediction + delta) <span class="kw">as </span>i32;
+<a href=#566 id=566 data-nosnippet>566</a>    }
+<a href=#567 id=567 data-nosnippet>567</a>
+<a href=#568 id=568 data-nosnippet>568</a>    <span class="kw">if </span>buffer.len() &lt;= <span class="number">12 </span>{
+<a href=#569 id=569 data-nosnippet>569</a>        <span class="kw">return
+<a href=#570 id=570 data-nosnippet>570</a>    </span>}
+<a href=#571 id=571 data-nosnippet>571</a>
+<a href=#572 id=572 data-nosnippet>572</a>    <span class="comment">// At this point, buffer[0..12] has been predicted. For the rest of the
+<a href=#573 id=573 data-nosnippet>573</a>    // buffer we can do inner products of 12 samples. This reduces the amount of
+<a href=#574 id=574 data-nosnippet>574</a>    // conditional code, and improves performance significantly.
+<a href=#575 id=575 data-nosnippet>575</a>    </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">12</span>..buffer.len() {
+<a href=#576 id=576 data-nosnippet>576</a>        <span class="kw">let </span>prediction = coefficients.iter()
+<a href=#577 id=577 data-nosnippet>577</a>                                     .zip(<span class="kw-2">&amp;</span>buffer[i - <span class="number">12</span>..i])
+<a href=#578 id=578 data-nosnippet>578</a>                                     .map(|(<span class="kw-2">&amp;</span>c, <span class="kw-2">&amp;</span>s)| c * s <span class="kw">as </span>i64)
+<a href=#579 id=579 data-nosnippet>579</a>                                     .sum::&lt;i64&gt;() &gt;&gt; qlp_shift;
+<a href=#580 id=580 data-nosnippet>580</a>        <span class="kw">let </span>delta = buffer[i] <span class="kw">as </span>i64;
+<a href=#581 id=581 data-nosnippet>581</a>        buffer[i] = (prediction + delta) <span class="kw">as </span>i32;
+<a href=#582 id=582 data-nosnippet>582</a>    }
+<a href=#583 id=583 data-nosnippet>583</a>}
+<a href=#584 id=584 data-nosnippet>584</a>
+<a href=#585 id=585 data-nosnippet>585</a><span class="doccomment">/// Apply LPC prediction for non-subset subframes, with LPC order &gt; 12.
+<a href=#586 id=586 data-nosnippet>586</a></span><span class="kw">fn </span>predict_lpc_high_order(
+<a href=#587 id=587 data-nosnippet>587</a>    coefficients: <span class="kw-2">&amp;</span>[i16],
+<a href=#588 id=588 data-nosnippet>588</a>    qlp_shift: i16,
+<a href=#589 id=589 data-nosnippet>589</a>    buffer: <span class="kw-2">&amp;mut </span>[i32],
+<a href=#590 id=590 data-nosnippet>590</a>) {
+<a href=#591 id=591 data-nosnippet>591</a>    <span class="comment">// NOTE: See `predict_lpc_low_order` for more details. This function is a
+<a href=#592 id=592 data-nosnippet>592</a>    // copy that lifts the order restrictions (and specializations) at the cost
+<a href=#593 id=593 data-nosnippet>593</a>    // of performance. It is only used for subframes with a high LPC order,
+<a href=#594 id=594 data-nosnippet>594</a>    // which only occur in non-subset files. Such files are rare in the wild.
+<a href=#595 id=595 data-nosnippet>595</a>
+<a href=#596 id=596 data-nosnippet>596</a>    </span><span class="kw">let </span>order = coefficients.len();
+<a href=#597 id=597 data-nosnippet>597</a>
+<a href=#598 id=598 data-nosnippet>598</a>    <span class="macro">debug_assert!</span>(qlp_shift &gt;= <span class="number">0</span>, <span class="string">"Right-shift by negative value is not allowed."</span>);
+<a href=#599 id=599 data-nosnippet>599</a>    <span class="macro">debug_assert!</span>(qlp_shift &lt; <span class="number">64</span>, <span class="string">"Cannot shift by more than integer width."</span>);
+<a href=#600 id=600 data-nosnippet>600</a>    <span class="macro">debug_assert!</span>(order &gt; <span class="number">12</span>, <span class="string">"Use the faster predict_lpc_low_order for LPC order &lt;= 12."</span>);
+<a href=#601 id=601 data-nosnippet>601</a>    <span class="macro">debug_assert!</span>(buffer.len() &gt;= order, <span class="string">"Buffer must fit at least `order` warm-up samples."</span>);
+<a href=#602 id=602 data-nosnippet>602</a>
+<a href=#603 id=603 data-nosnippet>603</a>    <span class="comment">// The linear prediction is essentially an inner product of the known
+<a href=#604 id=604 data-nosnippet>604</a>    // samples with the coefficients, followed by a shift. The first `order`
+<a href=#605 id=605 data-nosnippet>605</a>    // samples are stored as-is.
+<a href=#606 id=606 data-nosnippet>606</a>    </span><span class="kw">for </span>i <span class="kw">in </span>order..buffer.len() {
+<a href=#607 id=607 data-nosnippet>607</a>        <span class="kw">let </span>prediction = coefficients.iter()
+<a href=#608 id=608 data-nosnippet>608</a>                                     .zip(<span class="kw-2">&amp;</span>buffer[i - order..i])
+<a href=#609 id=609 data-nosnippet>609</a>                                     .map(|(<span class="kw-2">&amp;</span>c, <span class="kw-2">&amp;</span>s)| c <span class="kw">as </span>i64 * s <span class="kw">as </span>i64)
+<a href=#610 id=610 data-nosnippet>610</a>                                     .sum::&lt;i64&gt;() &gt;&gt; qlp_shift;
+<a href=#611 id=611 data-nosnippet>611</a>        <span class="kw">let </span>delta = buffer[i] <span class="kw">as </span>i64;
+<a href=#612 id=612 data-nosnippet>612</a>        buffer[i] = (prediction + delta) <span class="kw">as </span>i32;
+<a href=#613 id=613 data-nosnippet>613</a>    }
+<a href=#614 id=614 data-nosnippet>614</a>}
+<a href=#615 id=615 data-nosnippet>615</a>
+<a href=#616 id=616 data-nosnippet>616</a><span class="attr">#[test]
+<a href=#617 id=617 data-nosnippet>617</a></span><span class="kw">fn </span>verify_predict_lpc() {
+<a href=#618 id=618 data-nosnippet>618</a>    <span class="comment">// The following data is from an actual FLAC stream and has been verified
+<a href=#619 id=619 data-nosnippet>619</a>    // against the reference decoder. The data is from a 16-bit stream.
+<a href=#620 id=620 data-nosnippet>620</a>    </span><span class="kw">let </span>coefficients = [-<span class="number">75</span>, <span class="number">166</span>,  <span class="number">121</span>, -<span class="number">269</span>, -<span class="number">75</span>, -<span class="number">399</span>, <span class="number">1042</span>];
+<a href=#621 id=621 data-nosnippet>621</a>    <span class="kw">let </span><span class="kw-2">mut </span>buffer = [-<span class="number">796</span>, -<span class="number">547</span>, -<span class="number">285</span>,  -<span class="number">32</span>, <span class="number">199</span>,  <span class="number">443</span>,  <span class="number">670</span>, -<span class="number">2</span>,
+<a href=#622 id=622 data-nosnippet>622</a>                       -<span class="number">23</span>,   <span class="number">14</span>,    <span class="number">6</span>,    <span class="number">3</span>,  -<span class="number">4</span>,   <span class="number">12</span>,   -<span class="number">2</span>, <span class="number">10</span>];
+<a href=#623 id=623 data-nosnippet>623</a>    predict_lpc_low_order(<span class="kw-2">&amp;</span>coefficients, <span class="number">9</span>, <span class="kw-2">&amp;mut </span>buffer);
+<a href=#624 id=624 data-nosnippet>624</a>    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>buffer, <span class="kw-2">&amp;</span>[-<span class="number">796</span>, -<span class="number">547</span>, -<span class="number">285</span>,  -<span class="number">32</span>,  <span class="number">199</span>,  <span class="number">443</span>,  <span class="number">670</span>,  <span class="number">875</span>,
+<a href=#625 id=625 data-nosnippet>625</a>                          <span class="number">1046</span>, <span class="number">1208</span>, <span class="number">1343</span>, <span class="number">1454</span>, <span class="number">1541</span>, <span class="number">1616</span>, <span class="number">1663</span>, <span class="number">1701</span>]);
+<a href=#626 id=626 data-nosnippet>626</a>
+<a href=#627 id=627 data-nosnippet>627</a>    <span class="comment">// The following data causes an overflow when not handled with care.
+<a href=#628 id=628 data-nosnippet>628</a>    </span><span class="kw">let </span>coefficients = [<span class="number">119</span>, -<span class="number">255</span>, <span class="number">555</span>, -<span class="number">836</span>, <span class="number">879</span>, -<span class="number">1199</span>, <span class="number">1757</span>];
+<a href=#629 id=629 data-nosnippet>629</a>    <span class="kw">let </span><span class="kw-2">mut </span>buffer = [-<span class="number">21363</span>, -<span class="number">21951</span>, -<span class="number">22649</span>, -<span class="number">24364</span>, -<span class="number">27297</span>, -<span class="number">26870</span>, -<span class="number">30017</span>, <span class="number">3157</span>];
+<a href=#630 id=630 data-nosnippet>630</a>    predict_lpc_low_order(<span class="kw-2">&amp;</span>coefficients, <span class="number">10</span>, <span class="kw-2">&amp;mut </span>buffer);
+<a href=#631 id=631 data-nosnippet>631</a>    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>buffer, <span class="kw-2">&amp;</span>[-<span class="number">21363</span>, -<span class="number">21951</span>, -<span class="number">22649</span>, -<span class="number">24364</span>, -<span class="number">27297</span>, -<span class="number">26870</span>, -<span class="number">30017</span>, -<span class="number">29718</span>]);
+<a href=#632 id=632 data-nosnippet>632</a>
+<a href=#633 id=633 data-nosnippet>633</a>    <span class="comment">// The following data from a real-world file has a high LPC order, is has
+<a href=#634 id=634 data-nosnippet>634</a>    // more than 12 coefficients. The excepted output has been verified against
+<a href=#635 id=635 data-nosnippet>635</a>    // the reference decoder.
+<a href=#636 id=636 data-nosnippet>636</a>    </span><span class="kw">let </span>coefficients = [
+<a href=#637 id=637 data-nosnippet>637</a>        <span class="number">709</span>, -<span class="number">2589</span>, <span class="number">4600</span>, -<span class="number">4612</span>, <span class="number">1350</span>, <span class="number">4220</span>, -<span class="number">9743</span>, <span class="number">12671</span>, -<span class="number">12129</span>, <span class="number">8586</span>,
+<a href=#638 id=638 data-nosnippet>638</a>        -<span class="number">3775</span>, -<span class="number">645</span>, <span class="number">3904</span>, -<span class="number">5543</span>, <span class="number">4373</span>, <span class="number">182</span>, -<span class="number">6873</span>, <span class="number">13265</span>, -<span class="number">15417</span>, <span class="number">11550</span>,
+<a href=#639 id=639 data-nosnippet>639</a>    ];
+<a href=#640 id=640 data-nosnippet>640</a>    <span class="kw">let </span><span class="kw-2">mut </span>buffer = [
+<a href=#641 id=641 data-nosnippet>641</a>        <span class="number">213238</span>, <span class="number">210830</span>, <span class="number">234493</span>, <span class="number">209515</span>, <span class="number">235139</span>, <span class="number">201836</span>, <span class="number">208151</span>, <span class="number">186277</span>, <span class="number">157720</span>, <span class="number">148176</span>,
+<a href=#642 id=642 data-nosnippet>642</a>        <span class="number">115037</span>, <span class="number">104836</span>, <span class="number">60794</span>, <span class="number">54523</span>, <span class="number">412</span>, <span class="number">17943</span>, -<span class="number">6025</span>, -<span class="number">3713</span>, <span class="number">8373</span>, <span class="number">11764</span>, <span class="number">30094</span>,
+<a href=#643 id=643 data-nosnippet>643</a>    ];
+<a href=#644 id=644 data-nosnippet>644</a>    predict_lpc_high_order(<span class="kw-2">&amp;</span>coefficients, <span class="number">12</span>, <span class="kw-2">&amp;mut </span>buffer);
+<a href=#645 id=645 data-nosnippet>645</a>    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>buffer, <span class="kw-2">&amp;</span>[
+<a href=#646 id=646 data-nosnippet>646</a>        <span class="number">213238</span>, <span class="number">210830</span>, <span class="number">234493</span>, <span class="number">209515</span>, <span class="number">235139</span>, <span class="number">201836</span>, <span class="number">208151</span>, <span class="number">186277</span>, <span class="number">157720</span>, <span class="number">148176</span>,
+<a href=#647 id=647 data-nosnippet>647</a>        <span class="number">115037</span>, <span class="number">104836</span>, <span class="number">60794</span>, <span class="number">54523</span>, <span class="number">412</span>, <span class="number">17943</span>, -<span class="number">6025</span>, -<span class="number">3713</span>, <span class="number">8373</span>, <span class="number">11764</span>, <span class="number">33931</span>,
+<a href=#648 id=648 data-nosnippet>648</a>    ]);
+<a href=#649 id=649 data-nosnippet>649</a>}
+<a href=#650 id=650 data-nosnippet>650</a>
+<a href=#651 id=651 data-nosnippet>651</a><span class="kw">fn </span>decode_lpc&lt;R: ReadBytes&gt;(input: <span class="kw-2">&amp;mut </span>Bitstream&lt;R&gt;,
+<a href=#652 id=652 data-nosnippet>652</a>                            bps: u32,
+<a href=#653 id=653 data-nosnippet>653</a>                            order: u32,
+<a href=#654 id=654 data-nosnippet>654</a>                            buffer: <span class="kw-2">&amp;mut </span>[i32])
+<a href=#655 id=655 data-nosnippet>655</a>                            -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#656 id=656 data-nosnippet>656</a>    <span class="comment">// The order minus one fits in 5 bits, so the order is at most 32.
+<a href=#657 id=657 data-nosnippet>657</a>    </span><span class="macro">debug_assert!</span>(order &lt;= <span class="number">32</span>);
+<a href=#658 id=658 data-nosnippet>658</a>
+<a href=#659 id=659 data-nosnippet>659</a>    <span class="comment">// On the frame decoding level it is ensured that the buffer is large
+<a href=#660 id=660 data-nosnippet>660</a>    // enough. If it can't even fit the warm-up samples, then there is a frame
+<a href=#661 id=661 data-nosnippet>661</a>    // smaller than its lpc order, which is invalid.
+<a href=#662 id=662 data-nosnippet>662</a>    </span><span class="kw">if </span>buffer.len() &lt; order <span class="kw">as </span>usize {
+<a href=#663 id=663 data-nosnippet>663</a>        <span class="kw">return </span>fmt_err(<span class="string">"invalid LPC subframe, lpc order is larger than block size"</span>)
+<a href=#664 id=664 data-nosnippet>664</a>    }
+<a href=#665 id=665 data-nosnippet>665</a>
+<a href=#666 id=666 data-nosnippet>666</a>    <span class="comment">// There are order * bits per sample unencoded warm-up sample bits.
+<a href=#667 id=667 data-nosnippet>667</a>    </span><span class="macro">try!</span>(decode_verbatim(input, bps, <span class="kw-2">&amp;mut </span>buffer[..order <span class="kw">as </span>usize]));
+<a href=#668 id=668 data-nosnippet>668</a>
+<a href=#669 id=669 data-nosnippet>669</a>    <span class="comment">// Next are four bits quantised linear predictor coefficient precision - 1.
+<a href=#670 id=670 data-nosnippet>670</a>    </span><span class="kw">let </span>qlp_precision = <span class="macro">try!</span>(input.read_leq_u8(<span class="number">4</span>)) <span class="kw">as </span>u32 + <span class="number">1</span>;
+<a href=#671 id=671 data-nosnippet>671</a>
+<a href=#672 id=672 data-nosnippet>672</a>    <span class="comment">// The bit pattern 1111 is invalid.
+<a href=#673 id=673 data-nosnippet>673</a>    </span><span class="kw">if </span>qlp_precision - <span class="number">1 </span>== <span class="number">0b1111 </span>{
+<a href=#674 id=674 data-nosnippet>674</a>        <span class="kw">return </span>fmt_err(<span class="string">"invalid subframe, qlp precision value invalid"</span>);
+<a href=#675 id=675 data-nosnippet>675</a>    }
+<a href=#676 id=676 data-nosnippet>676</a>
+<a href=#677 id=677 data-nosnippet>677</a>    <span class="comment">// Next are five bits quantized linear predictor coefficient shift,
+<a href=#678 id=678 data-nosnippet>678</a>    // in signed two's complement. Read 5 bits and then extend the sign bit.
+<a href=#679 id=679 data-nosnippet>679</a>    </span><span class="kw">let </span>qlp_shift_unsig = <span class="macro">try!</span>(input.read_leq_u16(<span class="number">5</span>));
+<a href=#680 id=680 data-nosnippet>680</a>    <span class="kw">let </span>qlp_shift = extend_sign_u16(qlp_shift_unsig, <span class="number">5</span>);
+<a href=#681 id=681 data-nosnippet>681</a>
+<a href=#682 id=682 data-nosnippet>682</a>    <span class="comment">// The spec does allow the qlp shift to be negative, but in practice this
+<a href=#683 id=683 data-nosnippet>683</a>    // does not happen. Fully supporting it would be a performance hit, as an
+<a href=#684 id=684 data-nosnippet>684</a>    // arithmetic shift by a negative amount is invalid, so this would incur a
+<a href=#685 id=685 data-nosnippet>685</a>    // branch. If a real-world file ever hits this case, then we should consider
+<a href=#686 id=686 data-nosnippet>686</a>    // making two LPC predictors, one for positive, and one for negative qlp.
+<a href=#687 id=687 data-nosnippet>687</a>    </span><span class="kw">if </span>qlp_shift &lt; <span class="number">0 </span>{
+<a href=#688 id=688 data-nosnippet>688</a>        <span class="kw">let </span>msg = <span class="string">"a negative quantized linear predictor coefficient shift is \
+<a href=#689 id=689 data-nosnippet>689</a>                   not supported, please file a bug."</span>;
+<a href=#690 id=690 data-nosnippet>690</a>        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Unsupported(msg))
+<a href=#691 id=691 data-nosnippet>691</a>    }
+<a href=#692 id=692 data-nosnippet>692</a>
+<a href=#693 id=693 data-nosnippet>693</a>    <span class="comment">// Finally, the coefficients themselves. The order is at most 32, so all
+<a href=#694 id=694 data-nosnippet>694</a>    // coefficients can be kept on the stack. Store them in reverse, because
+<a href=#695 id=695 data-nosnippet>695</a>    // that how they are used in prediction.
+<a href=#696 id=696 data-nosnippet>696</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>coefficients = [<span class="number">0</span>; <span class="number">32</span>];
+<a href=#697 id=697 data-nosnippet>697</a>    <span class="kw">for </span>coef <span class="kw">in </span>coefficients[..order <span class="kw">as </span>usize].iter_mut().rev() {
+<a href=#698 id=698 data-nosnippet>698</a>        <span class="comment">// We can safely read into a u16, qlp_precision is at most 15.
+<a href=#699 id=699 data-nosnippet>699</a>        </span><span class="kw">let </span>coef_unsig = <span class="macro">try!</span>(input.read_leq_u16(qlp_precision));
+<a href=#700 id=700 data-nosnippet>700</a>        <span class="kw-2">*</span>coef = extend_sign_u16(coef_unsig, qlp_precision);
+<a href=#701 id=701 data-nosnippet>701</a>    }
+<a href=#702 id=702 data-nosnippet>702</a>
+<a href=#703 id=703 data-nosnippet>703</a>    <span class="comment">// Next up is the residual. We decode it into the buffer directly, the
+<a href=#704 id=704 data-nosnippet>704</a>    // predictor contributions will be added in a second pass. The first
+<a href=#705 id=705 data-nosnippet>705</a>    // `order` samples have been decoded already, so continue after that.
+<a href=#706 id=706 data-nosnippet>706</a>    </span><span class="macro">try!</span>(decode_residual(input,
+<a href=#707 id=707 data-nosnippet>707</a>                         buffer.len() <span class="kw">as </span>u16,
+<a href=#708 id=708 data-nosnippet>708</a>                         <span class="kw-2">&amp;mut </span>buffer[order <span class="kw">as </span>usize..]));
+<a href=#709 id=709 data-nosnippet>709</a>
+<a href=#710 id=710 data-nosnippet>710</a>    <span class="comment">// In "subset"-compliant files, the LPC order is at most 12. For LPC
+<a href=#711 id=711 data-nosnippet>711</a>    // prediction of such files we have a special fast path that takes advantage
+<a href=#712 id=712 data-nosnippet>712</a>    // of the low order. We can still decode non-subset file using a less
+<a href=#713 id=713 data-nosnippet>713</a>    // specialized implementation. Non-subset files are rare in the wild.
+<a href=#714 id=714 data-nosnippet>714</a>    </span><span class="kw">if </span>order &lt;= <span class="number">12 </span>{
+<a href=#715 id=715 data-nosnippet>715</a>        predict_lpc_low_order(<span class="kw-2">&amp;</span>coefficients[..order <span class="kw">as </span>usize], qlp_shift, buffer);
+<a href=#716 id=716 data-nosnippet>716</a>    } <span class="kw">else </span>{
+<a href=#717 id=717 data-nosnippet>717</a>        predict_lpc_high_order(<span class="kw-2">&amp;</span>coefficients[..order <span class="kw">as </span>usize], qlp_shift, buffer);
+<a href=#718 id=718 data-nosnippet>718</a>    }
+<a href=#719 id=719 data-nosnippet>719</a>
+<a href=#720 id=720 data-nosnippet>720</a>    <span class="prelude-val">Ok</span>(())
+<a href=#721 id=721 data-nosnippet>721</a>}</code></pre></div></section></main></body></html>

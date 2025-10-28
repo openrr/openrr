@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This is how you start a native (desktop) app."><title>run_native in eframe - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="eframe" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../eframe/index.html">eframe</a><span class="version">0.30.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">run_<wbr>native</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#errors" title="Errors">Errors</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate eframe</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">eframe</a></div><h1>Function <span class="fn">run_native</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/eframe/lib.rs.html#240-279">Source</a> </span></div><pre class="rust item-decl"><code>pub fn run_native(
+    app_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a>,
+    native_options: <a class="struct" href="struct.NativeOptions.html" title="struct eframe::NativeOptions">NativeOptions</a>,
+    app_creator: <a class="type" href="type.AppCreator.html" title="type eframe::AppCreator">AppCreator</a>&lt;'_&gt;,
+) -&gt; <a class="type" href="type.Result.html" title="type eframe::Result">Result</a></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This is how you start a native (desktop) app.</p>
+<p>The first argument is name of your app, which is a an identifier
+used for the save location of persistence (see <a href="trait.App.html#method.save" title="method eframe::App::save"><code>App::save</code></a>).
+It is also used as the application id on wayland.
+If you set no title on the viewport, the app id will be used
+as the title.</p>
+<p>For details about application ID conventions, see the
+<a href="https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html#desktop-file-id">Desktop Entry Spec</a></p>
+<p>Call from <code>fn main</code> like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>eframe::egui;
+
+<span class="kw">fn </span>main() -&gt; eframe::Result {
+    <span class="kw">let </span>native_options = eframe::NativeOptions::default();
+    eframe::run_native(<span class="string">"MyApp"</span>, native_options, Box::new(|cc| <span class="prelude-val">Ok</span>(Box::new(MyEguiApp::new(cc)))))
+}
+
+<span class="attr">#[derive(Default)]
+</span><span class="kw">struct </span>MyEguiApp {}
+
+<span class="kw">impl </span>MyEguiApp {
+    <span class="kw">fn </span>new(cc: <span class="kw-2">&amp;</span>eframe::CreationContext&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="comment">// Customize egui here with cc.egui_ctx.set_fonts and cc.egui_ctx.set_visuals.
+        // Restore app state using cc.storage (requires the "persistence" feature).
+        // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
+        // for e.g. egui::PaintCallback.
+        </span><span class="self">Self</span>::default()
+    }
+}
+
+<span class="kw">impl </span>eframe::App <span class="kw">for </span>MyEguiApp {
+   <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>egui::Context, frame: <span class="kw-2">&amp;mut </span>eframe::Frame) {
+       egui::CentralPanel::default().show(ctx, |ui| {
+           ui.heading(<span class="string">"Hello World!"</span>);
+       });
+   }
+}</code></pre></div>
+<h2 id="errors"><a class="doc-anchor" href="#errors">§</a>Errors</h2>
+<p>This function can fail if we fail to set up a graphics context.</p>
+</div></details></section></div></main></body></html>

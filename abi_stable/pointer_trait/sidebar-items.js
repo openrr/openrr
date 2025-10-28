@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CallReferentDrop","Deallocate","PointerKind"],"mod":["immutable_ref"],"struct":["PK_MutReference","PK_Reference","PK_SmartPointer"],"trait":["AsMutPtr","AsPtr","CanTransmuteElement","GetPointerKind","ImmutableRef","OwnedPointer","PointerKindVariant","TransmuteElement"]};

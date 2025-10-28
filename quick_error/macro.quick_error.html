@@ -1,0 +1,261 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Main macro that does all the work"><title>quick_error in quick_error - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="quick_error" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../quick_error/index.html">quick_<wbr>error</a><span class="version">1.2.3</span></h2></div><div class="sidebar-elems"><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">quick_error</a></div><h1>Macro <span class="macro">quick_error</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/quick_error/lib.rs.html#299-966">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! quick_error {
+    (   $(#[$meta:meta])*
+        pub enum $name:ident { $($chunks:tt)* }
+    ) =&gt; { ... };
+    (   $(#[$meta:meta])*
+        enum $name:ident { $($chunks:tt)* }
+    ) =&gt; { ... };
+    (   $(#[$meta:meta])*
+        pub enum $name:ident wraps $enum_name:ident { $($chunks:tt)* }
+    ) =&gt; { ... };
+    (   $(#[$meta:meta])*
+        pub enum $name:ident wraps pub $enum_name:ident { $($chunks:tt)* }
+    ) =&gt; { ... };
+    (   $(#[$meta:meta])*
+        enum $name:ident wraps $enum_name:ident { $($chunks:tt)* }
+    ) =&gt; { ... };
+    (   $(#[$meta:meta])*
+        enum $name:ident wraps pub $enum_name:ident { $($chunks:tt)* }
+    ) =&gt; { ... };
+    (
+        WRAPPER $internal:ident [ $($strdef:tt)* ] $strname:ident
+        $(#[$meta:meta])*
+    ) =&gt; { ... };
+    (SORT [enum $name:ident $( #[$meta:meta] )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [ ]
+        queue [ ]
+    ) =&gt; { ... };
+    (SORT [pub enum $name:ident $( #[$meta:meta] )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [ ]
+        queue [ ]
+    ) =&gt; { ... };
+    (SORT [$( $def:tt )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [$( #[$bmeta:meta] )*]
+        queue [ #[$qmeta:meta] $( $tail:tt )*]
+    ) =&gt; { ... };
+    (SORT [$( $def:tt )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [$( #[$bmeta:meta] )*]
+        queue [ $qitem:ident $( $tail:tt )*]
+    ) =&gt; { ... };
+    (SORT [$( $def:tt )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [$( #[$bmeta:meta] )*
+            =&gt; $bitem:ident: $bmode:tt [$( $bvar:ident: $btyp:ty ),*] ]
+        queue [ #[$qmeta:meta] $( $tail:tt )*]
+    ) =&gt; { ... };
+    (SORT [$( $def:tt )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [$( #[$bmeta:meta] )* =&gt; $bitem:ident: UNIT [ ] ]
+        queue [($( $qvar:ident: $qtyp:ty ),+) $( $tail:tt )*]
+    ) =&gt; { ... };
+    (SORT [$( $def:tt )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [$( #[$bmeta:meta] )* =&gt; $bitem:ident: UNIT [ ] ]
+        queue [{ $( $qvar:ident: $qtyp:ty ),+} $( $tail:tt )*]
+    ) =&gt; { ... };
+    (SORT [$( $def:tt )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [$( #[$bmeta:meta] )* =&gt; $bitem:ident: UNIT [ ] ]
+        queue [{$( $qvar:ident: $qtyp:ty ),+ ,} $( $tail:tt )*]
+    ) =&gt; { ... };
+    (SORT [$( $def:tt )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [$( #[$bmeta:meta] )*
+                 =&gt; $bitem:ident: $bmode:tt [$( $bvar:ident: $btyp:ty ),*] ]
+        queue [ {$( $qfuncs:tt )*} $( $tail:tt )*]
+    ) =&gt; { ... };
+    (SORT [$( $def:tt )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [$( #[$bmeta:meta] )*
+                 =&gt; $bitem:ident: $bmode:tt [$( $bvar:ident: $btyp:ty ),*] ]
+        queue [ $qitem:ident $( $tail:tt )*]
+    ) =&gt; { ... };
+    (SORT [$( $def:tt )*]
+        items [$($( #[$imeta:meta] )*
+                  =&gt; $iitem:ident: $imode:tt [$( $ivar:ident: $ityp:ty ),*]
+                                {$( $ifuncs:tt )*} )* ]
+        buf [$( #[$bmeta:meta] )*
+            =&gt; $bitem:ident: $bmode:tt [$( $bvar:ident: $btyp:ty ),*] ]
+        queue [ ]
+    ) =&gt; { ... };
+    (ENUM_DEFINITION [pub enum $name:ident $( #[$meta:meta] )*]
+        body [$($( #[$imeta:meta] )*
+            =&gt; $iitem:ident ($(($( $ttyp:ty ),+))*) {$({$( $svar:ident: $styp:ty ),*})*} )* ]
+        queue [ ]
+    ) =&gt; { ... };
+    (ENUM_DEFINITION [enum $name:ident $( #[$meta:meta] )*]
+        body [$($( #[$imeta:meta] )*
+            =&gt; $iitem:ident ($(($( $ttyp:ty ),+))*) {$({$( $svar:ident: $styp:ty ),*})*} )* ]
+        queue [ ]
+    ) =&gt; { ... };
+    (ENUM_DEFINITION [$( $def:tt )*]
+        body [$($( #[$imeta:meta] )*
+            =&gt; $iitem:ident ($(($( $ttyp:ty ),+))*) {$({$( $svar:ident: $styp:ty ),*})*} )* ]
+        queue [$( #[$qmeta:meta] )*
+            =&gt; $qitem:ident: UNIT [ ] $( $queue:tt )*]
+    ) =&gt; { ... };
+    (ENUM_DEFINITION [$( $def:tt )*]
+        body [$($( #[$imeta:meta] )*
+            =&gt; $iitem:ident ($(($( $ttyp:ty ),+))*) {$({$( $svar:ident: $styp:ty ),*})*} )* ]
+        queue [$( #[$qmeta:meta] )*
+            =&gt; $qitem:ident: TUPLE [$( $qvar:ident: $qtyp:ty ),+] $( $queue:tt )*]
+    ) =&gt; { ... };
+    (ENUM_DEFINITION [$( $def:tt )*]
+        body [$($( #[$imeta:meta] )*
+            =&gt; $iitem:ident ($(($( $ttyp:ty ),+))*) {$({$( $svar:ident: $styp:ty ),*})*} )* ]
+        queue [$( #[$qmeta:meta] )*
+            =&gt; $qitem:ident: STRUCT [$( $qvar:ident: $qtyp:ty ),*] $( $queue:tt )*]
+    ) =&gt; { ... };
+    (IMPLEMENTATIONS
+        $name:ident {$(
+            $item:ident: $imode:tt [$(#[$imeta:meta])*] [$( $var:ident: $typ:ty ),*] {$( $funcs:tt )*}
+        )*}
+    ) =&gt; { ... };
+    (FIND_DISPLAY_IMPL $name:ident $item:ident: $imode:tt
+        { display($self_:tt) -&gt; ($( $exprs:tt )*) $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_DISPLAY_IMPL $name:ident $item:ident: $imode:tt
+        { display($pattern:expr) $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_DISPLAY_IMPL $name:ident $item:ident: $imode:tt
+        { display($pattern:expr, $( $exprs:tt )*) $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_DISPLAY_IMPL $name:ident $item:ident: $imode:tt
+        { $t:tt $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_DISPLAY_IMPL $name:ident $item:ident: $imode:tt
+        { }
+    ) =&gt; { ... };
+    (FIND_DESCRIPTION_IMPL $item:ident: $imode:tt $me:ident $fmt:ident
+        [$( $var:ident ),*]
+        { description($expr:expr) $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_DESCRIPTION_IMPL $item:ident: $imode:tt $me:ident $fmt:ident
+        [$( $var:ident ),*]
+        { $t:tt $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_DESCRIPTION_IMPL $item:ident: $imode:tt $me:ident $fmt:ident
+        [$( $var:ident ),*]
+        { }
+    ) =&gt; { ... };
+    (FIND_CAUSE_IMPL $item:ident: $imode:tt
+        [$( $var:ident ),*]
+        { cause($expr:expr) $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_CAUSE_IMPL $item:ident: $imode:tt
+        [$( $var:ident ),*]
+        { $t:tt $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_CAUSE_IMPL $item:ident: $imode:tt
+        [$( $var:ident ),*]
+        { }
+    ) =&gt; { ... };
+    (FIND_FROM_IMPL $name:ident $item:ident: $imode:tt
+        [$( $var:ident: $typ:ty ),*]
+        { from() $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_FROM_IMPL $name:ident $item:ident: UNIT
+        [ ]
+        { from($ftyp:ty) $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_FROM_IMPL $name:ident $item:ident: TUPLE
+        [$( $var:ident: $typ:ty ),*]
+        { from($fvar:ident: $ftyp:ty) -&gt; ($( $texpr:expr ),*) $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_FROM_IMPL $name:ident $item:ident: STRUCT
+        [$( $var:ident: $typ:ty ),*]
+        { from($fvar:ident: $ftyp:ty) -&gt; {$( $tvar:ident: $texpr:expr ),*} $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_FROM_IMPL $name:ident $item:ident: $imode:tt
+        [$( $var:ident: $typ:ty ),*]
+        { $t:tt $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_FROM_IMPL $name:ident $item:ident: $imode:tt
+        [$( $var:ident: $typ:ty ),*]
+        { }
+    ) =&gt; { ... };
+    (FIND_CONTEXT_IMPL $name:ident $item:ident: TUPLE
+        [$( $var:ident: $typ:ty ),*]
+        { context($cvar:ident: AsRef&lt;$ctyp:ty&gt;, $fvar:ident: $ftyp:ty)
+            -&gt; ($( $texpr:expr ),*) $( $tail:tt )* }
+    ) =&gt; { ... };
+    (FIND_CONTEXT_IMPL $name:ident $item:ident: TUPLE
+        [$( $var:ident: $typ:ty ),*]
+        { context($cvar:ident: $ctyp:ty, $fvar:ident: $ftyp:ty)
+            -&gt; ($( $texpr:expr ),*) $( $tail:tt )* }
+    ) =&gt; { ... };
+    (FIND_CONTEXT_IMPL $name:ident $item:ident: STRUCT
+        [$( $var:ident: $typ:ty ),*]
+        { context($cvar:ident: AsRef&lt;$ctyp:ty&gt;, $fvar:ident: $ftyp:ty)
+            -&gt; {$( $tvar:ident: $texpr:expr ),*} $( $tail:tt )* }
+    ) =&gt; { ... };
+    (FIND_CONTEXT_IMPL $name:ident $item:ident: STRUCT
+        [$( $var:ident: $typ:ty ),*]
+        { context($cvar:ident: $ctyp:ty, $fvar:ident: $ftyp:ty)
+            -&gt; {$( $tvar:ident: $texpr:expr ),*} $( $tail:tt )* }
+    ) =&gt; { ... };
+    (FIND_CONTEXT_IMPL $name:ident $item:ident: $imode:tt
+        [$( $var:ident: $typ:ty ),*]
+        { $t:tt $( $tail:tt )*}
+    ) =&gt; { ... };
+    (FIND_CONTEXT_IMPL $name:ident $item:ident: $imode:tt
+        [$( $var:ident: $typ:ty ),*]
+        { }
+    ) =&gt; { ... };
+    (ITEM_BODY $(#[$imeta:meta])* $item:ident: UNIT
+    ) =&gt; { ... };
+    (ITEM_BODY $(#[$imeta:meta])* $item:ident: TUPLE
+        [$( $typ:ty ),*]
+    ) =&gt; { ... };
+    (ITEM_BODY $(#[$imeta:meta])* $item:ident: STRUCT
+        [$( $var:ident: $typ:ty ),*]
+    ) =&gt; { ... };
+    (ITEM_PATTERN $name:ident $item:ident: UNIT []
+    ) =&gt; { ... };
+    (ITEM_PATTERN $name:ident $item:ident: TUPLE
+        [$( ref $var:ident ),*]
+    ) =&gt; { ... };
+    (ITEM_PATTERN $name:ident $item:ident: STRUCT
+        [$( ref $var:ident ),*]
+    ) =&gt; { ... };
+    (ERROR_CHECK $imode:tt display($self_:tt) -&gt; ($( $exprs:tt )*) $( $tail:tt )*) =&gt; { ... };
+    (ERROR_CHECK $imode:tt display($pattern: expr) $( $tail:tt )*) =&gt; { ... };
+    (ERROR_CHECK $imode:tt display($pattern: expr, $( $exprs:tt )*) $( $tail:tt )*) =&gt; { ... };
+    (ERROR_CHECK $imode:tt description($expr:expr) $( $tail:tt )*) =&gt; { ... };
+    (ERROR_CHECK $imode:tt cause($expr:expr) $($tail:tt)*) =&gt; { ... };
+    (ERROR_CHECK $imode:tt from() $($tail:tt)*) =&gt; { ... };
+    (ERROR_CHECK $imode:tt from($ftyp:ty) $($tail:tt)*) =&gt; { ... };
+    (ERROR_CHECK TUPLE from($fvar:ident: $ftyp:ty) -&gt; ($( $e:expr ),*) $( $tail:tt )*) =&gt; { ... };
+    (ERROR_CHECK STRUCT from($fvar:ident: $ftyp:ty) -&gt; {$( $v:ident: $e:expr ),*} $( $tail:tt )*) =&gt; { ... };
+    (ERROR_CHECK TUPLE context($cvar:ident: $ctyp:ty, $fvar:ident: $ftyp:ty)
+        -&gt; ($( $e:expr ),*) $( $tail:tt )*) =&gt; { ... };
+    (ERROR_CHECK STRUCT context($cvar:ident: $ctyp:ty, $fvar:ident: $ftyp:ty)
+        -&gt; {$( $v:ident: $e:expr ),*} $( $tail:tt )*) =&gt; { ... };
+    (ERROR_CHECK $imode:tt ) =&gt; { ... };
+    (IDENT $ident:ident) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Main macro that does all the work</p>
+</div></details></section></div></main></body></html>

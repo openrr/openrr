@@ -1,0 +1,1 @@
+searchState.loadedDescShard("openrr_internal_codegen", 0, "Codegen for openrr-plugin\nCodegen for openrr-remote\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.")

@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Calls the `F` type-level function with `T` as its argument."><title>CallFn in typewit::type_fn - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="typewit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc type"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../typewit/index.html">typewit</a><span class="version">1.14.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">CallFn</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In typewit::<wbr>type_<wbr>fn</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">typewit</a>::<wbr><a href="index.html">type_fn</a></div><h1>Type Alias <span class="type">CallFn</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/typewit/type_fn.rs.html#196">Source</a> </span></div><pre class="rust item-decl"><code>pub type CallFn&lt;F, T&gt; = &lt;F as <a class="trait" href="trait.TypeFn.html" title="trait typewit::type_fn::TypeFn">TypeFn</a>&lt;T&gt;&gt;::<a class="associatedtype" href="trait.TypeFn.html#associatedtype.Output" title="type typewit::type_fn::TypeFn::Output">Output</a>;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Calls the <code>F</code> <a href="trait.TypeFn.html" title="trait typewit::type_fn::TypeFn">type-level function</a> with <code>T</code> as its argument.</p>
+<p>For <code>F:</code><a href="trait.InjTypeFn.html" title="trait typewit::type_fn::InjTypeFn"><code>InjTypeFn&lt;T&gt;</code></a>, it’s better to
+use <a href="type.CallInjFn.html" title="type typewit::type_fn::CallInjFn"><code>CallInjFn</code></a> instead of this type alias.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::CallFn;
+<span class="kw">use </span>core::ops::Mul;
+ 
+<span class="macro">assert_eq!</span>(mul(<span class="number">3u8</span>, <span class="kw-2">&amp;</span><span class="number">5u8</span>), <span class="number">15u8</span>);
+ 
+<span class="kw">fn </span>mul&lt;L, R&gt;(l: L, r: R) -&gt; CallFn&lt;MulOutput&lt;L&gt;, R&gt; 
+<span class="kw">where
+    </span>L: core::ops::Mul&lt;R&gt;
+{
+    l * r
+}
+ 
+<span class="comment">// Declares `struct MulOutput&lt;Lhs&gt;`,
+// a type-level function from `Rhs` to the return type of `Lhs * Rhs`.
+</span><span class="macro">typewit::type_fn!</span> {
+    <span class="kw">struct </span>MulOutput&lt;Lhs&gt;;
+
+    <span class="kw">impl</span>&lt;Rhs&gt; Rhs =&gt; &lt;Lhs <span class="kw">as </span>Mul&lt;Rhs&gt;&gt;::Output
+    <span class="kw">where </span>Lhs: core::ops::Mul&lt;Rhs&gt;
+}</code></pre></div>
+</div></details></section></div></main></body></html>

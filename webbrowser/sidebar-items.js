@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Browser"],"fn":["open","open_browser","open_browser_with_options"],"struct":["BrowserOptions","ParseBrowserError"]};

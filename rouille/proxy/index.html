@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Dispatch a request to another HTTP server."><title>rouille::proxy - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rouille" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../rouille/index.html">rouille</a><span class="version">3.6.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module proxy</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#proxy-vs-full_proxy" title="Proxy() vs full_proxy()">Proxy() vs full_proxy()</a></li><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate rouille</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">rouille</a></div><h1>Module <span>proxy</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/rouille/proxy.rs.html#10-266">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Dispatch a request to another HTTP server.</p>
+<p>This module provides functionalities to dispatch a request to another server. This can be
+used to make rouille behave as a reverse proxy.</p>
+<p>This function call will return immediately after the remote server has finished sending its
+headers. The socket to the remote will be stored in the <code>ResponseBody</code> of the response.</p>
+<h2 id="proxy-vs-full_proxy"><a class="doc-anchor" href="#proxy-vs-full_proxy">§</a>Proxy() vs full_proxy()</h2>
+<p>The difference between <code>proxy()</code> and <code>full_proxy()</code> is that if the target server fails to
+return a proper error, the <code>proxy()</code> function will return an error (in the form of a
+<code>ProxyError</code>) while the <code>full_proxy()</code> will return a <code>Response</code> with a status code indicating
+an error.</p>
+<p>The <code>full_proxy()</code> function will only return an error if the body was already extracted from
+the request before it was called. Since this indicates a logic error in the code, it is a good
+idea to <code>unwrap()</code> the <code>Result</code> returned by <code>full_proxy()</code>.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>You can for example dispatch to a different server depending on the host requested by the
+client.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>rouille::{Request, Response};
+<span class="kw">use </span>rouille::proxy;
+
+<span class="kw">fn </span>handle_request(request: <span class="kw-2">&amp;</span>Request) -&gt; Response {
+    <span class="kw">let </span>config = <span class="kw">match </span>request.header(<span class="string">"Host"</span>) {
+        <span class="prelude-val">Some</span>(h) <span class="kw">if </span>h == <span class="string">"domain1.com" </span>=&gt; {
+            proxy::ProxyConfig {
+                addr: <span class="string">"domain1.handler.localnetwork"</span>,
+                replace_host: <span class="prelude-val">None</span>,
+            }
+        },
+
+        <span class="prelude-val">Some</span>(h) <span class="kw">if </span>h == <span class="string">"domain2.com" </span>=&gt; {
+            proxy::ProxyConfig {
+                addr: <span class="string">"domain2.handler.localnetwork"</span>,
+                replace_host: <span class="prelude-val">None</span>,
+            }
+        },
+
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span>Response::empty_404()
+    };
+
+    proxy::full_proxy(request, config).unwrap()
+}</code></pre></div>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.ProxyConfig.html" title="struct rouille::proxy::ProxyConfig">Proxy<wbr>Config</a></dt><dd>Configuration for the reverse proxy.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.FullProxyError.html" title="enum rouille::proxy::FullProxyError">Full<wbr>Proxy<wbr>Error</a></dt><dd>Error that can happen when calling <code>full_proxy</code>.</dd><dt><a class="enum" href="enum.ProxyError.html" title="enum rouille::proxy::ProxyError">Proxy<wbr>Error</a></dt><dd>Error that can happen when dispatching the request to another server.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.full_proxy.html" title="fn rouille::proxy::full_proxy">full_<wbr>proxy</a></dt><dd>Sends the request to another HTTP server using the configuration.</dd><dt><a class="fn" href="fn.proxy.html" title="fn rouille::proxy::proxy">proxy</a></dt><dd>Sends the request to another HTTP server using the configuration.</dd></dl></section></div></main></body></html>

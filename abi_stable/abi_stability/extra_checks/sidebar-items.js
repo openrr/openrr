@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ExtraChecksError"],"mod":["ExtraChecks_trait","TypeChecker_trait"],"struct":["ExtraChecks_TO","TypeChecker_TO"],"trait":["ExtraChecks","ForExtraChecksImplementor","TypeChecker"],"type":["ExtraChecksBox","ExtraChecksRef","ExtraChecksStaticRef","ExtraChecks_CTO","StoredExtraChecks","TypeCheckerMut","TypeChecker_CTO"]};

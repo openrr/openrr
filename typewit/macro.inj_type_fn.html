@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Declares an injective type-level function"><title>inj_type_fn in typewit - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="typewit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../typewit/index.html">typewit</a><span class="version">1.14.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">inj_<wbr>type_<wbr>fn</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a><ul><li><a href="#basic" title="Basic">Basic</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate typewit</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">typewit</a></div><h1>Macro <span class="macro">inj_type_fn</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/typewit/macros/inj_type_fn_macro.rs.html#106-113">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! inj_type_fn {
+    ($($args:tt)*) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Declares an
+<a href="type_fn/trait.InjTypeFn.html" title="trait typewit::type_fn::InjTypeFn">injective type-level function</a></p>
+<p>This macro takes in the exact same syntax as the <a href="macro.type_fn.html" title="macro typewit::type_fn"><code>type_fn</code></a> macro.</p>
+<p>This macro generates the same items as the <code>type_fn</code> macro,
+in addition to implementing <a href="type_fn/trait.RevTypeFn.html" title="trait typewit::type_fn::RevTypeFn"><code>RevTypeFn</code></a>,
+so that the function implements <a href="type_fn/trait.InjTypeFn.html" title="trait typewit::type_fn::InjTypeFn"><code>InjTypeFn</code></a>.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>This macro is also demonstrated in
+<code>TypeNe::{</code><a href="struct.TypeNe.html#method.map" title="method typewit::TypeNe::map"><code>map</code></a><code>, </code><a href="struct.TypeNe.html#method.project" title="method typewit::TypeNe::project"><code>project</code></a><code>, </code><a href="struct.TypeNe.html#method.unmap" title="method typewit::TypeNe::unmap"><code>unmap</code></a><code>, </code><a href="struct.TypeNe.html#method.unproject" title="method typewit::TypeNe::unproject"><code>unproject</code></a><code>}</code>.</p>
+<h4 id="basic"><a class="doc-anchor" href="#basic">§</a>Basic</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{CallFn, UncallFn, inj_type_fn};
+ 
+<span class="comment">// Calls the `ToSigned` function with `u64` as the argument.
+</span><span class="kw">let _</span>: CallFn&lt;ToSigned, u64&gt; = <span class="number">3i64</span>;
+ 
+<span class="comment">// Gets the argument of the `ToSigned` function from the `i8` return value.
+</span><span class="kw">let _</span>: UncallFn&lt;ToSigned, i8&gt; = <span class="number">5u8</span>;
+ 
+<span class="macro">inj_type_fn!</span>{
+    <span class="kw">struct </span>ToSigned;
+ 
+    <span class="kw">impl </span>u128 =&gt; i128;
+    <span class="kw">impl </span>u64 =&gt; i64;
+    <span class="kw">impl </span>u32 =&gt; i32;
+    <span class="kw">impl </span>u16 =&gt; i16;
+    <span class="kw">impl </span>u8 =&gt; i8;
+}</code></pre></div>
+<details>
+<summary>
+<p>
+<p>the above <code>inj_type_fn</code> macro invocation roughly expands to this code</p>
+</p>
+</summary>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>ToSigned;
+ 
+<span class="kw">impl </span>ToSigned {
+    <span class="kw">const </span>NEW: <span class="self">Self </span>= <span class="self">Self</span>;
+}
+ 
+<span class="kw">impl </span>::typewit::TypeFn&lt;u128&gt; <span class="kw">for </span>ToSigned {
+    <span class="kw">type </span>Output = i128;
+}
+ 
+<span class="kw">impl </span>::typewit::RevTypeFn&lt;i128&gt; <span class="kw">for </span>ToSigned {
+    <span class="kw">type </span>Arg = u128;
+}
+ 
+<span class="kw">impl </span>::typewit::TypeFn&lt;u64&gt; <span class="kw">for </span>ToSigned {
+    <span class="kw">type </span>Output = i64;
+}
+ 
+<span class="kw">impl </span>::typewit::RevTypeFn&lt;i64&gt; <span class="kw">for </span>ToSigned {
+    <span class="kw">type </span>Arg = u64;
+}
+ 
+<span class="kw">impl </span>::typewit::TypeFn&lt;u32&gt; <span class="kw">for </span>ToSigned {
+    <span class="kw">type </span>Output = i32;
+}
+ 
+<span class="kw">impl </span>::typewit::RevTypeFn&lt;i32&gt; <span class="kw">for </span>ToSigned {
+    <span class="kw">type </span>Arg = u32;
+}
+ 
+<span class="kw">impl </span>::typewit::TypeFn&lt;u16&gt; <span class="kw">for </span>ToSigned {
+    <span class="kw">type </span>Output = i16;
+}
+ 
+<span class="kw">impl </span>::typewit::RevTypeFn&lt;i16&gt; <span class="kw">for </span>ToSigned {
+    <span class="kw">type </span>Arg = u16;
+}
+ 
+<span class="kw">impl </span>::typewit::TypeFn&lt;u8&gt; <span class="kw">for </span>ToSigned {
+    <span class="kw">type </span>Output = i8;
+}
+ 
+<span class="kw">impl </span>::typewit::RevTypeFn&lt;i8&gt; <span class="kw">for </span>ToSigned {
+    <span class="kw">type </span>Arg = u8;
+}</code></pre></div>
+</details>
+</div></details></section></div></main></body></html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A 3-dimensional direct isometry using a rotation matrix for its rotational part."><title>IsometryMatrix3 in nalgebra::geometry - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nalgebra" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://nalgebra.org/img/favicon.ico"></head><body class="rustdoc type"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../nalgebra/index.html">nalgebra</a><span class="version">0.30.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Isometry<wbr>Matrix3</a></h2><h3><a href="#aliased-type">Aliased Type</a></h3><h3><a href="#fields">Fields</a></h3><ul class="block field"><li><a href="#structfield.rotation" title="rotation">rotation</a></li><li><a href="#structfield.translation" title="translation">translation</a></li></ul><h3><a href="#implementations">Methods</a></h3><ul class="block method"><li><a href="#method.cast" title="cast">cast</a></li><li><a href="#method.face_towards" title="face_towards">face_towards</a></li><li><a href="#method.lerp_slerp" title="lerp_slerp">lerp_slerp</a></li><li><a href="#method.look_at_lh" title="look_at_lh">look_at_lh</a></li><li><a href="#method.look_at_rh" title="look_at_rh">look_at_rh</a></li><li><a href="#method.new" title="new">new</a></li><li><a href="#method.new_observer_frame" title="new_observer_frame">new_observer_frame</a></li><li><a href="#method.rotation" title="rotation">rotation</a></li><li><a href="#method.translation" title="translation">translation</a></li><li><a href="#method.try_lerp_slerp" title="try_lerp_slerp">try_lerp_slerp</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In nalgebra::<wbr>geometry</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">nalgebra</a>::<wbr><a href="index.html">geometry</a></div><h1>Type Alias <span class="type">IsometryMatrix3</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/nalgebra/geometry/isometry_alias.rs.html#30">Source</a> </span></div><pre class="rust item-decl"><code>pub type IsometryMatrix3&lt;T&gt; = <a class="struct" href="struct.Isometry.html" title="struct nalgebra::geometry::Isometry">Isometry</a>&lt;T, <a class="type" href="type.Rotation3.html" title="type nalgebra::geometry::Rotation3">Rotation3</a>&lt;T&gt;, 3&gt;;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A 3-dimensional direct isometry using a rotation matrix for its rotational part.</p>
+<p><strong>Because this is an alias, not all its methods are listed here. See the <a href="struct.Isometry.html" title="struct nalgebra::geometry::Isometry"><code>Isometry</code></a> type too.</strong></p>
+<p>Also known as a rigid-body motion, or as an element of SE(3).</p>
+</div></details><h2 id="aliased-type" class="section-header">Aliased Type<a href="#aliased-type" class="anchor">§</a></h2><pre class="rust item-decl"><code><div class="code-attribute">#[repr(C)]</div>pub struct IsometryMatrix3&lt;T&gt; {
+    pub rotation: <a class="struct" href="struct.Rotation.html" title="struct nalgebra::geometry::Rotation">Rotation</a>&lt;T, 3&gt;,
+    pub translation: <a class="struct" href="struct.Translation.html" title="struct nalgebra::geometry::Translation">Translation</a>&lt;T, 3&gt;,
+}</code></pre><h2 id="fields" class="fields section-header">Fields<a href="#fields" class="anchor">§</a></h2><span id="structfield.rotation" class="structfield section-header"><a href="#structfield.rotation" class="anchor field">§</a><code>rotation: <a class="struct" href="struct.Rotation.html" title="struct nalgebra::geometry::Rotation">Rotation</a>&lt;T, 3&gt;</code></span><div class="docblock"><p>The pure rotational part of this isometry.</p>
+</div><span id="structfield.translation" class="structfield section-header"><a href="#structfield.translation" class="anchor field">§</a><code>translation: <a class="struct" href="struct.Translation.html" title="struct nalgebra::geometry::Translation">Translation</a>&lt;T, 3&gt;</code></span><div class="docblock"><p>The pure translational part of this isometry.</p>
+</div><h2 id="implementations" class="section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-Isometry%3CT,+Rotation%3CT,+3%3E,+3%3E" class="impl"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_construction.rs.html#441-462">Source</a><a href="#impl-Isometry%3CT,+Rotation%3CT,+3%3E,+3%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../trait.SimdRealField.html" title="trait nalgebra::SimdRealField">SimdRealField</a>&gt; <a class="type" href="type.IsometryMatrix3.html" title="type nalgebra::geometry::IsometryMatrix3">IsometryMatrix3</a>&lt;T&gt;<div class="where">where
+    T::<a class="associatedtype" href="../trait.SimdValue.html#associatedtype.Element" title="type nalgebra::SimdValue::Element">Element</a>: <a class="trait" href="../trait.SimdRealField.html" title="trait nalgebra::SimdRealField">SimdRealField</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.new" class="method"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_construction.rs.html#445">Source</a><h4 class="code-header">pub fn <a href="#method.new" class="fn">new</a>(translation: <a class="type" href="../base/type.Vector3.html" title="type nalgebra::base::Vector3">Vector3</a>&lt;T&gt;, axisangle: <a class="type" href="../base/type.Vector3.html" title="type nalgebra::base::Vector3">Vector3</a>&lt;T&gt;) -&gt; Self</h4></section></summary><div class="docblock"><p>Creates a new isometry from a translation and a rotation axis-angle.</p>
+<h5 id="example"><a class="doc-anchor" href="#example">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>axisangle = Vector3::y() * f32::consts::FRAC_PI_2;
+<span class="kw">let </span>translation = Vector3::new(<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>);
+<span class="comment">// Point and vector being transformed in the tests.
+</span><span class="kw">let </span>pt = Point3::new(<span class="number">4.0</span>, <span class="number">5.0</span>, <span class="number">6.0</span>);
+<span class="kw">let </span>vec = Vector3::new(<span class="number">4.0</span>, <span class="number">5.0</span>, <span class="number">6.0</span>);
+
+<span class="comment">// Isometry with its rotation part represented as a UnitQuaternion
+</span><span class="kw">let </span>iso = Isometry3::new(translation, axisangle);
+<span class="macro">assert_relative_eq!</span>(iso * pt, Point3::new(<span class="number">7.0</span>, <span class="number">7.0</span>, -<span class="number">1.0</span>), epsilon = <span class="number">1.0e-6</span>);
+<span class="macro">assert_relative_eq!</span>(iso * vec, Vector3::new(<span class="number">6.0</span>, <span class="number">5.0</span>, -<span class="number">4.0</span>), epsilon = <span class="number">1.0e-6</span>);
+
+<span class="comment">// Isometry with its rotation part represented as a Rotation3 (a 3x3 rotation matrix).
+</span><span class="kw">let </span>iso = IsometryMatrix3::new(translation, axisangle);
+<span class="macro">assert_relative_eq!</span>(iso * pt, Point3::new(<span class="number">7.0</span>, <span class="number">7.0</span>, -<span class="number">1.0</span>), epsilon = <span class="number">1.0e-6</span>);
+<span class="macro">assert_relative_eq!</span>(iso * vec, Vector3::new(<span class="number">6.0</span>, <span class="number">5.0</span>, -<span class="number">4.0</span>), epsilon = <span class="number">1.0e-6</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.translation" class="method"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_construction.rs.html#445">Source</a><h4 class="code-header">pub fn <a href="#method.translation" class="fn">translation</a>(x: T, y: T, z: T) -&gt; Self</h4></section></summary><div class="docblock"><p>Creates a new isometry from the given translation coordinates.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.rotation" class="method"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_construction.rs.html#445">Source</a><h4 class="code-header">pub fn <a href="#method.rotation" class="fn">rotation</a>(axisangle: <a class="type" href="../base/type.Vector3.html" title="type nalgebra::base::Vector3">Vector3</a>&lt;T&gt;) -&gt; Self</h4></section></summary><div class="docblock"><p>Creates a new isometry from the given rotation angle.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.cast" class="method"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_construction.rs.html#456-461">Source</a><h4 class="code-header">pub fn <a href="#method.cast" class="fn">cast</a>&lt;To: <a class="trait" href="../base/trait.Scalar.html" title="trait nalgebra::base::Scalar">Scalar</a>&gt;(self) -&gt; <a class="type" href="type.IsometryMatrix3.html" title="type nalgebra::geometry::IsometryMatrix3">IsometryMatrix3</a>&lt;To&gt;<div class="where">where
+    <a class="type" href="type.IsometryMatrix3.html" title="type nalgebra::geometry::IsometryMatrix3">IsometryMatrix3</a>&lt;To&gt;: <a class="trait" href="../../simba/scalar/subset/trait.SupersetOf.html" title="trait simba::scalar::subset::SupersetOf">SupersetOf</a>&lt;Self&gt;,</div></h4></section></summary><div class="docblock"><p>Cast the components of <code>self</code> to another type.</p>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>iso = IsometryMatrix3::&lt;f64&gt;::identity();
+<span class="kw">let </span>iso2 = iso.cast::&lt;f32&gt;();
+<span class="macro">assert_eq!</span>(iso2, IsometryMatrix3::&lt;f32&gt;::identity());</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Isometry%3CT,+Rotation%3CT,+3%3E,+3%3E-1" class="impl"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_construction.rs.html#472-477">Source</a><a href="#impl-Isometry%3CT,+Rotation%3CT,+3%3E,+3%3E-1" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../trait.SimdRealField.html" title="trait nalgebra::SimdRealField">SimdRealField</a>&gt; <a class="type" href="type.IsometryMatrix3.html" title="type nalgebra::geometry::IsometryMatrix3">IsometryMatrix3</a>&lt;T&gt;<div class="where">where
+    T::<a class="associatedtype" href="../trait.SimdValue.html#associatedtype.Element" title="type nalgebra::SimdValue::Element">Element</a>: <a class="trait" href="../trait.SimdRealField.html" title="trait nalgebra::SimdRealField">SimdRealField</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.face_towards" class="method"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_construction.rs.html#476">Source</a><h4 class="code-header">pub fn <a href="#method.face_towards" class="fn">face_towards</a>(
+    eye: &amp;<a class="type" href="type.Point3.html" title="type nalgebra::geometry::Point3">Point3</a>&lt;T&gt;,
+    target: &amp;<a class="type" href="type.Point3.html" title="type nalgebra::geometry::Point3">Point3</a>&lt;T&gt;,
+    up: &amp;<a class="type" href="../base/type.Vector3.html" title="type nalgebra::base::Vector3">Vector3</a>&lt;T&gt;,
+) -&gt; Self</h4></section></summary><div class="docblock"><p>Creates an isometry that corresponds to the local frame of an observer standing at the
+point <code>eye</code> and looking toward <code>target</code>.</p>
+<p>It maps the <code>z</code> axis to the view direction <code>target - eye</code>and the origin to the <code>eye</code>.</p>
+<h5 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h5>
+<ul>
+<li>eye - The observer position.</li>
+<li>target - The target position.</li>
+<li>up - Vertical direction. The only requirement of this parameter is to not be collinear
+to <code>eye - at</code>. Non-collinearity is not checked.</li>
+</ul>
+<h5 id="example-2"><a class="doc-anchor" href="#example-2">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>eye = Point3::new(<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>);
+<span class="kw">let </span>target = Point3::new(<span class="number">2.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>);
+<span class="kw">let </span>up = Vector3::y();
+
+<span class="comment">// Isometry with its rotation part represented as a UnitQuaternion
+</span><span class="kw">let </span>iso = Isometry3::face_towards(<span class="kw-2">&amp;</span>eye, <span class="kw-2">&amp;</span>target, <span class="kw-2">&amp;</span>up);
+<span class="macro">assert_eq!</span>(iso * Point3::origin(), eye);
+<span class="macro">assert_relative_eq!</span>(iso * Vector3::z(), Vector3::x());
+
+<span class="comment">// Isometry with its rotation part represented as Rotation3 (a 3x3 rotation matrix).
+</span><span class="kw">let </span>iso = IsometryMatrix3::face_towards(<span class="kw-2">&amp;</span>eye, <span class="kw-2">&amp;</span>target, <span class="kw-2">&amp;</span>up);
+<span class="macro">assert_eq!</span>(iso * Point3::origin(), eye);
+<span class="macro">assert_relative_eq!</span>(iso * Vector3::z(), Vector3::x());</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.new_observer_frame" class="method"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_construction.rs.html#476">Source</a><h4 class="code-header">pub fn <a href="#method.new_observer_frame" class="fn">new_observer_frame</a>(
+    eye: &amp;<a class="type" href="type.Point3.html" title="type nalgebra::geometry::Point3">Point3</a>&lt;T&gt;,
+    target: &amp;<a class="type" href="type.Point3.html" title="type nalgebra::geometry::Point3">Point3</a>&lt;T&gt;,
+    up: &amp;<a class="type" href="../base/type.Vector3.html" title="type nalgebra::base::Vector3">Vector3</a>&lt;T&gt;,
+) -&gt; Self</h4></section><span class="item-info"><div class="stab deprecated"><span class="emoji">👎</span><span>Deprecated: renamed to <code>face_towards</code></span></div></span></summary><div class="docblock"><p>Deprecated: Use <a href="struct.Isometry.html#method.face_towards" title="associated function nalgebra::geometry::Isometry::face_towards"><code>Isometry::face_towards</code></a> instead.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.look_at_rh" class="method"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_construction.rs.html#476">Source</a><h4 class="code-header">pub fn <a href="#method.look_at_rh" class="fn">look_at_rh</a>(eye: &amp;<a class="type" href="type.Point3.html" title="type nalgebra::geometry::Point3">Point3</a>&lt;T&gt;, target: &amp;<a class="type" href="type.Point3.html" title="type nalgebra::geometry::Point3">Point3</a>&lt;T&gt;, up: &amp;<a class="type" href="../base/type.Vector3.html" title="type nalgebra::base::Vector3">Vector3</a>&lt;T&gt;) -&gt; Self</h4></section></summary><div class="docblock"><p>Builds a right-handed look-at view matrix.</p>
+<p>It maps the view direction <code>target - eye</code> to the <strong>negative</strong> <code>z</code> axis to and the <code>eye</code> to the origin.
+This conforms to the common notion of right handed camera look-at <strong>view matrix</strong> from
+the computer graphics community, i.e. the camera is assumed to look toward its local <code>-z</code> axis.</p>
+<h5 id="arguments-1"><a class="doc-anchor" href="#arguments-1">§</a>Arguments</h5>
+<ul>
+<li>eye - The eye position.</li>
+<li>target - The target position.</li>
+<li>up - A vector approximately aligned with required the vertical axis. The only
+requirement of this parameter is to not be collinear to <code>target - eye</code>.</li>
+</ul>
+<h5 id="example-3"><a class="doc-anchor" href="#example-3">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>eye = Point3::new(<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>);
+<span class="kw">let </span>target = Point3::new(<span class="number">2.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>);
+<span class="kw">let </span>up = Vector3::y();
+
+<span class="comment">// Isometry with its rotation part represented as a UnitQuaternion
+</span><span class="kw">let </span>iso = Isometry3::look_at_rh(<span class="kw-2">&amp;</span>eye, <span class="kw-2">&amp;</span>target, <span class="kw-2">&amp;</span>up);
+<span class="macro">assert_eq!</span>(iso * eye, Point3::origin());
+<span class="macro">assert_relative_eq!</span>(iso * Vector3::x(), -Vector3::z());
+
+<span class="comment">// Isometry with its rotation part represented as Rotation3 (a 3x3 rotation matrix).
+</span><span class="kw">let </span>iso = IsometryMatrix3::look_at_rh(<span class="kw-2">&amp;</span>eye, <span class="kw-2">&amp;</span>target, <span class="kw-2">&amp;</span>up);
+<span class="macro">assert_eq!</span>(iso * eye, Point3::origin());
+<span class="macro">assert_relative_eq!</span>(iso * Vector3::x(), -Vector3::z());</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.look_at_lh" class="method"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_construction.rs.html#476">Source</a><h4 class="code-header">pub fn <a href="#method.look_at_lh" class="fn">look_at_lh</a>(eye: &amp;<a class="type" href="type.Point3.html" title="type nalgebra::geometry::Point3">Point3</a>&lt;T&gt;, target: &amp;<a class="type" href="type.Point3.html" title="type nalgebra::geometry::Point3">Point3</a>&lt;T&gt;, up: &amp;<a class="type" href="../base/type.Vector3.html" title="type nalgebra::base::Vector3">Vector3</a>&lt;T&gt;) -&gt; Self</h4></section></summary><div class="docblock"><p>Builds a left-handed look-at view matrix.</p>
+<p>It maps the view direction <code>target - eye</code> to the <strong>positive</strong> <code>z</code> axis and the <code>eye</code> to the origin.
+This conforms to the common notion of right handed camera look-at <strong>view matrix</strong> from
+the computer graphics community, i.e. the camera is assumed to look toward its local <code>z</code> axis.</p>
+<h5 id="arguments-2"><a class="doc-anchor" href="#arguments-2">§</a>Arguments</h5>
+<ul>
+<li>eye - The eye position.</li>
+<li>target - The target position.</li>
+<li>up - A vector approximately aligned with required the vertical axis. The only
+requirement of this parameter is to not be collinear to <code>target - eye</code>.</li>
+</ul>
+<h5 id="example-4"><a class="doc-anchor" href="#example-4">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>eye = Point3::new(<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>);
+<span class="kw">let </span>target = Point3::new(<span class="number">2.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>);
+<span class="kw">let </span>up = Vector3::y();
+
+<span class="comment">// Isometry with its rotation part represented as a UnitQuaternion
+</span><span class="kw">let </span>iso = Isometry3::look_at_lh(<span class="kw-2">&amp;</span>eye, <span class="kw-2">&amp;</span>target, <span class="kw-2">&amp;</span>up);
+<span class="macro">assert_eq!</span>(iso * eye, Point3::origin());
+<span class="macro">assert_relative_eq!</span>(iso * Vector3::x(), Vector3::z());
+
+<span class="comment">// Isometry with its rotation part represented as Rotation3 (a 3x3 rotation matrix).
+</span><span class="kw">let </span>iso = IsometryMatrix3::look_at_lh(<span class="kw-2">&amp;</span>eye, <span class="kw-2">&amp;</span>target, <span class="kw-2">&amp;</span>up);
+<span class="macro">assert_eq!</span>(iso * eye, Point3::origin());
+<span class="macro">assert_relative_eq!</span>(iso * Vector3::x(), Vector3::z());</code></pre></div>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Isometry%3CT,+Rotation%3CT,+3%3E,+3%3E-2" class="impl"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_interpolation.rs.html#80-154">Source</a><a href="#impl-Isometry%3CT,+Rotation%3CT,+3%3E,+3%3E-2" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../trait.SimdRealField.html" title="trait nalgebra::SimdRealField">SimdRealField</a>&gt; <a class="type" href="type.IsometryMatrix3.html" title="type nalgebra::geometry::IsometryMatrix3">IsometryMatrix3</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.lerp_slerp" class="method"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_interpolation.rs.html#106-116">Source</a><h4 class="code-header">pub fn <a href="#method.lerp_slerp" class="fn">lerp_slerp</a>(&amp;self, other: &amp;Self, t: T) -&gt; Self<div class="where">where
+    T: <a class="trait" href="../trait.RealField.html" title="trait nalgebra::RealField">RealField</a>,</div></h4></section></summary><div class="docblock"><p>Interpolates between two isometries using a linear interpolation for the translation part,
+and a spherical interpolation for the rotation part.</p>
+<p>Panics if the angle between both rotations is 180 degrees (in which case the interpolation
+is not well-defined). Use <code>.try_lerp_slerp</code> instead to avoid the panic.</p>
+<h5 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples:</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">let </span>t1 = Translation3::new(<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>);
+<span class="kw">let </span>t2 = Translation3::new(<span class="number">4.0</span>, <span class="number">8.0</span>, <span class="number">12.0</span>);
+<span class="kw">let </span>q1 = Rotation3::from_euler_angles(std::f32::consts::FRAC_PI_4, <span class="number">0.0</span>, <span class="number">0.0</span>);
+<span class="kw">let </span>q2 = Rotation3::from_euler_angles(-std::f32::consts::PI, <span class="number">0.0</span>, <span class="number">0.0</span>);
+<span class="kw">let </span>iso1 = IsometryMatrix3::from_parts(t1, q1);
+<span class="kw">let </span>iso2 = IsometryMatrix3::from_parts(t2, q2);
+
+<span class="kw">let </span>iso3 = iso1.lerp_slerp(<span class="kw-2">&amp;</span>iso2, <span class="number">1.0 </span>/ <span class="number">3.0</span>);
+
+<span class="macro">assert_eq!</span>(iso3.translation.vector, Vector3::new(<span class="number">2.0</span>, <span class="number">4.0</span>, <span class="number">6.0</span>));
+<span class="macro">assert_eq!</span>(iso3.rotation.euler_angles(), (std::f32::consts::FRAC_PI_2, <span class="number">0.0</span>, <span class="number">0.0</span>));</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.try_lerp_slerp" class="method"><a class="src rightside" href="../../src/nalgebra/geometry/isometry_interpolation.rs.html#143-153">Source</a><h4 class="code-header">pub fn <a href="#method.try_lerp_slerp" class="fn">try_lerp_slerp</a>(&amp;self, other: &amp;Self, t: T, epsilon: T) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Self&gt;<div class="where">where
+    T: <a class="trait" href="../trait.RealField.html" title="trait nalgebra::RealField">RealField</a>,</div></h4></section></summary><div class="docblock"><p>Attempts to interpolate between two isometries using a linear interpolation for the translation part,
+and a spherical interpolation for the rotation part.</p>
+<p>Retuns <code>None</code> if the angle between both rotations is 180 degrees (in which case the interpolation
+is not well-defined).</p>
+<h5 id="examples-1"><a class="doc-anchor" href="#examples-1">§</a>Examples:</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">let </span>t1 = Translation3::new(<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>);
+<span class="kw">let </span>t2 = Translation3::new(<span class="number">4.0</span>, <span class="number">8.0</span>, <span class="number">12.0</span>);
+<span class="kw">let </span>q1 = Rotation3::from_euler_angles(std::f32::consts::FRAC_PI_4, <span class="number">0.0</span>, <span class="number">0.0</span>);
+<span class="kw">let </span>q2 = Rotation3::from_euler_angles(-std::f32::consts::PI, <span class="number">0.0</span>, <span class="number">0.0</span>);
+<span class="kw">let </span>iso1 = IsometryMatrix3::from_parts(t1, q1);
+<span class="kw">let </span>iso2 = IsometryMatrix3::from_parts(t2, q2);
+
+<span class="kw">let </span>iso3 = iso1.lerp_slerp(<span class="kw-2">&amp;</span>iso2, <span class="number">1.0 </span>/ <span class="number">3.0</span>);
+
+<span class="macro">assert_eq!</span>(iso3.translation.vector, Vector3::new(<span class="number">2.0</span>, <span class="number">4.0</span>, <span class="number">6.0</span>));
+<span class="macro">assert_eq!</span>(iso3.rotation.euler_angles(), (std::f32::consts::FRAC_PI_2, <span class="number">0.0</span>, <span class="number">0.0</span>));</code></pre></div>
+</div></details></div></details></div><script src="../../type.impl/nalgebra/geometry/struct.Isometry.js" data-self-path="nalgebra::geometry::isometry_alias::IsometryMatrix3" async></script></section></div></main></body></html>

@@ -1,0 +1,417 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The StableAbi derive macro allows one to implement the `StableAbi trait` to :"><title>StableAbi in abi_stable - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc derive"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Stable<wbr>Abi</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#caveats" title="Caveats">Caveats</a></li><li><a href="#container-attributes" title="Container Attributes">Container Attributes</a><ul><li><a href="#sabiphantom_fieldname-type" title="`#[sabi(phantom_field(name: type))]`"><code>#[sabi(phantom_field(name: type))]</code></a></li><li><a href="#sabiphantom_type_param--type" title="`#[sabi(phantom_type_param = type)]`"><code>#[sabi(phantom_type_param = type)]</code></a></li><li><a href="#sabiphantom_const_param--constant-expression" title="`#[sabi(phantom_const_param = constant expression)]`"><code>#[sabi(phantom_const_param = constant expression)]</code></a></li><li><a href="#sabinot_stableabitypeparameter" title="`#[sabi(not_stableabi(TypeParameter))]`"><code>#[sabi(not_stableabi(TypeParameter))]</code></a></li><li><a href="#sabiunsafe_unconstrainedtypeparameter" title="`#[sabi(unsafe_unconstrained(TypeParameter))]`"><code>#[sabi(unsafe_unconstrained(TypeParameter))]</code></a></li><li><a href="#sabiboundtype-atrait" title="`#[sabi(bound(Type: ATrait))]`"><code>#[sabi(bound(Type: ATrait))]</code></a></li><li><a href="#sabiboundstype-atrait-type2-othertrait" title="`#[sabi(bounds(Type: ATrait, Type2: OtherTrait))]`"><code>#[sabi(bounds(Type: ATrait, Type2: OtherTrait))]</code></a></li><li><a href="#sabiprefix_boundtype-atrait" title="`#[sabi(prefix_bound(Type: ATrait))]`"><code>#[sabi(prefix_bound(Type: ATrait))]</code></a></li><li><a href="#sabiprefix_boundstype-atrait-type2-othertrait" title="`#[sabi(prefix_bounds(Type: ATrait, Type2: OtherTrait))]`"><code>#[sabi(prefix_bounds(Type: ATrait, Type2: OtherTrait))]</code></a></li><li><a href="#sabiunsafe_allow_type_macros" title="`#[sabi(unsafe_allow_type_macros)]`"><code>#[sabi(unsafe_allow_type_macros)]</code></a></li><li><a href="#sabitag--some_expr" title="`#[sabi(tag = some_expr)]`"><code>#[sabi(tag = some_expr)]</code></a></li><li><a href="#sabiextra_checks--some_constant_expression" title="`#[sabi(extra_checks = &#60;some_constant_expression&#62;)]`"><code>#[sabi(extra_checks = &lt;some_constant_expression&gt;)]</code></a></li><li><a href="#sabidebug_print" title="`#[sabi(debug_print)]`"><code>#[sabi(debug_print)]</code></a></li><li><a href="#sabikindprefix--" title="`#[sabi(kind(Prefix( .. )))]`"><code>#[sabi(kind(Prefix( .. )))]</code></a></li><li><a href="#sabikindwithnonexhaustive--" title="`#[sabi(kind(WithNonExhaustive( .. ))]`"><code>#[sabi(kind(WithNonExhaustive( .. ))]</code></a></li><li><a href="#sabimodule_reflection" title="`#[sabi(module_reflection(...))]`"><code>#[sabi(module_reflection(...))]</code></a></li><li><a href="#sabiimpl_interfacetype" title="`#[sabi(impl_InterfaceType(...))]`"><code>#[sabi(impl_InterfaceType(...))]</code></a></li><li><a href="#sabiunsafe_opaque_fields" title="`#[sabi(unsafe_opaque_fields]`"><code>#[sabi(unsafe_opaque_fields]</code></a></li><li><a href="#sabiunsafe_sabi_opaque_fields" title="`#[sabi(unsafe_sabi_opaque_fields)]`"><code>#[sabi(unsafe_sabi_opaque_fields)]</code></a></li></ul></li><li><a href="#field-attributes" title="Field attributes">Field attributes</a><ul><li><a href="#sabirename--ident" title="`#[sabi(rename = ident)]`"><code>#[sabi(rename = ident)]</code></a></li><li><a href="#sabiunsafe_change_type--sometype" title="`#[sabi(unsafe_change_type = SomeType)]`"><code>#[sabi(unsafe_change_type = SomeType)]</code></a></li><li><a href="#sabiunsafe_opaque_field" title="`#[sabi(unsafe_opaque_field)]`"><code>#[sabi(unsafe_opaque_field)]</code></a></li><li><a href="#sabiunsafe_sabi_opaque_field" title="`#[sabi(unsafe_sabi_opaque_field)]`"><code>#[sabi(unsafe_sabi_opaque_field)]</code></a></li><li><a href="#sabibound--somebound" title="`#[sabi(bound = SomeBound)]`"><code>#[sabi(bound = SomeBound)]</code></a></li><li><a href="#sabiwith_field_indices" title="`#[sabi(with_field_indices)]`"><code>#[sabi(with_field_indices)]</code></a></li><li><a href="#sabiaccessor_bound--atrait" title="`#[sabi(accessor_bound = ATrait)]`"><code>#[sabi(accessor_bound = ATrait)]</code></a></li><li><a href="#sabilast_prefix_field" title="`#[sabi(last_prefix_field)]`"><code>#[sabi(last_prefix_field)]</code></a></li><li><a href="#sabiaccessible_if--expression" title="`#[sabi(accessible_if = expression)]`"><code>#[sabi(accessible_if = expression)]</code></a></li><li><a href="#sabireflpub_getter--function_name" title="`#[sabi(refl(pub_getter = function_name))]`"><code>#[sabi(refl(pub_getter = function_name))]</code></a></li></ul></li><li><a href="#field-andor-container-attributes" title="Field and/or Container attributes">Field and/or Container attributes</a><ul><li><a href="#sabimissing_field--" title="`#[sabi(missing_field( .. ))]`"><code>#[sabi(missing_field( .. ))]</code></a></li></ul></li><li><a href="#variant-andor-container-attributes" title="Variant and/or Container attributes">Variant and/or Container attributes</a><ul><li><a href="#sabiwith_constructor" title="`#[sabi(with_constructor)]`"><code>#[sabi(with_constructor)]</code></a></li><li><a href="#sabiwith_boxed_constructor" title="`#[sabi(with_boxed_constructor)]`"><code>#[sabi(with_boxed_constructor)]</code></a></li></ul></li><li><a href="#supported-repr-attributes" title="Supported repr attributes">Supported repr attributes</a><ul><li><a href="#reprc" title="`repr(C)`"><code>repr(C)</code></a></li><li><a href="#reprtransparent" title="`repr(transparent)`"><code>repr(transparent)</code></a></li><li><a href="#repri8u8i16u16i32u32i64u64isizeusize" title="`repr(i8|u8|i16|u16|i32|u32|i64|u64|isize|usize)`"><code>repr(i8|u8|i16|u16|i32|u32|i64|u64|isize|usize)</code></a></li><li><a href="#repralign" title="`repr(align(...))`"><code>repr(align(...))</code></a></li></ul></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#basic-example" title="Basic example">Basic example</a></li><li><a href="#on-a-reprtransparent-newtype" title="On a `#[repr(transparent)]` newtype">On a <code>#[repr(transparent)]</code> newtype</a></li><li><a href="#on-a-repru8-enum" title="On a `#[repr(u8)]` enum.">On a <code>#[repr(u8)]</code> enum.</a></li><li><a href="#prefix-types" title="Prefix-types">Prefix-types</a></li><li><a href="#nonexhaustive-enums" title="Nonexhaustive-enums">Nonexhaustive-enums</a></li><li><a href="#examples-of-sabinot_stableabi" title="Examples of `#[sabi(not_stableabi())]`">Examples of <code>#[sabi(not_stableabi())]</code></a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate abi_<wbr>stable</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">abi_stable</a></div><h1>Derive Macro <span class="derive">StableAbi</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/abi_stable_derive/lib.rs.html#13">Source</a> </span></div><pre class="rust item-decl"><code>#[derive(StableAbi)]
+{
+    <span class="comment">// Attributes available to this derive:</span>
+    #[sabi]
+}
+</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The StableAbi derive macro allows one to implement the <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi trait</code></a> to :</p>
+<ul>
+<li>
+<p>Assert that the type has a stable representation across Rust version/compiles.</p>
+</li>
+<li>
+<p>Produce the layout of the type at runtime to check it against the loaded library.</p>
+</li>
+</ul>
+<h2 id="caveats"><a class="doc-anchor" href="#caveats">§</a>Caveats</h2>
+<p>Due to how this macro is implemented, using <code>Self</code> in bounds doesn’t work,
+you must use the full type name and generic arguments.</p>
+<h2 id="container-attributes"><a class="doc-anchor" href="#container-attributes">§</a>Container Attributes</h2>
+<p>These helper attributes are applied on the type declaration.</p>
+<h4 id="sabiphantom_fieldname-type"><a class="doc-anchor" href="#sabiphantom_fieldname-type">§</a><code>#[sabi(phantom_field(name: type))]</code></h4>
+<p>Adds a virtual field to the type layout constant,
+which is checked against the phantom field that was declared in the same order
+for compatibility.</p>
+<h4 id="sabiphantom_type_param--type"><a class="doc-anchor" href="#sabiphantom_type_param--type">§</a><code>#[sabi(phantom_type_param = type)]</code></h4>
+<p>Adds a virtual type parameter to the type layout constant,
+which is checked for compatibility.</p>
+<h4 id="sabiphantom_const_param--constant-expression"><a class="doc-anchor" href="#sabiphantom_const_param--constant-expression">§</a><code>#[sabi(phantom_const_param = constant expression)]</code></h4>
+<p>Adds a virtual const parameter to the type layout constant,
+which is checked for equality with the virtual const parameter declared in the same order.</p>
+<p>The parameter must implement <code>StableAbi + Eq + Debug</code>.</p>
+<p><span id = "not_stableabi_attr"></span></p>
+<h4 id="sabinot_stableabitypeparameter"><a class="doc-anchor" href="#sabinot_stableabitypeparameter">§</a><code>#[sabi(not_stableabi(TypeParameter))]</code></h4>
+<p>Replaces the implicit <code>TypeParameter: </code><a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a> constraint
+with a <code>TypeParameter: </code><a href="abi_stability/get_static_equivalent/trait.GetStaticEquivalent_.html" title="trait abi_stable::abi_stability::get_static_equivalent::GetStaticEquivalent_"><code>GetStaticEquivalent_</code></a> constraint.</p>
+<h4 id="sabiunsafe_unconstrainedtypeparameter"><a class="doc-anchor" href="#sabiunsafe_unconstrainedtypeparameter">§</a><code>#[sabi(unsafe_unconstrained(TypeParameter))]</code></h4>
+<p>Removes the implicit <code>TypeParameter: </code><a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a> constraint.</p>
+<p>The type parameter will be ignored when determining whether the type
+has already been checked, when loading a dynamic library,</p>
+<p>Don’t use this if transmuting this type to have different type parameters,
+only changing the <code>#[sabi(unsafe_unconstrained())]</code> one,
+would cause Undefined Behavior.</p>
+<p>This is only necessary if you are passing <code>TypeParameter</code> to <a href="marker_type/struct.UnsafeIgnoredType.html" title="struct abi_stable::marker_type::UnsafeIgnoredType"><code>UnsafeIgnoredType</code></a></p>
+<h4 id="sabiboundtype-atrait"><a class="doc-anchor" href="#sabiboundtype-atrait">§</a><code>#[sabi(bound(Type: ATrait))]</code></h4>
+<p>Adds a bound to the <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a> impl.</p>
+<h4 id="sabiboundstype-atrait-type2-othertrait"><a class="doc-anchor" href="#sabiboundstype-atrait-type2-othertrait">§</a><code>#[sabi(bounds(Type: ATrait, Type2: OtherTrait))]</code></h4>
+<p>Adds many bounds to the <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a> impl.</p>
+<p><span id = "prefix_bound_attr"></span></p>
+<h4 id="sabiprefix_boundtype-atrait"><a class="doc-anchor" href="#sabiprefix_boundtype-atrait">§</a><code>#[sabi(prefix_bound(Type: ATrait))]</code></h4>
+<p>This is only valid for Prefix types, declared with <a href="#sabi_kind_prefix_attr"><code>#[sabi(kind(Prefix(..)))]</code></a>.</p>
+<p>Adds a bound to the <a href="prefix_type/trait.PrefixTypeTrait.html" title="trait abi_stable::prefix_type::PrefixTypeTrait"><code>PrefixTypeTrait</code></a> impl (for the deriving type).</p>
+<h4 id="sabiprefix_boundstype-atrait-type2-othertrait"><a class="doc-anchor" href="#sabiprefix_boundstype-atrait-type2-othertrait">§</a><code>#[sabi(prefix_bounds(Type: ATrait, Type2: OtherTrait))]</code></h4>
+<p>This is only valid for Prefix types, declared with <a href="#sabi_kind_prefix_attr"><code>#[sabi(kind(Prefix(..)))]</code></a>.</p>
+<p>Adds many bounds to the <a href="prefix_type/trait.PrefixTypeTrait.html" title="trait abi_stable::prefix_type::PrefixTypeTrait"><code>PrefixTypeTrait</code></a> impl (for the deriving type).</p>
+<h4 id="sabiunsafe_allow_type_macros"><a class="doc-anchor" href="#sabiunsafe_allow_type_macros">§</a><code>#[sabi(unsafe_allow_type_macros)]</code></h4>
+<p>This allows type macros to be used alongside the StableAbi derive macro.</p>
+<p>The reason this is unsafe to enable them is because StableAbi cannot currently
+analize the lifetimes within macros,
+which means that if any lifetime argument inside the macro invocation changes
+it won’t be checked by the runtime type checker.</p>
+<p>A type macro is any macro that evaluates to a type.</p>
+<h4 id="sabitag--some_expr"><a class="doc-anchor" href="#sabitag--some_expr">§</a><code>#[sabi(tag = some_expr)]</code></h4>
+<p>Adds a <a href="type_layout/tagging/struct.Tag.html" title="struct abi_stable::type_layout::tagging::Tag"><code>Tag</code></a> associated with the type,
+a dynamically typed data structure used to encode extra properties about a type.</p>
+<p>This can only be done once,
+to add multiple properties you must to use any of a map, an array, or a set.</p>
+<p>You can only rely on tags for safety if
+the specific tags were present since the first compatible version of the library,
+otherwise this only guarantees compatibility between parent and child libraries,
+not sibling libraries.</p>
+<p>Parent means the library/binary that loaded a library,
+or the parents of that one.</p>
+<p>Sibling means libraries loaded at runtime by the same library/binary
+(or a parent of that one).</p>
+<p>For more information about tags, <a href="./type_layout/tagging/index.html">look here</a></p>
+<p><span id = "sabi_extra_checks_attr"></span></p>
+<h4 id="sabiextra_checks--some_constant_expression"><a class="doc-anchor" href="#sabiextra_checks--some_constant_expression">§</a><code>#[sabi(extra_checks = &lt;some_constant_expression&gt;)]</code></h4>
+<p>Adds an <code>ExtraChecks</code> trait object associated with the type,
+which allows encoding and checking extra properties about a type.</p>
+<p><code>&lt;some_constant_expression&gt;</code> must be a constant that implements ExtraChecks .</p>
+<p>For examples of using this attribute
+<a href="./abi_stability/extra_checks/index.html#examples">look here</a></p>
+<h4 id="sabidebug_print"><a class="doc-anchor" href="#sabidebug_print">§</a><code>#[sabi(debug_print)]</code></h4>
+<p>Prints the generated code, stopping compilation.</p>
+<p><span id = "sabi_kind_prefix_attr"></span></p>
+<h4 id="sabikindprefix--"><a class="doc-anchor" href="#sabikindprefix--">§</a><code>#[sabi(kind(Prefix( .. )))]</code></h4>
+<p>Declares the struct as being a prefix-type.</p>
+<p>Arguments (what goes inside <code>#[sabi(kind(Prefix(   &lt;here&gt;   )))]</code>):</p>
+<ul>
+<li>
+<p><code>prefix_ref = &lt;Identifier&gt;)</code> (optional: defaults to <code>&lt;DerivingType&gt;_Ref</code>):
+Declares an ffi-safe pointer to a vtable/module,
+that can be extended in semver compatible versions.<br>
+Uses <code>&lt;Identifier&gt;</code> as the name of the prefix struct.<br>
+For more details on prefix-types <a href="./docs/prefix_types/index.html">look here</a></p>
+</li>
+<li>
+<p><code>prefix_fields = &lt;Identifier&gt;)</code> (optional: defaults to <code>&lt;DerivingType&gt;_Prefix</code>):<br>
+Declares a struct with all the fields in the deriving type up to (and including)
+the field with the <a href="#sabilast_prefix_field"><code>#[sabi(last_prefix_field)]</code></a> attribute,
+named <code>&lt;Identifier&gt;</code>.</p>
+</li>
+<li>
+<p><code>prefix_ref_docs = &lt;expression&gt;</code> (optional, allows multiple):<br>
+Replaces the default documentation for <code>&lt;DerivingType&gt;_Ref</code> with the passed-in expresion.<br>
+If this is passed multiple times, then multiple <code>#[doc = ...]</code> attributes are emitted.</p>
+</li>
+</ul>
+<p><span id = "kind_with_non_exhaustive_attr"></span></p>
+<h4 id="sabikindwithnonexhaustive--"><a class="doc-anchor" href="#sabikindwithnonexhaustive--">§</a><code>#[sabi(kind(WithNonExhaustive( .. ))]</code></h4>
+<p>Declares this enum as being nonexhaustive,
+generating items and impls necessary to wrap this enum in the <a href="./nonexhaustive_enum/struct.NonExhaustive.html"><code>NonExhaustive</code></a> type
+to pass it through ffi.
+For more details on nonexhaustive enums <a href="./docs/sabi_nonexhaustive/index.html">look here</a></p>
+<h4 id="sabimodule_reflection"><a class="doc-anchor" href="#sabimodule_reflection">§</a><code>#[sabi(module_reflection(...))]</code></h4>
+<p>Determines how this type is accessed when treated as a module for reflection.</p>
+<p><code>#[sabi(module_reflection( Module ))]</code><br>
+The default reflection mode, treats its the public fields as module items.</p>
+<p><code>#[sabi(module_reflection( Opaque ))]</code><br>
+Treats this as an empty module.</p>
+<p><code>#[sabi(module_reflection( Deref ))]</code><br>
+Delegates the treatment of this type as a module to the type it dereferences to.</p>
+<h4 id="sabiimpl_interfacetype"><a class="doc-anchor" href="#sabiimpl_interfacetype">§</a><code>#[sabi(impl_InterfaceType(...))]</code></h4>
+<p>Implements the <a href="trait.InterfaceType.html" title="trait abi_stable::InterfaceType"><code>InterfaceType</code></a> trait for a type,
+defining the usable/required traits when creating a
+<a href="struct.DynTrait.html" title="struct abi_stable::DynTrait"><code>DynTrait</code></a><code>&lt;_, ThisType&gt;</code>/<a href="./nonexhaustive_enum/struct.NonExhaustive.html"><code>NonExhaustive</code></a><code>&lt;_, _, ThisType&gt;</code>.</p>
+<p>Syntax: <code>#[sabi(impl_InterfaceType(Trait0, Trait1, ..., TraitN))]</code></p>
+<p>If a trait is not specified,
+it will not be required when constructing <a href="struct.DynTrait.html" title="struct abi_stable::DynTrait"><code>DynTrait</code></a>/<a href="./nonexhaustive_enum/struct.NonExhaustive.html"><code>NonExhaustive</code></a>,
+and won’t be usable afterwards.</p>
+<p><span id = "InterfaceType_traits"> These are the traits you can specify: </span></p>
+<ul>
+<li>
+<p><code>Send</code>: Changing this to require/unrequire in minor versions is an abi breaking change.</p>
+</li>
+<li>
+<p><code>Sync</code>: Changing this to require/unrequire in minor versions is an abi breaking change.</p>
+</li>
+<li>
+<p><code>Unpin</code>: Changing this to require/unrequire in minor versions is an abi breaking change.</p>
+</li>
+<li>
+<p><code>Clone</code></p>
+</li>
+<li>
+<p><code>Default</code></p>
+</li>
+<li>
+<p><code>Display</code></p>
+</li>
+<li>
+<p><code>Debug</code></p>
+</li>
+<li>
+<p><code>Eq</code></p>
+</li>
+<li>
+<p><code>PartialEq</code></p>
+</li>
+<li>
+<p><code>Ord</code></p>
+</li>
+<li>
+<p><code>PartialOrd</code></p>
+</li>
+<li>
+<p><code>Hash</code></p>
+</li>
+<li>
+<p><code>Deserialize</code>: corresponds to <code>serde::Deserialize</code></p>
+</li>
+<li>
+<p><code>Serialize</code>: corresponds to <code>serde::Serialize</code></p>
+</li>
+<li>
+<p><code>Iterator</code>:
+this type will also have to implement <a href="erased_types/trait.IteratorItem.html" title="trait abi_stable::erased_types::IteratorItem"><code>abi_stable::erased_types::IteratorItem</code></a>.</p>
+</li>
+<li>
+<p><code>DoubleEndedIterator</code>:
+this type will also have to implement <a href="erased_types/trait.IteratorItem.html" title="trait abi_stable::erased_types::IteratorItem"><code>abi_stable::erased_types::IteratorItem</code></a>.</p>
+</li>
+<li>
+<p><code>FmtWrite</code>: corresponds to <code>std::fmt::Write</code> .</p>
+</li>
+<li>
+<p><code>IoWrite</code>: corresponds to <code>std::io::Write</code> .</p>
+</li>
+<li>
+<p><code>IoSeek</code>: corresponds to <code>std::io::Seek</code> .</p>
+</li>
+<li>
+<p><code>IoRead</code>: corresponds to <code>std::io::Read</code> .</p>
+</li>
+<li>
+<p><code>IoBufRead</code>: corresponds to <code>std::io::BufRead</code> .</p>
+</li>
+<li>
+<p><code>Error</code>: corresponds to <code>std::error::Error</code> .</p>
+</li>
+</ul>
+<br>
+Examples:
+<ul>
+<li>
+<p><code>#[sabi(impl_InterfaceType(Send, Sync))]</code></p>
+</li>
+<li>
+<p><code>#[sabi(impl_InterfaceType(Send, Sync, Iterator, DoubleEndedIterator))]</code></p>
+</li>
+<li>
+<p><code>#[sabi(impl_InterfaceType(Clone, Debug, FmtWrite))]</code></p>
+</li>
+<li>
+<p><code>#[sabi(impl_InterfaceType(Clone, Debug, IoWrite, IoRead))]</code></p>
+</li>
+</ul>
+<h4 id="sabiunsafe_opaque_fields"><a class="doc-anchor" href="#sabiunsafe_opaque_fields">§</a><code>#[sabi(unsafe_opaque_fields]</code></h4>
+<p>Does not require any field to implement <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a>,
+and instead uses the <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a> impl of <a href="abi_stability/stable_abi_trait/struct.UnsafeOpaqueField.html" title="struct abi_stable::abi_stability::stable_abi_trait::UnsafeOpaqueField"><code>UnsafeOpaqueField</code></a><code>&lt;FieldType&gt;</code>.</p>
+<p>This is unsafe because the layout of their type won’t be verified when loading the library,
+which causes Undefined Behavior if the type has a different layout.</p>
+<h4 id="sabiunsafe_sabi_opaque_fields"><a class="doc-anchor" href="#sabiunsafe_sabi_opaque_fields">§</a><code>#[sabi(unsafe_sabi_opaque_fields)]</code></h4>
+<p>Requires every field to implement <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a>(unless overridden),
+but doesn’t check their layout.</p>
+<p>This is unsafe because the layout of their type won’t be verified when loading the library,
+which causes Undefined Behavior if the type has a different layout.</p>
+<h2 id="field-attributes"><a class="doc-anchor" href="#field-attributes">§</a>Field attributes</h2>
+<p>These helper attributes are applied to fields.</p>
+<h4 id="sabirename--ident"><a class="doc-anchor" href="#sabirename--ident">§</a><code>#[sabi(rename = ident)]</code></h4>
+<p>Renames the field in the generated layout information.
+Use this when renaming private fields.</p>
+<h4 id="sabiunsafe_change_type--sometype"><a class="doc-anchor" href="#sabiunsafe_change_type--sometype">§</a><code>#[sabi(unsafe_change_type = SomeType)]</code></h4>
+<p>Changes the type of this field in the generated type layout constant to SomeType.</p>
+<p>This has the <code>unsafe</code> prefix because SomeType is relied on being correct by
+<a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a>.</p>
+<h4 id="sabiunsafe_opaque_field"><a class="doc-anchor" href="#sabiunsafe_opaque_field">§</a><code>#[sabi(unsafe_opaque_field)]</code></h4>
+<p>Does not require the field to implement <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a>,
+and instead uses the StableAbi impl of <a href="abi_stability/stable_abi_trait/struct.UnsafeOpaqueField.html" title="struct abi_stable::abi_stability::stable_abi_trait::UnsafeOpaqueField"><code>UnsafeOpaqueField</code></a><code>&lt;FieldType&gt;</code>.</p>
+<p>This is unsafe because the layout of the type won’t be verified when loading the library,
+which causes Undefined Behavior if the type has a different layout.</p>
+<h4 id="sabiunsafe_sabi_opaque_field"><a class="doc-anchor" href="#sabiunsafe_sabi_opaque_field">§</a><code>#[sabi(unsafe_sabi_opaque_field)]</code></h4>
+<p>Requires the field to implement <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a> (unless overridden),
+but doesn’t check its layout.</p>
+<p>This is unsafe because the layout of the type won’t be verified when loading the library,
+which causes Undefined Behavior if the type has a different layout.</p>
+<h4 id="sabibound--somebound"><a class="doc-anchor" href="#sabibound--somebound">§</a><code>#[sabi(bound = SomeBound)]</code></h4>
+<p>Adds a <code>TheFieldType: SomeBound</code> constraint to the <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a> impl.</p>
+<p>Eg:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[sabi(bound = Debug)]
+</span>name: RStr&lt;<span class="lifetime">'static</span>&gt;,</code></pre></div>
+<p>adds the <code>RStr&lt;'static&gt;: Debug</code> bound to the <a href="trait.StableAbi.html" title="trait abi_stable::StableAbi"><code>StableAbi</code></a> impl</p>
+<h4 id="sabiwith_field_indices"><a class="doc-anchor" href="#sabiwith_field_indices">§</a><code>#[sabi(with_field_indices)]</code></h4>
+<p>This is only valid for Prefix types, declared with <a href="#sabi_kind_prefix_attr"><code>#[sabi(kind(Prefix(..)))]</code></a>.</p>
+<p>Generates associated constants named <code>field_index_for_&lt;field_name&gt;</code> with
+the index of each field in the prefix type.
+Those indices can then be passed to the <code>abi_stable::prefix_types::panic_on_missing_*</code>
+functions to panic on a missing field.</p>
+<h4 id="sabiaccessor_bound--atrait"><a class="doc-anchor" href="#sabiaccessor_bound--atrait">§</a><code>#[sabi(accessor_bound = ATrait)]</code></h4>
+<p>This is only valid for Prefix types, declared with <a href="#sabi_kind_prefix_attr"><code>#[sabi(kind(Prefix(..)))]</code></a>.</p>
+<p>Adds the bound to the field type in the accessor method.</p>
+<h4 id="sabilast_prefix_field"><a class="doc-anchor" href="#sabilast_prefix_field">§</a><code>#[sabi(last_prefix_field)]</code></h4>
+<p>This is only valid for Prefix types, declared with <a href="#sabi_kind_prefix_attr"><code>#[sabi(kind(Prefix(..)))]</code></a>.</p>
+<p>Declares that the field it is applied to is the last field in the prefix,
+where every field up to it is guaranteed to exist.</p>
+<h4 id="sabiaccessible_if--expression"><a class="doc-anchor" href="#sabiaccessible_if--expression">§</a><code>#[sabi(accessible_if = expression)]</code></h4>
+<p>This is only valid for Prefix types, declared with <a href="#sabi_kind_prefix_attr"><code>#[sabi(kind(Prefix(..)))]</code></a>.</p>
+<p>This attribute turns any field conditional based on the const boolean expression
+(which must be valid a bool constant).</p>
+<p>Whether this attribute is aplied to any given prefix field must not change in minor versions.</p>
+<p>If <code>expression</code> is false, the field won’t be accessible,
+and the type of the field can be anything so long as its size and alignment is compatible.</p>
+<p>If <code>expression</code> is true, the type of the field must be compatible when checking layout.</p>
+<p>If this attribute is apllied to prefix fields,
+it will only be compatible with other types if they agree on
+which accessors are conditional for prefix fields.</p>
+<p>Prefix fields with this attribute are made private in the generated
+<code>&lt;DerivingType&gt;_Prefix</code> struct, without this attribute they keep the visibility.</p>
+<p>To do <code>#[sabi(accessible_if = &lt;TypeParameter as Trait&gt;::CONSTANT)]</code> you can use the
+<a href="#prefix_bound_attr"><code>#[sabi(prefix_bound(TypeParameter: Trait))]</code></a> helper attribute.</p>
+<h4 id="sabireflpub_getter--function_name"><a class="doc-anchor" href="#sabireflpub_getter--function_name">§</a><code>#[sabi(refl(pub_getter = function_name))]</code></h4>
+<p>Determines the public getter for a field used by reflection.</p>
+<p>The function can return either a reference or a value.</p>
+<h2 id="field-andor-container-attributes"><a class="doc-anchor" href="#field-andor-container-attributes">§</a>Field and/or Container attributes</h2><h4 id="sabimissing_field--"><a class="doc-anchor" href="#sabimissing_field--">§</a><code>#[sabi(missing_field( .. ))]</code></h4>
+<p>This is only valid for Prefix types,
+declared with <a href="#sabi_kind_prefix_attr"><code>#[sabi(kind(Prefix(..)))]</code></a>.</p>
+<p>Determines what happens in the accessor method for a field, when the field is missing.
+The default is that it returns an <code>Option&lt;FieldType&gt;</code>,
+returning None if the field is absent, Some(field_value) if it’s present.</p>
+<p>If the attribute is on the struct, it’s applied to all fields(this is overridable)
+after the <a href="#sabilast_prefix_field"><code>#[sabi(last_prefix_field)]</code></a> attribute.</p>
+<p>If the attribute is on a field, it’s applied to that field only,
+overriding the setting on the struct.</p>
+<p><code>#[sabi(missing_field(panic))]</code><br>
+Panics if the field doesn’t exist, with an informative error message.</p>
+<p><code>#[sabi(missing_field(option))]</code><br>
+Returns None if the field doesn’t exist, Some(fieldvalue) if it does.
+This is the default.</p>
+<p><code>#[sabi(missing_field(with = somefunction))]</code><br>
+Returns <code>somefunction()</code> if the field doesn’t exist.</p>
+<p><code>#[sabi(missing_field(value = some_expression))]</code><br>
+Returns <code>some_expression</code> if the field doesn’t exist.</p>
+<p><code>#[sabi(missing_field(default))]</code><br>
+Returns <code>Default::default()</code> if the field doesn’t exist.</p>
+<h2 id="variant-andor-container-attributes"><a class="doc-anchor" href="#variant-andor-container-attributes">§</a>Variant and/or Container attributes</h2><h4 id="sabiwith_constructor"><a class="doc-anchor" href="#sabiwith_constructor">§</a><code>#[sabi(with_constructor)]</code></h4>
+<p>This is only valid for nonexhaustive enums,
+declared with <a href="#kind_with_non_exhaustive_attr"><code>#[sabi(kind(WithNonExhaustive(..)))]</code></a>.</p>
+<p>Creates constructors for enum variant(s), named the same as the variant(s) with an <code>_NE</code> suffix.</p>
+<p>This attribute can be overriden on variants(when it was also applied to the Container itself).</p>
+<p>For a variant like this:
+<code>VariantNamed{foo: RString, bar: RBox&lt;Struct&gt;}</code>
+it would generate an associated function like this(the exact generated code might differ a bit):</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>VariantNamed_NE(foo: RString, bar: RBox&lt;Struct&gt;) -&gt; Enum_NE {
+    <span class="kw">let </span>x = Enum::VariantNamed { foo, bar };
+    NonExhaustive::new(x)
+}</code></pre></div>
+<h4 id="sabiwith_boxed_constructor"><a class="doc-anchor" href="#sabiwith_boxed_constructor">§</a><code>#[sabi(with_boxed_constructor)]</code></h4>
+<p>This is only valid for nonexhaustive enums,
+declared with <a href="#kind_with_non_exhaustive_attr"><code>#[sabi(kind(WithNonExhaustive(..)))]</code></a>.</p>
+<p>Creates constructors for enum variant(s) which only contain a pointer,
+named the same as the variant(s) with an <code>_NE</code> suffix.</p>
+<p>This attribute can be overriden on variants(when it was also applied to the Container itself).</p>
+<p>All constructor functions are declared inside a single impl block with
+<code>Self</code> bounded by the traits that are necessary to construct <a href="./nonexhaustive_enum/struct.NonExhaustive.html"><code>NonExhaustive</code></a> from it.</p>
+<p>For a variant like this:</p>
+<p><code>VariantNamed(RBox&lt;T&gt;)</code></p>
+<p>it would generate an associated function like this(the exact generated code might differ a bit):</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>VariantNamed_NE(value: T) -&gt; Enum_NE&lt;T&gt; {
+    <span class="kw">let </span>x = RBox::new(value);
+    <span class="kw">let </span>x = Enum::VariantNamed(x);
+    NonExhaustive::new(x)
+}</code></pre></div>
+<br>
+<p>For a variant like this:</p>
+<p><code>VariantNamed{ptr_: MyPointer&lt;T&gt;}</code></p>
+<p>it would generate an associated function like this(the exact generated code might differ a bit):</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>VariantNamed_NE(value: T) -&gt; Enum_NE&lt;T&gt; {
+    <span class="kw">let </span>x = MyPointer::new(value);
+    <span class="kw">let </span>x = Enum::VariantNamed { ptr_: x };
+    NonExhaustive::new(x)
+}</code></pre></div>
+<p>For a variant like this:</p>
+<p><code>VariantNamed(BoxedStruct)</code></p>
+<p>it would generate an associated function like this(the exact generated code might differ a bit):</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>VariantNamed_NE(
+    value: &lt;BoxedStruct <span class="kw">as </span>::std::ops::Deref&gt;::Target,
+) -&gt; Enum_NE&lt;T&gt; {
+    <span class="kw">let </span>x = BoxedStruct::new(value);
+    <span class="kw">let </span>x = Enum::VariantNamed(x);
+    NonExhaustive::new(x)
+}</code></pre></div>
+<h2 id="supported-repr-attributes"><a class="doc-anchor" href="#supported-repr-attributes">§</a>Supported repr attributes</h2>
+<p>Because repr attributes can cause the type to change layout,
+the StableAbi derive macro has to know about every repr attribute applied to the type,
+since it might invalidate layout stability.</p>
+<h4 id="reprc"><a class="doc-anchor" href="#reprc">§</a><code>repr(C)</code></h4>
+<p>This is the representation that most StableAbi types will have.</p>
+<h4 id="reprtransparent"><a class="doc-anchor" href="#reprtransparent">§</a><code>repr(transparent)</code></h4>
+<p><code>repr(transparent)</code> types are supported,
+though their layout is not considered equivalent to their only non-zero-sized field,
+since this library considers all types as being meaningful even if zero-sized.</p>
+<h4 id="repri8u8i16u16i32u32i64u64isizeusize"><a class="doc-anchor" href="#repri8u8i16u16i32u32i64u64isizeusize">§</a><code>repr(i8|u8|i16|u16|i32|u32|i64|u64|isize|usize)</code></h4>
+<p>These repr attributes are only supported for enums.</p>
+<h4 id="repralign"><a class="doc-anchor" href="#repralign">§</a><code>repr(align(...))</code></h4>
+<p><code>repr(align(...))</code> is supported,
+so long as it is used in combination with the other supported repr attributes.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="basic-example"><a class="doc-anchor" href="#basic-example">§</a>Basic example</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>abi_stable::StableAbi;
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+</span><span class="kw">struct </span>Point2D {
+    x: u32,
+    y: u32,
+}
+</code></pre></div>
+<h4 id="on-a-reprtransparent-newtype"><a class="doc-anchor" href="#on-a-reprtransparent-newtype">§</a>On a <code>#[repr(transparent)]</code> newtype</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>abi_stable::StableAbi;
+
+<span class="attr">#[repr(transparent)]
+#[derive(StableAbi)]
+</span><span class="kw">pub struct </span>Wrapper&lt;T&gt; {
+    <span class="kw">pub </span>inner: T,
+}
+
+</code></pre></div>
+<h4 id="on-a-repru8-enum"><a class="doc-anchor" href="#on-a-repru8-enum">§</a>On a <code>#[repr(u8)]</code> enum.</h4>
+<p>This enum cannot add variants in minor versions,
+for that you have to use <a href="./docs/sabi_nonexhaustive/index.html">nonexhaustive enums</a>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{std_types::RString, StableAbi};
+
+<span class="attr">#[repr(u8)]
+#[derive(StableAbi)]
+</span><span class="kw">pub enum </span>Command {
+    LaunchRockets,
+    EatLaundry,
+    WakeTheDragon { using: RString },
+}
+</code></pre></div>
+<h4 id="prefix-types"><a class="doc-anchor" href="#prefix-types">§</a>Prefix-types</h4>
+<p>For examples of Prefix-types <a href="./docs/prefix_types/index.html#examples">look here</a>.</p>
+<h4 id="nonexhaustive-enums"><a class="doc-anchor" href="#nonexhaustive-enums">§</a>Nonexhaustive-enums</h4>
+<p>For examples of nonexhaustive enums
+<a href="./docs/sabi_nonexhaustive/index.html#defining-a-deserializable-nonexhaustive-enum">look here for the first example
+</a>.</p>
+<h4 id="examples-of-sabinot_stableabi"><a class="doc-anchor" href="#examples-of-sabinot_stableabi">§</a>Examples of <code>#[sabi(not_stableabi())]</code></h4>
+<p>For examples of using both <a href="derive.GetStaticEquivalent.html" title="derive abi_stable::GetStaticEquivalent"><code>#[derive(GetStaticEquivalent)]</code></a> and
+<a href="#not_stableabi_attr"><code>#[sabi(not_stableabi())]</code></a>
+<a href="derive.GetStaticEquivalent.html#examples" title="derive abi_stable::GetStaticEquivalent">look here</a>.</p>
+</div></details></section></div></main></body></html>

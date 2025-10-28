@@ -1,0 +1,398 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension trait for strings (any type that borrows as `str`)."><title>StringExt in core_extensions::strings - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="core_extensions" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../core_extensions/index.html">core_<wbr>extensions</a><span class="version">1.5.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">String<wbr>Ext</a></h2><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.calc_len_utf16" title="calc_len_utf16">calc_len_utf16</a></li><li><a href="#method.char_indices_from" title="char_indices_from">char_indices_from</a></li><li><a href="#method.char_indices_to" title="char_indices_to">char_indices_to</a></li><li><a href="#method.first_chars" title="first_chars">first_chars</a></li><li><a href="#method.from_nth_char" title="from_nth_char">from_nth_char</a></li><li><a href="#method.get_char_at" title="get_char_at">get_char_at</a></li><li><a href="#method.get_nth_char_index" title="get_nth_char_index">get_nth_char_index</a></li><li><a href="#method.last_chars" title="last_chars">last_chars</a></li><li><a href="#method.left_char_boundary" title="left_char_boundary">left_char_boundary</a></li><li><a href="#method.left_pad" title="left_pad">left_pad</a></li><li><a href="#method.left_padder" title="left_padder">left_padder</a></li><li><a href="#method.line_indentation" title="line_indentation">line_indentation</a></li><li><a href="#method.max_indentation" title="max_indentation">max_indentation</a></li><li><a href="#method.min_indentation" title="min_indentation">min_indentation</a></li><li><a href="#method.next_char_boundary" title="next_char_boundary">next_char_boundary</a></li><li><a href="#method.nth_char" title="nth_char">nth_char</a></li><li><a href="#method.nth_char_index" title="nth_char_index">nth_char_index</a></li><li><a href="#method.previous_char_boundary" title="previous_char_boundary">previous_char_boundary</a></li><li><a href="#method.right_char_boundary" title="right_char_boundary">right_char_boundary</a></li><li><a href="#method.rsplit_while" title="rsplit_while">rsplit_while</a></li><li><a href="#method.split_while" title="split_while">split_while</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In core_<wbr>extensions::<wbr>strings</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">core_extensions</a>::<wbr><a href="index.html">strings</a></div><h1>Trait <span class="trait">StringExt</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/core_extensions/strings/mod.rs.html#15-647">Source</a> </span></div><pre class="rust item-decl"><code>pub trait StringExt: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.Borrow.html" title="trait core::borrow::Borrow">Borrow</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a>&gt; {
+<details class="toggle type-contents-toggle"><summary class="hideme"><span>Show 21 methods</span></summary>    // Provided methods
+    fn <a href="#method.previous_char_boundary" class="fn">previous_char_boundary</a>(&amp;self, index: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.next_char_boundary" class="fn">next_char_boundary</a>(&amp;self, index: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.left_char_boundary" class="fn">left_char_boundary</a>(&amp;self, index: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.right_char_boundary" class="fn">right_char_boundary</a>(&amp;self, index: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.split_while" class="fn">split_while</a>&lt;'a, P, T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>&gt;(
+        &amp;'a self,
+        mapper: P,
+    ) -&gt; <a class="struct" href="struct.SplitWhile.html" title="struct core_extensions::strings::SplitWhile">SplitWhile</a>&lt;'a, P, T&gt; <a href="#" class="tooltip" data-notable-ty="SplitWhile&lt;&#39;a, P, T&gt;">ⓘ</a>
+       <span class="where">where P: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.char.html">char</a>) -&gt; T</span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.rsplit_while" class="fn">rsplit_while</a>&lt;'a, P, T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>&gt;(
+        &amp;'a self,
+        mapper: P,
+    ) -&gt; <a class="struct" href="struct.RSplitWhile.html" title="struct core_extensions::strings::RSplitWhile">RSplitWhile</a>&lt;'a, P, T&gt; <a href="#" class="tooltip" data-notable-ty="RSplitWhile&lt;&#39;a, P, T&gt;">ⓘ</a>
+       <span class="where">where P: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.char.html">char</a>) -&gt; T</span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.get_nth_char_index" class="fn">get_nth_char_index</a>(&amp;self, nth: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt; { ... }
+<span class="item-spacer"></span>    fn <a href="#method.nth_char_index" class="fn">nth_char_index</a>(&amp;self, nth: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.nth_char" class="fn">nth_char</a>(&amp;self, nth: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.char.html">char</a>&gt; { ... }
+<span class="item-spacer"></span>    fn <a href="#method.first_chars" class="fn">first_chars</a>(&amp;self, n: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; &amp;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.last_chars" class="fn">last_chars</a>(&amp;self, n: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; &amp;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.from_nth_char" class="fn">from_nth_char</a>(&amp;self, n: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; &amp;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.calc_len_utf16" class="fn">calc_len_utf16</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.get_char_at" class="fn">get_char_at</a>(&amp;self, at_byte: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.char.html">char</a>&gt; { ... }
+<span class="item-spacer"></span>    fn <a href="#method.char_indices_to" class="fn">char_indices_to</a>(&amp;self, to: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/str/iter/struct.CharIndices.html" title="struct core::str::iter::CharIndices">CharIndices</a>&lt;'_&gt; { ... }
+<span class="item-spacer"></span>    fn <a href="#method.char_indices_from" class="fn">char_indices_from</a>(&amp;self, from: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.CharIndicesFrom.html" title="struct core_extensions::strings::CharIndicesFrom">CharIndicesFrom</a>&lt;'_&gt; <a href="#" class="tooltip" data-notable-ty="CharIndicesFrom&lt;&#39;_&gt;">ⓘ</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.left_pad" class="fn">left_pad</a>(&amp;self, how_much: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.90.0/alloc/string/struct.String.html" title="struct alloc::string::String">String</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.left_padder" class="fn">left_padder</a>&lt;'a&gt;(&amp;'a self, how_much: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.LeftPadder.html" title="struct core_extensions::strings::LeftPadder">LeftPadder</a>&lt;'a&gt; { ... }
+<span class="item-spacer"></span>    fn <a href="#method.line_indentation" class="fn">line_indentation</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.min_indentation" class="fn">min_indentation</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.max_indentation" class="fn">max_indentation</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a> { ... }
+</details>}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension trait for strings (any type that borrows as <code>str</code>).</p>
+</div></details><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.previous_char_boundary" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#44-54">Source</a><h4 class="code-header">fn <a href="#method.previous_char_boundary" class="fn">previous_char_boundary</a>(&amp;self, index: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Returns the previous character boundary, stopping at 0.</p>
+<p>if <code>index &gt; self.len()</code>, returns <code>self.len()</code>.</p>
+<h5 id="example"><a class="doc-anchor" href="#example">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"foo速度惊人"</span>;
+
+<span class="macro">assert_eq!</span>(word.previous_char_boundary(<span class="number">0</span>), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(word.previous_char_boundary(<span class="number">1</span>), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(word.previous_char_boundary(<span class="number">2</span>), <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(word.previous_char_boundary(<span class="number">3</span>), <span class="number">2</span>);
+
+<span class="comment">// This input index is inside of '速'
+</span><span class="macro">assert_eq!</span>(word.previous_char_boundary(<span class="number">4</span>), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(word.previous_char_boundary(<span class="number">5</span>), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(word.previous_char_boundary(<span class="number">6</span>), <span class="number">3</span>);
+
+<span class="comment">// This input index is inside of '度'
+</span><span class="macro">assert_eq!</span>(word.previous_char_boundary(<span class="number">7</span>), <span class="number">6</span>);
+
+<span class="macro">assert_eq!</span>(word.previous_char_boundary(<span class="number">10000</span>), word.len());
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.next_char_boundary" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#82-92">Source</a><h4 class="code-header">fn <a href="#method.next_char_boundary" class="fn">next_char_boundary</a>(&amp;self, index: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Returns the next character boundary.</p>
+<p>If <code>index &gt; self.len()</code>, returns <code>self.len()</code></p>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"foo誰もが"</span>;
+
+<span class="macro">assert_eq!</span>(word.next_char_boundary(<span class="number">0</span>), <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(word.next_char_boundary(<span class="number">1</span>), <span class="number">2</span>);
+<span class="macro">assert_eq!</span>(word.next_char_boundary(<span class="number">2</span>), <span class="number">3</span>);
+
+<span class="comment">// This input index is inside of '誰'
+</span><span class="macro">assert_eq!</span>(word.next_char_boundary(<span class="number">3</span>), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(word.next_char_boundary(<span class="number">4</span>), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(word.next_char_boundary(<span class="number">5</span>), <span class="number">6</span>);
+
+<span class="comment">// This input index is inside of 'も'
+</span><span class="macro">assert_eq!</span>(word.next_char_boundary(<span class="number">6</span>), <span class="number">9</span>);
+
+<span class="macro">assert_eq!</span>(word.next_char_boundary(<span class="number">10000</span>), word.len());
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.left_char_boundary" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#119-128">Source</a><h4 class="code-header">fn <a href="#method.left_char_boundary" class="fn">left_char_boundary</a>(&amp;self, index: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Returns the closest characted boundary left of <code>index</code>(including <code>index</code>).</p>
+<p>if <code>index &gt; self.len()</code>, returns <code>self.len()</code></p>
+<h5 id="example-2"><a class="doc-anchor" href="#example-2">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"barЯзык"</span>;
+
+<span class="macro">assert_eq!</span>(word.left_char_boundary(<span class="number">0</span>), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(word.left_char_boundary(<span class="number">1</span>), <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(word.left_char_boundary(<span class="number">2</span>), <span class="number">2</span>);
+
+<span class="comment">// The input index is inside of 'Я'
+</span><span class="macro">assert_eq!</span>(word.left_char_boundary(<span class="number">3</span>), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(word.left_char_boundary(<span class="number">4</span>), <span class="number">3</span>);
+
+<span class="comment">// The input index is inside of 'з'
+</span><span class="macro">assert_eq!</span>(word.left_char_boundary(<span class="number">5</span>), <span class="number">5</span>);
+<span class="macro">assert_eq!</span>(word.left_char_boundary(<span class="number">6</span>), <span class="number">5</span>);
+
+<span class="macro">assert_eq!</span>(word.left_char_boundary(<span class="number">10000</span>), word.len());
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.right_char_boundary" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#152-161">Source</a><h4 class="code-header">fn <a href="#method.right_char_boundary" class="fn">right_char_boundary</a>(&amp;self, index: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Returns the closest characted boundary right of <code>index</code>(including <code>index</code>).</p>
+<p>if <code>index &gt; self.len()</code>, returns <code>self.len()</code></p>
+<h5 id="example-3"><a class="doc-anchor" href="#example-3">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"rápido"</span>;
+
+<span class="macro">assert_eq!</span>(word.right_char_boundary(<span class="number">0</span>),<span class="number">0</span>);
+
+<span class="comment">// The input index is inside of 'á'
+</span><span class="macro">assert_eq!</span>(word.right_char_boundary(<span class="number">1</span>), <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(word.right_char_boundary(<span class="number">2</span>), <span class="number">3</span>);
+
+<span class="macro">assert_eq!</span>(word.right_char_boundary(<span class="number">3</span>), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(word.right_char_boundary(<span class="number">4</span>), <span class="number">4</span>);
+
+<span class="macro">assert_eq!</span>(word.right_char_boundary(<span class="number">10000</span>), word.len());
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.split_while" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#191-203">Source</a><h4 class="code-header">fn <a href="#method.split_while" class="fn">split_while</a>&lt;'a, P, T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>&gt;(
+    &amp;'a self,
+    mapper: P,
+) -&gt; <a class="struct" href="struct.SplitWhile.html" title="struct core_extensions::strings::SplitWhile">SplitWhile</a>&lt;'a, P, T&gt; <a href="#" class="tooltip" data-notable-ty="SplitWhile&lt;&#39;a, P, T&gt;">ⓘ</a><div class="where">where
+    P: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.char.html">char</a>) -&gt; T,</div></h4></section></summary><div class="docblock"><p>Returns an iterator over substrings whose characters were mapped to
+the same key by <code>mapper</code>.</p>
+<p>The returned type implements
+<code>DoubleEndedIterator&lt;Item =</code><a href="./struct.KeyStr.html">KeyStr</a><code>&lt;T&gt;&gt;</code>.</p>
+<h5 id="example-4"><a class="doc-anchor" href="#example-4">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::strings::{StringExt, KeyStr};
+
+<span class="macro">assert_eq!</span>(
+    <span class="string">"Hello, world!"</span>.split_while(|c| c.is_alphanumeric()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+    <span class="macro">vec!</span>[
+        KeyStr{key: <span class="bool-val">true</span>, str: <span class="string">"Hello"</span>},
+        KeyStr{key: <span class="bool-val">false</span>, str: <span class="string">", "</span>},
+        KeyStr{key: <span class="bool-val">true</span>, str: <span class="string">"world"</span>},
+        KeyStr{key: <span class="bool-val">false</span>, str: <span class="string">"!"</span>},
+    ]
+);
+<span class="macro">assert_eq!</span>(
+    <span class="string">"aaabbbccc"</span>.split_while(|c| c).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+    <span class="macro">vec!</span>[
+        KeyStr{key: <span class="string">'a'</span>, str: <span class="string">"aaa"</span>},
+        KeyStr{key: <span class="string">'b'</span>, str: <span class="string">"bbb"</span>},
+        KeyStr{key: <span class="string">'c'</span>, str: <span class="string">"ccc"</span>},
+    ]
+);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.rsplit_while" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#233-245">Source</a><h4 class="code-header">fn <a href="#method.rsplit_while" class="fn">rsplit_while</a>&lt;'a, P, T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>&gt;(
+    &amp;'a self,
+    mapper: P,
+) -&gt; <a class="struct" href="struct.RSplitWhile.html" title="struct core_extensions::strings::RSplitWhile">RSplitWhile</a>&lt;'a, P, T&gt; <a href="#" class="tooltip" data-notable-ty="RSplitWhile&lt;&#39;a, P, T&gt;">ⓘ</a><div class="where">where
+    P: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.char.html">char</a>) -&gt; T,</div></h4></section></summary><div class="docblock"><p>A variation of <a href="#method.split_while"><code>split_while</code></a> that iterates
+from the right(the order of substrings is reversed).</p>
+<p>The returned type implements
+<code>DoubleEndedIterator&lt;Item =</code><a href="./struct.KeyStr.html">KeyStr</a><code>&lt;T&gt;&gt;</code>.</p>
+<h5 id="example-5"><a class="doc-anchor" href="#example-5">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::strings::{StringExt, KeyStr};
+
+<span class="macro">assert_eq!</span>(
+    <span class="string">"Hello, world!"</span>.rsplit_while(|c| c.is_alphanumeric()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+    <span class="macro">vec!</span>[
+        KeyStr{key: <span class="bool-val">false</span>, str: <span class="string">"!"</span>},
+        KeyStr{key: <span class="bool-val">true</span>, str: <span class="string">"world"</span>},
+        KeyStr{key: <span class="bool-val">false</span>, str: <span class="string">", "</span>},
+        KeyStr{key: <span class="bool-val">true</span>, str: <span class="string">"Hello"</span>},
+    ]
+);
+<span class="macro">assert_eq!</span>(
+    <span class="string">"aaabbbccc"</span>.rsplit_while(|c| c).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+    <span class="macro">vec!</span>[
+        KeyStr{key: <span class="string">'c'</span>, str: <span class="string">"ccc"</span>},
+        KeyStr{key: <span class="string">'b'</span>, str: <span class="string">"bbb"</span>},
+        KeyStr{key: <span class="string">'a'</span>, str: <span class="string">"aaa"</span>},
+    ]
+);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_nth_char_index" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#268-270">Source</a><h4 class="code-header">fn <a href="#method.get_nth_char_index" class="fn">get_nth_char_index</a>(&amp;self, nth: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;</h4></section></summary><div class="docblock"><p>The byte index of the <code>nth</code> character</p>
+<p>If there is no <code>nth</code> character, this returns <code>None</code>.</p>
+<p>This operation takes <code>O(n)</code> time, where <code>n</code> is <code>self.len()</code>.</p>
+<h5 id="example-6"><a class="doc-anchor" href="#example-6">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"fooпозволяющий"</span>;
+
+<span class="macro">assert_eq!</span>(word.get_nth_char_index(<span class="number">0</span>), <span class="prelude-val">Some</span>(<span class="number">0</span>));
+<span class="macro">assert_eq!</span>(word.get_nth_char_index(<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+<span class="macro">assert_eq!</span>(word.get_nth_char_index(<span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+<span class="macro">assert_eq!</span>(word.get_nth_char_index(<span class="number">3</span>), <span class="prelude-val">Some</span>(<span class="number">3</span>));
+<span class="macro">assert_eq!</span>(word.get_nth_char_index(<span class="number">4</span>), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+<span class="macro">assert_eq!</span>(word.get_nth_char_index(<span class="number">5</span>), <span class="prelude-val">Some</span>(<span class="number">7</span>));
+
+<span class="macro">assert_eq!</span>(word.get_nth_char_index(<span class="number">13</span>), <span class="prelude-val">Some</span>(<span class="number">23</span>));
+<span class="macro">assert_eq!</span>(word.get_nth_char_index(<span class="number">14</span>), <span class="prelude-val">None</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.nth_char_index" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#294-299">Source</a><h4 class="code-header">fn <a href="#method.nth_char_index" class="fn">nth_char_index</a>(&amp;self, nth: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>The byte index of the <code>nth</code> character</p>
+<p>If there is no <code>nth</code> character, this returns <code>self.len()</code>.</p>
+<p>This operation takes <code>O(n)</code> time, where <code>n</code> is <code>self.len()</code>.</p>
+<h5 id="example-7"><a class="doc-anchor" href="#example-7">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"fooпозволяющий"</span>;
+
+<span class="macro">assert_eq!</span>(word.nth_char_index(<span class="number">0</span>), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(word.nth_char_index(<span class="number">1</span>), <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(word.nth_char_index(<span class="number">2</span>), <span class="number">2</span>);
+<span class="macro">assert_eq!</span>(word.nth_char_index(<span class="number">3</span>), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(word.nth_char_index(<span class="number">4</span>), <span class="number">5</span>);
+<span class="macro">assert_eq!</span>(word.nth_char_index(<span class="number">5</span>), <span class="number">7</span>);
+
+<span class="macro">assert_eq!</span>(word.nth_char_index(<span class="number">13</span>), <span class="number">23</span>);
+<span class="macro">assert_eq!</span>(word.nth_char_index(<span class="number">14</span>), word.len());</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.nth_char" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#320-322">Source</a><h4 class="code-header">fn <a href="#method.nth_char" class="fn">nth_char</a>(&amp;self, nth: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.char.html">char</a>&gt;</h4></section></summary><div class="docblock"><p>Returns the <code>nth</code> character in the str.</p>
+<p>This operation takes <code>O(n)</code> time, where <code>n</code> is <code>self.len()</code>.</p>
+<h5 id="example-8"><a class="doc-anchor" href="#example-8">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"débuter"</span>;
+
+<span class="macro">assert_eq!</span>(word.nth_char(<span class="number">0</span>), <span class="prelude-val">Some</span>(<span class="string">'d'</span>));
+<span class="macro">assert_eq!</span>(word.nth_char(<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="string">'é'</span>));
+<span class="macro">assert_eq!</span>(word.nth_char(<span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="string">'b'</span>));
+<span class="macro">assert_eq!</span>(word.nth_char(<span class="number">3</span>), <span class="prelude-val">Some</span>(<span class="string">'u'</span>));
+<span class="macro">assert_eq!</span>(word.nth_char(<span class="number">4</span>), <span class="prelude-val">Some</span>(<span class="string">'t'</span>));
+<span class="macro">assert_eq!</span>(word.nth_char(<span class="number">5</span>), <span class="prelude-val">Some</span>(<span class="string">'e'</span>));
+<span class="macro">assert_eq!</span>(word.nth_char(<span class="number">6</span>), <span class="prelude-val">Some</span>(<span class="string">'r'</span>));
+<span class="macro">assert_eq!</span>(word.nth_char(<span class="number">7</span>), <span class="prelude-val">None</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.first_chars" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#341-344">Source</a><h4 class="code-header">fn <a href="#method.first_chars" class="fn">first_chars</a>(&amp;self, n: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; &amp;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a></h4></section></summary><div class="docblock"><p>Returns a string containing the first <code>n</code> chars.</p>
+<p>if <code>n</code> is greater than the amount of chars, this returns the entire string.</p>
+<h5 id="example-9"><a class="doc-anchor" href="#example-9">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"сине"</span>;
+
+<span class="macro">assert_eq!</span>(word.first_chars(<span class="number">0</span>),<span class="string">""</span>);
+<span class="macro">assert_eq!</span>(word.first_chars(<span class="number">1</span>),<span class="string">"с"</span>);
+<span class="macro">assert_eq!</span>(word.first_chars(<span class="number">2</span>),<span class="string">"си"</span>);
+<span class="macro">assert_eq!</span>(word.first_chars(<span class="number">3</span>),<span class="string">"син"</span>);
+<span class="macro">assert_eq!</span>(word.first_chars(<span class="number">4</span>),<span class="string">"сине"</span>);
+<span class="macro">assert_eq!</span>(word.first_chars(<span class="number">5</span>),<span class="string">"сине"</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.last_chars" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#362-374">Source</a><h4 class="code-header">fn <a href="#method.last_chars" class="fn">last_chars</a>(&amp;self, n: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; &amp;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a></h4></section></summary><div class="docblock"><p>Returns a string containing the last <code>n</code> chars</p>
+<p>if <code>n</code> is greater than the amount of chars, this returns the entire string.</p>
+<h5 id="example-10"><a class="doc-anchor" href="#example-10">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"сине"</span>;
+
+<span class="macro">assert_eq!</span>(word.last_chars(<span class="number">0</span>),<span class="string">""</span>);
+<span class="macro">assert_eq!</span>(word.last_chars(<span class="number">1</span>),<span class="string">"е"</span>);
+<span class="macro">assert_eq!</span>(word.last_chars(<span class="number">2</span>),<span class="string">"не"</span>);
+<span class="macro">assert_eq!</span>(word.last_chars(<span class="number">3</span>),<span class="string">"ине"</span>);
+<span class="macro">assert_eq!</span>(word.last_chars(<span class="number">4</span>),<span class="string">"сине"</span>);
+<span class="macro">assert_eq!</span>(word.last_chars(<span class="number">5</span>),<span class="string">"сине"</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.from_nth_char" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#395-398">Source</a><h4 class="code-header">fn <a href="#method.from_nth_char" class="fn">from_nth_char</a>(&amp;self, n: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; &amp;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a></h4></section></summary><div class="docblock"><p>Returns the string from the <code>n</code>th character</p>
+<p>if <code>n</code> is greater than the amount of chars, this returns an empty string.</p>
+<h5 id="example-11"><a class="doc-anchor" href="#example-11">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"υιός"</span>;
+
+<span class="macro">assert_eq!</span>(word.from_nth_char(<span class="number">0</span>), <span class="string">"υιός"</span>);
+<span class="macro">assert_eq!</span>(word.from_nth_char(<span class="number">1</span>), <span class="string">"ιός"</span>);
+<span class="macro">assert_eq!</span>(word.from_nth_char(<span class="number">2</span>), <span class="string">"ός"</span>);
+<span class="macro">assert_eq!</span>(word.from_nth_char(<span class="number">3</span>), <span class="string">"ς"</span>);
+<span class="macro">assert_eq!</span>(word.from_nth_char(<span class="number">4</span>), <span class="string">""</span>);
+<span class="macro">assert_eq!</span>(word.from_nth_char(<span class="number">5</span>), <span class="string">""</span>);
+<span class="macro">assert_eq!</span>(word.from_nth_char(<span class="number">6</span>), <span class="string">""</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.calc_len_utf16" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#415-419">Source</a><h4 class="code-header">fn <a href="#method.calc_len_utf16" class="fn">calc_len_utf16</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Returns the length of the string in utf16</p>
+<h5 id="warning"><a class="doc-anchor" href="#warning">§</a>Warning</h5>
+<p>This is calculated every time the function is called.</p>
+<h5 id="example-12"><a class="doc-anchor" href="#example-12">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="macro">assert_eq!</span>(<span class="string">"foo"</span>.calc_len_utf16(), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"υιός"</span>.calc_len_utf16(), <span class="number">4</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"👪"</span>.calc_len_utf16(), <span class="number">2</span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_char_at" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#449-456">Source</a><h4 class="code-header">fn <a href="#method.get_char_at" class="fn">get_char_at</a>(&amp;self, at_byte: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.char.html">char</a>&gt;</h4></section></summary><div class="docblock"><p>Returns the character at the <code>at_byte</code> index inside of the string,
+returning <code>None</code> if the index is outside the string.</p>
+<p>If the index is between char boundaries,
+this returns the char at the previous char boundary.</p>
+<p>If <code>self.len() &lt;= index</code>, this returns none.</p>
+<h5 id="example-13"><a class="doc-anchor" href="#example-13">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"foo 効 门"</span>;
+
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">0</span>), <span class="prelude-val">Some</span>(<span class="string">'f'</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="string">'o'</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="string">'o'</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">3</span>), <span class="prelude-val">Some</span>(<span class="string">' '</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">4</span>), <span class="prelude-val">Some</span>(<span class="string">'効'</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">5</span>), <span class="prelude-val">Some</span>(<span class="string">'効'</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">6</span>), <span class="prelude-val">Some</span>(<span class="string">'効'</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">7</span>), <span class="prelude-val">Some</span>(<span class="string">' '</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">8</span>), <span class="prelude-val">Some</span>(<span class="string">'门'</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">9</span>), <span class="prelude-val">Some</span>(<span class="string">'门'</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">10</span>), <span class="prelude-val">Some</span>(<span class="string">'门'</span>));
+<span class="macro">assert_eq!</span>(word.get_char_at(<span class="number">11</span>), <span class="prelude-val">None</span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.char_indices_to" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#488-492">Source</a><h4 class="code-header">fn <a href="#method.char_indices_to" class="fn">char_indices_to</a>(&amp;self, to: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/str/iter/struct.CharIndices.html" title="struct core::str::iter::CharIndices">CharIndices</a>&lt;'_&gt;</h4></section></summary><div class="docblock"><p>Returns an iterator over (index,char) pairs up to
+(but not including) the char at the <code>to</code> byte.</p>
+<p>IF the index is between char boundaries,
+it doesn’t include the char that index is inside of.</p>
+<p>if <code>index &gt; self.len()</code>, returns an iterator over the entire string.</p>
+<h5 id="example-14"><a class="doc-anchor" href="#example-14">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"foo 効 "</span>;
+
+<span class="macro">assert_eq!</span>(word.char_indices_to(<span class="number">0</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[]);
+<span class="macro">assert_eq!</span>(word.char_indices_to(<span class="number">1</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[(<span class="number">0</span>, <span class="string">'f'</span>)]);
+ 
+<span class="kw">let </span>expected_a = <span class="macro">vec!</span>[(<span class="number">0</span>, <span class="string">'f'</span>), (<span class="number">1</span>, <span class="string">'o'</span>), (<span class="number">2</span>, <span class="string">'o'</span>), (<span class="number">3</span>, <span class="string">' '</span>)];
+<span class="macro">assert_eq!</span>(word.char_indices_to(<span class="number">4</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_a);
+<span class="macro">assert_eq!</span>(word.char_indices_to(<span class="number">5</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_a);
+<span class="macro">assert_eq!</span>(word.char_indices_to(<span class="number">6</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_a);
+ 
+<span class="kw">let </span>expected_b = <span class="macro">vec!</span>[(<span class="number">0</span>, <span class="string">'f'</span>), (<span class="number">1</span>, <span class="string">'o'</span>), (<span class="number">2</span>, <span class="string">'o'</span>), (<span class="number">3</span>, <span class="string">' '</span>), (<span class="number">4</span>, <span class="string">'効'</span>)];
+<span class="macro">assert_eq!</span>(word.char_indices_to(<span class="number">7</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_b);
+     
+<span class="kw">let </span>expected_c = <span class="macro">vec!</span>[(<span class="number">0</span>, <span class="string">'f'</span>), (<span class="number">1</span>, <span class="string">'o'</span>), (<span class="number">2</span>, <span class="string">'o'</span>), (<span class="number">3</span>, <span class="string">' '</span>), (<span class="number">4</span>, <span class="string">'効'</span>), (<span class="number">7</span>, <span class="string">' '</span>)];
+<span class="macro">assert_eq!</span>(word.char_indices_to(<span class="number">8</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_c);
+<span class="macro">assert_eq!</span>(word.char_indices_to(<span class="number">100</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_c);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.char_indices_from" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#528-535">Source</a><h4 class="code-header">fn <a href="#method.char_indices_from" class="fn">char_indices_from</a>(&amp;self, from: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.CharIndicesFrom.html" title="struct core_extensions::strings::CharIndicesFrom">CharIndicesFrom</a>&lt;'_&gt; <a href="#" class="tooltip" data-notable-ty="CharIndicesFrom&lt;&#39;_&gt;">ⓘ</a></h4></section></summary><div class="docblock"><p>Returns an iterator over (index, char) pairs, starting from the <code>from</code> byte.</p>
+<p>If the index is between char boundaries,
+this starts from the char at the previous char boundary.</p>
+<p>if <code>index &gt; self.len()</code>, returns an empty iterator.</p>
+<h5 id="example-15"><a class="doc-anchor" href="#example-15">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="kw">let </span>word = <span class="string">"foo 効 "</span>;
+
+<span class="kw">let </span>expected_a = <span class="macro">vec!</span>[(<span class="number">0</span>, <span class="string">'f'</span>), (<span class="number">1</span>, <span class="string">'o'</span>), (<span class="number">2</span>, <span class="string">'o'</span>), (<span class="number">3</span>, <span class="string">' '</span>), (<span class="number">4</span>, <span class="string">'効'</span>), (<span class="number">7</span>, <span class="string">' '</span>)];
+<span class="macro">assert_eq!</span>(word.char_indices_from(<span class="number">0</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_a);
+
+<span class="kw">let </span>expected_b = <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="string">'o'</span>), (<span class="number">2</span>, <span class="string">'o'</span>), (<span class="number">3</span>, <span class="string">' '</span>), (<span class="number">4</span>, <span class="string">'効'</span>), (<span class="number">7</span>, <span class="string">' '</span>)];
+<span class="macro">assert_eq!</span>(word.char_indices_from(<span class="number">1</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_b);
+
+<span class="kw">let </span>expected_c = <span class="macro">vec!</span>[(<span class="number">3</span>, <span class="string">' '</span>), (<span class="number">4</span>, <span class="string">'効'</span>), (<span class="number">7</span>, <span class="string">' '</span>)];
+<span class="macro">assert_eq!</span>(word.char_indices_from(<span class="number">3</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_c);
+
+<span class="kw">let </span>expected_c = <span class="macro">vec!</span>[(<span class="number">4</span>, <span class="string">'効'</span>), (<span class="number">7</span>, <span class="string">' '</span>)];
+<span class="macro">assert_eq!</span>(word.char_indices_from(<span class="number">4</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_c);
+<span class="macro">assert_eq!</span>(word.char_indices_from(<span class="number">5</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_c);
+<span class="macro">assert_eq!</span>(word.char_indices_from(<span class="number">6</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), expected_c);
+ 
+<span class="macro">assert_eq!</span>(word.char_indices_from(<span class="number">7</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[(<span class="number">7</span>, <span class="string">' '</span>)]);
+
+<span class="macro">assert_eq!</span>(word.char_indices_from(<span class="number">8</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[]);
+
+<span class="macro">assert_eq!</span>(word.char_indices_from(<span class="number">9</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[]);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.left_pad" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#552-555">Source</a><h4 class="code-header">fn <a href="#method.left_pad" class="fn">left_pad</a>(&amp;self, how_much: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.90.0/alloc/string/struct.String.html" title="struct alloc::string::String">String</a></h4></section></summary><div class="docblock"><p>Pads the string on the left with <code>how_much</code> additional spaces.</p>
+<h5 id="example-16"><a class="doc-anchor" href="#example-16">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="macro">assert_eq!</span>(
+    <span class="string">"what\n  the\n    hall"</span>.left_pad(<span class="number">4</span>),
+    <span class="string">"    what\n      the\n        hall"
+</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.left_padder" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#573-575">Source</a><h4 class="code-header">fn <a href="#method.left_padder" class="fn">left_padder</a>&lt;'a&gt;(&amp;'a self, how_much: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.LeftPadder.html" title="struct core_extensions::strings::LeftPadder">LeftPadder</a>&lt;'a&gt;</h4></section></summary><div class="docblock"><p>Returns a value that pads the string on the left with <code>how_much</code> additional
+spaces in its <code>Display</code> impl.</p>
+<p>Use this to avoid allocating an extra string.</p>
+<h5 id="example-17"><a class="doc-anchor" href="#example-17">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="macro">assert_eq!</span>(
+   <span class="string">"what\n  the\n    hall"</span>.left_pad(<span class="number">4</span>).to_string(),
+   <span class="string">"    what\n      the\n        hall"
+</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.line_indentation" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#594-597">Source</a><h4 class="code-header">fn <a href="#method.line_indentation" class="fn">line_indentation</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>The indentation of the first line.</p>
+<p>This considers lines that only contains whitespace to have as
+much indentation as they’re long.</p>
+<h5 id="example-18"><a class="doc-anchor" href="#example-18">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="macro">assert_eq!</span>(<span class="string">""</span>.line_indentation(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    "</span>.line_indentation(), <span class="number">4</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    \n      word"</span>.line_indentation(), <span class="number">4</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    \nword"</span>.line_indentation(), <span class="number">4</span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.min_indentation" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#616-623">Source</a><h4 class="code-header">fn <a href="#method.min_indentation" class="fn">min_indentation</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>The minimum indentation of the string, ignoring lines that only contain whitespace.</p>
+<h5 id="example-19"><a class="doc-anchor" href="#example-19">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="macro">assert_eq!</span>(<span class="string">""</span>.min_indentation(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    "</span>.min_indentation(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    \nf"</span>.min_indentation(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    \n      word"</span>.min_indentation(), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    \n word"</span>.min_indentation(), <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    \n\nword"</span>.min_indentation(), <span class="number">0</span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.max_indentation" class="method"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#639-646">Source</a><h4 class="code-header">fn <a href="#method.max_indentation" class="fn">max_indentation</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>The maximum indentation of the string, ignoring lines that only contain whitespace.</p>
+<h5 id="example-20"><a class="doc-anchor" href="#example-20">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::StringExt;
+
+<span class="macro">assert_eq!</span>(<span class="string">""</span>.max_indentation(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    "</span>.max_indentation(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    \n      word"</span>.max_indentation(), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"    \n  word"</span>.max_indentation(), <span class="number">2</span>);
+</code></pre></div>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-StringExt-for-T" class="impl"><a class="src rightside" href="../../src/core_extensions/strings/mod.rs.html#649">Source</a><a href="#impl-StringExt-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="trait.StringExt.html" title="trait core_extensions::strings::StringExt">StringExt</a> for T<div class="where">where
+    T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.Borrow.html" title="trait core::borrow::Borrow">Borrow</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a>&gt; + ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></div><script src="../../trait.impl/core_extensions/strings/trait.StringExt.js" async></script><script type="text/json" id="notable-traits-data">{"CharIndicesFrom<'_>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.CharIndicesFrom.html\" title=\"struct core_extensions::strings::CharIndicesFrom\">CharIndicesFrom</a>&lt;'a&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.CharIndicesFrom.html\" title=\"struct core_extensions::strings::CharIndicesFrom\">CharIndicesFrom</a>&lt;'a&gt;</div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = (<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.90.0/std/primitive.usize.html\">usize</a>, <a class=\"primitive\" href=\"https://doc.rust-lang.org/1.90.0/std/primitive.char.html\">char</a>);</div>","RSplitWhile<'a, P, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.RSplitWhile.html\" title=\"struct core_extensions::strings::RSplitWhile\">RSplitWhile</a>&lt;'a, P, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, P, T: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html\" title=\"trait core::cmp::Eq\">Eq</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.RSplitWhile.html\" title=\"struct core_extensions::strings::RSplitWhile\">RSplitWhile</a>&lt;'a, P, T&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html\" title=\"trait core::ops::function::FnMut\">FnMut</a>(<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.90.0/std/primitive.char.html\">char</a>) -&gt; T,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"struct\" href=\"struct.KeyStr.html\" title=\"struct core_extensions::strings::KeyStr\">KeyStr</a>&lt;'a, T&gt;;</div>","SplitWhile<'a, P, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.SplitWhile.html\" title=\"struct core_extensions::strings::SplitWhile\">SplitWhile</a>&lt;'a, P, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, P, T: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html\" title=\"trait core::cmp::Eq\">Eq</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.SplitWhile.html\" title=\"struct core_extensions::strings::SplitWhile\">SplitWhile</a>&lt;'a, P, T&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html\" title=\"trait core::ops::function::FnMut\">FnMut</a>(<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.90.0/std/primitive.char.html\">char</a>) -&gt; T,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"struct\" href=\"struct.KeyStr.html\" title=\"struct core_extensions::strings::KeyStr\">KeyStr</a>&lt;'a, T&gt;;</div>"}</script></section></div></main></body></html>

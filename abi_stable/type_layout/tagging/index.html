@@ -1,0 +1,183 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Tag is a dynamically typed data structure used to encode extra properties about a type in its layout constant."><title>abi_stable::type_layout::tagging - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module tagging</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#comparison-semantics" title="Comparison semantics">Comparison semantics</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#declaring-a-unit-type-with-a-tag" title="Declaring a unit type with a tag.">Declaring a unit type with a tag.</a></li><li><a href="#emulating-const-generics-for-strings" title="Emulating const generics for strings">Emulating const generics for strings</a></li><li><a href="#declaring-each-variant" title="Declaring each variant.">Declaring each variant.</a></li><li><a href="#creating-a-complex-data-structure" title="Creating a complex data structure.">Creating a complex data structure.</a></li></ul></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In abi_<wbr>stable::<wbr>type_<wbr>layout</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">abi_stable</a>::<wbr><a href="../index.html">type_layout</a></div><h1>Module <span>tagging</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/abi_stable/type_layout/tagging.rs.html#1-936">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Tag is a dynamically typed data structure used to encode extra properties
+about a type in its layout constant.</p>
+<h2 id="comparison-semantics"><a class="doc-anchor" href="#comparison-semantics">§</a>Comparison semantics</h2>
+<p>Tags don’t use strict equality when doing layout checking ,
+here is an exhaustive list on what is considered compatible
+for each variant <strong>in the interface</strong>:</p>
+<ul>
+<li>
+<p>Null:
+A Tag which is compatible with any other one.
+Note that Nulls are stripped from arrays,set,and map keys.</p>
+</li>
+<li>
+<p>Integers/bools/strings:
+They must be strictly equal.</p>
+</li>
+<li>
+<p>Arrays:
+They must have the same length, and have elements that compare equal.</p>
+</li>
+<li>
+<p>Sets/Maps:
+The set/map in the interface must be a subset of the implementation,</p>
+</li>
+</ul>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="declaring-a-unit-type-with-a-tag"><a class="doc-anchor" href="#declaring-a-unit-type-with-a-tag">§</a>Declaring a unit type with a tag.</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>abi_stable::{tag,StableAbi};
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi( tag = <span class="macro">tag!</span>(<span class="string">"WAT"</span>))]
+</span><span class="kw">struct </span>UnitType;
+
+
+
+</code></pre></div>
+<h4 id="emulating-const-generics-for-strings"><a class="doc-anchor" href="#emulating-const-generics-for-strings">§</a>Emulating const generics for strings</h4>
+<p>This emulates a <code>const NAME:&amp;'static str</code> parameter,
+which is checked as being the same between the interface and implementation.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{tag,StableAbi,marker_type::UnsafeIgnoredType};
+
+
+<span class="kw">trait </span>Name{
+    <span class="kw">const </span>NAME:<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
+}
+
+<span class="doccomment">///
+/// The layout of `StringParameterized&lt;S&gt;` is determined by `&lt;S as Name&gt;::NAME`,
+/// allowing the interface crate to have a different `S`
+/// type parameter than the implementation crate,
+/// so long as they have the same associated `&amp;'static str`.
+///
+/// StringParameterized&lt;Foo&gt; has the "same" layout as StringParameterized&lt;Bar&gt;.
+///
+/// StringParameterized&lt;Foo&gt; has a "different" layout to StringParameterized&lt;Boor&gt;.
+///
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(
+    bound(S:Name),
+    tag = <span class="macro">tag!</span>( S::NAME ),
+)]
+</span><span class="kw">struct </span>StringParameterized&lt;S&gt;{
+    _marker:UnsafeIgnoredType&lt;S&gt;
+}
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+</span><span class="kw">struct </span>Foo;
+
+<span class="kw">impl </span>Name <span class="kw">for </span>Foo{
+    <span class="kw">const </span>NAME:<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str=<span class="string">"Hello, World!"</span>;
+}
+
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+</span><span class="kw">struct </span>Bar;
+
+<span class="kw">impl </span>Name <span class="kw">for </span>Bar{
+    <span class="kw">const </span>NAME:<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str=<span class="string">"Hello, Helloooooo!"</span>;
+}
+
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+</span><span class="kw">struct </span>Boor;
+
+<span class="kw">impl </span>Name <span class="kw">for </span>Boor{
+    <span class="kw">const </span>NAME:<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str=<span class="string">"This is a different string!"</span>;
+}
+
+</code></pre></div>
+<h4 id="declaring-each-variant"><a class="doc-anchor" href="#declaring-each-variant">§</a>Declaring each variant.</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    rslice,tag,
+    type_layout::Tag,
+};
+
+<span class="kw">const </span>NULL:Tag=Tag::null();
+
+
+<span class="kw">const </span>BOOL_MACRO:Tag=<span class="macro">tag!</span>( <span class="bool-val">false </span>);
+<span class="kw">const </span>BOOL_FN   :Tag=Tag::bool_(<span class="bool-val">false</span>);
+
+
+<span class="kw">const </span>INT_MACRO_0:Tag=<span class="macro">tag!</span>(  <span class="number">100 </span>);
+<span class="kw">const </span>INT_FN_0   :Tag=Tag::int(<span class="number">100</span>);
+
+<span class="kw">const </span>INT_MACRO_1:Tag=<span class="macro">tag!</span>( -<span class="number">100 </span>);
+<span class="kw">const </span>INT_FN_1   :Tag=Tag::int(-<span class="number">100</span>);
+
+
+<span class="comment">// This can only be declared using the function for now.
+</span><span class="kw">const </span>UINT:Tag=Tag::uint(<span class="number">100</span>);
+
+
+<span class="kw">const </span>STR_0_MACRO:Tag=<span class="macro">tag!</span>(<span class="string">"Hello,World!"</span>);
+<span class="kw">const </span>STR_0_FN:Tag=Tag::str(<span class="string">"Hello,World!"</span>);
+
+<span class="kw">const </span>ARR_0_MACRO:Tag=<span class="macro">tag!</span>[[ <span class="number">0</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">3 </span>]];
+<span class="kw">const </span>ARR_0_FN:Tag=Tag::arr(<span class="macro">rslice!</span>[
+    Tag::int(<span class="number">0</span>),
+    Tag::int(<span class="number">1</span>),
+    Tag::int(<span class="number">2</span>),
+    Tag::int(<span class="number">3</span>),
+]);
+
+
+<span class="kw">const </span>SET_0_MACRO:Tag=<span class="macro">tag!</span>{{ <span class="number">0</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">3 </span>}};
+<span class="kw">const </span>SET_0_FN:Tag=Tag::set(<span class="macro">rslice!</span>[
+    Tag::int(<span class="number">0</span>),
+    Tag::int(<span class="number">1</span>),
+    Tag::int(<span class="number">2</span>),
+    Tag::int(<span class="number">3</span>),
+]);
+
+
+<span class="kw">const </span>MAP_0_MACRO:Tag=<span class="macro">tag!</span>{{
+    <span class="number">0</span>=&gt;<span class="string">"a"</span>,
+    <span class="number">1</span>=&gt;<span class="string">"b"</span>,
+    <span class="number">2</span>=&gt;<span class="bool-val">false</span>,
+    <span class="number">3</span>=&gt;<span class="number">100</span>,
+}};
+<span class="kw">const </span>MAP_0_FN:Tag=Tag::map(<span class="macro">rslice!</span>[
+    Tag::kv( Tag::int(<span class="number">0</span>), Tag::str(<span class="string">"a"</span>)),
+    Tag::kv( Tag::int(<span class="number">1</span>), Tag::str(<span class="string">"b"</span>)),
+    Tag::kv( Tag::int(<span class="number">2</span>), Tag::bool_(<span class="bool-val">false</span>)),
+    Tag::kv( Tag::int(<span class="number">3</span>), Tag::int(<span class="number">100</span>)),
+]);
+
+</code></pre></div>
+<h4 id="creating-a-complex-data-structure"><a class="doc-anchor" href="#creating-a-complex-data-structure">§</a>Creating a complex data structure.</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    tag,
+    type_layout::Tag,
+};
+
+<span class="kw">const </span>TAG:Tag=<span class="macro">tag!</span>{{
+    <span class="comment">// This must match exactly,
+    // adding required traits on the interface or the implementation
+    // would be a breaking change.
+    </span><span class="string">"required"</span>=&gt;<span class="macro">tag!</span>[[
+        <span class="string">"Copy"</span>,
+    ]],
+     
+    <span class="string">"requires at least"</span>=&gt;<span class="macro">tag!</span>{{
+        <span class="string">"Debug"</span>,
+        <span class="string">"Display"</span>,
+    }},
+
+
+    <span class="string">"maps"</span>=&gt;<span class="macro">tag!</span>{{
+        <span class="number">0</span>=&gt;<span class="string">"Zero"</span>,
+        <span class="number">1</span>=&gt;<span class="string">"One"</span>,
+    }}
+}};
+
+</code></pre></div>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.CheckableTag.html" title="struct abi_stable::type_layout::tagging::CheckableTag">Checkable<wbr>Tag</a></dt><dd>A tag that can be checked for compatibility with another tag.</dd><dt><a class="struct" href="struct.FromLiteral.html" title="struct abi_stable::type_layout::tagging::FromLiteral">From<wbr>Literal</a></dt><dd>Used to convert many types to <code>Tag</code>.</dd><dt><a class="struct" href="struct.KeyValue.html" title="struct abi_stable::type_layout::tagging::KeyValue">KeyValue</a></dt><dd>A key-value pair,used when constructing a map.</dd><dt><a class="struct" href="struct.Tag.html" title="struct abi_stable::type_layout::tagging::Tag">Tag</a></dt><dd>Tag is a dynamically typed data structure used to encode extra properties
+about a type in its layout constant.</dd><dt><a class="struct" href="struct.TagErrors.html" title="struct abi_stable::type_layout::tagging::TagErrors">TagErrors</a></dt><dd>The error produced when checking <code>CheckableTag</code>s.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.CTVariant.html" title="enum abi_stable::type_layout::tagging::CTVariant">CTVariant</a></dt><dd>The possible variants of CheckableTag.</dd><dt><a class="enum" href="enum.Primitive.html" title="enum abi_stable::type_layout::tagging::Primitive">Primitive</a></dt><dd>The primitive types of a variant,which do not contain other nested tags.</dd><dt><a class="enum" href="enum.TagVariant.html" title="enum abi_stable::type_layout::tagging::TagVariant">TagVariant</a></dt><dd>All the Tag variants.</dd></dl></section></div></main></body></html>

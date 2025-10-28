@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["EventType","QuerySubsType"],"struct":["Addr","ClientInfo","ClientIter","Connect","EvCtrl","EvNote","EvQueueControl","EvResult","Event","Input","MidiEvent","PortCap","PortInfo","PortIter","PortSubscribe","PortSubscribeIter","PortType","QueueStatus","QueueTempo","Remove","RemoveEvents","Seq"],"trait":["EventData"]};

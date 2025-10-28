@@ -1,0 +1,66 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Declares `const` and `type` aliases for type-level strings."><title>alias in tstr - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="tstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../tstr/index.html">tstr</a><span class="version">0.2.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">alias</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#string-arguments" title="String Arguments">String Arguments</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#indexing" title="Indexing">Indexing</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate tstr</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">tstr</a></div><h1>Macro <span class="macro">alias</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/tstr/macros.rs.html#248-268">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! alias {
+    (
+        $(
+            $(#[$attr:meta])*
+            $vis:vis $name:ident = $expr:tt
+        );*
+        $(;)?
+    ) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Declares <code>const</code> and <code>type</code> aliases for type-level strings.</p>
+<h2 id="string-arguments"><a class="doc-anchor" href="#string-arguments">§</a>String Arguments</h2>
+<p>You can alias either one type-level string, or a tuple of type-level strings</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">tstr::alias!</span>{
+    <span class="comment">// Aliases the "bar" type-level string as both a const and a type, named Bar.
+    </span><span class="kw">pub </span>Bar = bar;
+
+    <span class="comment">// Aliases the "0" type-level string.
+    </span><span class="kw">pub </span>N0 = <span class="number">0</span>;
+
+    <span class="comment">// Aliases the ("foo", "baz") tuple of type-level strings,
+    // Equivalent to `TS!(foo, baz)` and `ts!("foo", "baz")`
+    </span><span class="kw">pub </span>Tup = (foo, baz);
+}
+</code></pre></div>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="indexing"><a class="doc-anchor" href="#indexing">§</a>Indexing</h4>
+<p>This uses types from the <code>for_examples</code> module,
+which can be seen in the docs with the “for_examples” feature.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::ops::Index;
+
+<span class="kw">use </span>tstr::for_examples::{Foo, Bar};
+
+<span class="macro">tstr::alias!</span>{
+    <span class="comment">// Declares both an NBar type alias and an NBar constant of that type.
+    </span><span class="kw">pub </span>NBar = bar;
+
+    <span class="comment">// Declares both an NBaz type alias and an NBaz constant of that type.
+    </span><span class="kw">pub </span>NBaz = <span class="string">"baz"</span>;
+
+    <span class="comment">// Declares both an NQux type alias and an NQux constant of that type.
+    </span><span class="kw">pub </span>NQux = <span class="string">"qux"</span>;
+
+}
+
+<span class="comment">// The macro can also be invoked like this
+</span><span class="macro">tstr::alias!</span>{ <span class="kw">pub </span>NBoom = boom }
+
+<span class="kw">let </span>this = Foo::new(<span class="number">3</span>, <span class="number">5</span>, <span class="string">"8"</span>);
+<span class="macro">assert_eq!</span>(get_bar_baz(<span class="kw-2">&amp;</span>this), (<span class="number">3</span>, <span class="number">5</span>));
+
+<span class="kw">let </span>other = Bar::new(<span class="number">13</span>, <span class="bool-val">false</span>, <span class="prelude-val">Some</span>(<span class="string">'C'</span>));
+<span class="macro">assert_eq!</span>(get_bar_baz(<span class="kw-2">&amp;</span>other), (<span class="number">13</span>, <span class="bool-val">false</span>));
+
+
+<span class="kw">type </span>IndexOut&lt;T, N&gt; = &lt;T <span class="kw">as </span>Index&lt;N&gt;&gt;::Output;
+
+<span class="kw">fn </span>get_bar_baz&lt;T&gt;(this: <span class="kw-2">&amp;</span>T) -&gt; (IndexOut&lt;T, NBar&gt;, IndexOut&lt;T, NBaz&gt;)
+<span class="kw">where
+    </span>T: Index&lt;NBar&gt; + Index&lt;NBaz&gt;,
+    IndexOut&lt;T, NBar&gt;: Copy,
+    IndexOut&lt;T, NBaz&gt;: Copy,
+{
+    (this[NBar], this[NBaz])
+}
+</code></pre></div>
+</div></details></section></div></main></body></html>

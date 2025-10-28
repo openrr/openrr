@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["HeaderReadError"],"fn":["read_header_comment","read_header_ident","read_header_setup"],"struct":["CommentHeader","IdentHeader","SetupHeader"],"type":["HeaderSet"]};

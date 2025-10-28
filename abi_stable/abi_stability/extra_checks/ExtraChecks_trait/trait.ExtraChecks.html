@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Allows defining extra checks for a type."><title>ExtraChecks in abi_stable::abi_stability::extra_checks::ExtraChecks_trait - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Extra<wbr>Checks</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#safety" title="Safety">Safety</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.check_compatibility" title="check_compatibility">check_compatibility</a></li><li><a href="#tymethod.nested_type_layouts" title="nested_type_layouts">nested_type_layouts</a></li><li><a href="#tymethod.type_layout" title="type_layout">type_layout</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.combine" title="combine">combine</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In abi_<wbr>stable::<wbr>abi_<wbr>stability::<wbr>extra_<wbr>checks::<wbr>Extra<wbr>Checks_<wbr>trait</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">abi_stable</a>::<wbr><a href="../../index.html">abi_stability</a>::<wbr><a href="../index.html">extra_checks</a>::<wbr><a href="index.html">ExtraChecks_trait</a></div><h1>Trait <span class="trait">ExtraChecks</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../../src/abi_stable/abi_stability/extra_checks.rs.html#654">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe trait ExtraChecks:
+    <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>
+    + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Display.html" title="trait core::fmt::Display">Display</a>
+    + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a>
+    + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a>
+    + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a>
+    + 'static {
+    // Required methods
+    fn <a href="#tymethod.type_layout" class="fn">type_layout</a>(&amp;self) -&gt; &amp;'static <a class="struct" href="../../../type_layout/struct.TypeLayout.html" title="struct abi_stable::type_layout::TypeLayout">TypeLayout</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.check_compatibility" class="fn">check_compatibility</a>(
+        &amp;self,
+        layout_containing_self: &amp;'static <a class="struct" href="../../../type_layout/struct.TypeLayout.html" title="struct abi_stable::type_layout::TypeLayout">TypeLayout</a>,
+        layout_containing_other: &amp;'static <a class="struct" href="../../../type_layout/struct.TypeLayout.html" title="struct abi_stable::type_layout::TypeLayout">TypeLayout</a>,
+        checker: <a class="type" href="../type.TypeCheckerMut.html" title="type abi_stable::abi_stability::extra_checks::TypeCheckerMut">TypeCheckerMut</a>&lt;'_&gt;,
+    ) -&gt; <a class="enum" href="../../../std_types/enum.RResult.html" title="enum abi_stable::std_types::RResult">RResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.unit.html">()</a>, <a class="enum" href="../enum.ExtraChecksError.html" title="enum abi_stable::abi_stability::extra_checks::ExtraChecksError">ExtraChecksError</a>&gt;;
+<span class="item-spacer"></span>    fn <a href="#tymethod.nested_type_layouts" class="fn">nested_type_layouts</a>&lt;'_self&gt;(
+        &amp;'_self self,
+    ) -&gt; <a class="type" href="../../../std_types/type.RCowSlice.html" title="type abi_stable::std_types::RCowSlice">RCowSlice</a>&lt;'_self, &amp;'static <a class="struct" href="../../../type_layout/struct.TypeLayout.html" title="struct abi_stable::type_layout::TypeLayout">TypeLayout</a>&gt;;
+
+    // Provided method
+    fn <a href="#method.combine" class="fn">combine</a>(
+        &amp;self,
+        _other: <a class="type" href="../type.ExtraChecksRef.html" title="type abi_stable::abi_stability::extra_checks::ExtraChecksRef">ExtraChecksRef</a>&lt;'_&gt;,
+        _checker: <a class="type" href="../type.TypeCheckerMut.html" title="type abi_stable::abi_stability::extra_checks::TypeCheckerMut">TypeCheckerMut</a>&lt;'_&gt;,
+    ) -&gt; <a class="enum" href="../../../std_types/enum.RResult.html" title="enum abi_stable::std_types::RResult">RResult</a>&lt;<a class="enum" href="../../../std_types/enum.ROption.html" title="enum abi_stable::std_types::ROption">ROption</a>&lt;<a class="type" href="../type.ExtraChecksBox.html" title="type abi_stable::abi_stability::extra_checks::ExtraChecksBox">ExtraChecksBox</a>&gt;, <a class="enum" href="../enum.ExtraChecksError.html" title="enum abi_stable::abi_stability::extra_checks::ExtraChecksError">ExtraChecksError</a>&gt; { ... }
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Allows defining extra checks for a type.</p>
+<p>Look at the
+<a href="./index.html">module level documentation</a>
+for more details.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<p>The <code>type_layout</code> method must be defined as <code>&lt;Self as ::abi_stable::StableAbi&gt;::LAYOUT</code>,
+or equivalent.</p>
+<p>All of the methods must be deterministic,
+always returning the same value with the same arguments.</p>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.type_layout" class="method"><a class="src rightside" href="../../../../src/abi_stable/abi_stability/extra_checks.rs.html#683">Source</a><h4 class="code-header">fn <a href="#tymethod.type_layout" class="fn">type_layout</a>(&amp;self) -&gt; &amp;'static <a class="struct" href="../../../type_layout/struct.TypeLayout.html" title="struct abi_stable::type_layout::TypeLayout">TypeLayout</a></h4></section></summary><div class="docblock"><p>Gets the type layout of <code>Self</code>(the type that implements ExtraChecks)</p>
+<p>This is used to downcast the trait object in
+<code>ForExtraChecksImplementor::downcast_*</code> methods,
+by ensuring that its type layout is
+compatible with that of another ExtraChecks trait object</p>
+<p>It can’t use <code>UTypeId</code>s to check compatibility of trait objects
+from different dynamic libraries,
+because <code>UTypeId</code>s from different dynamic libraries are incompatible.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.check_compatibility" class="method"><a class="src rightside" href="../../../../src/abi_stable/abi_stability/extra_checks.rs.html#703-708">Source</a><h4 class="code-header">fn <a href="#tymethod.check_compatibility" class="fn">check_compatibility</a>(
+    &amp;self,
+    layout_containing_self: &amp;'static <a class="struct" href="../../../type_layout/struct.TypeLayout.html" title="struct abi_stable::type_layout::TypeLayout">TypeLayout</a>,
+    layout_containing_other: &amp;'static <a class="struct" href="../../../type_layout/struct.TypeLayout.html" title="struct abi_stable::type_layout::TypeLayout">TypeLayout</a>,
+    checker: <a class="type" href="../type.TypeCheckerMut.html" title="type abi_stable::abi_stability::extra_checks::TypeCheckerMut">TypeCheckerMut</a>&lt;'_&gt;,
+) -&gt; <a class="enum" href="../../../std_types/enum.RResult.html" title="enum abi_stable::std_types::RResult">RResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.unit.html">()</a>, <a class="enum" href="../enum.ExtraChecksError.html" title="enum abi_stable::abi_stability::extra_checks::ExtraChecksError">ExtraChecksError</a>&gt;</h4></section></summary><div class="docblock"><p>Checks that <code>self</code> is compatible another type which implements ExtraChecks.</p>
+<p>Calling <code>check_layout_compatibility</code> from here will immediately return an error,
+prefer doing <code>checker.check_compatibility(...)</code> instead.</p>
+<h5 id="parameters"><a class="doc-anchor" href="#parameters">§</a>Parameters</h5>
+<p><code>layout_containing_self</code>:
+The TypeLayout that contains this <code>ExtraChecks</code> trait object in the extra_checks field.</p>
+<p><code>layout_containing_other</code>:
+The TypeLayout that contains the <code>other</code> <code>ExtraChecks</code> trait object in the extra_checks field,
+which <code>self</code> is compared to.</p>
+<p><code>checker</code>:
+The type checker,which allows this function to check type layouts.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.nested_type_layouts" class="method"><a class="src rightside" href="../../../../src/abi_stable/abi_stability/extra_checks.rs.html#713">Source</a><h4 class="code-header">fn <a href="#tymethod.nested_type_layouts" class="fn">nested_type_layouts</a>&lt;'_self&gt;(
+    &amp;'_self self,
+) -&gt; <a class="type" href="../../../std_types/type.RCowSlice.html" title="type abi_stable::std_types::RCowSlice">RCowSlice</a>&lt;'_self, &amp;'static <a class="struct" href="../../../type_layout/struct.TypeLayout.html" title="struct abi_stable::type_layout::TypeLayout">TypeLayout</a>&gt;</h4></section></summary><div class="docblock"><p>Returns the <code>TypeLayout</code>s owned or referenced by <code>self</code>.</p>
+<p>This is necessary for the Debug implementation of <code>TypeLayout</code>.</p>
+</div></details></div><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.combine" class="method"><a class="src rightside" href="../../../../src/abi_stable/abi_stability/extra_checks.rs.html#748-754">Source</a><h4 class="code-header">fn <a href="#method.combine" class="fn">combine</a>(
+    &amp;self,
+    _other: <a class="type" href="../type.ExtraChecksRef.html" title="type abi_stable::abi_stability::extra_checks::ExtraChecksRef">ExtraChecksRef</a>&lt;'_&gt;,
+    _checker: <a class="type" href="../type.TypeCheckerMut.html" title="type abi_stable::abi_stability::extra_checks::TypeCheckerMut">TypeCheckerMut</a>&lt;'_&gt;,
+) -&gt; <a class="enum" href="../../../std_types/enum.RResult.html" title="enum abi_stable::std_types::RResult">RResult</a>&lt;<a class="enum" href="../../../std_types/enum.ROption.html" title="enum abi_stable::std_types::ROption">ROption</a>&lt;<a class="type" href="../type.ExtraChecksBox.html" title="type abi_stable::abi_stability::extra_checks::ExtraChecksBox">ExtraChecksBox</a>&gt;, <a class="enum" href="../enum.ExtraChecksError.html" title="enum abi_stable::abi_stability::extra_checks::ExtraChecksError">ExtraChecksError</a>&gt;</h4></section></summary><div class="docblock"><p>Combines this ExtraChecks trait object with another one.</p>
+<p>To guarantee that the <code>extra_checks</code>
+associated with a type (inside <code>&lt;TheType as StableAbi&gt;::LAYOUT.extra_cheks</code> )
+has a single representative value across all dynamic libraries,
+you must override this method,
+and return <code>ROk(RSome(_))</code> by combining <code>self</code> and <code>other</code> in some way.</p>
+<h5 id="parameters-1"><a class="doc-anchor" href="#parameters-1">§</a>Parameters</h5>
+<p><code>other</code>:
+The other ExtraChecks trait object that this is combined with..</p>
+<p><code>checker</code>:
+The trait object of the type checker,which allows this function to check type layouts.</p>
+<h5 id="return-value"><a class="doc-anchor" href="#return-value">§</a>Return value</h5>
+<p>This returns:</p>
+<ul>
+<li>
+<p><code>ROk(RNone)</code>:
+If <code>self</code> doesn’t need to be unified across all dynamic libraries,
+or the representative version doesn’t need to be updated.</p>
+</li>
+<li>
+<p><code>ROk(RSome(_))</code>:
+If <code>self</code> needs to be unified across all dynamic libraries,
+returning the combined <code>self</code> and <code>other</code>.</p>
+</li>
+<li>
+<p><code>RErr(_)</code>: If there was a problem unifying <code>self</code> and <code>other</code>.</p>
+</li>
+</ul>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-ExtraChecks-for-RequiredTraits" class="impl"><a class="src rightside" href="../../../../src/abi_stable/erased_types/vtable.rs.html#395-682">Source</a><a href="#impl-ExtraChecks-for-RequiredTraits" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="../trait.ExtraChecks.html" title="trait abi_stable::abi_stability::extra_checks::ExtraChecks">ExtraChecks</a> for <a class="struct" href="../../../erased_types/struct.RequiredTraits.html" title="struct abi_stable::erased_types::RequiredTraits">RequiredTraits</a></h3></section><section id="impl-ExtraChecks-for-Tag" class="impl"><a class="src rightside" href="../../../../src/abi_stable/type_layout/tagging.rs.html#829-850">Source</a><a href="#impl-ExtraChecks-for-Tag" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="../trait.ExtraChecks.html" title="trait abi_stable::abi_stability::extra_checks::ExtraChecks">ExtraChecks</a> for <a class="struct" href="../../../type_layout/tagging/struct.Tag.html" title="struct abi_stable::type_layout::tagging::Tag">Tag</a></h3></section></div><script src="../../../../trait.impl/abi_stable/abi_stability/extra_checks/ExtraChecks_trait/trait.ExtraChecks.js" async></script></section></div></main></body></html>

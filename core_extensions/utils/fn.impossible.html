@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Use this function to mark to the compiler that this branch is impossible."><title>impossible in core_extensions::utils - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="core_extensions" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../core_extensions/index.html">core_<wbr>extensions</a><span class="version">1.5.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">impossible</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#safety" title="Safety">Safety</a></li><li><a href="#example" title="Example">Example</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In core_<wbr>extensions::<wbr>utils</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">core_extensions</a>::<wbr><a href="index.html">utils</a></div><h1>Function <span class="fn">impossible</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/core_extensions/utils.rs.html#170-179">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe fn impossible() -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.never.html">!</a></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Use this function to mark to the compiler that this branch is impossible.</p>
+<p>This function panics when debug assertions are enabled,
+if debug assertions are disabled then reaching this is undefined behaviour.</p>
+<p>For a version which doesn’t panic in debug builds but instead always causes
+undefined behaviour when reached you can use
+<a href="https://doc.rust-lang.org/std/hint/fn.unreachable_unchecked.html"><code>std::hint::unreachable_unchecked</code></a>.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<p>It is undefined behaviour for this function to be reached at runtime at all.</p>
+<p>The compiler is free to delete any code that reaches and depends on this function,
+on the assumption that this branch can’t be reached.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::BoolExt;
+<span class="kw">use </span>core_extensions::utils::impossible;
+
+<span class="kw">mod </span>non_zero{
+   <span class="kw">use super</span>::<span class="kw-2">*</span>;
+   <span class="attr">#[derive(Debug,Copy,Clone)]
+   </span><span class="kw">pub struct </span>NonZero(usize);
+
+   <span class="kw">impl </span>NonZero{
+       <span class="kw">pub fn </span>new(value:usize) -&gt; <span class="prelude-ty">Option</span>&lt;NonZero&gt; {
+           (<span class="macro">value!</span>=<span class="number">0</span>).if_true(|| NonZero(value))
+       }
+       <span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>)-&gt;usize{
+           <span class="self">self</span>.<span class="number">0
+       </span>}
+   }
+}
+<span class="kw">use </span><span class="self">self</span>::non_zero::NonZero;
+
+
+<span class="kw">fn </span>div(numerator: usize, denom: <span class="prelude-ty">Option</span>&lt;NonZero&gt;) -&gt; usize{
+   <span class="kw">let </span>denom = <span class="kw">match </span>denom {
+       <span class="prelude-val">Some</span>(v) <span class="kw">if </span>v.value() == <span class="number">0 </span>=&gt; <span class="kw">unsafe</span>{
+           <span class="comment">// unreachable: NonZero::value() can never be 0,
+           </span>impossible()
+       },
+       <span class="prelude-val">Some</span>(v) =&gt; v.value(),
+       <span class="prelude-val">None </span>=&gt; <span class="number">1</span>,
+   };
+   numerator / denom
+}
+
+<span class="macro">assert_eq!</span>(div(<span class="number">60</span>, NonZero::new(<span class="number">0</span>)), <span class="number">60</span>);
+<span class="macro">assert_eq!</span>(div(<span class="number">60</span>, NonZero::new(<span class="number">1</span>)), <span class="number">60</span>);
+<span class="macro">assert_eq!</span>(div(<span class="number">60</span>, NonZero::new(<span class="number">2</span>)), <span class="number">30</span>);
+<span class="macro">assert_eq!</span>(div(<span class="number">60</span>, NonZero::new(<span class="number">3</span>)), <span class="number">20</span>);
+<span class="macro">assert_eq!</span>(div(<span class="number">60</span>, NonZero::new(<span class="number">4</span>)), <span class="number">15</span>);
+<span class="macro">assert_eq!</span>(div(<span class="number">60</span>, NonZero::new(<span class="number">5</span>)), <span class="number">12</span>);
+<span class="macro">assert_eq!</span>(div(<span class="number">60</span>, NonZero::new(<span class="number">6</span>)), <span class="number">10</span>);
+
+
+
+
+</code></pre></div>
+</div></details></section></div></main></body></html>

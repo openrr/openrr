@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Constructs a `TypeEq&#60;T, T&#62;`"><title>type_eq in typewit - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="typewit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../typewit/index.html">typewit</a><span class="version">1.14.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">type_eq</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate typewit</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">typewit</a></div><h1>Function <span class="fn">type_eq</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/typewit/type_eq.rs.html#177-179">Source</a> </span></div><pre class="rust item-decl"><code>pub const fn type_eq&lt;T: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;() -&gt; <a class="struct" href="struct.TypeEq.html" title="struct typewit::TypeEq">TypeEq</a>&lt;T, T&gt;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Constructs a <a href="struct.TypeEq.html" title="struct typewit::TypeEq"><code>TypeEq&lt;T, T&gt;</code></a></p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typewit::{MakeTypeWitness, TypeWitnessTypeArg, TypeEq, type_eq};
+ 
+<span class="macro">assert_eq!</span>(ascii_to_upper(<span class="string">b'a'</span>), <span class="string">b'A'</span>);
+<span class="macro">assert_eq!</span>(ascii_to_upper(<span class="string">b'f'</span>), <span class="string">b'F'</span>);
+<span class="macro">assert_eq!</span>(ascii_to_upper(<span class="string">b'B'</span>), <span class="string">b'B'</span>);
+<span class="macro">assert_eq!</span>(ascii_to_upper(<span class="string">b'0'</span>), <span class="string">b'0'</span>);
+ 
+<span class="macro">assert_eq!</span>(ascii_to_upper(<span class="string">'c'</span>), <span class="string">'C'</span>);
+<span class="macro">assert_eq!</span>(ascii_to_upper(<span class="string">'e'</span>), <span class="string">'E'</span>);
+<span class="macro">assert_eq!</span>(ascii_to_upper(<span class="string">'H'</span>), <span class="string">'H'</span>);
+<span class="macro">assert_eq!</span>(ascii_to_upper(<span class="string">'@'</span>), <span class="string">'@'</span>);
+ 
+<span class="kw">const fn </span>ascii_to_upper&lt;T&gt;(c: T) -&gt; T 
+<span class="kw">where
+    </span>Wit&lt;T&gt;: MakeTypeWitness,
+{
+    <span class="kw">match </span>MakeTypeWitness::MAKE {
+        Wit::U8(te) =&gt; {
+            <span class="comment">// `te` is a `TypeEq&lt;T, u8&gt;`, which allows casting between `T` and `u8`.
+            // `te.to_right(...)` goes from `T` to `u8`
+            // `te.to_left(...)` goes from `u8` to `T`
+            </span>te.to_left(te.to_right(c).to_ascii_uppercase())
+        }
+        Wit::Char(te) =&gt; {
+            <span class="comment">// `te` is a `TypeEq&lt;T, char&gt;`, which allows casting between `T` and `char`.
+            // `te.to_right(...)` goes from `T` to `char`
+            // `te.to_left(...)` goes from `char` to `T`
+            </span>te.to_left(te.to_right(c).to_ascii_uppercase())
+        }
+    }
+}
+ 
+<span class="comment">// This is a type witness
+</span><span class="kw">enum </span>Wit&lt;T&gt; {
+    <span class="comment">// this variant requires `T == u8`
+    </span>U8(TypeEq&lt;T, u8&gt;),
+ 
+    <span class="comment">// this variant requires `T == char`
+    </span>Char(TypeEq&lt;T, char&gt;),
+}
+<span class="kw">impl</span>&lt;T&gt; TypeWitnessTypeArg <span class="kw">for </span>Wit&lt;T&gt; {
+    <span class="kw">type </span>Arg = T;
+}
+<span class="kw">impl </span>MakeTypeWitness <span class="kw">for </span>Wit&lt;u8&gt; {
+    <span class="kw">const </span>MAKE: <span class="self">Self </span>= <span class="self">Self</span>::U8(type_eq());
+}
+<span class="kw">impl </span>MakeTypeWitness <span class="kw">for </span>Wit&lt;char&gt; {
+    <span class="kw">const </span>MAKE: <span class="self">Self </span>= <span class="self">Self</span>::Char(type_eq());
+}</code></pre></div>
+<p>The code above can be written more concisly using
+the <a href="macro.polymatch.html" title="macro typewit::polymatch"><code>polymatch</code></a> and <a href="macro.simple_type_witness.html" title="macro typewit::simple_type_witness"><code>simple_type_witness</code></a> macros:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">const fn </span>ascii_to_upper&lt;T&gt;(c: T) -&gt; T 
+<span class="kw">where
+    </span>Wit&lt;T&gt;: MakeTypeWitness,
+{
+    <span class="comment">// deduplicating identical match arms using the `polymatch` macro.
+    </span><span class="macro">typewit::polymatch!</span>{MakeTypeWitness::MAKE;
+        Wit::U8(te) | Wit::Char(te) =&gt; te.to_left(te.to_right(c).to_ascii_uppercase())
+    }
+}
+
+<span class="comment">// This macro declares a type witness
+</span><span class="macro">typewit::simple_type_witness!</span> {
+    <span class="comment">// Declares `enum Wit&lt;__Wit&gt;`
+    // The `__Wit` type parameter is implicit and always the last generic parameter.
+    </span><span class="kw">enum </span>Wit {
+        <span class="comment">// this variant requires `__Wit == u8`
+        </span>U8 = u8,
+        <span class="comment">// this variant requires `__Wit == char`
+        </span>Char = char,
+    }
+}</code></pre></div>
+<p>note that <a href="macro.simple_type_witness.html" title="macro typewit::simple_type_witness"><code>simple_type_witness</code></a> can’t replace enums whose
+witnessed type parameter is not the last,
+or have variants with anything but one <code>TypeEq</code> field each.</p>
+</div></details></section></div></main></body></html>

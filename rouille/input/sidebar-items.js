@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["basic_http_auth","cookies","parse_priority_header","plain_text_body","plain_text_body_with_limit","priority_header_preferred"],"mod":["json","multipart","post"],"struct":["CookiesIter","HttpAuthCredentials","PriorityHeaderIter"]};

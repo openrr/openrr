@@ -1,0 +1,438 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Prefix-types are types that derive StableAbi along with the `#[sabi(kind(Prefix(....)))]` helper attribute. This is mostly intended for vtables and modules."><title>abi_stable::docs::prefix_types - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="abi_stable" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../abi_stable/index.html">abi_<wbr>stable</a><span class="version">0.11.3</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module prefix_<wbr>types</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#version-compatibility" title="Version compatibility">Version compatibility</a><ul><li><a href="#adding-fields" title="Adding fields">Adding fields</a></li><li><a href="#alignment" title="Alignment">Alignment</a></li></ul></li><li><a href="#grammar-reference" title="Grammar Reference">Grammar Reference</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#example-1" title="Example 1">Example 1</a></li><li><a href="#constructing-a-module" title="Constructing a module">Constructing a module</a></li><li><a href="#constructing-a-vtable" title="Constructing a vtable">Constructing a vtable</a></li><li><a href="#example-2declaring-a-type-with-a-vtable" title="Example 2:Declaring a type with a VTable">Example 2:Declaring a type with a VTable</a></li><li><a href="#example-3module" title="Example 3:module">Example 3:module</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In abi_<wbr>stable::<wbr>docs</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">abi_stable</a>::<wbr><a href="../index.html">docs</a></div><h1>Module <span>prefix_types</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/abi_stable/docs/prefix_types.rs.html#1-508">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Prefix-types are types that derive StableAbi along with the
+<code>#[sabi(kind(Prefix(....)))]</code> helper attribute.
+This is mostly intended for <strong>vtables</strong> and <strong>modules</strong>.</p>
+<p>Prefix-types cannot directly be passed through ffi,
+instead they must be converted to the type declared with <code>prefix_ref= Foo_Ref</code>,
+and then pass that instead.</p>
+<p>To convert <code>Foo</code> to <code>Foo_Ref</code> you can use any of (non-exhaustive list):</p>
+<ul>
+<li>
+<p><code>PrefixTypeTrait::leak_into_prefix</code>:<br>
+Which does the conversion directly,but leaks the value.</p>
+</li>
+<li>
+<p><code>prefix_type::WithMetadata::new</code>:<br>
+Use this if you need a compiletime constant.<br>
+First create a <code>StaticRef&lt;WithMetadata&lt;Self&gt;&gt;</code> constant using
+the <a href="../../macro.staticref.html"><code>staticref</code></a> macro,
+then construct a <code>Foo_Ref</code> constant with <code>Foo_Ref(THE_STATICREF_CONSTANT.as_prefix())</code>.<br>
+There are two examples of this,
+<a href="#module_construction">for modules</a>,and <a href="#vtable_construction">for vtables</a></p>
+</li>
+</ul>
+<p>All the fields in the <code>DerivingType</code> can be accessed in <code>DerivingType_Ref</code> using
+accessor methods named the same as the fields.</p>
+<h2 id="version-compatibility"><a class="doc-anchor" href="#version-compatibility">§</a>Version compatibility</h2><h4 id="adding-fields"><a class="doc-anchor" href="#adding-fields">§</a>Adding fields</h4>
+<p>To ensure that libraries stay abi compatible,
+the first minor version of the library must use the <code>#[sabi(last_prefix_field)]</code> attribute on some
+field, and every minor version after that must add fields at the end (never moving that attribute).
+Changing the field that <code>#[sabi(last_prefix_field)]</code> is applied to is a breaking change.</p>
+<p>Getter methods for fields after the one to which <code>#[sabi(last_prefix_field)]</code> was applied to
+will return <code>Option&lt;FieldType&gt;</code> by default,because those fields might not exist
+(the struct might come from a previous version of the library).
+To override how to deal with nonexistent fields,
+use the <code>#[sabi(missing_field())]</code> attribute,
+applied to either the struct or the field.</p>
+<h4 id="alignment"><a class="doc-anchor" href="#alignment">§</a>Alignment</h4>
+<p>To ensure that users can define empty vtables/modules that can be extended in
+semver compatible versions,
+this library forces the struct converted to ffi-safe form to have an alignment at
+least that of usize.</p>
+<p>You must ensure that newer versions don’t change the alignment of the struct,
+because that makes it ABI incompatible.</p>
+<h2 id="grammar-reference"><a class="doc-anchor" href="#grammar-reference">§</a>Grammar Reference</h2>
+<p>For the grammar reference,you can look at the documentation for
+<a href="../../derive.StableAbi.html"><code>#[derive(StableAbi)]</code></a>.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h4 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example 1</h4>
+<p>Declaring a Prefix-type.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>abi_stable::{
+    std_types::{RDuration, RStr},
+    StableAbi,
+};
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(kind(Prefix(prefix_ref = Module_Ref)))]
+#[sabi(missing_field(panic))]
+</span><span class="kw">pub struct </span>Module {
+    <span class="kw">pub </span>lib_name: RStr&lt;<span class="lifetime">'static</span>&gt;,
+
+    <span class="attr">#[sabi(last_prefix_field)]
+    </span><span class="kw">pub </span>elapsed: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>() -&gt; RDuration,
+
+    <span class="kw">pub </span>description: RStr&lt;<span class="lifetime">'static</span>&gt;,
+}
+
+
+</code></pre></div>
+<p>In this example:</p>
+<ul>
+<li>
+<p><code>#[sabi(kind(Prefix(prefix_ref= Module_Ref)))]</code> declares this type as being a prefix-type
+with an ffi-safe pointer called <code>Module_Ref</code> to which <code>Module</code> can be converted into.</p>
+</li>
+<li>
+<p><code>#[sabi(missing_field(panic))]</code>
+makes the field accessors panic when attempting to
+access nonexistent fields instead of the default of returning an <code>Option&lt;FieldType&gt;</code>.</p>
+</li>
+<li>
+<p><code>#[sabi(last_prefix_field)]</code>means that it is the last field in the struct
+that was defined in the first compatible version of the library
+(0.1.0, 0.2.0, 0.3.0, 1.0.0, 2.0.0 ,etc),
+requiring new fields to always be added below preexisting ones.</p>
+</li>
+</ul>
+<p><span id="module_construction"></span></p>
+<h4 id="constructing-a-module"><a class="doc-anchor" href="#constructing-a-module">§</a>Constructing a module</h4>
+<p>This example demonstrates how you can construct a module.</p>
+<p>For constructing a vtable, you can look at <a href="#vtable_construction">the next example</a></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>abi_stable::{
+    extern_fn_panic_handling,
+    prefix_type::{PrefixTypeTrait, WithMetadata},
+    staticref,
+    std_types::{RDuration, RStr},
+    StableAbi,
+};
+
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(MODULE_REF.lib_name().as_str(), <span class="string">"foo"</span>);
+
+    <span class="macro">assert_eq!</span>(MODULE_REF.elapsed()(<span class="number">1000</span>), RDuration::from_secs(<span class="number">1</span>));
+
+    <span class="macro">assert_eq!</span>(MODULE_REF.description().as_str(), <span class="string">"this is a module field"</span>);
+}
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(kind(Prefix(prefix_ref = Module_Ref)))]
+#[sabi(missing_field(panic))]
+</span><span class="kw">pub struct </span>Module&lt;T&gt; {
+    <span class="kw">pub </span>lib_name: RStr&lt;<span class="lifetime">'static</span>&gt;,
+
+    <span class="attr">#[sabi(last_prefix_field)]
+    </span><span class="kw">pub </span>elapsed: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(T) -&gt; RDuration,
+
+    <span class="kw">pub </span>description: RStr&lt;<span class="lifetime">'static</span>&gt;,
+}
+
+<span class="kw">impl </span>Module&lt;u64&gt; {
+    <span class="comment">// This macro declares a `StaticRef&lt;WithMetadata&lt;Module&lt;u64&gt;&gt;&gt;` constant.
+    </span><span class="macro">staticref!</span>(<span class="kw">const </span>MODULE_VAL: WithMetadata&lt;Module&lt;u64&gt;&gt; = WithMetadata::new(
+        Module{
+            lib_name: RStr::from_str(<span class="string">"foo"</span>),
+            elapsed,
+            description: RStr::from_str(<span class="string">"this is a module field"</span>),
+        },
+    ));
+}
+
+<span class="kw">const </span>MODULE_REF: Module_Ref&lt;u64&gt; = Module_Ref(Module::MODULE_VAL.as_prefix());
+
+<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>elapsed(milliseconds: u64) -&gt; RDuration {
+    <span class="macro">extern_fn_panic_handling!</span> {
+        RDuration::from_millis(milliseconds)
+    }
+}
+</code></pre></div>
+<p><span id="vtable_construction"></span></p>
+<h4 id="constructing-a-vtable"><a class="doc-anchor" href="#constructing-a-vtable">§</a>Constructing a vtable</h4>
+<p>This example demonstrates how you can construct a vtable.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    extern_fn_panic_handling,
+    marker_type::ErasedObject,
+    prefix_type::{PrefixTypeTrait, WithMetadata},
+    staticref, StableAbi,
+};
+
+<span class="kw">fn </span>main() {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>vtable = MakeVTable::&lt;u64&gt;::MAKE;
+        <span class="macro">assert_eq!</span>(
+            vtable.get_number()(<span class="kw-2">&amp;</span><span class="number">3u64 </span><span class="kw">as </span><span class="kw-2">*const </span>u64 <span class="kw">as </span><span class="kw-2">*const </span>ErasedObject),
+            <span class="number">12</span>,
+        );
+    }
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>vtable = MakeVTable::&lt;u8&gt;::MAKE;
+        <span class="macro">assert_eq!</span>(
+            vtable.get_number()(<span class="kw-2">&amp;</span><span class="number">128u8 </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>ErasedObject),
+            <span class="number">512</span>,
+        );
+    }
+}
+
+<span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(kind(Prefix(prefix_ref = VTable_Ref)))]
+#[sabi(missing_field(panic))]
+</span><span class="kw">pub struct </span>VTable {
+    <span class="attr">#[sabi(last_prefix_field)]
+    </span><span class="kw">pub </span>get_number: <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw-2">*const </span>ErasedObject) -&gt; u64,
+}
+
+<span class="comment">// A dummy struct, used purely for its associated constants.
+</span><span class="kw">struct </span>MakeVTable&lt;T&gt;(T);
+
+<span class="kw">impl</span>&lt;T&gt; MakeVTable&lt;T&gt;
+<span class="kw">where
+    </span>T: Copy + Into&lt;u64&gt;,
+{
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>get_number(this: <span class="kw-2">*const </span>ErasedObject) -&gt; u64 {
+        <span class="macro">extern_fn_panic_handling!</span> {
+            (<span class="kw-2">*</span>this.cast::&lt;T&gt;()).into() * <span class="number">4
+        </span>}
+    }
+
+    <span class="comment">// This macro declares a `StaticRef&lt;WithMetadata&lt;VTable&gt;&gt;` constant.
+    </span><span class="macro">staticref!</span> {<span class="kw">pub const </span>VAL: WithMetadata&lt;VTable&gt; = WithMetadata::new(
+        VTable{get_number: <span class="self">Self</span>::get_number},
+    )}
+
+    <span class="kw">pub const </span>MAKE: VTable_Ref = VTable_Ref(<span class="self">Self</span>::VAL.as_prefix());
+}
+</code></pre></div>
+<p><span id="example2"></span></p>
+<h4 id="example-2declaring-a-type-with-a-vtable"><a class="doc-anchor" href="#example-2declaring-a-type-with-a-vtable">§</a>Example 2:Declaring a type with a VTable</h4>
+<p>Here is the implementation of a Box-like type,which uses a vtable that is a prefix type.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>std::{
+    marker::PhantomData,
+    mem::ManuallyDrop,
+    ops::{Deref, DerefMut},
+};
+
+<span class="kw">use </span>abi_stable::{
+    extern_fn_panic_handling,
+    pointer_trait::{CallReferentDrop, TransmuteElement},
+    prefix_type::{PrefixTypeTrait, WithMetadata},
+    staticref, StableAbi,
+};
+
+<span class="doccomment">/// An ffi-safe `Box&lt;T&gt;`
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+</span><span class="kw">pub struct </span>BoxLike&lt;T&gt; {
+    data: <span class="kw-2">*mut </span>T,
+
+    vtable: BoxVtable_Ref&lt;T&gt;,
+
+    _marker: PhantomData&lt;T&gt;,
+}
+
+<span class="kw">impl</span>&lt;T&gt; BoxLike&lt;T&gt; {
+    <span class="kw">pub fn </span>new(value: T) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>box_ = Box::new(value);
+
+        <span class="self">Self </span>{
+            data: Box::into_raw(box_),
+            vtable: BoxVtable::VTABLE,
+            _marker: PhantomData,
+        }
+    }
+
+    <span class="kw">fn </span>vtable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BoxVtable_Ref&lt;T&gt; {
+        <span class="self">self</span>.vtable
+    }
+
+    <span class="doccomment">/// Extracts the value this owns.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <span class="kw">let </span>this = ManuallyDrop::new(<span class="self">self</span>);
+        <span class="kw">let </span>vtable = this.vtable();
+        <span class="kw">unsafe </span>{
+            <span class="comment">// Must copy this before calling `vtable.destructor()`
+            // because otherwise it would be reading from a dangling pointer.
+            </span><span class="kw">let </span>ret = this.data.read();
+            vtable.destructor()(this.data, CallReferentDrop::No);
+            ret
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; Deref <span class="kw">for </span>BoxLike&lt;T&gt; {
+    <span class="kw">type </span>Target = T;
+
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="self">self</span>.data) }
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; DerefMut <span class="kw">for </span>BoxLike&lt;T&gt; {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut </span>(<span class="kw-2">*</span><span class="self">self</span>.data) }
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>BoxLike&lt;T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>vtable = <span class="self">self</span>.vtable();
+
+        <span class="kw">unsafe </span>{ vtable.destructor()(<span class="self">self</span>.data, CallReferentDrop::Yes) }
+    }
+}
+
+<span class="comment">// `#[sabi(kind(Prefix))]` Declares this type as being a prefix-type,
+// generating both of these types:
+//
+//     - BoxVTable_Prefix`: A struct with the fields up to (and including) the field with the
+//     `#[sabi(last_prefix_field)]` attribute.
+//
+//     - BoxVTable_Ref`: An ffi-safe pointer to a `BoxVtable`, with methods to get
+//     `BoxVtable`'s fields.
+//
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(kind(Prefix))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BoxVtable&lt;T&gt; {
+    <span class="doccomment">/// The `#[sabi(last_prefix_field)]` attribute here means that this is
+    /// the last field in this struct that was defined in the
+    /// first compatible version of the library
+    /// (0.1.0, 0.2.0, 0.3.0, 1.0.0, 2.0.0 ,etc),
+    /// requiring new fields to always be added after it.
+    ///
+    /// The `#[sabi(last_prefix_field)]` attribute would stay on this field until the library
+    /// bumps its "major" version,
+    /// at which point it would be moved to the last field at the time.
+    ///
+    </span><span class="attr">#[sabi(last_prefix_field)]
+    </span>destructor: <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>T, CallReferentDrop),
+}
+
+<span class="comment">// This is how ffi-safe pointers to generic prefix types are constructed
+// at compile-time.
+</span><span class="kw">impl</span>&lt;T&gt; BoxVtable&lt;T&gt; {
+    <span class="comment">// This macro declares a `StaticRef&lt;WithMetadata&lt;BoxVtable&lt;T&gt;&gt;&gt;` constant.
+    //
+    // StaticRef represents a reference to data that lives forever,
+    // but is not necessarily `'static` according to the type system,
+    // eg: `BoxVtable&lt;T&gt;`.
+    </span><span class="macro">staticref!</span>(<span class="kw">const </span>VTABLE_VAL: WithMetadata&lt;<span class="self">Self</span>&gt; = WithMetadata::new(
+        <span class="self">Self</span>{
+            destructor:destroy_box::&lt;T&gt;,
+        },
+    ));
+
+    <span class="kw">const </span>VTABLE: BoxVtable_Ref&lt;T&gt; =
+        { BoxVtable_Ref(<span class="self">Self</span>::VTABLE_VAL.as_prefix()) };
+}
+
+<span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>destroy_box&lt;T&gt;(v: <span class="kw-2">*mut </span>T, call_drop: CallReferentDrop) {
+    <span class="macro">extern_fn_panic_handling!</span> {
+        <span class="kw">let </span><span class="kw-2">mut </span>box_ = Box::from_raw(v <span class="kw">as </span><span class="kw-2">*mut </span>ManuallyDrop&lt;T&gt;);
+        <span class="kw">if </span>call_drop == CallReferentDrop::Yes {
+            ManuallyDrop::drop(<span class="kw-2">&amp;mut *</span>box_);
+        }
+        drop(box_);
+    }
+}
+
+</code></pre></div>
+<h4 id="example-3module"><a class="doc-anchor" href="#example-3module">§</a>Example 3:module</h4>
+<p>This declares,initializes,and uses a module.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>abi_stable::{
+    prefix_type::{PrefixTypeTrait, WithMetadata},
+    sabi_extern_fn,
+    std_types::RDuration,
+    StableAbi,
+};
+
+<span class="comment">// `#[sabi(kind(Prefix))]` Declares this type as being a prefix-type,
+// generating both of these types:
+//
+//     - PersonMod_Prefix`: A struct with the fields up to (and including) the field with the
+//     `#[sabi(last_prefix_field)]` attribute.
+//
+//     - PersonMod_Ref`:
+//      An ffi-safe pointer to a `PersonMod`,with methods to get`PersonMod`'s fields.
+//
+</span><span class="attr">#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(kind(Prefix))]
+</span><span class="kw">pub struct </span>PersonMod {
+    <span class="doccomment">/// The `#[sabi(last_prefix_field)]` attribute here means that this is
+    /// the last field in this struct that was defined in the
+    /// first compatible version of the library
+    /// (0.1.0, 0.2.0, 0.3.0, 1.0.0, 2.0.0 ,etc),
+    /// requiring new fields to always be added below preexisting ones.
+    ///
+    /// The `#[sabi(last_prefix_field)]` attribute would stay on this field until the library
+    /// bumps its "major" version,
+    /// at which point it would be moved to the last field at the time.
+    ///
+    </span><span class="attr">#[sabi(last_prefix_field)]
+    </span><span class="kw">pub </span>customer_for: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; RDuration,
+
+    <span class="comment">// The default behavior for the getter is to return an Option&lt;FieldType&gt;,
+    // if the field exists it returns Some(_),
+    // otherwise it returns None.
+    </span><span class="kw">pub </span>bike_count: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; u32,
+
+    <span class="comment">// The getter for this field panics if the field doesn't exist.
+    </span><span class="attr">#[sabi(missing_field(panic))]
+    </span><span class="kw">pub </span>visits: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; u32,
+
+    <span class="comment">// The getter for this field returns `default_score()` if the field doesn't exist.
+    </span><span class="attr">#[sabi(missing_field(with = default_score))]
+    </span><span class="kw">pub </span>score: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; u32,
+
+    <span class="comment">// The getter for this field returns `Default::default()` if the field doesn't exist.
+    </span><span class="attr">#[sabi(missing_field(default))]
+    </span><span class="kw">pub </span>visit_length: <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; RDuration&gt;,
+}
+
+<span class="kw">fn </span>default_score() -&gt; <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; u32 {
+    <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>default(<span class="kw">_</span>: Id) -&gt; u32 {
+        <span class="number">1000
+    </span>}
+
+    default
+}
+
+<span class="kw">type </span>Id = u32;
+
+
+
+
+
+
+<span class="comment">/*
+    ...
+    Elided function definitions
+    ...
+*/
+
+
+</span><span class="kw">const </span>_MODULE_WM_: <span class="kw-2">&amp;</span>WithMetadata&lt;PersonMod&gt; = <span class="kw-2">&amp;</span>WithMetadata::new(
+    PersonMod {
+        customer_for,
+        bike_count,
+        visits,
+        score,
+        visit_length: <span class="prelude-val">None</span>,
+    },
+);
+
+<span class="kw">const </span>MODULE: PersonMod_Ref = PersonMod_Ref(_MODULE_WM_.static_as_prefix());
+
+<span class="comment">// Getting the value for every field of `MODULE`.
+
+</span><span class="kw">let </span>customer_for: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; RDuration = MODULE.customer_for();
+
+<span class="kw">let </span>bike_count: <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; u32&gt; = MODULE.bike_count();
+
+<span class="kw">let </span>visits: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; u32 = MODULE.visits();
+
+<span class="kw">let </span>score: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; u32 = MODULE.score();
+
+<span class="kw">let </span>visit_length: <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(Id) -&gt; RDuration&gt; = MODULE.visit_length();
+
+
+</code></pre></div>
+</div></details></section></div></main></body></html>

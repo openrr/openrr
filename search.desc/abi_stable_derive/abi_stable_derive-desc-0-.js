@@ -1,0 +1,1 @@
+searchState.loadedDescShard("abi_stable_derive", 0, "An implementation detail of abi_stable.")

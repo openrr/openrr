@@ -1,0 +1,1 @@
+searchState.loadedDescShard("openrr_plugin_example", 0, "Returns the argument unchanged.\nExports the root module of this library.\nCalls <code>U::from(self)</code>.\nInstantiates the plugin.")

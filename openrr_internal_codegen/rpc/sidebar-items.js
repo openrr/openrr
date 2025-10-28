@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["gen","gen_client_impl","gen_remote_types","gen_server_impl"],"struct":["CollectTrait"]};

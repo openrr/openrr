@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension trait for `[T]`."><title>ValSliceExt in core_extensions::slices - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="core_extensions" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../core_extensions/index.html">core_<wbr>extensions</a><span class="version">1.5.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">ValSlice<wbr>Ext</a></h2><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.rsplit_while" title="rsplit_while">rsplit_while</a></li><li><a href="#method.split_while" title="split_while">split_while</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In core_<wbr>extensions::<wbr>slices</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">core_extensions</a>::<wbr><a href="index.html">slices</a></div><h1>Trait <span class="trait">ValSliceExt</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/core_extensions/slices/extensions.rs.html#16-129">Source</a> </span></div><pre class="rust item-decl"><code>pub trait ValSliceExt: <a class="trait" href="trait.SliceExt.html" title="trait core_extensions::slices::SliceExt">SliceExt</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.Borrow.html" title="trait core::borrow::Borrow">Borrow</a>&lt;[&lt;Self as <a class="trait" href="trait.SliceExt.html" title="trait core_extensions::slices::SliceExt">SliceExt</a>&gt;::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>]&gt; {
+    // Provided methods
+    fn <a href="#method.split_while" class="fn">split_while</a>&lt;'a, P, U&gt;(
+        &amp;'a self,
+        mapper: P,
+    ) -&gt; <a class="struct" href="struct.SplitSliceWhile.html" title="struct core_extensions::slices::SplitSliceWhile">SplitSliceWhile</a>&lt;'a, Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>, P, U&gt; <a href="#" class="tooltip" data-notable-ty="SplitSliceWhile&lt;&#39;a, Self::Elem, P, U&gt;">ⓘ</a>
+       <span class="where">where P: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(&amp;'a Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>) -&gt; U,
+             U: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a></span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.rsplit_while" class="fn">rsplit_while</a>&lt;'a, P, U&gt;(
+        &amp;'a self,
+        mapper: P,
+    ) -&gt; <a class="struct" href="struct.RSplitSliceWhile.html" title="struct core_extensions::slices::RSplitSliceWhile">RSplitSliceWhile</a>&lt;'a, Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>, P, U&gt; <a href="#" class="tooltip" data-notable-ty="RSplitSliceWhile&lt;&#39;a, Self::Elem, P, U&gt;">ⓘ</a>
+       <span class="where">where P: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(&amp;'a Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>) -&gt; U,
+             U: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a></span> { ... }
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension trait for <code>[T]</code>.</p>
+</div></details><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.split_while" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#59-71">Source</a><h4 class="code-header">fn <a href="#method.split_while" class="fn">split_while</a>&lt;'a, P, U&gt;(
+    &amp;'a self,
+    mapper: P,
+) -&gt; <a class="struct" href="struct.SplitSliceWhile.html" title="struct core_extensions::slices::SplitSliceWhile">SplitSliceWhile</a>&lt;'a, Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>, P, U&gt; <a href="#" class="tooltip" data-notable-ty="SplitSliceWhile&lt;&#39;a, Self::Elem, P, U&gt;">ⓘ</a><div class="where">where
+    P: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(&amp;'a Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>) -&gt; U,
+    U: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>,</div></h4></section></summary><div class="docblock"><p>Returns an iterator over subslices whose elements were mapped
+to the same value by <code>mapper</code>.</p>
+<p>The returned type implements
+<code>DoubleEndedIterator&lt;Item =</code><a href="./struct.KeySlice.html"><code>KeySlice</code></a><code>&lt;Self::Elem, U&gt;&gt;</code>.</p>
+<h5 id="example"><a class="doc-anchor" href="#example">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::ValSliceExt;
+<span class="kw">use </span>core_extensions::slices::KeySlice;
+ 
+{
+    <span class="kw">let </span>list = <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
+ 
+    <span class="macro">assert_eq!</span>(
+        list.split_while(|x| x/<span class="number">4</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+        <span class="macro">vec!</span>[
+            KeySlice{key: <span class="number">0</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]},
+            KeySlice{key: <span class="number">1</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>]},
+            KeySlice{key: <span class="number">2</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">8</span>]},
+        ]
+    );
+}
+ 
+{
+    <span class="kw">let </span>list = [<span class="number">0</span>, <span class="number">4</span>, <span class="number">1</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">8</span>, <span class="number">7</span>];
+ 
+    <span class="macro">assert_eq!</span>(
+        list.split_while(|x| x%<span class="number">4</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+        <span class="macro">vec!</span>[
+            KeySlice{key: <span class="number">0</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">4</span>]},
+            KeySlice{key: <span class="number">1</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">5</span>, <span class="number">9</span>]},
+            KeySlice{key: <span class="number">0</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">8</span>]},
+            KeySlice{key: <span class="number">3</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">7</span>]},
+        ]
+    );
+}
+ 
+ </code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.rsplit_while" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#116-128">Source</a><h4 class="code-header">fn <a href="#method.rsplit_while" class="fn">rsplit_while</a>&lt;'a, P, U&gt;(
+    &amp;'a self,
+    mapper: P,
+) -&gt; <a class="struct" href="struct.RSplitSliceWhile.html" title="struct core_extensions::slices::RSplitSliceWhile">RSplitSliceWhile</a>&lt;'a, Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>, P, U&gt; <a href="#" class="tooltip" data-notable-ty="RSplitSliceWhile&lt;&#39;a, Self::Elem, P, U&gt;">ⓘ</a><div class="where">where
+    P: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(&amp;'a Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>) -&gt; U,
+    U: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>,</div></h4></section></summary><div class="docblock"><p>A variation of <a href="#method.split_while"><code>split_while</code></a> that iterates
+from the right(the order of subslices is reversed).</p>
+<p>The returned type implements
+<code>DoubleEndedIterator&lt;Item =</code><a href="./struct.KeySlice.html"><code>KeySlice</code></a><code>&lt;Self::Elem, U&gt;&gt;</code>.</p>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::ValSliceExt;
+<span class="kw">use </span>core_extensions::slices::KeySlice;
+ 
+{
+    <span class="kw">let </span>list = <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
+ 
+    <span class="macro">assert_eq!</span>(
+        list.rsplit_while(|x| x/<span class="number">4 </span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+        <span class="macro">vec!</span>[
+            KeySlice{key: <span class="number">2</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">8</span>]},
+            KeySlice{key: <span class="number">1</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>]},
+            KeySlice{key: <span class="number">0</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]},
+        ]
+    );
+}
+ 
+{
+    <span class="kw">let </span>list = [<span class="number">0</span>, <span class="number">4</span>, <span class="number">1</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">8</span>, <span class="number">7</span>];
+ 
+    <span class="macro">assert_eq!</span>(
+        list.rsplit_while(|x| x%<span class="number">4 </span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+        <span class="macro">vec!</span>[
+            KeySlice{key: <span class="number">3</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">7</span>]},
+            KeySlice{key: <span class="number">0</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">8</span>]},
+            KeySlice{key: <span class="number">1</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">5</span>, <span class="number">9</span>]},
+            KeySlice{key: <span class="number">0</span>, slice: <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">4</span>]},
+        ]
+    );
+}
+ 
+ 
+ </code></pre></div>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-ValSliceExt-for-This" class="impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#131-135">Source</a><a href="#impl-ValSliceExt-for-This" class="anchor">§</a><h3 class="code-header">impl&lt;This&gt; <a class="trait" href="trait.ValSliceExt.html" title="trait core_extensions::slices::ValSliceExt">ValSliceExt</a> for This<div class="where">where
+    This: ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a> + <a class="trait" href="trait.SliceExt.html" title="trait core_extensions::slices::SliceExt">SliceExt</a> + <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/borrow/trait.Borrow.html" title="trait core::borrow::Borrow">Borrow</a>&lt;[Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>]&gt;,</div></h3></section></div><script src="../../trait.impl/core_extensions/slices/extensions/trait.ValSliceExt.js" async></script><script type="text/json" id="notable-traits-data">{"RSplitSliceWhile<'a, Self::Elem, P, U>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.RSplitSliceWhile.html\" title=\"struct core_extensions::slices::RSplitSliceWhile\">RSplitSliceWhile</a>&lt;'a, T, P, U&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T, P, U: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html\" title=\"trait core::cmp::Eq\">Eq</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.RSplitSliceWhile.html\" title=\"struct core_extensions::slices::RSplitSliceWhile\">RSplitSliceWhile</a>&lt;'a, T, P, U&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html\" title=\"trait core::ops::function::FnMut\">FnMut</a>(<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.90.0/std/primitive.reference.html\">&amp;'a T</a>) -&gt; U,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"struct\" href=\"struct.KeySlice.html\" title=\"struct core_extensions::slices::KeySlice\">KeySlice</a>&lt;'a, T, U&gt;;</div>","SplitSliceWhile<'a, Self::Elem, P, U>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.SplitSliceWhile.html\" title=\"struct core_extensions::slices::SplitSliceWhile\">SplitSliceWhile</a>&lt;'a, T, P, U&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T, P, U: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/cmp/trait.Eq.html\" title=\"trait core::cmp::Eq\">Eq</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.SplitSliceWhile.html\" title=\"struct core_extensions::slices::SplitSliceWhile\">SplitSliceWhile</a>&lt;'a, T, P, U&gt;<div class=\"where\">where\n    P: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnMut.html\" title=\"trait core::ops::function::FnMut\">FnMut</a>(<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.90.0/std/primitive.reference.html\">&amp;'a T</a>) -&gt; U,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.90.0/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"struct\" href=\"struct.KeySlice.html\" title=\"struct core_extensions::slices::KeySlice\">KeySlice</a>&lt;'a, T, U&gt;;</div>"}</script></section></div></main></body></html>

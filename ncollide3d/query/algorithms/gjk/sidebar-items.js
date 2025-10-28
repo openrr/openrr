@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["GJKResult"],"fn":["cast_ray","closest_points","directional_distance","eps_tol","project_origin"]};

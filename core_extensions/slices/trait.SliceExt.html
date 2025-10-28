@@ -1,0 +1,280 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension trait for `[T]` and `str`."><title>SliceExt in core_extensions::slices - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="core_extensions" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../core_extensions/index.html">core_<wbr>extensions</a><span class="version">1.5.4</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Slice<wbr>Ext</a></h2><h3><a href="#required-associated-types">Required Associated Types</a></h3><ul class="block"><li><a href="#associatedtype.Elem" title="Elem">Elem</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.contains_slice" title="contains_slice">contains_slice</a></li><li><a href="#tymethod.get_index_of" title="get_index_of">get_index_of</a></li><li><a href="#tymethod.get_offset_of_slice" title="get_offset_of_slice">get_offset_of_slice</a></li><li><a href="#tymethod.index_of" title="index_of">index_of</a></li><li><a href="#tymethod.is_slice" title="is_slice">is_slice</a></li><li><a href="#tymethod.offset_of_slice" title="offset_of_slice">offset_of_slice</a></li><li><a href="#tymethod.slice_lossy" title="slice_lossy">slice_lossy</a></li><li><a href="#tymethod.slice_lossy_mut" title="slice_lossy_mut">slice_lossy_mut</a></li></ul><h3><a href="#foreign-impls">Implementations on Foreign Types</a></h3><ul class="block"><li><a href="#impl-SliceExt-for-%5BT%5D" title="[T]">[T]</a></li><li><a href="#impl-SliceExt-for-str" title="str">str</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In core_<wbr>extensions::<wbr>slices</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">core_extensions</a>::<wbr><a href="index.html">slices</a></div><h1>Trait <span class="trait">SliceExt</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/core_extensions/slices/extensions.rs.html#140-502">Source</a> </span></div><pre class="rust item-decl"><code>pub trait SliceExt {
+    type <a href="#associatedtype.Elem" class="associatedtype">Elem</a>;
+
+    // Required methods
+    fn <a href="#tymethod.contains_slice" class="fn">contains_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.is_slice" class="fn">is_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.offset_of_slice" class="fn">offset_of_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.get_offset_of_slice" class="fn">get_offset_of_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;;
+<span class="item-spacer"></span>    fn <a href="#tymethod.index_of" class="fn">index_of</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.get_index_of" class="fn">get_index_of</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;;
+<span class="item-spacer"></span>    fn <a href="#tymethod.slice_lossy" class="fn">slice_lossy</a>&lt;SB&gt;(&amp;self, range: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;, bias: SB) -&gt; &amp;Self
+       <span class="where">where SB: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="struct.SliceBias.html" title="struct core_extensions::slices::SliceBias">SliceBias</a>&gt;</span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.slice_lossy_mut" class="fn">slice_lossy_mut</a>&lt;SB&gt;(
+        &amp;mut self,
+        range: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;,
+        bias: SB,
+    ) -&gt; &amp;mut Self
+       <span class="where">where SB: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="struct.SliceBias.html" title="struct core_extensions::slices::SliceBias">SliceBias</a>&gt;</span>;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension trait for <code>[T]</code> and <code>str</code>.</p>
+</div></details><h2 id="required-associated-types" class="section-header">Required Associated Types<a href="#required-associated-types" class="anchor">§</a></h2><div class="methods"><details class="toggle" open><summary><section id="associatedtype.Elem" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#142">Source</a><h4 class="code-header">type <a href="#associatedtype.Elem" class="associatedtype">Elem</a></h4></section></summary><div class="docblock"><p>The type of a slice element.</p>
+</div></details></div><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.contains_slice" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#193">Source</a><h4 class="code-header">fn <a href="#tymethod.contains_slice" class="fn">contains_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>Checks whether self fully contains the <code>other</code> slice in memory.</p>
+<p>If <code>other</code> is a zero-length slice it is not contained inside <code>self</code>.</p>
+<h5 id="example"><a class="doc-anchor" href="#example">§</a>Example</h5><h6 id="called-on-slices"><a class="doc-anchor" href="#called-on-slices">§</a>Called on slices</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>list = <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];
+ 
+<span class="kw">let </span>another = [<span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
+ 
+<span class="macro">assert!</span>(list.contains_slice(<span class="kw-2">&amp;</span>list[..<span class="number">1</span>]));
+<span class="macro">assert!</span>(list.contains_slice(<span class="kw-2">&amp;</span>list[<span class="number">3</span>..]));
+
+<span class="comment">// Empty slices aren't considered contained by any other slice
+</span><span class="macro">assert!</span>(!list.contains_slice(<span class="kw-2">&amp;</span>list[..<span class="number">0</span>]));
+<span class="macro">assert!</span>(!list.contains_slice(<span class="kw-2">&amp;</span>another[..<span class="number">0</span>]));
+
+<span class="macro">assert!</span>(!list.contains_slice(<span class="kw-2">&amp;</span>another));
+</code></pre></div>
+<h6 id="called-on-strs"><a class="doc-anchor" href="#called-on-strs">§</a>Called on <code>str</code>s</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>string = <span class="string">"foo bar baz"</span>;
+ 
+<span class="kw">let </span>another = String::from(string);
+ 
+<span class="kw">let </span>foo = <span class="kw-2">&amp;</span>string[..<span class="number">3</span>];
+<span class="kw">let </span>bar = <span class="kw-2">&amp;</span>string[<span class="number">4</span>..<span class="number">7</span>];
+<span class="kw">let </span>baz = <span class="kw-2">&amp;</span>string[<span class="number">8</span>..<span class="number">11</span>];
+ 
+<span class="macro">assert!</span>(string.contains_slice(foo));
+<span class="macro">assert!</span>(string.contains_slice(bar));
+<span class="macro">assert!</span>(string.contains_slice(baz));
+
+<span class="comment">// Empty slices aren't considered contained by any other slice
+</span><span class="macro">assert!</span>(!string.contains_slice(<span class="kw-2">&amp;</span>string[..<span class="number">0</span>]));
+
+<span class="macro">assert!</span>(!string.contains_slice(<span class="kw-2">&amp;</span>another));
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.is_slice" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#242">Source</a><h4 class="code-header">fn <a href="#tymethod.is_slice" class="fn">is_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>Checks whether <code>self</code> is exactly the <code>other</code> slice in memory.</p>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5><h6 id="called-on-slices-1"><a class="doc-anchor" href="#called-on-slices-1">§</a>Called on slices</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>list = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];
+<span class="kw">let </span>slice_0 = <span class="kw-2">&amp;</span>list[..<span class="number">0</span>];
+<span class="kw">let </span>slice_1 = <span class="kw-2">&amp;</span>list[..];
+
+<span class="kw">let </span>other = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];
+
+<span class="macro">assert!</span>( slice_0.is_slice(slice_0));
+<span class="macro">assert!</span>( slice_0.is_slice(<span class="kw-2">&amp;</span>list[..<span class="number">0</span>]));
+<span class="macro">assert!</span>(!slice_0.is_slice(slice_1));
+<span class="macro">assert!</span>(!slice_0.is_slice(<span class="kw-2">&amp;</span>[]));
+
+<span class="macro">assert!</span>(!list.is_slice(<span class="kw-2">&amp;</span>other));
+</code></pre></div>
+<h6 id="called-on-strs-1"><a class="doc-anchor" href="#called-on-strs-1">§</a>Called on <code>str</code>s</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>string = <span class="string">"foo bar baz"</span>;
+ 
+<span class="kw">let </span>another = String::from(string);
+ 
+<span class="kw">let </span>foo = <span class="kw-2">&amp;</span>string[..<span class="number">3</span>];
+<span class="kw">let </span>bar = <span class="kw-2">&amp;</span>string[<span class="number">4</span>..<span class="number">7</span>];
+<span class="kw">let </span>baz = <span class="kw-2">&amp;</span>string[<span class="number">8</span>..<span class="number">11</span>];
+ 
+<span class="macro">assert!</span>(!string.is_slice(foo));
+<span class="macro">assert!</span>(!string.is_slice(bar));
+<span class="macro">assert!</span>(!string.is_slice(baz));
+<span class="macro">assert!</span>(string.is_slice(string));
+
+<span class="macro">assert!</span>(string[..<span class="number">0</span>].is_slice(<span class="kw-2">&amp;</span>string[..<span class="number">0</span>]));
+
+<span class="macro">assert!</span>(!string.is_slice(<span class="kw-2">&amp;</span>another));
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.offset_of_slice" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#292">Source</a><h4 class="code-header">fn <a href="#tymethod.offset_of_slice" class="fn">offset_of_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Returns the index at which <code>other</code> starts.</p>
+<p>If <code>other</code> is not inside <code>self</code>, this returns <code>self.len()</code></p>
+<h5 id="example-2"><a class="doc-anchor" href="#example-2">§</a>Example</h5><h6 id="called-on-slices-2"><a class="doc-anchor" href="#called-on-slices-2">§</a>Called on slices</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>list = <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];
+ 
+<span class="kw">let </span>other = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];
+
+<span class="macro">assert_eq!</span>(list.offset_of_slice(<span class="kw-2">&amp;</span>list[..<span class="number">0</span>]), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(list.offset_of_slice(<span class="kw-2">&amp;</span>list[<span class="number">3</span>..]), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(list.offset_of_slice(<span class="kw-2">&amp;</span>list[<span class="number">5</span>..]), <span class="number">5</span>);
+<span class="macro">assert_eq!</span>(list.offset_of_slice(<span class="kw-2">&amp;</span>list[<span class="number">6</span>..]), list.len());
+<span class="macro">assert_eq!</span>(list.offset_of_slice(<span class="kw-2">&amp;</span>[]), list.len());
+
+<span class="macro">assert_eq!</span>(list.offset_of_slice(<span class="kw-2">&amp;</span>other), list.len());
+</code></pre></div>
+<h6 id="called-on-strs-2"><a class="doc-anchor" href="#called-on-strs-2">§</a>Called on <code>str</code>s</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>string = <span class="string">"foo bar baz"</span>;
+ 
+<span class="kw">let </span>another = String::from(string);
+ 
+<span class="kw">let </span>foo = <span class="kw-2">&amp;</span>string[..<span class="number">3</span>];
+<span class="kw">let </span>bar = <span class="kw-2">&amp;</span>string[<span class="number">4</span>..<span class="number">7</span>];
+<span class="kw">let </span>baz = <span class="kw-2">&amp;</span>string[<span class="number">8</span>..<span class="number">11</span>];
+ 
+<span class="macro">assert_eq!</span>(string.offset_of_slice(string), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(string.offset_of_slice(<span class="kw-2">&amp;</span>string[..<span class="number">0</span>]), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(string.offset_of_slice(foo), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(string.offset_of_slice(bar), <span class="number">4</span>);
+<span class="macro">assert_eq!</span>(string.offset_of_slice(baz), <span class="number">8</span>);
+<span class="macro">assert_eq!</span>(string.offset_of_slice(<span class="kw-2">&amp;</span>string[<span class="number">11</span>..]), <span class="number">11</span>);
+
+<span class="macro">assert_eq!</span>(string.offset_of_slice(<span class="kw-2">&amp;</span>another), string.len());
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.get_offset_of_slice" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#342">Source</a><h4 class="code-header">fn <a href="#tymethod.get_offset_of_slice" class="fn">get_offset_of_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;</h4></section></summary><div class="docblock"><p>Returns the index at which <code>other</code> starts.</p>
+<p>If <code>other</code> is a zero-length slice, or is not inside <code>self</code>, this returns <code>None</code>.</p>
+<h5 id="example-3"><a class="doc-anchor" href="#example-3">§</a>Example</h5><h6 id="called-on-slices-3"><a class="doc-anchor" href="#called-on-slices-3">§</a>Called on slices</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>list = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];
+ 
+<span class="kw">let </span>other = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];
+
+<span class="macro">assert_eq!</span>(list.get_offset_of_slice(<span class="kw-2">&amp;</span>list[..<span class="number">0</span>]), <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(list.get_offset_of_slice(<span class="kw-2">&amp;</span>list[<span class="number">1</span>..]), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+<span class="macro">assert_eq!</span>(list.get_offset_of_slice(<span class="kw-2">&amp;</span>list[<span class="number">3</span>..]), <span class="prelude-val">Some</span>(<span class="number">3</span>));
+<span class="macro">assert_eq!</span>(list.get_offset_of_slice(<span class="kw-2">&amp;</span>list[<span class="number">5</span>..]), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+<span class="macro">assert_eq!</span>(list.get_offset_of_slice(<span class="kw-2">&amp;</span>list[<span class="number">6</span>..]), <span class="prelude-val">None</span>);
+
+<span class="macro">assert_eq!</span>(list.get_offset_of_slice(<span class="kw-2">&amp;</span>other), <span class="prelude-val">None</span>);
+</code></pre></div>
+<h6 id="called-on-strs-3"><a class="doc-anchor" href="#called-on-strs-3">§</a>Called on <code>str</code>s</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>string = <span class="string">"foo bar baz"</span>;
+ 
+<span class="kw">let </span>another = String::from(string);
+ 
+<span class="kw">let </span>foo = <span class="kw-2">&amp;</span>string[..<span class="number">3</span>];
+<span class="kw">let </span>bar = <span class="kw-2">&amp;</span>string[<span class="number">4</span>..<span class="number">7</span>];
+<span class="kw">let </span>baz = <span class="kw-2">&amp;</span>string[<span class="number">8</span>..<span class="number">11</span>];
+ 
+<span class="macro">assert_eq!</span>(string.get_offset_of_slice(<span class="kw-2">&amp;</span>string[..<span class="number">0</span>]), <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(string.get_offset_of_slice(string), <span class="prelude-val">Some</span>(<span class="number">0</span>));
+<span class="macro">assert_eq!</span>(string.get_offset_of_slice(foo), <span class="prelude-val">Some</span>(<span class="number">0</span>));
+<span class="macro">assert_eq!</span>(string.get_offset_of_slice(bar), <span class="prelude-val">Some</span>(<span class="number">4</span>));
+<span class="macro">assert_eq!</span>(string.get_offset_of_slice(baz), <span class="prelude-val">Some</span>(<span class="number">8</span>));
+<span class="macro">assert_eq!</span>(string.get_offset_of_slice(<span class="kw-2">&amp;</span>string[<span class="number">11</span>..]), <span class="prelude-val">None</span>);
+
+<span class="macro">assert_eq!</span>(string.get_offset_of_slice(<span class="kw-2">&amp;</span>another), <span class="prelude-val">None</span>);
+</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.index_of" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#391">Source</a><h4 class="code-header">fn <a href="#tymethod.index_of" class="fn">index_of</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Returns the index of <code>other</code> if it’s stored in the slice (if it points within the slice).</p>
+<p>If <code>other</code> is not inside <code>self</code>, this returns <code>self.len()</code>.</p>
+<h5 id="example-4"><a class="doc-anchor" href="#example-4">§</a>Example</h5><h6 id="called-on-slices-4"><a class="doc-anchor" href="#called-on-slices-4">§</a>Called on slices</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>list = <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];
+
+<span class="kw">let </span>other = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];
+
+<span class="macro">assert_eq!</span>(list.index_of(<span class="kw-2">&amp;</span>list[<span class="number">0</span>]), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(list.index_of(<span class="kw-2">&amp;</span>list[<span class="number">3</span>]), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(list.index_of(<span class="kw-2">&amp;</span>list[<span class="number">5</span>]), <span class="number">5</span>);
+<span class="macro">assert_eq!</span>(list.index_of(list.as_ptr().wrapping_offset(<span class="number">6</span>)), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(list.index_of(list.as_ptr().wrapping_offset(<span class="number">7</span>)), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(list.index_of(<span class="kw-2">&amp;</span><span class="number">0</span>), list.len());
+
+<span class="macro">assert_eq!</span>(list.index_of(<span class="kw-2">&amp;</span>other[<span class="number">0</span>]), list.len());
+<span class="macro">assert_eq!</span>(list.index_of(<span class="kw-2">&amp;</span>other[<span class="number">1</span>]), list.len());
+</code></pre></div>
+<h6 id="called-on-strs-4"><a class="doc-anchor" href="#called-on-strs-4">§</a>Called on <code>str</code>s</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>string = String::from(<span class="string">"abcdefgh"</span>);
+<span class="kw">let </span>bytes = string.as_bytes();
+
+<span class="kw">let </span>other = <span class="string">b"abcdefgh"</span>;
+
+<span class="macro">assert_eq!</span>(string.index_of(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>]), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(string.index_of(<span class="kw-2">&amp;</span>bytes[<span class="number">3</span>]), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(string.index_of(<span class="kw-2">&amp;</span>bytes[<span class="number">5</span>]), <span class="number">5</span>);
+<span class="macro">assert_eq!</span>(string.index_of(bytes.as_ptr().wrapping_offset(<span class="number">6</span>)), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(string.index_of(bytes.as_ptr().wrapping_offset(<span class="number">7</span>)), <span class="number">7</span>);
+<span class="macro">assert_eq!</span>(string.index_of(<span class="kw-2">&amp;</span><span class="number">0</span>), string.len());
+
+<span class="macro">assert_eq!</span>(string.index_of(<span class="kw-2">&amp;</span>other[<span class="number">0</span>]), string.len());
+<span class="macro">assert_eq!</span>(string.index_of(<span class="kw-2">&amp;</span>other[<span class="number">1</span>]), string.len());</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.get_index_of" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#440">Source</a><h4 class="code-header">fn <a href="#tymethod.get_index_of" class="fn">get_index_of</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.pointer.html">*const </a>Self::<a class="associatedtype" href="trait.SliceExt.html#associatedtype.Elem" title="type core_extensions::slices::SliceExt::Elem">Elem</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;</h4></section></summary><div class="docblock"><p>Returns the index of <code>other</code> if it’s stored in the slice (if it points within the slice).</p>
+<p>If <code>other</code> is not inside <code>self</code>, this returns <code>None</code>.</p>
+<h5 id="example-5"><a class="doc-anchor" href="#example-5">§</a>Example</h5><h6 id="called-on-slices-5"><a class="doc-anchor" href="#called-on-slices-5">§</a>Called on slices</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>list = <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];
+
+<span class="kw">let </span>other = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];
+
+<span class="macro">assert_eq!</span>(list.get_index_of(<span class="kw-2">&amp;</span>list[<span class="number">0</span>]), <span class="prelude-val">Some</span>(<span class="number">0</span>));
+<span class="macro">assert_eq!</span>(list.get_index_of(<span class="kw-2">&amp;</span>list[<span class="number">3</span>]), <span class="prelude-val">Some</span>(<span class="number">3</span>));
+<span class="macro">assert_eq!</span>(list.get_index_of(<span class="kw-2">&amp;</span>list[<span class="number">5</span>]), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+<span class="macro">assert_eq!</span>(list.get_index_of(list.as_ptr().wrapping_offset(<span class="number">6</span>)), <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(list.get_index_of(list.as_ptr().wrapping_offset(<span class="number">7</span>)), <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(list.get_index_of(<span class="kw-2">&amp;</span><span class="number">0</span>), <span class="prelude-val">None</span>);
+
+<span class="macro">assert_eq!</span>(list.get_index_of(<span class="kw-2">&amp;</span>other[<span class="number">0</span>]), <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(list.get_index_of(<span class="kw-2">&amp;</span>other[<span class="number">1</span>]), <span class="prelude-val">None</span>);
+</code></pre></div>
+<h6 id="called-on-strs-5"><a class="doc-anchor" href="#called-on-strs-5">§</a>Called on <code>str</code>s</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>string = String::from(<span class="string">"abcdefgh"</span>);
+<span class="kw">let </span>bytes = string.as_bytes();
+
+<span class="kw">let </span>other = <span class="string">b"abcdefgh"</span>;
+
+<span class="macro">assert_eq!</span>(string.get_index_of(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>]), <span class="prelude-val">Some</span>(<span class="number">0</span>));
+<span class="macro">assert_eq!</span>(string.get_index_of(<span class="kw-2">&amp;</span>bytes[<span class="number">3</span>]), <span class="prelude-val">Some</span>(<span class="number">3</span>));
+<span class="macro">assert_eq!</span>(string.get_index_of(<span class="kw-2">&amp;</span>bytes[<span class="number">5</span>]), <span class="prelude-val">Some</span>(<span class="number">5</span>));
+<span class="macro">assert_eq!</span>(string.get_index_of(bytes.as_ptr().wrapping_offset(<span class="number">6</span>)), <span class="prelude-val">Some</span>(<span class="number">6</span>));
+<span class="macro">assert_eq!</span>(string.get_index_of(bytes.as_ptr().wrapping_offset(<span class="number">7</span>)), <span class="prelude-val">Some</span>(<span class="number">7</span>));
+<span class="macro">assert_eq!</span>(string.get_index_of(<span class="kw-2">&amp;</span><span class="number">0</span>), <span class="prelude-val">None</span>);
+
+<span class="macro">assert_eq!</span>(string.get_index_of(<span class="kw-2">&amp;</span>other[<span class="number">0</span>]), <span class="prelude-val">None</span>);
+<span class="macro">assert_eq!</span>(string.get_index_of(<span class="kw-2">&amp;</span>other[<span class="number">1</span>]), <span class="prelude-val">None</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.slice_lossy" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#492-494">Source</a><h4 class="code-header">fn <a href="#tymethod.slice_lossy" class="fn">slice_lossy</a>&lt;SB&gt;(&amp;self, range: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;, bias: SB) -&gt; &amp;Self<div class="where">where
+    SB: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="struct.SliceBias.html" title="struct core_extensions::slices::SliceBias">SliceBias</a>&gt;,</div></h4></section></summary><div class="docblock"><p>Used for non-panicking slicing.</p>
+<p>If <code>range.end</code> is less than <code>range.start</code>, this returns an empty slice.</p>
+<h5 id="bias-parameter"><a class="doc-anchor" href="#bias-parameter">§</a><code>bias</code> parameter</h5>
+<p>The <code>bias</code> parameter, by being converted into a <a href="struct.SliceBias.html"><code>SliceBias</code></a>,
+determines how this method handles invalid ranges.</p>
+<p>The impl for <code>[T]</code> ignores this parameter, saturating ranges at <code>self.len()</code>.</p>
+<p>For <code>str</code>, it grows the range in the directions determined by <code>bias</code> parameter.</p>
+<h5 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h5><h6 id="t-slice"><a class="doc-anchor" href="#t-slice">§</a><code>[T]</code> slice</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+
+<span class="kw">let </span>arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>];
+<span class="macro">assert_eq!</span>(arr.slice_lossy(<span class="number">0</span>..<span class="number">3</span>, ()), <span class="kw-2">&amp;</span>arr[..<span class="number">3</span>]);
+<span class="macro">assert_eq!</span>(arr.slice_lossy(<span class="number">3</span>..<span class="number">1000</span>, ()), <span class="kw-2">&amp;</span>arr[<span class="number">3</span>..]);
+<span class="macro">assert_eq!</span>(arr.slice_lossy(<span class="number">1000</span>..<span class="number">1000</span>, ()), <span class="kw-2">&amp;</span>[]);
+<span class="macro">assert_eq!</span>(arr.slice_lossy(<span class="number">1000</span>..<span class="number">0</span>, ()), <span class="kw-2">&amp;</span>[]);</code></pre></div>
+<h6 id="str-slice"><a class="doc-anchor" href="#str-slice">§</a><code>str</code> slice</h6>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core_extensions::SliceExt;
+<span class="kw">use </span>core_extensions::slices::SliceBias;
+
+<span class="kw">let </span>word = <span class="string">"niño"</span>; <span class="comment">// 'ñ' is 2 bytes long , spanning the range 2..4
+
+</span><span class="macro">assert_eq!</span>(word.slice_lossy(<span class="number">0</span>..<span class="number">3</span>, SliceBias::LEFT ), <span class="string">"ni"</span>);
+<span class="macro">assert_eq!</span>(word.slice_lossy(<span class="number">0</span>..<span class="number">3</span>, SliceBias::RIGHT), <span class="string">"niñ"</span>);
+<span class="macro">assert_eq!</span>(word.slice_lossy(<span class="number">0</span>..<span class="number">3</span>, SliceBias::IN ), <span class="string">"ni"</span>);
+<span class="macro">assert_eq!</span>(word.slice_lossy(<span class="number">0</span>..<span class="number">3</span>, SliceBias::OUT), <span class="string">"niñ"</span>);
+
+<span class="macro">assert_eq!</span>(word.slice_lossy(<span class="number">3</span>..<span class="number">10000</span>, ()), <span class="string">"ño"</span>);
+<span class="macro">assert_eq!</span>(word.slice_lossy(<span class="number">3</span>..<span class="number">10000</span>, SliceBias::OUT), <span class="string">"ño"</span>);
+
+<span class="macro">assert_eq!</span>(word.slice_lossy(<span class="number">1000</span>..<span class="number">1000</span>, ()), <span class="string">""</span>);
+<span class="macro">assert_eq!</span>(word.slice_lossy(<span class="number">1000</span>..<span class="number">1000</span>, SliceBias::OUT), <span class="string">""</span>);
+<span class="macro">assert_eq!</span>(word.slice_lossy(<span class="number">1000</span>..<span class="number">0</span>, SliceBias::OUT), <span class="string">""</span>);</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.slice_lossy_mut" class="method"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#499-501">Source</a><h4 class="code-header">fn <a href="#tymethod.slice_lossy_mut" class="fn">slice_lossy_mut</a>&lt;SB&gt;(&amp;mut self, range: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;, bias: SB) -&gt; &amp;mut Self<div class="where">where
+    SB: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="struct.SliceBias.html" title="struct core_extensions::slices::SliceBias">SliceBias</a>&gt;,</div></h4></section></summary><div class="docblock"><p>Used for non-panicking mutable slicing.</p>
+<p>Identical behavior to <a href="#tymethod.slice_lossy"><code>slice_lossy</code></a> with respect to ranges.</p>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.90.0/reference/items/traits.html#dyn-compatibility">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="foreign-impls" class="section-header">Implementations on Foreign Types<a href="#foreign-impls" class="anchor">§</a></h2><details class="toggle implementors-toggle"><summary><section id="impl-SliceExt-for-str" class="impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#616-633">Source</a><a href="#impl-SliceExt-for-str" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.SliceExt.html" title="trait core_extensions::slices::SliceExt">SliceExt</a> for <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html">str</a></h3></section></summary><div class="impl-items"><section id="associatedtype.Elem-1" class="associatedtype trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#617">Source</a><a href="#associatedtype.Elem-1" class="anchor">§</a><h4 class="code-header">type <a href="#associatedtype.Elem" class="associatedtype">Elem</a> = <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.u8.html">u8</a></h4></section><section id="method.contains_slice" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#617">Source</a><a href="#method.contains_slice" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.contains_slice" class="fn">contains_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a></h4></section><section id="method.is_slice" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#617">Source</a><a href="#method.is_slice" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.is_slice" class="fn">is_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a></h4></section><section id="method.offset_of_slice" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#617">Source</a><a href="#method.offset_of_slice" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.offset_of_slice" class="fn">offset_of_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section><section id="method.get_offset_of_slice" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#617">Source</a><a href="#method.get_offset_of_slice" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.get_offset_of_slice" class="fn">get_offset_of_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;</h4></section><section id="method.index_of" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#617">Source</a><a href="#method.index_of" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.index_of" class="fn">index_of</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.pointer.html">*const </a><a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.u8.html">u8</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section><section id="method.get_index_of" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#617">Source</a><a href="#method.get_index_of" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.get_index_of" class="fn">get_index_of</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.pointer.html">*const </a><a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.u8.html">u8</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;</h4></section><section id="method.slice_lossy" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#619-624">Source</a><a href="#method.slice_lossy" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.slice_lossy" class="fn">slice_lossy</a>&lt;SB&gt;(&amp;self, range: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;, bias: SB) -&gt; &amp;Self<div class="where">where
+    SB: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="struct.SliceBias.html" title="struct core_extensions::slices::SliceBias">SliceBias</a>&gt;,</div></h4></section><section id="method.slice_lossy_mut" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#626-632">Source</a><a href="#method.slice_lossy_mut" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.slice_lossy_mut" class="fn">slice_lossy_mut</a>&lt;SB&gt;(&amp;mut self, range: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;, bias: SB) -&gt; &amp;mut Self<div class="where">where
+    SB: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="struct.SliceBias.html" title="struct core_extensions::slices::SliceBias">SliceBias</a>&gt;,</div></h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-SliceExt-for-%5BT%5D" class="impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#646-657">Source</a><a href="#impl-SliceExt-for-%5BT%5D" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="trait.SliceExt.html" title="trait core_extensions::slices::SliceExt">SliceExt</a> for <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.slice.html">[T]</a></h3></section></summary><div class="impl-items"><section id="associatedtype.Elem-2" class="associatedtype trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#647">Source</a><a href="#associatedtype.Elem-2" class="anchor">§</a><h4 class="code-header">type <a href="#associatedtype.Elem" class="associatedtype">Elem</a> = T</h4></section><section id="method.contains_slice-1" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#647">Source</a><a href="#method.contains_slice-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.contains_slice" class="fn">contains_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a></h4></section><section id="method.is_slice-1" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#647">Source</a><a href="#method.is_slice-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.is_slice" class="fn">is_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a></h4></section><section id="method.offset_of_slice-1" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#647">Source</a><a href="#method.offset_of_slice-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.offset_of_slice" class="fn">offset_of_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section><section id="method.get_offset_of_slice-1" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#647">Source</a><a href="#method.get_offset_of_slice-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.get_offset_of_slice" class="fn">get_offset_of_slice</a>(&amp;self, other: &amp;Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;</h4></section><section id="method.index_of-1" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#647">Source</a><a href="#method.index_of-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.index_of" class="fn">index_of</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.pointer.html">*const T</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a></h4></section><section id="method.get_index_of-1" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#647">Source</a><a href="#method.get_index_of-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.get_index_of" class="fn">get_index_of</a>(&amp;self, other: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.pointer.html">*const T</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;</h4></section><section id="method.slice_lossy-1" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#649-651">Source</a><a href="#method.slice_lossy-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.slice_lossy" class="fn">slice_lossy</a>&lt;SB&gt;(&amp;self, range: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;, _bias: SB) -&gt; &amp;Self</h4></section><section id="method.slice_lossy_mut-1" class="method trait-impl"><a class="src rightside" href="../../src/core_extensions/slices/extensions.rs.html#653-656">Source</a><a href="#method.slice_lossy_mut-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.slice_lossy_mut" class="fn">slice_lossy_mut</a>&lt;SB&gt;(&amp;mut self, range: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.usize.html">usize</a>&gt;, _bias: SB) -&gt; &amp;mut Self</h4></section></div></details><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"></div><script src="../../trait.impl/core_extensions/slices/extensions/trait.SliceExt.js" data-ignore-extern-crates="std" async></script></section></div></main></body></html>

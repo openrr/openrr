@@ -1,0 +1,299 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`egui`:  an easy-to-use GUI in pure Rust!"><title>egui - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="egui" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../egui/index.html">egui</a><span class="version">0.30.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#feature-flags" title="Feature flags">Feature flags</a></li><li><a href="#using-egui" title="Using egui">Using egui</a><ul><li><a href="#a-simple-example" title="A simple example">A simple example</a></li><li><a href="#getting-a-ui" title="Getting a `Ui`">Getting a <code>Ui</code></a></li><li><a href="#quick-start" title="Quick start">Quick start</a></li><li><a href="#viewports" title="Viewports">Viewports</a></li><li><a href="#coordinate-system" title="Coordinate system">Coordinate system</a></li></ul></li><li><a href="#integrating-with-egui" title="Integrating with egui">Integrating with egui</a><ul><li><a href="#debugging-your-renderer" title="Debugging your renderer">Debugging your renderer</a></li></ul></li><li><a href="#understanding-immediate-mode" title="Understanding immediate mode">Understanding immediate mode</a><ul><li><a href="#multi-pass-immediate-mode" title="Multi-pass immediate mode">Multi-pass immediate mode</a></li></ul></li><li><a href="#misc" title="Misc">Misc</a><ul><li><a href="#how-widgets-works" title="How widgets works">How widgets works</a></li><li><a href="#widget-interaction" title="Widget interaction">Widget interaction</a></li><li><a href="#auto-sizing-panels-and-windows" title="Auto-sizing panels and windows">Auto-sizing panels and windows</a></li><li><a href="#sizes" title="Sizes">Sizes</a></li><li><a href="#code-snippets" title="Code snippets">Code snippets</a></li><li><a href="#installing-additional-fonts" title="Installing additional fonts">Installing additional fonts</a></li><li><a href="#instrumentation" title="Instrumentation">Instrumentation</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#constants" title="Constants">Constants</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>egui</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/egui/lib.rs.html#1-705">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>egui</code>:  an easy-to-use GUI in pure Rust!</p>
+<p>Try the live web demo: <a href="https://www.egui.rs/#demo">https://www.egui.rs/#demo</a>. Read more about egui at <a href="https://github.com/emilk/egui">https://github.com/emilk/egui</a>.</p>
+<p><code>egui</code> is in heavy development, with each new version having breaking changes.
+You need to have rust 1.80.0 or later to use <code>egui</code>.</p>
+<p>To quickly get started with egui, you can take a look at <a href="https://github.com/emilk/eframe_template"><code>eframe_template</code></a>
+which uses <a href="https://docs.rs/eframe"><code>eframe</code></a>.</p>
+<p>To create a GUI using egui you first need a <a href="struct.Context.html" title="struct egui::Context"><code>Context</code></a> (by convention referred to by <code>ctx</code>).
+Then you add a <a href="containers/struct.Window.html" title="struct egui::containers::Window"><code>Window</code></a> or a <a href="containers/panel/struct.SidePanel.html" title="struct egui::containers::panel::SidePanel"><code>SidePanel</code></a> to get a <a href="struct.Ui.html" title="struct egui::Ui"><code>Ui</code></a>, which is what you’ll be using to add all the buttons and labels that you need.</p>
+<h3 id="feature-flags"><a class="doc-anchor" href="#feature-flags">§</a>Feature flags</h3><h2 id="using-egui"><a class="doc-anchor" href="#using-egui">§</a>Using egui</h2>
+<p>To see what is possible to build with egui you can check out the online demo at <a href="https://www.egui.rs/#demo">https://www.egui.rs/#demo</a>.</p>
+<p>If you like the “learning by doing” approach, clone <a href="https://github.com/emilk/eframe_template">https://github.com/emilk/eframe_template</a> and get started using egui right away.</p>
+<h4 id="a-simple-example"><a class="doc-anchor" href="#a-simple-example">§</a>A simple example</h4>
+<p>Here is a simple counter that can be incremented and decremented using two buttons:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>ui_counter(ui: <span class="kw-2">&amp;mut </span>egui::Ui, counter: <span class="kw-2">&amp;mut </span>i32) {
+    <span class="comment">// Put the buttons and label on the same row:
+    </span>ui.horizontal(|ui| {
+        <span class="kw">if </span>ui.button(<span class="string">"−"</span>).clicked() {
+            <span class="kw-2">*</span>counter -= <span class="number">1</span>;
+        }
+        ui.label(counter.to_string());
+        <span class="kw">if </span>ui.button(<span class="string">"+"</span>).clicked() {
+            <span class="kw-2">*</span>counter += <span class="number">1</span>;
+        }
+    });
+}</code></pre></div>
+<p>In some GUI frameworks this would require defining multiple types and functions with callbacks or message handlers,
+but thanks to <code>egui</code> being immediate mode everything is one self-contained function!</p>
+<h4 id="getting-a-ui"><a class="doc-anchor" href="#getting-a-ui">§</a>Getting a <a href="struct.Ui.html" title="struct egui::Ui"><code>Ui</code></a></h4>
+<p>Use one of <a href="containers/panel/struct.SidePanel.html" title="struct egui::containers::panel::SidePanel"><code>SidePanel</code></a>, <a href="containers/panel/struct.TopBottomPanel.html" title="struct egui::containers::panel::TopBottomPanel"><code>TopBottomPanel</code></a>, <a href="containers/panel/struct.CentralPanel.html" title="struct egui::containers::panel::CentralPanel"><code>CentralPanel</code></a>, <a href="containers/struct.Window.html" title="struct egui::containers::Window"><code>Window</code></a> or <a href="containers/struct.Area.html" title="struct egui::containers::Area"><code>Area</code></a> to
+get access to an <a href="struct.Ui.html" title="struct egui::Ui"><code>Ui</code></a> where you can put widgets. For example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>egui::CentralPanel::default().show(<span class="kw-2">&amp;</span>ctx, |ui| {
+    ui.add(egui::Label::new(<span class="string">"Hello World!"</span>));
+    ui.label(<span class="string">"A shorter and more convenient way to add a label."</span>);
+    <span class="kw">if </span>ui.button(<span class="string">"Click me"</span>).clicked() {
+        <span class="comment">// take some action here
+    </span>}
+});</code></pre></div>
+<h4 id="quick-start"><a class="doc-anchor" href="#quick-start">§</a>Quick start</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>ui.label(<span class="string">"This is a label"</span>);
+ui.hyperlink(<span class="string">"https://github.com/emilk/egui"</span>);
+ui.text_edit_singleline(<span class="kw-2">&amp;mut </span>my_string);
+<span class="kw">if </span>ui.button(<span class="string">"Click me"</span>).clicked() { }
+ui.add(egui::Slider::new(<span class="kw-2">&amp;mut </span>my_f32, <span class="number">0.0</span>..=<span class="number">100.0</span>));
+ui.add(egui::DragValue::new(<span class="kw-2">&amp;mut </span>my_f32));
+
+ui.checkbox(<span class="kw-2">&amp;mut </span>my_boolean, <span class="string">"Checkbox"</span>);
+
+<span class="attr">#[derive(PartialEq)]
+</span><span class="kw">enum </span>Enum { First, Second, Third }
+ui.horizontal(|ui| {
+    ui.radio_value(<span class="kw-2">&amp;mut </span>my_enum, Enum::First, <span class="string">"First"</span>);
+    ui.radio_value(<span class="kw-2">&amp;mut </span>my_enum, Enum::Second, <span class="string">"Second"</span>);
+    ui.radio_value(<span class="kw-2">&amp;mut </span>my_enum, Enum::Third, <span class="string">"Third"</span>);
+});
+
+ui.separator();
+
+ui.image((my_image, egui::Vec2::new(<span class="number">640.0</span>, <span class="number">480.0</span>)));
+
+ui.collapsing(<span class="string">"Click to see what is hidden!"</span>, |ui| {
+    ui.label(<span class="string">"Not much, as it turns out"</span>);
+});</code></pre></div>
+<h3 id="viewports"><a class="doc-anchor" href="#viewports">§</a>Viewports</h3>
+<p>Some egui backends support multiple <em>viewports</em>, which is what egui calls the native OS windows it resides in.
+See <a href="viewport/index.html" title="mod egui::viewport"><code>crate::viewport</code></a> for more information.</p>
+<h3 id="coordinate-system"><a class="doc-anchor" href="#coordinate-system">§</a>Coordinate system</h3>
+<p>The left-top corner of the screen is <code>(0.0, 0.0)</code>,
+with X increasing to the right and Y increasing downwards.</p>
+<p><code>egui</code> uses logical <em>points</em> as its coordinate system.
+Those related to physical <em>pixels</em> by the <code>pixels_per_point</code> scale factor.
+For example, a high-dpi screen can have <code>pixels_per_point = 2.0</code>,
+meaning there are two physical screen pixels for each logical point.</p>
+<p>Angles are in radians, and are measured clockwise from the X-axis, which has angle=0.</p>
+<h2 id="integrating-with-egui"><a class="doc-anchor" href="#integrating-with-egui">§</a>Integrating with egui</h2>
+<p>Most likely you are using an existing <code>egui</code> backend/integration such as <a href="https://docs.rs/eframe"><code>eframe</code></a>, <a href="https://docs.rs/bevy_egui"><code>bevy_egui</code></a>,
+or <a href="https://github.com/not-fl3/egui-miniquad"><code>egui-miniquad</code></a>,
+but if you want to integrate <code>egui</code> into a new game engine or graphics backend, this is the section for you.</p>
+<p>You need to collect <a href="struct.RawInput.html" title="struct egui::RawInput"><code>RawInput</code></a> and handle <a href="struct.FullOutput.html" title="struct egui::FullOutput"><code>FullOutput</code></a>. The basic structure is this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span><span class="kw-2">mut </span>ctx = egui::Context::default();
+
+<span class="comment">// Game loop:
+</span><span class="kw">loop </span>{
+    <span class="kw">let </span>raw_input: egui::RawInput = gather_input();
+
+    <span class="kw">let </span>full_output = ctx.run(raw_input, |ctx| {
+        egui::CentralPanel::default().show(<span class="kw-2">&amp;</span>ctx, |ui| {
+            ui.label(<span class="string">"Hello world!"</span>);
+            <span class="kw">if </span>ui.button(<span class="string">"Click me"</span>).clicked() {
+                <span class="comment">// take some action here
+            </span>}
+        });
+    });
+    handle_platform_output(full_output.platform_output);
+    <span class="kw">let </span>clipped_primitives = ctx.tessellate(full_output.shapes, full_output.pixels_per_point);
+    paint(full_output.textures_delta, clipped_primitives);
+}</code></pre></div>
+<p>For a reference OpenGL renderer, see <a href="https://github.com/emilk/egui/blob/master/crates/egui_glow/src/painter.rs">the <code>egui_glow</code> painter</a>.</p>
+<h4 id="debugging-your-renderer"><a class="doc-anchor" href="#debugging-your-renderer">§</a>Debugging your renderer</h4><h5 id="things-look-jagged"><a class="doc-anchor" href="#things-look-jagged">§</a>Things look jagged</h5>
+<ul>
+<li>Turn off backface culling.</li>
+</ul>
+<h5 id="my-text-is-blurry"><a class="doc-anchor" href="#my-text-is-blurry">§</a>My text is blurry</h5>
+<ul>
+<li>Make sure you set the proper <code>pixels_per_point</code> in the input to egui.</li>
+<li>Make sure the texture sampler is not off by half a pixel. Try nearest-neighbor sampler to check.</li>
+</ul>
+<h5 id="my-windows-are-too-transparent-or-too-dark"><a class="doc-anchor" href="#my-windows-are-too-transparent-or-too-dark">§</a>My windows are too transparent or too dark</h5>
+<ul>
+<li>egui uses premultiplied alpha, so make sure your blending function is <code>(ONE, ONE_MINUS_SRC_ALPHA)</code>.</li>
+<li>Make sure your texture sampler is clamped (<code>GL_CLAMP_TO_EDGE</code>).</li>
+<li>egui prefers linear color spaces for all blending so:
+<ul>
+<li>Use an sRGBA-aware texture if available (e.g. <code>GL_SRGB8_ALPHA8</code>).
+<ul>
+<li>Otherwise: remember to decode gamma in the fragment shader.</li>
+</ul>
+</li>
+<li>Decode the gamma of the incoming vertex colors in your vertex shader.</li>
+<li>Turn on sRGBA/linear framebuffer if available (<code>GL_FRAMEBUFFER_SRGB</code>).
+<ul>
+<li>Otherwise: gamma-encode the colors before you write them again.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="understanding-immediate-mode"><a class="doc-anchor" href="#understanding-immediate-mode">§</a>Understanding immediate mode</h2>
+<p><code>egui</code> is an immediate mode GUI library.</p>
+<p>Immediate mode has its roots in gaming, where everything on the screen is painted at the
+display refresh rate, i.e. at 60+ frames per second.
+In immediate mode GUIs, the entire interface is laid out and painted at the same high rate.
+This makes immediate mode GUIs especially well suited for highly interactive applications.</p>
+<p>It is useful to fully grok what “immediate mode” implies.</p>
+<p>Here is an example to illustrate it:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">if </span>ui.button(<span class="string">"click me"</span>).clicked() {
+    take_action()
+}</code></pre></div>
+<p>This code is being executed each frame at maybe 60 frames per second.
+Each frame egui does these things:</p>
+<ul>
+<li>lays out the letters <code>click me</code> in order to figure out the size of the button</li>
+<li>decides where on screen to place the button</li>
+<li>check if the mouse is hovering or clicking that location</li>
+<li>chose button colors based on if it is being hovered or clicked</li>
+<li>add a <a href="enum.Shape.html#variant.Rect" title="variant egui::Shape::Rect"><code>Shape::Rect</code></a> and <a href="enum.Shape.html#variant.Text" title="variant egui::Shape::Text"><code>Shape::Text</code></a> to the list of shapes to be painted later this frame</li>
+<li>return a <a href="struct.Response.html" title="struct egui::Response"><code>Response</code></a> with the <a href="struct.Response.html#method.clicked" title="method egui::Response::clicked"><code>clicked</code></a> member so the user can check for interactions</li>
+</ul>
+<p>There is no button being created and stored somewhere.
+The only output of this call is some colored shapes, and a <a href="struct.Response.html" title="struct egui::Response"><code>Response</code></a>.</p>
+<p>Similarly, consider this code:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>ui.add(egui::Slider::new(<span class="kw-2">&amp;mut </span>value, <span class="number">0.0</span>..=<span class="number">100.0</span>).text(<span class="string">"My value"</span>));</code></pre></div>
+<p>Here egui will read <code>value</code> (an <code>f32</code>) to display the slider, then look if the mouse is dragging the slider and if so change the <code>value</code>.
+Note that <code>egui</code> does not store the slider value for you - it only displays the current value, and changes it
+by how much the slider has been dragged in the previous few milliseconds.
+This means it is responsibility of the egui user to store the state (<code>value</code>) so that it persists between frames.</p>
+<p>It can be useful to read the code for the toggle switch example widget to get a better understanding
+of how egui works: <a href="https://github.com/emilk/egui/blob/master/crates/egui_demo_lib/src/demo/toggle_switch.rs">https://github.com/emilk/egui/blob/master/crates/egui_demo_lib/src/demo/toggle_switch.rs</a>.</p>
+<p>Read more about the pros and cons of immediate mode at <a href="https://github.com/emilk/egui#why-immediate-mode">https://github.com/emilk/egui#why-immediate-mode</a>.</p>
+<h3 id="multi-pass-immediate-mode"><a class="doc-anchor" href="#multi-pass-immediate-mode">§</a>Multi-pass immediate mode</h3>
+<p>By default, egui usually only does one pass for each rendered frame.
+However, egui supports multi-pass immediate mode.
+Another pass can be requested with <a href="struct.Context.html#method.request_discard" title="method egui::Context::request_discard"><code>Context::request_discard</code></a>.</p>
+<p>This is used by some widgets to cover up “first-frame jitters”.
+For instance, the <a href="struct.Grid.html" title="struct egui::Grid"><code>Grid</code></a> needs to know the width of all columns before it can properly place the widgets.
+But it cannot know the width of widgets to come.
+So it stores the max widths of previous frames and uses that.
+This means the first time a <code>Grid</code> is shown it will <em>guess</em> the widths of the columns, and will usually guess wrong.
+This means the contents of the grid will be wrong for one frame, before settling to the correct places.
+Therefore <code>Grid</code> calls <a href="struct.Context.html#method.request_discard" title="method egui::Context::request_discard"><code>Context::request_discard</code></a> when it is first shown, so the wrong placement is never
+visible to the end user.</p>
+<p>This is an example of a form of multi-pass immediate mode, where earlier passes are used for sizing,
+and later passes for layout.</p>
+<p>See <a href="struct.Context.html#method.request_discard" title="method egui::Context::request_discard"><code>Context::request_discard</code></a> and <a href="struct.Options.html#structfield.max_passes" title="field egui::Options::max_passes"><code>Options::max_passes</code></a> for more.</p>
+<h2 id="misc"><a class="doc-anchor" href="#misc">§</a>Misc</h2><h3 id="how-widgets-works"><a class="doc-anchor" href="#how-widgets-works">§</a>How widgets works</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">if </span>ui.button(<span class="string">"click me"</span>).clicked() { take_action() }</code></pre></div>
+<p>is short for</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>button = egui::Button::new(<span class="string">"click me"</span>);
+<span class="kw">if </span>ui.add(button).clicked() { take_action() }</code></pre></div>
+<p>which is short for</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>button = egui::Button::new(<span class="string">"click me"</span>);
+<span class="kw">let </span>response = button.ui(ui);
+<span class="kw">if </span>response.clicked() { take_action() }</code></pre></div>
+<p><a href="widgets/struct.Button.html" title="struct egui::widgets::Button"><code>Button</code></a> uses the builder pattern to create the data required to show it. The <a href="widgets/struct.Button.html" title="struct egui::widgets::Button"><code>Button</code></a> is then discarded.</p>
+<p><a href="widgets/struct.Button.html" title="struct egui::widgets::Button"><code>Button</code></a> implements <code>trait</code> <a href="widgets/trait.Widget.html" title="trait egui::widgets::Widget"><code>Widget</code></a>, which looks like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">pub trait </span>Widget {
+    <span class="doccomment">/// Allocate space, interact, paint, and return a [`Response`].
+    </span><span class="kw">fn </span>ui(<span class="self">self</span>, ui: <span class="kw-2">&amp;mut </span>Ui) -&gt; Response;
+}</code></pre></div>
+<h3 id="widget-interaction"><a class="doc-anchor" href="#widget-interaction">§</a>Widget interaction</h3>
+<p>Each widget has a <a href="struct.Sense.html" title="struct egui::Sense"><code>Sense</code></a>, which defines whether or not the widget
+is sensitive to clicking and/or drags.</p>
+<p>For instance, a <a href="widgets/struct.Button.html" title="struct egui::widgets::Button"><code>Button</code></a> only has a <a href="struct.Sense.html#method.click" title="associated function egui::Sense::click"><code>Sense::click</code></a> (by default).
+This means if you drag a button it will not respond with <a href="struct.Response.html#method.dragged" title="method egui::Response::dragged"><code>Response::dragged</code></a>.
+Instead, the drag will continue through the button to the first
+widget behind it that is sensitive to dragging, which for instance could be
+a <a href="containers/scroll_area/struct.ScrollArea.html" title="struct egui::containers::scroll_area::ScrollArea"><code>ScrollArea</code></a>. This lets you scroll by dragging a scroll area (important
+on touch screens), just as long as you don’t drag on a widget that is sensitive
+to drags (e.g. a <a href="widgets/struct.Slider.html" title="struct egui::widgets::Slider"><code>Slider</code></a>).</p>
+<p>When widgets overlap it is the last added one
+that is considered to be on top and which will get input priority.</p>
+<p>The widget interaction logic is run at the <em>start</em> of each frame,
+based on the output from the previous frame.
+This means that when a new widget shows up you cannot click it in the same
+frame (i.e. in the same fraction of a second), but unless the user
+is spider-man, they wouldn’t be fast enough to do so anyways.</p>
+<p>By running the interaction code early, egui can actually
+tell you if a widget is being interacted with <em>before</em> you add it,
+as long as you know its <a href="struct.Id.html" title="struct egui::Id"><code>Id</code></a> before-hand (e.g. using <a href="struct.Ui.html#method.next_auto_id" title="method egui::Ui::next_auto_id"><code>Ui::next_auto_id</code></a>),
+by calling <a href="struct.Context.html#method.read_response" title="method egui::Context::read_response"><code>Context::read_response</code></a>.
+This can be useful in some circumstances in order to style a widget,
+or to respond to interactions before adding the widget
+(perhaps on top of other widgets).</p>
+<h3 id="auto-sizing-panels-and-windows"><a class="doc-anchor" href="#auto-sizing-panels-and-windows">§</a>Auto-sizing panels and windows</h3>
+<p>In egui, all panels and windows auto-shrink to fit the content.
+If the window or panel is also resizable, this can lead to a weird behavior
+where you can drag the edge of the panel/window to make it larger, and
+when you release the panel/window shrinks again.
+This is an artifact of immediate mode, and here are some alternatives on how to avoid it:</p>
+<ol>
+<li>Turn off resizing with <a href="containers/struct.Window.html#method.resizable" title="method egui::containers::Window::resizable"><code>Window::resizable</code></a>, <a href="containers/panel/struct.SidePanel.html#method.resizable" title="method egui::containers::panel::SidePanel::resizable"><code>SidePanel::resizable</code></a>, <a href="containers/panel/struct.TopBottomPanel.html#method.resizable" title="method egui::containers::panel::TopBottomPanel::resizable"><code>TopBottomPanel::resizable</code></a>.</li>
+<li>Wrap your panel contents in a <a href="containers/scroll_area/struct.ScrollArea.html" title="struct egui::containers::scroll_area::ScrollArea"><code>ScrollArea</code></a>, or use <a href="containers/struct.Window.html#method.vscroll" title="method egui::containers::Window::vscroll"><code>Window::vscroll</code></a> and <a href="containers/struct.Window.html#method.hscroll" title="method egui::containers::Window::hscroll"><code>Window::hscroll</code></a>.</li>
+<li>Use a justified layout:</li>
+</ol>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>ui.with_layout(egui::Layout::top_down_justified(egui::Align::Center), |ui| {
+    ui.button(<span class="string">"I am becoming wider as needed"</span>);
+});</code></pre></div>
+<ol start="4">
+<li>Fill in extra space with emptiness:</li>
+</ol>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>ui.allocate_space(ui.available_size()); <span class="comment">// put this LAST in your panel/window code</span></code></pre></div>
+<h3 id="sizes"><a class="doc-anchor" href="#sizes">§</a>Sizes</h3>
+<p>You can control the size of widgets using <a href="struct.Ui.html#method.add_sized" title="method egui::Ui::add_sized"><code>Ui::add_sized</code></a>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>ui.add_sized([<span class="number">40.0</span>, <span class="number">20.0</span>], egui::DragValue::new(<span class="kw-2">&amp;mut </span>my_value));</code></pre></div>
+<h3 id="code-snippets"><a class="doc-anchor" href="#code-snippets">§</a>Code snippets</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Miscellaneous tips and tricks
+
+</span>ui.horizontal_wrapped(|ui| {
+    ui.spacing_mut().item_spacing.x = <span class="number">0.0</span>; <span class="comment">// remove spacing between widgets
+    // `radio_value` also works for enums, integers, and more.
+    </span>ui.radio_value(<span class="kw-2">&amp;mut </span>some_bool, <span class="bool-val">false</span>, <span class="string">"Off"</span>);
+    ui.radio_value(<span class="kw-2">&amp;mut </span>some_bool, <span class="bool-val">true</span>, <span class="string">"On"</span>);
+});
+
+ui.group(|ui| {
+    ui.label(<span class="string">"Within a frame"</span>);
+    ui.set_min_height(<span class="number">200.0</span>);
+});
+
+<span class="comment">// A `scope` creates a temporary [`Ui`] in which you can change settings:
+</span>ui.scope(|ui| {
+    ui.visuals_mut().override_text_color = <span class="prelude-val">Some</span>(egui::Color32::RED);
+    ui.style_mut().override_text_style = <span class="prelude-val">Some</span>(egui::TextStyle::Monospace);
+    ui.style_mut().wrap_mode = <span class="prelude-val">Some</span>(TextWrapMode::Truncate);
+
+    ui.label(<span class="string">"This text will be red, monospace, and won't wrap to a new line"</span>);
+}); <span class="comment">// the temporary settings are reverted here</span></code></pre></div>
+<h3 id="installing-additional-fonts"><a class="doc-anchor" href="#installing-additional-fonts">§</a>Installing additional fonts</h3>
+<p>The default egui fonts only support latin and cryllic characters, and some emojis.
+To use egui with e.g. asian characters you need to install your own font (<code>.ttf</code> or <code>.otf</code>) using <a href="struct.Context.html#method.set_fonts" title="method egui::Context::set_fonts"><code>Context::set_fonts</code></a>.</p>
+<h3 id="instrumentation"><a class="doc-anchor" href="#instrumentation">§</a>Instrumentation</h3>
+<p>This crate supports using the <a href="https://crates.io/crates/profiling">profiling</a> crate for instrumentation.
+You can enable features on the profiling crates in your application to add instrumentation for all
+crates that support it, including egui. See the profiling crate docs for more information.</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+profiling = &quot;1.0&quot;
+[features]
+profile-with-puffin = [&quot;profiling/profile-with-puffin&quot;]</code></pre></div></div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.LayerId"><code>pub use self::layers::<a class="struct" href="layers/struct.LayerId.html" title="struct egui::layers::LayerId">LayerId</a>;</code></dt><dt id="reexport.Order"><code>pub use self::layers::<a class="enum" href="layers/enum.Order.html" title="enum egui::layers::Order">Order</a>;</code></dt><dt id="reexport.SizeHint"><code>pub use self::load::<a class="enum" href="load/enum.SizeHint.html" title="enum egui::load::SizeHint">SizeHint</a>;</code></dt><dt id="reexport.FontSelection"><code>pub use self::style::<a class="enum" href="style/enum.FontSelection.html" title="enum egui::style::FontSelection">FontSelection</a>;</code></dt><dt id="reexport.Spacing"><code>pub use self::style::<a class="struct" href="style/struct.Spacing.html" title="struct egui::style::Spacing">Spacing</a>;</code></dt><dt id="reexport.Style"><code>pub use self::style::<a class="struct" href="style/struct.Style.html" title="struct egui::style::Style">Style</a>;</code></dt><dt id="reexport.TextStyle"><code>pub use self::style::<a class="enum" href="style/enum.TextStyle.html" title="enum egui::style::TextStyle">TextStyle</a>;</code></dt><dt id="reexport.Visuals"><code>pub use self::style::<a class="struct" href="style/struct.Visuals.html" title="struct egui::style::Visuals">Visuals</a>;</code></dt><dt id="reexport.RichText"><code>pub use self::widget_text::<a class="struct" href="widget_text/struct.RichText.html" title="struct egui::widget_text::RichText">RichText</a>;</code></dt><dt id="reexport.WidgetText"><code>pub use self::widget_text::<a class="enum" href="widget_text/enum.WidgetText.html" title="enum egui::widget_text::WidgetText">WidgetText</a>;</code></dt><dt id="reexport.accesskit"><code>pub use <a class="mod" href="../accesskit/index.html" title="mod accesskit">accesskit</a>;</code></dt><dt id="reexport.ahash"><code>pub use <a class="mod" href="../ahash/index.html" title="mod ahash">ahash</a>;</code></dt><dt id="reexport.epaint"><code>pub use <a class="mod" href="../epaint/index.html" title="mod epaint">epaint</a>;</code></dt><dt id="reexport.ecolor"><code>pub use epaint::<a class="mod" href="../ecolor/index.html" title="mod ecolor">ecolor</a>;</code></dt><dt id="reexport.emath"><code>pub use epaint::<a class="mod" href="../emath/index.html" title="mod emath">emath</a>;</code></dt><dt><code>pub use self::<a class="mod" href="containers/index.html" title="mod egui::containers">containers</a>::*;</code></dt><dt><code>pub use self::<a class="mod" href="viewport/index.html" title="mod egui::viewport">viewport</a>::*;</code></dt><dt><code>pub use self::<a class="mod" href="widgets/index.html" title="mod egui::widgets">widgets</a>::*;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="cache/index.html" title="mod egui::cache">cache</a></dt><dd>Caches for preventing the same value from being recomputed every frame.</dd><dt><a class="mod" href="containers/index.html" title="mod egui::containers">containers</a></dt><dd>Containers are pieces of the UI which wraps other pieces of UI. Examples: <a href="containers/struct.Window.html" title="struct egui::containers::Window"><code>Window</code></a>, <a href="containers/scroll_area/struct.ScrollArea.html" title="struct egui::containers::scroll_area::ScrollArea"><code>ScrollArea</code></a>, <a href="containers/struct.Resize.html" title="struct egui::containers::Resize"><code>Resize</code></a>, <a href="containers/panel/struct.SidePanel.html" title="struct egui::containers::panel::SidePanel"><code>SidePanel</code></a>, etc.</dd><dt><a class="mod" href="debug_text/index.html" title="mod egui::debug_text">debug_<wbr>text</a></dt><dd>This is an example of how to create a plugin for egui.</dd><dt><a class="mod" href="gui_zoom/index.html" title="mod egui::gui_zoom">gui_<wbr>zoom</a></dt><dd>Helpers for zooming the whole GUI of an app (changing <a href="struct.Context.html#method.pixels_per_point" title="method egui::Context::pixels_per_point"><code>Context::pixels_per_point</code></a>.</dd><dt><a class="mod" href="introspection/index.html" title="mod egui::introspection">introspection</a></dt><dd>Showing UI:s for egui/epaint types.</dd><dt><a class="mod" href="layers/index.html" title="mod egui::layers">layers</a></dt><dd>Handles paint layers, i.e. how things
+are sometimes painted behind or in front of other things.</dd><dt><a class="mod" href="load/index.html" title="mod egui::load">load</a></dt><dd>Image loading</dd><dt><a class="mod" href="menu/index.html" title="mod egui::menu">menu</a></dt><dd>Menu bar functionality (very basic so far).</dd><dt><a class="mod" href="mutex/index.html" title="mod egui::mutex">mutex</a></dt><dd>Helper module that adds extra checks when the <code>deadlock_detection</code> feature is turned on.</dd><dt><a class="mod" href="os/index.html" title="mod egui::os">os</a></dt><dt><a class="mod" href="output/index.html" title="mod egui::output">output</a></dt><dd>All the data egui returns to the backend at the end of each frame.</dd><dt><a class="mod" href="special_emojis/index.html" title="mod egui::special_emojis">special_<wbr>emojis</a></dt><dd>The default egui fonts supports around 1216 emojis in total.
+Here are some of the most useful:
+∞⊗⎗⎘⎙⏏⏴⏵⏶⏷
+⏩⏪⏭⏮⏸⏹⏺■▶📾🔀🔁🔃
+☀☁★☆☐☑☜☝☞☟⛃⛶✔
+↺↻⟲⟳⬅➡⬆⬇⬈⬉⬊⬋⬌⬍⮨⮩⮪⮫
+♡
+📅📆
+📈📉📊
+📋📌📎📤📥🔆
+🔈🔉🔊🔍🔎🔗🔘
+🕓🖧🖩🖮🖱🖴🖵🖼🗀🗁🗋🗐🗑🗙🚫❓</dd><dt><a class="mod" href="style/index.html" title="mod egui::style">style</a></dt><dd>egui theme (spacing, colors, etc).</dd><dt><a class="mod" href="text/index.html" title="mod egui::text">text</a></dt><dt><a class="mod" href="text_selection/index.html" title="mod egui::text_selection">text_<wbr>selection</a></dt><dd>Helpers regarding text selection for labels and text edit.</dd><dt><a class="mod" href="util/index.html" title="mod egui::util">util</a></dt><dd>Miscellaneous tools used by the rest of egui.</dd><dt><a class="mod" href="viewport/index.html" title="mod egui::viewport">viewport</a></dt><dd>egui supports multiple viewports, corresponding to multiple native windows.</dd><dt><a class="mod" href="widget_text/index.html" title="mod egui::widget_text">widget_<wbr>text</a></dt><dt><a class="mod" href="widgets/index.html" title="mod egui::widgets">widgets</a></dt><dd>Widgets are pieces of GUI such as <a href="widgets/struct.Label.html" title="struct egui::widgets::Label"><code>Label</code></a>, <a href="widgets/struct.Button.html" title="struct egui::widgets::Button"><code>Button</code></a>, <a href="widgets/struct.Slider.html" title="struct egui::widgets::Slider"><code>Slider</code></a> etc.</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.generate_loader_id.html" title="macro egui::generate_loader_id">generate_<wbr>loader_<wbr>id</a></dt><dd>Used to get a unique ID when implementing one of the loader traits: <a href="load/trait.BytesLoader.html#tymethod.id" title="method egui::load::BytesLoader::id"><code>BytesLoader::id</code></a>, <a href="load/trait.ImageLoader.html#tymethod.id" title="method egui::load::ImageLoader::id"><code>ImageLoader::id</code></a>, and <a href="load/trait.TextureLoader.html#tymethod.id" title="method egui::load::TextureLoader::id"><code>TextureLoader::id</code></a>.</dd><dt><a class="macro" href="macro.github_link_file.html" title="macro egui::github_link_file">github_<wbr>link_<wbr>file</a></dt><dd>Create a <a href="widgets/struct.Hyperlink.html" title="struct egui::widgets::Hyperlink"><code>Hyperlink</code></a> to the current <a href="https://doc.rust-lang.org/1.90.0/core/macro.file.html" title="macro core::file"><code>file!()</code></a> on github.</dd><dt><a class="macro" href="macro.github_link_file_line.html" title="macro egui::github_link_file_line">github_<wbr>link_<wbr>file_<wbr>line</a></dt><dd>Create a <a href="widgets/struct.Hyperlink.html" title="struct egui::widgets::Hyperlink"><code>Hyperlink</code></a> to the current <a href="https://doc.rust-lang.org/1.90.0/core/macro.file.html" title="macro core::file"><code>file!()</code></a> (and line) on Github</dd><dt><a class="macro" href="macro.include_image.html" title="macro egui::include_image">include_<wbr>image</a></dt><dd>Include an image in the binary.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Align2.html" title="struct egui::Align2">Align2</a></dt><dd>Two-dimension alignment, e.g. <a href="struct.Align2.html#associatedconstant.LEFT_TOP" title="associated constant egui::Align2::LEFT_TOP"><code>Align2::LEFT_TOP</code></a>.</dd><dt><a class="struct" href="struct.ClippedPrimitive.html" title="struct egui::ClippedPrimitive">Clipped<wbr>Primitive</a></dt><dd>A <a href="struct.Mesh.html" title="struct egui::Mesh"><code>Mesh</code></a> or <a href="struct.PaintCallback.html" title="struct egui::PaintCallback"><code>PaintCallback</code></a> within a clip rectangle.</dd><dt><a class="struct" href="struct.Color32.html" title="struct egui::Color32">Color32</a></dt><dd>This format is used for space-efficient color representation (32 bits).</dd><dt><a class="struct" href="struct.ColorImage.html" title="struct egui::ColorImage">Color<wbr>Image</a></dt><dd>A 2D RGBA color image in RAM.</dd><dt><a class="struct" href="struct.Context.html" title="struct egui::Context">Context</a></dt><dd>Your handle to egui.</dd><dt><a class="struct" href="struct.DragAndDrop.html" title="struct egui::DragAndDrop">Drag<wbr>AndDrop</a></dt><dd>Tracking of drag-and-drop payload.</dd><dt><a class="struct" href="struct.DroppedFile.html" title="struct egui::DroppedFile">Dropped<wbr>File</a></dt><dd>A file dropped into egui.</dd><dt><a class="struct" href="struct.EventFilter.html" title="struct egui::EventFilter">Event<wbr>Filter</a></dt><dd>Controls which events that a focused widget will have exclusive access to.</dd><dt><a class="struct" href="struct.FontData.html" title="struct egui::FontData">Font<wbr>Data</a></dt><dd>A <code>.ttf</code> or <code>.otf</code> file and a font face index.</dd><dt><a class="struct" href="struct.FontDefinitions.html" title="struct egui::FontDefinitions">Font<wbr>Definitions</a></dt><dd>Describes the font data and the sizes to use.</dd><dt><a class="struct" href="struct.FontId.html" title="struct egui::FontId">FontId</a></dt><dd>How to select a sized font.</dd><dt><a class="struct" href="struct.FontImage.html" title="struct egui::FontImage">Font<wbr>Image</a></dt><dd>A single-channel image designed for the font texture.</dd><dt><a class="struct" href="struct.FontTweak.html" title="struct egui::FontTweak">Font<wbr>Tweak</a></dt><dd>Extra scale and vertical tweak to apply to all text of a certain font.</dd><dt><a class="struct" href="struct.FullOutput.html" title="struct egui::FullOutput">Full<wbr>Output</a></dt><dd>What egui emits each frame from <a href="struct.Context.html#method.run" title="method egui::Context::run"><code>crate::Context::run</code></a>.</dd><dt><a class="struct" href="struct.Galley.html" title="struct egui::Galley">Galley</a></dt><dd>Text that has been laid out, ready for painting.</dd><dt><a class="struct" href="struct.Grid.html" title="struct egui::Grid">Grid</a></dt><dd>A simple grid layout.</dd><dt><a class="struct" href="struct.HoveredFile.html" title="struct egui::HoveredFile">Hovered<wbr>File</a></dt><dd>A file about to be dropped into egui.</dd><dt><a class="struct" href="struct.Id.html" title="struct egui::Id">Id</a></dt><dd>egui tracks widgets frame-to-frame using <a href="struct.Id.html" title="struct egui::Id"><code>Id</code></a>s.</dd><dt><a class="struct" href="struct.InnerResponse.html" title="struct egui::InnerResponse">Inner<wbr>Response</a></dt><dd>Returned when we wrap some ui-code and want to return both
+the results of the inner function and the ui as a whole, e.g.:</dd><dt><a class="struct" href="struct.InputState.html" title="struct egui::InputState">Input<wbr>State</a></dt><dd>Input state that egui updates each frame.</dd><dt><a class="struct" href="struct.KeyboardShortcut.html" title="struct egui::KeyboardShortcut">Keyboard<wbr>Shortcut</a></dt><dd>A keyboard shortcut, e.g. <code>Ctrl+Alt+W</code>.</dd><dt><a class="struct" href="struct.Layout.html" title="struct egui::Layout">Layout</a></dt><dd>The layout of a <a href="struct.Ui.html" title="struct egui::Ui"><code>Ui</code></a>, e.g. “vertical &amp; centered”.</dd><dt><a class="struct" href="struct.Margin.html" title="struct egui::Margin">Margin</a></dt><dd>A value for all four sides of a rectangle,
+often used to express padding or spacing.</dd><dt><a class="struct" href="struct.Memory.html" title="struct egui::Memory">Memory</a></dt><dd>The data that egui persists between frames.</dd><dt><a class="struct" href="struct.Mesh.html" title="struct egui::Mesh">Mesh</a></dt><dd>Textured triangles in two dimensions.</dd><dt><a class="struct" href="struct.ModifierNames.html" title="struct egui::ModifierNames">Modifier<wbr>Names</a></dt><dd>Names of different modifier keys.</dd><dt><a class="struct" href="struct.Modifiers.html" title="struct egui::Modifiers">Modifiers</a></dt><dd>State of the modifier keys. These must be fed to egui.</dd><dt><a class="struct" href="struct.MultiTouchInfo.html" title="struct egui::MultiTouchInfo">Multi<wbr>Touch<wbr>Info</a></dt><dd>All you probably need to know about a multi-touch gesture.</dd><dt><a class="struct" href="struct.OpenUrl.html" title="struct egui::OpenUrl">OpenUrl</a></dt><dd>What URL to open, and how.</dd><dt><a class="struct" href="struct.Options.html" title="struct egui::Options">Options</a></dt><dd>Some global options that you can read and write.</dd><dt><a class="struct" href="struct.PaintCallback.html" title="struct egui::PaintCallback">Paint<wbr>Callback</a></dt><dd>If you want to paint some 3D shapes inside an egui region, you can use this.</dd><dt><a class="struct" href="struct.PaintCallbackInfo.html" title="struct egui::PaintCallbackInfo">Paint<wbr>Callback<wbr>Info</a></dt><dd>Information passed along with <a href="struct.PaintCallback.html" title="struct egui::PaintCallback"><code>PaintCallback</code></a> (<a href="enum.Shape.html#variant.Callback" title="variant egui::Shape::Callback"><code>Shape::Callback</code></a>).</dd><dt><a class="struct" href="struct.Painter.html" title="struct egui::Painter">Painter</a></dt><dd>Helper to paint shapes and text to a specific region on a specific layer.</dd><dt><a class="struct" href="struct.PlatformOutput.html" title="struct egui::PlatformOutput">Platform<wbr>Output</a></dt><dd>The non-rendering part of what egui emits each frame.</dd><dt><a class="struct" href="struct.PointerState.html" title="struct egui::PointerState">Pointer<wbr>State</a></dt><dd>Mouse or touch state.</dd><dt><a class="struct" href="struct.Pos2.html" title="struct egui::Pos2">Pos2</a></dt><dd>A position on screen.</dd><dt><a class="struct" href="struct.Rangef.html" title="struct egui::Rangef">Rangef</a></dt><dd>Inclusive range of floats, i.e. <code>min..=max</code>, but more ergonomic than <a href="https://doc.rust-lang.org/1.90.0/core/ops/range/struct.RangeInclusive.html" title="struct core::ops::range::RangeInclusive"><code>RangeInclusive</code></a>.</dd><dt><a class="struct" href="struct.RawInput.html" title="struct egui::RawInput">RawInput</a></dt><dd>What the integrations provides to egui at the start of each frame.</dd><dt><a class="struct" href="struct.Rect.html" title="struct egui::Rect">Rect</a></dt><dd>A rectangular region of space.</dd><dt><a class="struct" href="struct.RepaintCause.html" title="struct egui::RepaintCause">Repaint<wbr>Cause</a></dt><dd>What called <a href="struct.Context.html#method.request_repaint" title="method egui::Context::request_repaint"><code>Context::request_repaint</code></a> or <a href="struct.Context.html#method.request_discard" title="method egui::Context::request_discard"><code>Context::request_discard</code></a>?</dd><dt><a class="struct" href="struct.RequestRepaintInfo.html" title="struct egui::RequestRepaintInfo">Request<wbr>Repaint<wbr>Info</a></dt><dd>Information given to the backend about when it is time to repaint the ui.</dd><dt><a class="struct" href="struct.Response.html" title="struct egui::Response">Response</a></dt><dd>The result of adding a widget to a <a href="struct.Ui.html" title="struct egui::Ui"><code>Ui</code></a>.</dd><dt><a class="struct" href="struct.Rgba.html" title="struct egui::Rgba">Rgba</a></dt><dd>0-1 linear space <code>RGBA</code> color with premultiplied alpha.</dd><dt><a class="struct" href="struct.Rounding.html" title="struct egui::Rounding">Rounding</a></dt><dd>How rounded the corners of things should be</dd><dt><a class="struct" href="struct.Sense.html" title="struct egui::Sense">Sense</a></dt><dd>What sort of interaction is a widget sensitive to?</dd><dt><a class="struct" href="struct.Shadow.html" title="struct egui::Shadow">Shadow</a></dt><dd>The color and fuzziness of a fuzzy shape.</dd><dt><a class="struct" href="struct.Stroke.html" title="struct egui::Stroke">Stroke</a></dt><dd>Describes the width and color of a line.</dd><dt><a class="struct" href="struct.TextFormat.html" title="struct egui::TextFormat">Text<wbr>Format</a></dt><dd>Formatting option for a section of text.</dd><dt><a class="struct" href="struct.TextureHandle.html" title="struct egui::TextureHandle">Texture<wbr>Handle</a></dt><dd>Used to paint images.</dd><dt><a class="struct" href="struct.TextureOptions.html" title="struct egui::TextureOptions">Texture<wbr>Options</a></dt><dd>How the texture texels are filtered.</dd><dt><a class="struct" href="struct.TexturesDelta.html" title="struct egui::TexturesDelta">Textures<wbr>Delta</a></dt><dd>What has been allocated and freed during the last period.</dd><dt><a class="struct" href="struct.TouchDeviceId.html" title="struct egui::TouchDeviceId">Touch<wbr>Device<wbr>Id</a></dt><dd>this is a <code>u64</code> as values of this kind can always be obtained by hashing</dd><dt><a class="struct" href="struct.TouchId.html" title="struct egui::TouchId">TouchId</a></dt><dd>Unique identification of a touch occurrence (finger or pen or …).
+A Touch ID is valid until the finger is lifted.
+A new ID is used for the next touch.</dd><dt><a class="struct" href="struct.Ui.html" title="struct egui::Ui">Ui</a></dt><dd>This is what you use to place widgets.</dd><dt><a class="struct" href="struct.UiBuilder.html" title="struct egui::UiBuilder">UiBuilder</a></dt><dd>Build a <a href="struct.Ui.html" title="struct egui::Ui"><code>Ui</code></a> as the child of another <a href="struct.Ui.html" title="struct egui::Ui"><code>Ui</code></a>.</dd><dt><a class="struct" href="struct.UiStack.html" title="struct egui::UiStack">UiStack</a></dt><dd>Information about a <a href="struct.Ui.html" title="struct egui::Ui"><code>crate::Ui</code></a> and its parents.</dd><dt><a class="struct" href="struct.UiStackInfo.html" title="struct egui::UiStackInfo">UiStack<wbr>Info</a></dt><dd>Information about a <a href="struct.Ui.html" title="struct egui::Ui"><code>crate::Ui</code></a> to be included in the corresponding <a href="struct.UiStack.html" title="struct egui::UiStack"><code>UiStack</code></a>.</dd><dt><a class="struct" href="struct.UiStackIterator.html" title="struct egui::UiStackIterator">UiStack<wbr>Iterator</a></dt><dd>Iterator that walks up a stack of <code>StackFrame</code>s.</dd><dt><a class="struct" href="struct.UiTags.html" title="struct egui::UiTags">UiTags</a></dt><dd>User-chosen tags.</dd><dt><a class="struct" href="struct.UserData.html" title="struct egui::UserData">User<wbr>Data</a></dt><dd>A wrapper around <code>dyn Any</code>, used for passing custom user data
+to <a href="viewport/enum.ViewportCommand.html#variant.Screenshot" title="variant egui::viewport::ViewportCommand::Screenshot"><code>crate::ViewportCommand::Screenshot</code></a>.</dd><dt><a class="struct" href="struct.Vec2.html" title="struct egui::Vec2">Vec2</a></dt><dd>A vector has a direction and length.
+A <a href="struct.Vec2.html" title="struct egui::Vec2"><code>Vec2</code></a> is often used to represent a size.</dd><dt><a class="struct" href="struct.Vec2b.html" title="struct egui::Vec2b">Vec2b</a></dt><dd>Two bools, one for each axis (X and Y).</dd><dt><a class="struct" href="struct.ViewportInfo.html" title="struct egui::ViewportInfo">Viewport<wbr>Info</a></dt><dd>Information about the current viewport, given as input each frame.</dd><dt><a class="struct" href="struct.WidgetInfo.html" title="struct egui::WidgetInfo">Widget<wbr>Info</a></dt><dd>Describes a widget such as a <a href="widgets/struct.Button.html" title="struct egui::widgets::Button"><code>crate::Button</code></a> or a <a href="widgets/text_edit/struct.TextEdit.html" title="struct egui::widgets::text_edit::TextEdit"><code>crate::TextEdit</code></a>.</dd><dt><a class="struct" href="struct.WidgetRect.html" title="struct egui::WidgetRect">Widget<wbr>Rect</a></dt><dd>Used to store each widget’s <a href="struct.Id.html" title="struct egui::Id">Id</a>, <a href="struct.Rect.html" title="struct egui::Rect">Rect</a> and <a href="struct.Sense.html" title="struct egui::Sense">Sense</a> each frame.</dd><dt><a class="struct" href="struct.WidgetRects.html" title="struct egui::WidgetRects">Widget<wbr>Rects</a></dt><dd>Stores the <a href="struct.WidgetRect.html" title="struct egui::WidgetRect"><code>WidgetRect</code></a>s of all widgets generated during a single egui update/frame.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Align.html" title="enum egui::Align">Align</a></dt><dd>left/center/right or top/center/bottom alignment for e.g. anchors and layouts.</dd><dt><a class="enum" href="enum.CursorIcon.html" title="enum egui::CursorIcon">Cursor<wbr>Icon</a></dt><dd>A mouse cursor icon.</dd><dt><a class="enum" href="enum.Direction.html" title="enum egui::Direction">Direction</a></dt><dd>Layout direction, one of <a href="enum.Direction.html#variant.LeftToRight" title="variant egui::Direction::LeftToRight"><code>LeftToRight</code></a>, <a href="enum.Direction.html#variant.RightToLeft" title="variant egui::Direction::RightToLeft"><code>RightToLeft</code></a>, <a href="enum.Direction.html#variant.TopDown" title="variant egui::Direction::TopDown"><code>TopDown</code></a>, <a href="enum.Direction.html#variant.BottomUp" title="variant egui::Direction::BottomUp"><code>BottomUp</code></a>.</dd><dt><a class="enum" href="enum.Event.html" title="enum egui::Event">Event</a></dt><dd>An input event generated by the integration.</dd><dt><a class="enum" href="enum.FontFamily.html" title="enum egui::FontFamily">Font<wbr>Family</a></dt><dd>Font of unknown size.</dd><dt><a class="enum" href="enum.ImageData.html" title="enum egui::ImageData">Image<wbr>Data</a></dt><dd>An image stored in RAM.</dd><dt><a class="enum" href="enum.ImeEvent.html" title="enum egui::ImeEvent">ImeEvent</a></dt><dd>IME event.</dd><dt><a class="enum" href="enum.Key.html" title="enum egui::Key">Key</a></dt><dd>Keyboard keys.</dd><dt><a class="enum" href="enum.MouseWheelUnit.html" title="enum egui::MouseWheelUnit">Mouse<wbr>Wheel<wbr>Unit</a></dt><dd>The unit associated with the numeric value of a mouse wheel event</dd><dt><a class="enum" href="enum.PointerButton.html" title="enum egui::PointerButton">Pointer<wbr>Button</a></dt><dd>Mouse button (or similar for touch input)</dd><dt><a class="enum" href="enum.Shape.html" title="enum egui::Shape">Shape</a></dt><dd>A paint primitive such as a circle or a piece of text.
+Coordinates are all screen space points (not physical pixels).</dd><dt><a class="enum" href="enum.TextWrapMode.html" title="enum egui::TextWrapMode">Text<wbr>Wrap<wbr>Mode</a></dt><dd>How to wrap and elide text.</dd><dt><a class="enum" href="enum.TextureFilter.html" title="enum egui::TextureFilter">Texture<wbr>Filter</a></dt><dd>How the texture texels are filtered.</dd><dt><a class="enum" href="enum.TextureId.html" title="enum egui::TextureId">Texture<wbr>Id</a></dt><dd>What texture to use in a <a href="struct.Mesh.html" title="struct egui::Mesh"><code>Mesh</code></a> mesh.</dd><dt><a class="enum" href="enum.TextureWrapMode.html" title="enum egui::TextureWrapMode">Texture<wbr>Wrap<wbr>Mode</a></dt><dd>Defines how textures are wrapped around objects when texture coordinates fall outside the [0, 1] range.</dd><dt><a class="enum" href="enum.Theme.html" title="enum egui::Theme">Theme</a></dt><dd>Dark or Light theme.</dd><dt><a class="enum" href="enum.ThemePreference.html" title="enum egui::ThemePreference">Theme<wbr>Preference</a></dt><dd>The user’s theme preference.</dd><dt><a class="enum" href="enum.TouchPhase.html" title="enum egui::TouchPhase">Touch<wbr>Phase</a></dt><dd>In what phase a touch event is in.</dd><dt><a class="enum" href="enum.UiKind.html" title="enum egui::UiKind">UiKind</a></dt><dd>What kind is this <a href="struct.Ui.html" title="struct egui::Ui"><code>crate::Ui</code></a>?</dd><dt><a class="enum" href="enum.UserAttentionType.html" title="enum egui::UserAttentionType">User<wbr>Attention<wbr>Type</a></dt><dd>Types of attention to request from a user when a native window is not in focus.</dd><dt><a class="enum" href="enum.ViewportEvent.html" title="enum egui::ViewportEvent">Viewport<wbr>Event</a></dt><dd>An input event from the backend into egui, about a specific <a href="viewport/index.html" title="mod egui::viewport">viewport</a>.</dd><dt><a class="enum" href="enum.WidgetType.html" title="enum egui::WidgetType">Widget<wbr>Type</a></dt><dd>The different types of built-in widgets in egui</dd></dl><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><dl class="item-table"><dt><a class="constant" href="constant.NUM_POINTER_BUTTONS.html" title="constant egui::NUM_POINTER_BUTTONS">NUM_<wbr>POINTER_<wbr>BUTTONS</a></dt><dd>Number of pointer buttons supported by egui, i.e. the number of possible states of <a href="enum.PointerButton.html" title="enum egui::PointerButton"><code>PointerButton</code></a>.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.NumExt.html" title="trait egui::NumExt">NumExt</a></dt><dd>Extends <code>f32</code>, <a href="struct.Vec2.html" title="struct egui::Vec2"><code>Vec2</code></a> etc with <code>at_least</code> and <code>at_most</code> as aliases for <code>max</code> and <code>min</code>.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.__run_test_ctx.html" title="fn egui::__run_test_ctx">__<wbr>run_<wbr>test_<wbr>ctx</a></dt><dd>For use in tests; especially doctests.</dd><dt><a class="fn" href="fn.__run_test_ui.html" title="fn egui::__run_test_ui">__<wbr>run_<wbr>test_<wbr>ui</a></dt><dd>For use in tests; especially doctests.</dd><dt><a class="fn" href="fn.accesskit_root_id.html" title="fn egui::accesskit_root_id">accesskit_<wbr>root_<wbr>id</a></dt><dt><a class="fn" href="fn.lerp.html" title="fn egui::lerp">lerp</a></dt><dd>Linear interpolation.</dd><dt><a class="fn" href="fn.pos2.html" title="fn egui::pos2">pos2</a></dt><dd><code>pos2(x, y) == Pos2::new(x, y)</code></dd><dt><a class="fn" href="fn.remap.html" title="fn egui::remap">remap</a></dt><dd>Linearly remap a value from one range to another,
+so that when <code>x == from.start()</code> returns <code>to.start()</code>
+and when <code>x == from.end()</code> returns <code>to.end()</code>.</dd><dt><a class="fn" href="fn.remap_clamp.html" title="fn egui::remap_clamp">remap_<wbr>clamp</a></dt><dd>Like <a href="fn.remap.html" title="fn egui::remap"><code>remap</code></a>, but also clamps the value so that the returned value is always in the <code>to</code> range.</dd><dt><a class="fn" href="fn.vec2.html" title="fn egui::vec2">vec2</a></dt><dd><code>vec2(x, y) == Vec2::new(x, y)</code></dd><dt><a class="fn" href="fn.warn_if_debug_build.html" title="fn egui::warn_if_debug_build">warn_<wbr>if_<wbr>debug_<wbr>build</a></dt><dd>Helper function that adds a label when compiling with debug assertions enabled.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.IdMap.html" title="type egui::IdMap">IdMap</a></dt><dd><code>IdMap&lt;V&gt;</code> is a <code>HashMap&lt;Id, V&gt;</code> optimized by knowing that <a href="struct.Id.html" title="struct egui::Id"><code>Id</code></a> has good entropy, and doesn’t need more hashing.</dd></dl></section></div></main></body></html>

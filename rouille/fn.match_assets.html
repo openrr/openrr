@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Searches inside `path` for a file that matches the given request. If a file is found, returns a `Response` that would serve this file if returned. If no file is found, a 404 response is returned instead."><title>match_assets in rouille - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="rouille" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../rouille/index.html">rouille</a><span class="version">3.6.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">match_<wbr>assets</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li><li><a href="#security" title="Security">Security</a></li><li><a href="#example-with-prefix" title="Example with prefix">Example with prefix</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate rouille</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">rouille</a></div><h1>Function <span class="fn">match_assets</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/rouille/assets.rs.html#80-136">Source</a> </span></div><pre class="rust item-decl"><code>pub fn match_assets&lt;P&gt;(request: &amp;<a class="struct" href="struct.Request.html" title="struct rouille::Request">Request</a>, path: <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.reference.html">&amp;P</a>) -&gt; <a class="struct" href="struct.Response.html" title="struct rouille::Response">Response</a><div class="where">where
+    P: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/convert/trait.AsRef.html" title="trait core::convert::AsRef">AsRef</a>&lt;<a class="struct" href="https://doc.rust-lang.org/1.90.0/std/path/struct.Path.html" title="struct std::path::Path">Path</a>&gt; + ?<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Searches inside <code>path</code> for a file that matches the given request. If a file is found,
+returns a <code>Response</code> that would serve this file if returned. If no file is found, a 404
+response is returned instead.</p>
+<p>The value of the <code>Content-Type</code> header of the response is guessed based on the file’s
+extension. If you wish so, you can modify that <code>Content-Type</code> by modifying the <code>Response</code>
+object returned by this function.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>In this example, a request made for example to <code>/test.txt</code> will return the file
+<code>public/test.txt</code> (relative to the current working directory, which is usually the location
+of the <code>Cargo.toml</code>) if it exists.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>rouille::start_server(<span class="string">"localhost:8000"</span>, <span class="kw">move </span>|request| {
+    <span class="kw">let </span>response = rouille::match_assets(<span class="kw-2">&amp;</span>request, <span class="string">"public"</span>);
+    <span class="kw">if </span>response.is_success() {
+        <span class="kw">return </span>response;
+    }
+
+    <span class="comment">// ...
+</span>});</code></pre></div>
+<h2 id="security"><a class="doc-anchor" href="#security">§</a>Security</h2>
+<p>Everything inside the directory that you pass as <code>path</code> is potentially accessible by any
+client. <strong>Do not use assume that client won’t be able to guess the URL of a sensitive file</strong>.
+All sensitive files should require a login/password to be accessed.</p>
+<p>If you want to serve sensitive files, you are encouraged to put them in a different directory
+than public files, and call <code>match_assets</code> once for public files and once for private files
+after you checked the user’s credentials.
+Only call <code>match_assets</code> <strong>after</strong> you know that the user can have access to all the files
+that can be served.</p>
+<p>If you manage the user’s accesses per-file, use a white list of authorized files instead of a
+black list of forbidden files. Files can potentially be accessed from multiple different URLs
+and a black list may not cover everything.</p>
+<h2 id="example-with-prefix"><a class="doc-anchor" href="#example-with-prefix">§</a>Example with prefix</h2>
+<p>Sometimes you want to add a prefix to the URL of your static files. To do that, you can use
+the <code>remove_prefix</code> method on <code>Request</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>rouille::start_server(<span class="string">"localhost:8000"</span>, <span class="kw">move </span>|request| {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(request) = request.remove_prefix(<span class="string">"/static"</span>) {
+        <span class="kw">return </span>rouille::match_assets(<span class="kw-2">&amp;</span>request, <span class="string">"public"</span>);
+    }
+
+    <span class="comment">// ...
+</span>});</code></pre></div>
+<p>In this example, a request made to <code>/static/test.txt</code> will return the file
+<code>public/test.txt</code> if it exists.</p>
+</div></details></section></div></main></body></html>
