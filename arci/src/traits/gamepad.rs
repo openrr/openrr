@@ -4,6 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[non_exhaustive]
 pub enum Button {
     South,
     East,
@@ -26,6 +27,7 @@ pub enum Button {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[non_exhaustive]
 pub enum Axis {
     LeftStickX,
     LeftStickY,
@@ -39,6 +41,7 @@ pub enum Axis {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum GamepadEvent {
     ButtonPressed(Button),
     ButtonReleased(Button),
