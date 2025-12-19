@@ -595,7 +595,7 @@ impl From<arci::gamepad::Button> for RButton {
             arci::gamepad::Button::DPadDown => Self::DPadDown,
             arci::gamepad::Button::DPadLeft => Self::DPadLeft,
             arci::gamepad::Button::DPadRight => Self::DPadRight,
-            arci::gamepad::Button::Unknown => Self::Unknown,
+            arci::gamepad::Button::Unknown | _ => Self::Unknown,
         }
     }
 }
@@ -648,7 +648,7 @@ impl From<arci::gamepad::Axis> for RAxis {
             arci::gamepad::Axis::RightTrigger => Self::RightTrigger,
             arci::gamepad::Axis::DPadX => Self::DPadX,
             arci::gamepad::Axis::DPadY => Self::DPadY,
-            arci::gamepad::Axis::Unknown => Self::Unknown,
+            arci::gamepad::Axis::Unknown | _ => Self::Unknown,
         }
     }
 }
@@ -692,7 +692,7 @@ impl From<arci::gamepad::GamepadEvent> for RGamepadEvent {
             }
             arci::gamepad::GamepadEvent::Connected => Self::Connected,
             arci::gamepad::GamepadEvent::Disconnected => Self::Disconnected,
-            arci::gamepad::GamepadEvent::Unknown => Self::Unknown,
+            arci::gamepad::GamepadEvent::Unknown | _ => Self::Unknown,
         }
     }
 }

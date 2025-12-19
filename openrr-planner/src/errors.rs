@@ -19,6 +19,7 @@ use std::io;
 use thiserror::Error;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum UnfeasibleTrajectoryPoint {
     Start,
     WayPoint,

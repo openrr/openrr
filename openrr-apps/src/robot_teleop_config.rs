@@ -15,6 +15,7 @@ use crate::{Error, resolve_plugin_path};
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
+#[non_exhaustive]
 pub enum BuiltinGamepad {
     Gilrs,
     Keyboard,
@@ -23,6 +24,7 @@ pub enum BuiltinGamepad {
 
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum GamepadKind {
     Builtin(BuiltinGamepad),
     Plugin(String),

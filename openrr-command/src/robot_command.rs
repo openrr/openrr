@@ -34,6 +34,7 @@ where
 
 #[derive(Parser, Debug)]
 #[clap(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum RobotCommand {
     /// Send joint positions.
     SendJoints {

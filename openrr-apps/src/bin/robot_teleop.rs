@@ -201,6 +201,7 @@ async fn main() -> Result<()> {
                 }
             }
         }
+        _ => unreachable!(),
     }
 
     Ok(())

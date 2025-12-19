@@ -28,6 +28,7 @@ use crate::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
+#[non_exhaustive]
 pub enum BuiltinClient {
     /// [ROS1](https://ros.org)
     Ros,
@@ -37,6 +38,7 @@ pub enum BuiltinClient {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum ClientKind {
     // Use builtin client, ros or urdf-viz.
     Builtin(BuiltinClient),
