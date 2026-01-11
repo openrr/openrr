@@ -12,7 +12,6 @@ costmap
 costmaps
 dobot
 doctest
-dylib
 epaint
 espeak
 funcs
@@ -42,7 +41,6 @@ oneshot
 pathplanning
 peekable
 powerset
-repr
 rgba
 roscore
 rosdep
@@ -52,7 +50,6 @@ rospack
 rostopic
 rrbot
 rtry
-rustc
 rustdocflags
 rustflags
 RUSTSEC
@@ -80,7 +77,6 @@ unistd
 unparse
 vels
 webpki
-winapi
 xacro
 xorg
 xyzw
