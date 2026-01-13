@@ -29,9 +29,8 @@ OpenRR (pronounced like "opener") is Open Rust Robotics platform.
 sudo apt install cmake build-essential libudev-dev xorg-dev libglu1-mesa-dev libasound2-dev libxkbcommon-dev protobuf-compiler
 ```
 
-* cmake build-essential (openrr-planner (assimp-sys))
 * libudev-dev (arci-gamepad-gilrs)
-* xorg-dev libglu1-mesa-dev libxkbcommon-dev (openrr-gui (egui))
+* cmake build-essential xorg-dev libglu1-mesa-dev libxkbcommon-dev (openrr-gui (egui))
 * libasound2-dev (arci-speak-audio)
 * protobuf-compiler (openrr-remote)
 

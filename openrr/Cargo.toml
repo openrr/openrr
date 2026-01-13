@@ -11,13 +11,6 @@ categories = ["science::robotics"]
 
 [features]
 default = []
-assimp = [
-    "openrr-client/assimp",
-    "openrr-command/assimp",
-    "openrr-planner/assimp",
-    "openrr-teleop/assimp",
-    "openrr-apps/assimp",
-]
 gui = ["openrr-apps/gui"]
 ros = ["openrr-apps/ros"]
 
