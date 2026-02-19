@@ -193,50 +193,6 @@ where
 // =============================================================================
 // Messages
 
-impl From<arci::TrajectoryPoint> for pb::TrajectoryPoint {
-    fn from(val: arci::TrajectoryPoint) -> Self {
-        Self {
-            positions: val.positions,
-            velocities: val.velocities.unwrap_or_default(),
-            time_from_start: Some(val.time_from_start.try_into().unwrap()),
-        }
-    }
-}
-
-impl From<pb::TrajectoryPoint> for arci::TrajectoryPoint {
-    fn from(val: pb::TrajectoryPoint) -> Self {
-        Self {
-            positions: val.positions,
-            velocities: if val.velocities.is_empty() {
-                None
-            } else {
-                Some(val.velocities)
-            },
-            time_from_start: val.time_from_start.unwrap().try_into().unwrap(),
-        }
-    }
-}
-
-impl From<arci::BaseVelocity> for pb::BaseVelocity {
-    fn from(val: arci::BaseVelocity) -> Self {
-        Self {
-            x: val.x,
-            y: val.y,
-            theta: val.theta,
-        }
-    }
-}
-
-impl From<pb::BaseVelocity> for arci::BaseVelocity {
-    fn from(val: pb::BaseVelocity) -> Self {
-        Self {
-            x: val.x,
-            y: val.y,
-            theta: val.theta,
-        }
-    }
-}
-
 impl From<arci::Isometry2<f64>> for pb::Isometry2 {
     fn from(val: arci::Isometry2<f64>) -> Self {
         Self {
@@ -340,47 +296,6 @@ impl From<arci::gamepad::GamepadEvent> for pb::GamepadEvent {
     }
 }
 
-impl From<arci::gamepad::Button> for pb::Button {
-    fn from(val: arci::gamepad::Button) -> Self {
-        match val {
-            arci::gamepad::Button::South => Self::South,
-            arci::gamepad::Button::East => Self::East,
-            arci::gamepad::Button::North => Self::North,
-            arci::gamepad::Button::West => Self::West,
-            arci::gamepad::Button::LeftTrigger => Self::LeftTrigger,
-            arci::gamepad::Button::LeftTrigger2 => Self::LeftTrigger2,
-            arci::gamepad::Button::RightTrigger => Self::RightTrigger,
-            arci::gamepad::Button::RightTrigger2 => Self::RightTrigger2,
-            arci::gamepad::Button::Select => Self::Select,
-            arci::gamepad::Button::Start => Self::Start,
-            arci::gamepad::Button::Mode => Self::Mode,
-            arci::gamepad::Button::LeftThumb => Self::LeftThumb,
-            arci::gamepad::Button::RightThumb => Self::RightThumb,
-            arci::gamepad::Button::DPadUp => Self::DPadUp,
-            arci::gamepad::Button::DPadDown => Self::DPadDown,
-            arci::gamepad::Button::DPadLeft => Self::DPadLeft,
-            arci::gamepad::Button::DPadRight => Self::DPadRight,
-            arci::gamepad::Button::Unknown => Self::Unknown,
-        }
-    }
-}
-
-impl From<arci::gamepad::Axis> for pb::Axis {
-    fn from(val: arci::gamepad::Axis) -> Self {
-        match val {
-            arci::gamepad::Axis::LeftStickX => Self::LeftStickX,
-            arci::gamepad::Axis::LeftStickY => Self::LeftStickY,
-            arci::gamepad::Axis::LeftTrigger => Self::LeftTrigger,
-            arci::gamepad::Axis::RightStickX => Self::RightStickX,
-            arci::gamepad::Axis::RightStickY => Self::RightStickY,
-            arci::gamepad::Axis::RightTrigger => Self::RightTrigger,
-            arci::gamepad::Axis::DPadX => Self::DPadX,
-            arci::gamepad::Axis::DPadY => Self::DPadY,
-            arci::gamepad::Axis::Unknown => Self::Unknown,
-        }
-    }
-}
-
 impl From<pb::GamepadEvent> for arci::gamepad::GamepadEvent {
     fn from(val: pb::GamepadEvent) -> Self {
         let val = val.event.unwrap();
@@ -397,79 +312,6 @@ impl From<pb::GamepadEvent> for arci::gamepad::GamepadEvent {
             pb::gamepad_event::Event::Connected(()) => Self::Connected,
             pb::gamepad_event::Event::Disconnected(()) => Self::Disconnected,
             pb::gamepad_event::Event::Unknown(()) => Self::Unknown,
-        }
-    }
-}
-
-impl From<pb::Button> for arci::gamepad::Button {
-    fn from(val: pb::Button) -> Self {
-        match val {
-            pb::Button::South => Self::South,
-            pb::Button::East => Self::East,
-            pb::Button::North => Self::North,
-            pb::Button::West => Self::West,
-            pb::Button::LeftTrigger => Self::LeftTrigger,
-            pb::Button::LeftTrigger2 => Self::LeftTrigger2,
-            pb::Button::RightTrigger => Self::RightTrigger,
-            pb::Button::RightTrigger2 => Self::RightTrigger2,
-            pb::Button::Select => Self::Select,
-            pb::Button::Start => Self::Start,
-            pb::Button::Mode => Self::Mode,
-            pb::Button::LeftThumb => Self::LeftThumb,
-            pb::Button::RightThumb => Self::RightThumb,
-            pb::Button::DPadUp => Self::DPadUp,
-            pb::Button::DPadDown => Self::DPadDown,
-            pb::Button::DPadLeft => Self::DPadLeft,
-            pb::Button::DPadRight => Self::DPadRight,
-            pb::Button::Unknown => Self::Unknown,
-        }
-    }
-}
-
-impl From<pb::Axis> for arci::gamepad::Axis {
-    fn from(val: pb::Axis) -> Self {
-        match val {
-            pb::Axis::LeftStickX => Self::LeftStickX,
-            pb::Axis::LeftStickY => Self::LeftStickY,
-            pb::Axis::LeftTrigger => Self::LeftTrigger,
-            pb::Axis::RightStickX => Self::RightStickX,
-            pb::Axis::RightStickY => Self::RightStickY,
-            pb::Axis::RightTrigger => Self::RightTrigger,
-            pb::Axis::DPadX => Self::DPadX,
-            pb::Axis::DPadY => Self::DPadY,
-            pb::Axis::Unknown => Self::Unknown,
-        }
-    }
-}
-
-impl From<arci::Scan2D> for pb::Scan2D {
-    fn from(val: arci::Scan2D) -> Self {
-        Self {
-            angle_min: val.angle_min,
-            angle_max: val.angle_max,
-            angle_increment: val.angle_increment,
-            time_increment: val.time_increment,
-            scan_time: val.scan_time,
-            range_min: val.range_min,
-            range_max: val.range_max,
-            ranges: val.ranges,
-            intensities: val.intensities,
-        }
-    }
-}
-
-impl From<pb::Scan2D> for arci::Scan2D {
-    fn from(val: pb::Scan2D) -> Self {
-        Self {
-            angle_min: val.angle_min,
-            angle_max: val.angle_max,
-            angle_increment: val.angle_increment,
-            time_increment: val.time_increment,
-            scan_time: val.scan_time,
-            range_min: val.range_min,
-            range_max: val.range_max,
-            ranges: val.ranges,
-            intensities: val.intensities,
         }
     }
 }
